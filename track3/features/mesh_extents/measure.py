@@ -6,8 +6,8 @@ from pathlib import Path
 
 from track3.paths import output_path
 from track3.provenance import run_fields, write_json
-from track3.runs import (ROOT, artifact, authorize_episode, dataset_revision, new_run_id, producer, read_json,
-                         recorded, runtime_flag, same_revision)
+from track3.runs import (ROOT, artifact, authorize_episode, checked_entry, dataset_revision, new_run_id, producer,
+                         read_json, recorded, runtime_flag, same_revision)
 
 FEATURE = Path(__file__).parent
 
@@ -69,8 +69,9 @@ def measure(request: MeasureRequest):
     authorize_episode(runtime, request, "mesh extents measurement")
     depth = producer(request.depth_run, "depth.generate", request)
     revision = same_revision([depth], dataset_revision())
-    record = run_fields(ROOT, "mesh_extents", "measure", asdict(request), parents=[depth[0]],
-                        inputs=["configs/sources.lock.json", "configs/splits/public-v1.json", FEATURE / "runtime.json"])
+    record = run_fields(ROOT, "mesh_extents", "measure", asdict(request), parents=[depth[0]], allowed=("video_only",),
+                        inputs=["configs/sources.lock.json", "configs/splits/public-v1.json", FEATURE / "runtime.json",
+                                "track3/features/object_masks/opening_clusters.py"])  # _clusters fixes cluster ids
     run_id = new_run_id()
     record.update(run_id=run_id, split=request.source_split, episode_index=request.episode_index,
                   dataset_revision=revision, frames=[], artifacts={},
@@ -99,18 +100,26 @@ def measure(request: MeasureRequest):
             with np.load(path, allow_pickle=False) as arrays:
                 z, valid = arrays["depth_m"].astype(np.float64), arrays["valid"] & arrays["input_valid"]
             label, clusters, plane, scene = frame_clusters(z, valid & input_valid, k, request, rng)
-            objects = {}
+            masks = {}
             for name, ids in request.objects.items():
                 if position == 0:
                     if max(ids) >= len(clusters):
                         raise ValueError(f"{name}: cluster id beyond the {len(clusters)} clusters of frame {index}")
                     reference[name] = np.isin(label, [i + 1 for i in ids])
-                    mask = reference[name]
+                    masks[name] = reference[name]
                 else:
-                    mask = object_mask(label, reference[name], request.track_dilation_pixels)
-                objects[name] = object_extents(scene, mask, request) if mask.any() else None
+                    masks[name] = object_mask(label, reference[name], request.track_dilation_pixels)
+            # Exclusive ownership: a later-frame pixel claimed by two objects belongs to neither.
+            shared = sum(mask.astype(np.int8) for mask in masks.values()) > 1 if masks else None
+            objects = {name: object_extents(scene, mask & ~shared, request) if (mask & ~shared).any() else None
+                       for name, mask in masks.items()}
+            row["shared_pixels"] = int(shared.sum()) if masks else 0
             np.savez_compressed(directory / f"labels_{index:06d}.npz", label=label)
             if position == 0:
+                video = next((entry for entry in depth[1]["inputs"] if entry["path"] == depth[1]["source_video"]), None)
+                if video is None:
+                    raise ValueError("The depth run does not record its source video")
+                checked_entry(video, record)
                 capture = cv2.VideoCapture(str(ROOT / depth[1]["source_video"]))
                 capture.set(cv2.CAP_PROP_POS_FRAMES, index)
                 ok, image = capture.read()
@@ -129,7 +138,11 @@ def measure(request: MeasureRequest):
                     and request.pixel_ratio_range[0] <= row["objects"][name]["pixels"] / first <= request.pixel_ratio_range[1]]
             values = [row["objects"][name] for row in record["frames"] if row["frame_index"] in used]
             dims = np.array([sorted(v["in_plane_m"], reverse=True) + [v["height_m"]] for v in values])
-            summary[name] = {"frames": len(values), "frames_used": used, "median_m": np.median(dims, axis=0).tolist(),
+            # Each frame has its own unknown depth scale: pool shapes (dims over their geometric mean), then
+            # restore the median size, so the frame scales cannot change the proportions.
+            size = np.exp(np.log(dims).mean(axis=1))
+            pooled = np.median(dims / size[:, None], axis=0) * np.median(size)
+            summary[name] = {"frames": len(values), "frames_used": used, "median_m": pooled.tolist(),
                              "spread_m": (np.percentile(dims, 90, axis=0) - np.percentile(dims, 10, axis=0)).tolist(),
                              "axes": ["in_plane_long", "in_plane_short", "height"]}
         record["objects"] = summary

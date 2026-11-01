@@ -11,7 +11,7 @@ from pathlib import Path
 
 from track3.paths import output_path
 from track3.provenance import read_run, run_fields, sha256_file, write_json
-from track3.runs import ROOT, artifact, dataset_revision, new_run_id, read_json, recorded, runtime_flag
+from track3.runs import ROOT, artifact, dataset_revision, new_run_id, read_json, recorded, runtime_flag, same_revision
 
 FEATURE = Path(__file__).parent
 ROSTER = "upstream/v2d_submission_kit/v2d_submission_kit/data/track_3_evaluation_objects.json"
@@ -47,17 +47,20 @@ def _primitive(shape, dims, subdivisions, trimesh):
 
 def build(request: BuildRequest):
     runtime_flag(FEATURE, "build_authorized", "Mesh extents build")
-    parents = []
+    parents, episodes = [], set()
     for value in request.measure_runs:
         path = ROOT / value
-        record = read_run(ROOT, path, kind="mesh_extents.measure")
-        if record["status"] != "completed" or record["episode_index"] in (41, 43, 44):
-            raise ValueError(f"Not an admissible completed measure run: {value}")
+        record = read_run(ROOT, path, kind="mesh_extents.measure", allowed=("video_only",))
+        key = (record.get("split"), record.get("episode_index"))
+        if record["status"] != "completed" or key[1] in (41, 43, 44) or key in episodes:
+            raise ValueError(f"Not an admissible completed measure run, or a second run of one episode: {value}")
+        episodes.add(key)
         parents.append((path, record))
+    revision = same_revision(parents, dataset_revision())
     record = run_fields(ROOT, "mesh_extents", "build", asdict(request), parents=[path for path, _ in parents],
-                        inputs=[ROSTER, FEATURE / "runtime.json"])
+                        inputs=[ROSTER, FEATURE / "runtime.json"], allowed=("video_only",))
     run_id = new_run_id()
-    record.update(run_id=run_id, dataset_revision=dataset_revision(), artifacts={})
+    record.update(run_id=run_id, dataset_revision=revision, artifacts={})
     with recorded(output_path(ROOT, f"outputs/mesh_extents/build/{run_id}"), record) as (directory, record):
         import numpy as np
         import trimesh

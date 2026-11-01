@@ -110,8 +110,8 @@ def frame_clusters(z, valid, k, request, rng):
         local_height = pts @ local_normal + local_offset
         parts = _clusters(pts, region & ok & (local_height > request.minimum_height_m)
                           & (local_height < request.maximum_height_m), request.neighbour_distance_m, 50, np)
-        found += [(part, local_height, local_normal, local) for part in parts if (part & layer).sum() > 0.5 * part.sum()] or \
-                 [(layer, local_height, local_normal, local)]
+        # A cluster with no part above the refitted plane was table bleed, not an object: it is dropped.
+        found += [(part, local_height, local_normal, local) for part in parts if (part & layer).sum() > 0.5 * part.sum()]
     found.sort(key=lambda item: -int(item[0].sum()))
     for layer, local_height, local_normal, local in found:
         layer = layer & ~(label > 0)
