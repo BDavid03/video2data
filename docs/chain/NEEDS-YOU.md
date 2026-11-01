@@ -17,24 +17,36 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
    accept the rules on all six Track 3 competitions (five pose, one CD-O). There is no API for
    accepting rules.
 
-   **D1 mesh file is ready (context 02).** `submissions/20261101T1500Z-d1-v1/track3_meshes_v1.parquet`
-   (SHA-256 `a76143b9…1a9b`; supersedes v0) carries a placeholder URL. After item 1 (push the branch that holds
-   commit `93038d282478c8f7923425cdb2648ce8ef09d2c6` or a later one), run from the checkout
-   that holds the outputs (the worktree `.claude/worktrees/chain-ctx01`, or main after copying
-   `outputs/mesh_extents/` back), with `<owner>/<repo>` and the pushed `<sha>` filled in:
+   **Both Track 3 files are ready (context 03, branch `worktree-chain-ctx01`).** Each carries a
+   placeholder commit URL. After item 1 (push a commit that contains `7bc1a36` or later), run from
+   the checkout that holds the outputs (the worktree `.claude/worktrees/chain-ctx01`, or main after
+   copying `outputs/mesh_extents/` and `outputs/pose_insurance/` back), with `<owner>/<repo>` and the
+   pushed `<sha>` filled in. The geometry and trajectories are identical to the packed files; only
+   the URL column changes.
 
    ```bash
-   .runtime/kit-env/bin/python upstream/v2d_submission_kit/v2d_submission_kit/tools/pack_reconstruction.py track3-meshes \
-     --meshes outputs/mesh_extents/build/20261101T103838.400965Z-117fbcff/meshes \
-     --sample upstream/v2d_submission_kit/v2d_submission_kit/data/track_3_mesh_sample_submission.parquet \
-     --commit https://github.com/<owner>/<repo>/commit/<sha> \
-     --out submissions/20261101T1500Z-d1-v1/track3_meshes_v1_final.parquet
-   KAGGLE_API_TOKEN=<token> .runtime/kit-env/bin/kaggle competitions submit -c v2d-challenge-track3-cd-o \
-     -f submissions/20261101T1500Z-d1-v1/track3_meshes_v1_final.parquet -m "D1 v1: video-measured extents boxes"
+   K=upstream/v2d_submission_kit/v2d_submission_kit
+   URL=https://github.com/<owner>/<repo>/commit/<sha>
+   # D1 v2 meshes (CD-O)
+   .runtime/kit-env/bin/python $K/tools/pack_reconstruction.py track3-meshes \
+     --meshes outputs/mesh_extents/build/20261101T160402.316899Z-0c4f8b6f/meshes \
+     --sample $K/data/track_3_mesh_sample_submission.parquet \
+     --commit $URL --out submissions/20261101T1605Z-d1-v2/track3_meshes_v2_final.parquet
+   # D2 v1 poses (five pose metrics)
+   .runtime/kit-env/bin/python $K/tools/pack_submission.py --track track_3 \
+     --results outputs/pose_insurance/results-v1 --code-commit $URL \
+     --eval-script $K/flash_chord/scripts/evaluate_policy.py \
+     -o submissions/20261101T1703Z-d2-v1/track3_poses_v1_final.csv
+   .runtime/kit-env/bin/python $K/tools/preflight.py --track track_3 --results outputs/pose_insurance/results-v1
+   # upload (needs KAGGLE_API_TOKEN and the rules accepted on all six Track 3 competitions)
+   .runtime/kit-env/bin/python $K/submit/v2d_submit.py submissions/20261101T1605Z-d1-v2/track3_meshes_v2_final.parquet \
+     --track track_3_mesh -m "Video-measured primitives, vessel+handle rule"
+   .runtime/kit-env/bin/python $K/submit/v2d_submit.py submissions/20261101T1703Z-d2-v1/track3_poses_v1_final.csv \
+     --track track_3 -m "Static-object insurance rollout"
    ```
 
-   The geometry is identical to the v1 file; only the URL column changes. Please write the
-   leaderboard score back here or in `AGENTS.md` so the chain can record it in `SUBMISSION.md`.
+   Superseded files (do not upload): D1 v0, v1; D2 v0. Please write the leaderboard scores back
+   here or in `AGENTS.md` so the chain can record them in `SUBMISSION.md`.
 4. [ ] **Chain contexts cannot edit the main checkout (added by context 01).** Claude Code's
    background-job guard rejects file edits in `/home/ceolwolf/repos/video2data` and requires a
    worktree. Context 01 therefore worked in `.claude/worktrees/chain-ctx01` on branch
