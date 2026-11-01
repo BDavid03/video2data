@@ -63,6 +63,18 @@ def now():
     return time.time()
 
 
+def alert(text):
+    """Get the owner's attention: terminal bell, plus CHAIN_NOTIFY_CMD (run with the message as its argument)."""
+    sys.stdout.write("\a")
+    sys.stdout.flush()
+    command = os.environ.get("CHAIN_NOTIFY_CMD")
+    if command:
+        try:
+            subprocess.run([*command.split(), text[:500]], timeout=30, check=False)
+        except (OSError, subprocess.SubprocessError) as error:
+            print(f"CHAIN_NOTIFY_CMD failed: {error}", flush=True)
+
+
 def stamp():
     return datetime.datetime.now().strftime("%H:%M")
 
@@ -99,7 +111,18 @@ class Chain:
     def finish(self, reason, text):
         self.say(f"{reason}: {text}", event="end", reason=reason, text=text, launched=self.launched)
         print(f"chain {reason}: {text}", flush=True)
+        alert(f"chain {reason}: {text}")
         sys.exit(EXIT[reason])
+
+    def stranded(self, newest):
+        """A newer hand-off that exists only in a worktree (the edit guard kept it out of this checkout)."""
+        for path in sorted(glob.glob(os.path.join(ROOT, ".claude/worktrees/*", self.a.handoffs, "HANDOFF-*.md"))):
+            if os.path.basename(path) > os.path.basename(newest):
+                tree = path.split(os.sep + self.a.handoffs.replace("/", os.sep))[0]
+                branch = subprocess.run(["git", "-C", tree, "branch", "--show-current"], capture_output=True,
+                                        text=True).stdout.strip() or "?"
+                return os.path.basename(path), branch
+        return None
 
     # ---- hand-offs ----------------------------------------------------------------------------------------
     def newest_handoff(self):
@@ -257,7 +280,7 @@ class Chain:
     def watch(self, job_id, handoff_path):
         """Wait until the context writes a newer hand-off and goes quiet. Returns the job's final state."""
         a = self.a
-        last_line, seen_new_at, quiet_since, blocked_said = None, None, None, False
+        last_line, seen_new_at, quiet_since, blocked_said, stranded_said = None, None, None, False, False
         while True:
             self.check_stop()
             d = self.job(job_id)
@@ -294,6 +317,13 @@ class Chain:
                     return d
             elif quiet and self.tasks(d) == 0:
                 quiet_since = quiet_since or now()
+                lost = None if stranded_said else self.stranded(newest)
+                if lost:
+                    text = (f"STRANDED {name}: {lost[0]} is only on branch {lost[1]}; the chain stalls in "
+                            f"{a.stall_minutes} min unless you run: cd {ROOT} && git merge {lost[1]}")
+                    self.say(text, event="stranded", job=job_id, handoff=lost[0], branch=lost[1])
+                    alert(text)
+                    stranded_said = True
                 if now() - quiet_since >= a.stall_minutes * 60:
                     self.finish("STALLED", f"{name} ({job_id}) has been idle {a.stall_minutes} min with nothing in "
                                            f"flight and no new hand-off; read it with `claude attach {job_id}`")

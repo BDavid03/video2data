@@ -55,6 +55,14 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
    `outputs/mesh_eval`, `outputs/depth/evaluation`, `outputs/depth/public/episode_000039`,
    `outputs/stereo_depth`, `outputs/camera_motion`), and add `"worktree": {"bgIsolation": "none"}`
    to `.claude/settings.json` so the next context can work in place.
+   *Notifications (2026-11-02, at the owner's request):* the branch's `scripts/chain/session_chain.py`
+   now logs `STRANDED` with the merge command when a newer hand-off exists only in a worktree, and
+   rings the terminal bell on that and on every finish (STALLED, LIMIT, COMPLETE). Set
+   `CHAIN_NOTIFY_CMD` (a command that takes the message as its last argument, e.g. a Windows toast
+   wrapper) for a desktop notification. It takes effect after the merge and a driver restart; the
+   running driver has the old code. Contexts also send a PushNotification when their hand-off is
+   stranded (rule in the hand-off prompt). You may want a dated `AGENTS.md` line making that rule
+   permanent.
 5. [ ] **Hand-pose model for D2 (proposal).** Simulated hands must follow a hand reference
    estimated from the egocentric video. The `hand_motion` slice is written for WiLoR (weights)
    plus the MANO hand model; neither is present, and MANO requires registering at
