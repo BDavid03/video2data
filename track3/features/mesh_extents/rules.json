@@ -1,0 +1,23 @@
+{
+  "rules": [
+    {
+      "name": "R1 vessel-cylinder",
+      "shapes": {"round_vessel": "cylinder", "flat_or_blocky": "box", "thin_tool": "box"},
+      "parameter": null,
+      "grid": [null]
+    },
+    {
+      "name": "R2 vessel-handle",
+      "shapes": {"round_vessel": "vessel_with_handle", "flat_or_blocky": "box", "thin_tool": "box"},
+      "parameter": "aspect_threshold",
+      "grid": [1.05, 1.15, 1.3],
+      "handle_height_fraction": 0.6
+    },
+    {
+      "name": "R3 thin-tool-head",
+      "shapes": {"round_vessel": "box", "flat_or_blocky": "box", "thin_tool": "head_and_handle"},
+      "parameter": "head_length_fraction",
+      "grid": [0.25, 0.35, 0.5]
+    }
+  ]
+}

@@ -59,3 +59,72 @@ median by its geometric mean, takes the per-axis median over episodes and restor
 ## Evidence
 
 `outputs/mesh_eval/d1-ctx02/` (local CD-O against the public scans, measurement only).
+
+## Shape rules
+
+Run all three rules and their parameter grids on CPU, or resume the same command:
+
+```bash
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/kit-env/bin/python -B -m track3.features.mesh_extents.rules --queue track3/features/mesh_extents/rules.json
+```
+
+The editable queue is `rules.json`. The handler reuses the v1 pooled video extents and exact
+box files from `outputs/mesh_extents/build/20261101T103838.400965Z-117fbcff/`, reproduces the
+baseline, then imports `scripts/track3/local_cdo.py` for the kit's mesh budget and CD-O scorer
+(seed episodes 1, 3, 5). The existing `build.py`, `_geometry.py` and `measure.py` are unchanged.
+No scans enter the shape builders in `_shapes.py`.
+
+- **R1 vessel-cylinder:** round vessels become capped elliptical cylinders; other categories
+  retain their v1 boxes. No free parameter.
+- **R2 vessel-handle:** round vessels with measured long/short aspect above the threshold
+  become circular cylinders plus a closed handle bar using the long-axis excess; other round
+  vessels become elliptical cylinders. Threshold grid: 1.05, 1.15, 1.30. Handle height is fixed
+  at 60% of measured height and width at 15% of the short extent. Tuning the threshold tests
+  when a handle is appropriate while leaving just one free parameter.
+- **R3 thin-tool-head:** thin tools become a box head plus narrow box handle, aligned along the
+  measured in-plane long axis. Head length grid: 0.25, 0.35, 0.50 of that extent; handle width is
+  fixed at 20% of the short extent. Both components retain measured height. The unscanned spoon
+  shares this rule's category but is neither scored nor rebuilt by this evaluation.
+
+Categories, folds and adoption gates follow `docs/chain/mesh-selection-protocol.md`. Each
+parameter is chosen on fold A and scored on B, then chosen on B and scored on A; ties take the
+first grid entry. The headline combines the ten held-out object scores. The in-sample column
+chooses one parameter on all ten objects and is optimistic. Pair weighting applies the v1 roster
+counts to the cross-fitted scores (26 scanned pairs). Adoption requires a gain greater than
+0.03 cm, no object regression greater than 0.15 cm, and no pair-weighted regression.
+
+Outputs under `outputs/mesh_eval/rules/`: `summary.md`, machine-readable `summary.json`,
+`rules-cdo.png`, append-only `ledger.jsonl`, content-addressed meshes and scores, and per-object
+trial `run.json` records. Complete trials resume by a hash of the rule, parameter, object,
+video extents, candidate/reference bytes, protocol, code and scoring environment. Identical
+mesh/reference pairs reuse their score across rules. Run records mark the evaluation as
+`public_asset_diagnostic`; candidate shapes still derive solely from video. The kit environment
+does the scoring; the existing `.runtime/linux-cuda` interpreter renders the matplotlib figure
+on CPU without requiring another install.
+
+Handle meshes concatenate overlapping, individually watertight components. They contain internal
+faces; this run checks the kit budget and area-weighted CD-O sampling, not Boolean union or
+physical simulation validity. No submission files are built or repacked by this command.
+
+Results: development estimates against the ten public scans, with parameters chosen on one fold
+and scored on the other. Box v1 is **1.00764 cm per object**, **1.25662 cm pair-weighted**.
+
+| Rule | Chosen on A → scored B | Chosen on B → scored A | Cross-fitted mean (cm) | In-sample mean (cm) | Pair-weighted mean (cm) | Worst regression (cm) | Gain / object / pair gates | Adopt |
+| --- | --- | --- | ---: | ---: | ---: | ---: | --- | --- |
+| R2 vessel-handle | 1.3 | 1.05 | 0.92572 | 0.92506 | 1.08742 | +0.10599 | pass / pass / pass | yes |
+| R1 vessel-cylinder | none | none | 0.95644 | 0.95644 | 1.18422 | +0.00668 | pass / pass / pass | yes |
+| R3 thin-tool-head | 0.5 | 0.25 | 0.99027 | 0.98365 | 1.24326 | +0.00000 | fail / pass / pass | no |
+
+R2 ranks first: gain **0.08192 cm per object**, with its worst regression on water_pitcher
+(1.57686 → 1.68285 cm, +0.10599 cm). R1 also qualifies, with a smaller gain of 0.05120 cm.
+R3 improves both scanned tools but its held-out gain is only 0.01737 cm, so it fails the
+0.03 cm requirement; this evidence does not support changing the unscanned spoon. No combined
+rule was tried. The adoption column means eligible under the fixed protocol; packing remains
+the lead context's decision.
+
+The full CPU run produced 80 object trials (10 baseline + 70 rule/parameter/object combinations),
+25 unique mesh scores and 55 exact mesh-score reuses. All ten baseline scores reproduce the
+stored v1 JSON within its rounding. An independent artifact-based calculation agrees with all
+fold selections, means and gates (`outputs/mesh_eval/rules/independent-recheck.json`).
+Repeating the command resumed all 80 completed trials with zero new scores, left the ledger at
+80 rows, and reproduced the ranking exactly (`outputs/mesh_eval/rules/resume-recheck.json`).
