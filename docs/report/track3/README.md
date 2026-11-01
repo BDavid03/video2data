@@ -1,4 +1,4 @@
-Anonymous Track 3 abstract with two pages of main text, covering the fixed mesh-rule protocol and the completed static-object pose entry. Build from the worktree root with `bash scripts/report/build_pdf.sh docs/report/track3/main.tex`; the pinned Tectonic writes `main.pdf`, `main.log`, and `main.blg` beside the source. The unchanged template classes use the anonymous option to suppress names and the logo. The redundant bar figure is omitted to make room for the critic disclosures; its source and existing assets are retained. Below, `S` = `outputs/mesh_eval/rules/summary.json`, `R2` = `S:ranking[rule="R2 vessel-handle"]`, `V` = `outputs/mesh_eval/d1-ctx03/v2-cdo.json`, `B` = `outputs/mesh_extents/build/20261101T160402.316899Z-0c4f8b6f/`, `P` = `outputs/pose_insurance/`, and `M` = `outputs/mesh_extents/public/episode_000011/20261101T103701.928174Z-f63cc238/run.json`. Name selectors mean lookup by value, not array position; displayed values use decimal half-up rounding. The table uses full-precision rule trials, avoiding a second rounding of the fresh v2 score file; the text separately reports that fresh fitted score. Cross-fitting applies to rule parameters on the same public references, not an untouched test, and D2 tuning on single-object episodes cannot establish relative multi-object placement or manipulation performance.
+Anonymous Track 3 abstract with two pages of main text, covering the fixed mesh-rule protocol and the completed static-object pose entry. Build from the worktree root with `bash scripts/report/build_pdf.sh docs/report/track3/main.tex`; the pinned Tectonic writes `main.pdf`, `main.log`, and `main.blg` beside the source. The unchanged template classes use the anonymous option to suppress names and the logo. The one-column qualitative panel complements the numeric table; the legacy bar chart remains available with `make_figures.py --bars` but is not included. Panel scores describe the final fitted meshes, not the cross-fitted headline. Below, `S` = `outputs/mesh_eval/rules/summary.json`, `R2` = `S:ranking[rule="R2 vessel-handle"]`, `V` = `outputs/mesh_eval/d1-ctx03/v2-cdo.json`, `B` = `outputs/mesh_extents/build/20261101T160402.316899Z-0c4f8b6f/`, `V1` = `outputs/mesh_eval/d1-ctx02/v1-box.json`, `P` = `outputs/pose_insurance/`, and `M` = `outputs/mesh_extents/public/episode_000011/20261101T103701.928174Z-f63cc238/run.json`. Name selectors mean lookup by value, not array position; displayed values use decimal half-up rounding. The table uses full-precision rule trials, avoiding a second rounding of the fresh v2 score file; the text separately reports that fresh fitted score. Cross-fitting applies to rule parameters on the same public references, not an untouched test, and D2 tuning on single-object episodes cannot establish relative multi-object placement or manipulation performance.
 
 | Claim in text or table | Recorded source and key / derivation |
 | --- | --- |
@@ -8,6 +8,7 @@ Anonymous Track 3 abstract with two pages of main text, covering the fixed mesh-
 | Every R2 CF table value | `R2.per_object_cm[object_name]`: beige cup 0.3656637065258667, blue cup 0.4418701070499999, dust pan 1.0612569261637064, sweeper 0.723585214852021, dish rack 2.1147920862043694, pitcher 1.6828523600348537, pot 1.327688027232037, lid 0.6955886791970488, wood 1 0.44443347270991, wood 2 0.39948843967464204. |
 | R2 fit table values; fitted object mean 0.925 cm and pair mean 1.088 cm | `R2.trials[parameter=1.3].objects[].{object,cd_o_cm}`; object mean `R2.in_sample_mean_cm=0.9250628448040409`; pair mean `sum(score*S.pair_counts[name])/26=1.087678420439796`. Fit differs from CF for beige cup (0.3790794332009006) and lid (0.6755823809179679); all other values agree. |
 | Fresh final-mesh fitted score 0.9251 cm | `V.mean_cd_o_cm=0.9251`. `V.source` points to `B/objects`. This fresh score records object scores to four decimal places; it is not the cross-fitted adoption score. `outputs/mesh_eval/d1-ctx03/v2-mesh-equivalence.json` records equivalence with the loop's R2/1.3 candidates. |
+| Qualitative panel: final R2 / v1 box CD-O (cm) | `V.objects[object=name].cd_o_cm` / `V1.objects[object=name].cd_o_cm`: `white_pot` = 1.3277 / 1.8182 → **1.328 / 1.818**; `water_pitcher` = 1.6829 / 1.5769 → **1.683 / 1.577**; `plastic_dish_rack` = 2.1148 / 2.1148 → **2.115 / 2.115**. These are the saved final-build scores, averaged over sampling seeds derived from episodes 1/3/5, with no new scoring. The pot improves, pitcher regresses, and rack has the largest final score among all ten `V.objects` entries. The reference scan has no separate candidate score; both numbers label the submitted-mesh row. |
 | R1 0.956 cm; R3 0.990 cm, R3 fails gain gate | `S.ranking[rule="R1 vessel-cylinder"].cross_fitted_mean_cm=0.9564430821692316`; `S.ranking[rule="R3 thin-tool-head"].cross_fitted_mean_cm=0.9902723134347186`, `.gates.gain_gt_0.03_cm=false`, `.adopt=false`. Both R1 and R2 have all gate booleans true; R2 ranks first. |
 | Per-object paired gains and object-level uncertainty | Recomputed directly from the 80 unique rows in `outputs/mesh_eval/rules/ledger.jsonl`, using `rule`, `parameter`, `object`, `cd_o_cm` and the protocol folds. Select the lowest training-fold mean in fixed grid order, then use the opposite fold: A selects 1.3, B selects 1.05. For each object, gain = box minus held-out R2 score. Gains (cm): beige cup `0.23928082287039348`, blue cup `0.22211950083414095`, pot `0.49047122601327375`, pitcher `-0.10599337236949369`, lid `-0.026689620534432468`; the other five are zero. Arithmetic mean `0.08191885568138821`; sample SD (denominator 9) `0.18012167185925354`; SE = SD/sqrt(10) = `0.056959473903269685`; mean/SE = `1.4381954408586235`. These are descriptive object-level summaries of adaptively selected results, not independent assessment or a correction for selection. |
 | Pot supplies 60% of net object-mean gain and 67% of net pair-weighted gain | From the ledger-recomputed gain vector above: `gain[white_pot]/sum(gain)=0.5987281217902899`; `6*gain[white_pot]/sum(count[name]*gain[name])=0.6689302857430074`. Counts come from object-name occurrences in `outputs/mesh_extents/build/20261101T103838.400965Z-117fbcff/objects.json:pairs_written` (six pot pairs, 26 scanned pairs); equivalently `S.pair_counts`. Shares use net gain, including negative pitcher/lid gains. |
@@ -32,3 +33,67 @@ Anonymous Track 3 abstract with two pages of main text, covering the fixed mesh-
 | Simulated assets differ from submitted mesh assets | Every producer selected by `P/v1/tasks.json:*.run` records `inputs` admitting `outputs/mesh_extents/build/20261101T103838.400965Z-117fbcff/{run.json,objects.json,objects/*.ply}`: video-box build used by pose simulation, with per-episode MoGe size restoration/default pooled size. The submitted vessel-rule assets instead come from `B` (`V.source`; `B/run.json:request.shape="vessel_rule"`). Both producer lineages are video-derived reconstructions. Example task producer: `outputs/pose_insurance/build-v1/20261101T165137.956282Z-b83602fa/episode_000001/run.json`. |
 | Tuning 39/42 unchanged: AUC 0.175/0.194, SP-SR 0/0, matching oracle-static AUC/SP-SR | `outputs/pose_insurance/diagnostic-v1/20261101T170255.684375Z-4b00de97/run.json` and `outputs/pose_insurance/diagnostic-v1/20261101T170326.563872Z-4028f8b6/run.json`: `metrics.learned.AUC=0.17496081504702193,0.19406614785992216`; `metrics.learned.SP_SR=0,0`; these equal `metrics.oracle_static.AUC,SP_SR` and the previous recorded diagnostics. `sampling` and `metrics.note` disclose own surface samples approximating host vertices. With a constant single-object predicted trajectory and initial-pose alignment, matching the oracle static AUC/SP-SR is by construction, not evidence of placement accuracy; see kit metric alignment and `track3/features/pose_insurance/diagnostic.py`. Relative-placement accuracy remains unmeasured. Other metrics are not asserted identical: episode 42 learned/oracle MPPE is 7.38046781421122/7.371285267790487 cm. |
 | Metric size, static boxes, parked hands, remaining pose limits | `track3/features/pose_insurance/README.md`, `P/v1/report.md`, recorded task scenes and policy producers describe the implementation. MoGe size remains unanchored and uncalibrated; parked hands leave objects stationary. The reported tuning episodes each contain one object and cannot quantify relative placement or semantic object-frame errors. The manifest pins actual working-source hashes and a placeholder commit URL; its preflight verdict does not establish a completed upload. |
+
+Qualitative panel reproduction and image provenance:
+
+```bash
+mkdir -p .runtime/tmp/d3-qualitative
+PYTHONDONTWRITEBYTECODE=1 MPLCONFIGDIR="$PWD/.runtime/tmp/d3-qualitative/matplotlib" \
+  .runtime/linux-cuda/bin/python docs/report/track3/figures/make_figures.py \
+  --preview .runtime/tmp/d3-qualitative/panel.png
+```
+
+The script writes `figures/d1-v2-qualitative.pdf` and, with `--preview`, the same Matplotlib
+figure as a 300 dpi PNG. The one-column canvas is 3.18 × 3.05 inches; text remains vector,
+and the mesh surfaces are rasterised at 300 dpi. It uses the existing Matplotlib 3.11.2,
+trimesh 5.2.0 and NumPy 2.2.6 on CPU; nothing was installed. The PNG was visually inspected
+for crop/assignment correspondence, mesh orientation, label clipping and overlap.
+
+The RGB comes from the **left half** of each producer's `overlay_000000.png`: this is the
+unmodified RGB after the measurement handler's remapping, not a fresh video decode.
+`labels_000000.npz:label` holds one-based cluster labels; the displayed union uses
+`label in [cluster_id + 1]`. A blue translucent fill and boundary highlight only the assigned
+object. The crop adds a 10% margin around that union and does not rotate the RGB.
+All three producers are in `B/run.json:request.measure_runs`; their recorded request IDs
+are checked against `track3/features/mesh_extents/assignments.json`:
+
+| Panel row | Frame-0 measurement producer under `outputs/mesh_extents/public/` | Assignment key and zero-based cluster IDs |
+| --- | --- | --- |
+| Pot (`white_pot`) | `episode_000042/20261101T103715.090424Z-d410dfac/run.json` | `episodes["public:42"].objects.white_pot = [0]` |
+| Pitcher (`water_pitcher`) | `episode_000021/20261101T103707.151959Z-05bf6bac/run.json` | `episodes["public:21"].objects.water_pitcher = [0]` |
+| Dish rack (`plastic_dish_rack`) | `episode_000012/20261101T103703.949004Z-546c56c2/run.json` | `episodes["public:12"].objects.plastic_dish_rack = [0,2,3,4,5,6]` |
+
+Submitted surfaces are the exact `V.objects[object=name].candidate` files in
+`B/objects/<name>.ply`. Reference surfaces come from
+`datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh/<name>/<name>.glb`.
+Only those three scans are read. Full scan triangles are displayed; recorded CD-O instead
+uses the kit mesh budget, as described above. Scans are shown solely as scoring references,
+and no display transform changes any candidate file or recorded score.
+
+For display, each mesh is independently centred on its bounding box and divided **uniformly**
+by its longest extent. Candidate axes are unchanged. Display-only right-handed rotations
+map scan coordinates `(x,y,z)` to `(z,-y,x)` for pot/rack and `(y,-x,z)` for pitcher,
+so vessels stand upright and the rack lies flat. All six meshes use the same orthographic
+camera (elevation 25°, azimuth −65°), light and axis limits. This is a canonical illustration,
+not the scorer's optimized registration or surface-RMS normalization; hence the caption says
+**shown at normalised scale**. Neither metric size nor frame-camera alignment is implied.
+
+Build and page-budget evidence (2026-11-02): the pinned Tectonic 0.17.0 was invoked with the
+same `-X compile -Z continue-on-errors --keep-logs` arguments as `scripts/report/build_pdf.sh`.
+For this job's restricted write scope, its existing `.cache/tectonic` contents were copied to
+`.runtime/tmp/d3-qualitative/tectonic` and `TECTONIC_CACHE_DIR` redirected there. Reproduce the
+ordinary build with the command in the opening paragraph, or use the scoped-cache invocation:
+
+```bash
+TECTONIC_CACHE_DIR="$PWD/.runtime/tmp/d3-qualitative/tectonic" \
+  .runtime/tools/tectonic-0.17.0/tectonic -X compile -Z continue-on-errors --keep-logs \
+  docs/report/track3/main.tex
+rg -n '^! |TRACK3-|Output written|Overfull' docs/report/track3/main.log
+```
+
+`main.log` records `TRACK3-MAIN-TEXT-END-PAGE: 2`, `TRACK3-TABLE-PAGE: 2`,
+`TRACK3-FIGURE-PAGE: 1` and `Output written on main.xdv (2 pages, ...)`.
+The PDF page-tree count is also **2**: even references fit on page 2. The sole `!` error is
+`Package microtype Error: The tracking feature only works with pdftex 1.40`; there are no
+overfull boxes or undefined references. Existing font-encoding and underfull-box warnings
+remain. No test suite, GPU work, holdout access or metric rerun was performed.
