@@ -9,7 +9,8 @@ from track3.paths import output_path
 from track3.provenance import run_fields, write_json, sha256_file
 from track3.runs import (ROOT, artifact, producer, read_json, new_run_id, recorded, runtime_flag,
                          authorize_episode, heavy_execution)
-from ._scene import box_pose, scaled_dimensions, parked_robot, camera_points, separate_boxes, box_properties
+from ._scene import parked_robot, camera_points, box_properties
+from ._placement import place_boxes
 
 FEATURE = Path(__file__).parent
 KIT = ROOT / "upstream/v2d_submission_kit/v2d_submission_kit"
@@ -90,10 +91,12 @@ def build(request):
         if placements:
             artifact(measure, "overlay_000000.png", record)
         assignment_note = assignment.get("note", "")
+        slot_metadata, clusters, proportions, measurements = [], [], [], []
         for slot, name in enumerate(names):
             shape = objects[name]
             measured = measure[1].get("objects", {}).get(name, {}).get("median_m", shape["extents_m"])
-            dims = scaled_dimensions(shape["extents_m"], measured)
+            proportions.append(shape["extents_m"])
+            measurements.append(measured)
             entry = by_name.get(name)
             ids = entry["cluster_ids"] if entry else assignment["objects"].get(name)
             confidence = entry["confidence"] if entry else (
@@ -101,12 +104,16 @@ def build(request):
             note = entry["note"] if entry else "Reviewed mesh_extents assignment"
             if entry is None and (ids is None or first["frame_index"] != 0):
                 raise ValueError(f"{name}: record an explicit placement before building this slot")
-            if ids is not None:
-                mask = np.isin(labels, [i+1 for i in ids])
-                pos, quat = box_pose(points[mask], normal, dims)
-            else:
-                pos, quat = np.array([slot * 0.5, 0., dims[2]/2]), np.array([1.,0,0,0])
+            clusters.append(points[np.isin(labels, [i+1 for i in ids])] if ids is not None else None)
+            if ids is None:
                 note += "; default 0.5 m slot spacing with identity orientation"
+            slot_metadata.append((entry, ids, confidence, note))
+        geometry = place_boxes(proportions, measurements, clusters, normal,
+                               [entry is not None for entry, _, _, _ in slot_metadata])
+        for slot, name in enumerate(names):
+            shape = objects[name]
+            entry, ids, confidence, note = slot_metadata[slot]
+            dims, pos, quat = (geometry[key][slot] for key in ("dimensions", "before", "quaternions"))
             mesh = directory / f"{name}.obj"
             source_mesh = artifact(d1, shape["file"], record, shape["sha256"])
             obj = trimesh.load(source_mesh, force="mesh")
@@ -136,12 +143,10 @@ def build(request):
                           "assignment_note":assignment_note,
                           "placement_overlay":entry["overlay"] if entry else None,
                           "placement_source":"placements.json" if entry else "mesh_extents.assignments.json"})
-        separated, shifts = separate_boxes(positions, [r["dimensions_m"] for r in scene], quaternions,
-                                            [r["placement_source"] == "placements.json" for r in scene])
-        for row, new, shift in zip(scene, separated, shifts):
+        for row, new, shift in zip(scene, geometry["positions"], geometry["shifts"]):
             row["collision_displacement_cm"] = float(shift)
             row["position"] = new.tolist()
-        positions = separated.tolist()
+        positions = geometry["positions"].tolist()
         template_path = next(TEMPLATE.glob("*.parquet"))
         template = pq.read_table(template_path).to_pylist()[0]
         task = parked_robot(template, count)

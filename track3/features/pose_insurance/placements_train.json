@@ -1,0 +1,148 @@
+{
+  "rule": "Recorded from frame-zero overlays before any candidate scoring. Cluster ids are zero-based; NPZ labels add one. Missing v1 placements remain defaults. K1 changes only merged episodes 0/26/31; the recorded stacked_slot is the visibly upper object. Near-identical boards in episode 23 retain arbitrary identities from assignments.json.",
+  "episodes": {
+    "0": {
+      "measure_run": "outputs/mesh_extents/public/episode_000000/20261101T150512.015735Z-5ff23e7a/run.json",
+      "overlay": "outputs/mesh_extents/public/episode_000000/20261101T150512.015735Z-5ff23e7a/overlay_000000.png",
+      "merged_cluster_ids": [
+        0
+      ],
+      "slots": {
+        "white_pot": {
+          "cluster_ids": null,
+          "observed_cluster_ids": [
+            0
+          ],
+          "merged_cluster_ids": [
+            0
+          ],
+          "note": "Cluster 0 merges the pot body, handle and seated lid. No independent pot cluster; v1 retains slot-0 default.",
+          "confidence": "uncertain",
+          "overlay_reviewed": true
+        },
+        "white_pot_lid": {
+          "cluster_ids": null,
+          "observed_cluster_ids": [
+            0
+          ],
+          "merged_cluster_ids": [
+            0
+          ],
+          "note": "Cluster 0 merges the lid with the pot; lid is visibly above pot. No independent lid cluster; v1 retains slot-1 default.",
+          "confidence": "uncertain",
+          "overlay_reviewed": true
+        }
+      },
+      "stacked_slot": 1
+    },
+    "11": {
+      "measure_run": "outputs/mesh_extents/public/episode_000011/20261101T103701.928174Z-f63cc238/run.json",
+      "overlay": "outputs/mesh_extents/public/episode_000011/20261101T103701.928174Z-f63cc238/overlay_000000.png",
+      "merged_cluster_ids": null,
+      "slots": {}
+    },
+    "12": {
+      "measure_run": "outputs/mesh_extents/public/episode_000012/20261101T103703.949004Z-546c56c2/run.json",
+      "overlay": "outputs/mesh_extents/public/episode_000012/20261101T103703.949004Z-546c56c2/overlay_000000.png",
+      "merged_cluster_ids": null,
+      "slots": {
+        "blue_cup": {
+          "cluster_ids": null,
+          "observed_cluster_ids": [
+            1
+          ],
+          "merged_cluster_ids": null,
+          "note": "Cup is cluster 1 but cut by the bottom image border. Excluded from reviewed size/placement assignment; v1 retains slot-0 default.",
+          "confidence": "uncertain",
+          "overlay_reviewed": true
+        }
+      }
+    },
+    "18": {
+      "measure_run": "outputs/mesh_extents/public/episode_000018/20261101T103706.195611Z-8e4c4ca5/run.json",
+      "overlay": "outputs/mesh_extents/public/episode_000018/20261101T103706.195611Z-8e4c4ca5/overlay_000000.png",
+      "merged_cluster_ids": null,
+      "slots": {}
+    },
+    "21": {
+      "measure_run": "outputs/mesh_extents/public/episode_000021/20261101T103707.151959Z-05bf6bac/run.json",
+      "overlay": "outputs/mesh_extents/public/episode_000021/20261101T103707.151959Z-05bf6bac/overlay_000000.png",
+      "merged_cluster_ids": null,
+      "slots": {}
+    },
+    "23": {
+      "measure_run": "outputs/mesh_extents/public/episode_000023/20261101T103708.924989Z-52ed3be1/run.json",
+      "overlay": "outputs/mesh_extents/public/episode_000023/20261101T103708.924989Z-52ed3be1/overlay_000000.png",
+      "merged_cluster_ids": null,
+      "slots": {}
+    },
+    "26": {
+      "measure_run": "outputs/mesh_extents/public/episode_000026/20261101T150527.858368Z-51cea8f6/run.json",
+      "overlay": "outputs/mesh_extents/public/episode_000026/20261101T150527.858368Z-51cea8f6/overlay_000000.png",
+      "merged_cluster_ids": [
+        0
+      ],
+      "slots": {
+        "plastic_dish_rack": {
+          "cluster_ids": null,
+          "observed_cluster_ids": [
+            0
+          ],
+          "merged_cluster_ids": [
+            0
+          ],
+          "note": "Cluster 0 merges rack, pot and handle. No independent rack cluster; v1 retains slot-0 default.",
+          "confidence": "uncertain",
+          "overlay_reviewed": true
+        },
+        "white_pot": {
+          "cluster_ids": null,
+          "observed_cluster_ids": [
+            0
+          ],
+          "merged_cluster_ids": [
+            0
+          ],
+          "note": "Cluster 0 merges the pot with its supporting rack; pot visibly sits above rack. No independent pot cluster; v1 retains slot-1 default.",
+          "confidence": "uncertain",
+          "overlay_reviewed": true
+        }
+      },
+      "stacked_slot": 1
+    },
+    "31": {
+      "measure_run": "outputs/mesh_extents/public/episode_000031/20261101T150530.131074Z-2d008e1e/run.json",
+      "overlay": "outputs/mesh_extents/public/episode_000031/20261101T150530.131074Z-2d008e1e/overlay_000000.png",
+      "merged_cluster_ids": [
+        0
+      ],
+      "slots": {
+        "mini_sweeper": {
+          "cluster_ids": null,
+          "observed_cluster_ids": [
+            0
+          ],
+          "merged_cluster_ids": [
+            0
+          ],
+          "note": "Cluster 0 merges upright sweeper with rack. No independent sweeper cluster; v1 retains slot-0 default.",
+          "confidence": "uncertain",
+          "overlay_reviewed": true
+        },
+        "plastic_dish_rack": {
+          "cluster_ids": null,
+          "observed_cluster_ids": [
+            0
+          ],
+          "merged_cluster_ids": [
+            0
+          ],
+          "note": "Cluster 0 merges rack and upright sweeper. Rack is below sweeper. No independent rack cluster; v1 retains slot-1 default.",
+          "confidence": "uncertain",
+          "overlay_reviewed": true
+        }
+      },
+      "stacked_slot": 0
+    }
+  }
+}

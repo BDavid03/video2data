@@ -1,0 +1,21 @@
+{
+  "episodes": [
+    0,
+    11,
+    12,
+    18,
+    21,
+    23,
+    26,
+    31
+  ],
+  "candidates": [
+    "v1",
+    "K1a",
+    "K1b",
+    "K2",
+    "K1+K2"
+  ],
+  "max_trials": 40,
+  "selection": "K1 with greatest eight-episode mean AUC; ties choose K1a. K1+K2 uses that K1. Adoption is sequential against the predecessor per Amendment 1."
+}

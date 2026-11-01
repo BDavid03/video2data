@@ -5,9 +5,13 @@ from .request import Request
 
 def main():
     parser = argparse.ArgumentParser(__doc__)
-    parser.add_argument("operation", choices=["build", "run"])
+    parser.add_argument("operation", choices=["build", "run", "placement_diagnostic"])
     parser.add_argument("--request", required=True)
     args = parser.parse_args()
+    if args.operation == "placement_diagnostic":
+        from .placement_diagnostic import PlacementRequest, diagnose
+        print(diagnose(PlacementRequest.from_file(args.request)))
+        return
     from .scene import build
     from .handler import run
     print({"build":build,"run":run}[args.operation](Request.from_file(args.request)))

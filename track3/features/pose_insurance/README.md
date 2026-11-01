@@ -146,3 +146,81 @@ SHA-256: `fa3b1c320128a196648e0a966eb81b8e5cb8e65cb8ad6b1de0a3fbbb4523c26b`.
 All 20 policies passed. Complete per-episode timing, drift, update counts, placement
 confidence, resume evidence and recorded tuning metrics are in
 `outputs/pose_insurance/v1/report.md`. All saved v0 file hashes remain unchanged.
+
+## Kinematic static-placement diagnostic
+
+This CPU operation implements `docs/chain/pose-placement-protocol.md`, including
+Amendment 1. It constructs static scenes for public train 0/11/12/18/21/23/26/31
+in explicit evaluation-analogue slot order, holds their poses over the mocap
+reference timeline, and scores them with the kit's own functions. The shared
+`_placement.place_boxes` function also supplies the unchanged v1 scene builder.
+
+```bash
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' .runtime/linux-cuda/bin/python -B -m track3.features.pose_insurance.placement_loop
+```
+
+`placement_queue.json` sets the fixed candidates and trial budget. The loop calls
+the gated `placement_diagnostic` handler, hashes each candidate/episode identity,
+re-admits finished producers and inputs on resume, appends `placement/ledger.jsonl`,
+and writes `summary.md`, `summary.json`, `per_episode_auc.png` and `finished.json`
+under `outputs/pose_insurance/`. Each trial owns a hashed `run.json` and
+`metrics.json`, with per-episode metrics, frame-zero transform decomposition,
+one-factor and joint oracle substitutions, and the slot-0 heading-flip ceiling.
+A single request can also use `python -m track3.features.pose_insurance
+placement_diagnostic --request <json>` (`episode_index`, `candidate`, and optional
+`k1` for the cumulative candidate).
+
+`placements_train.json` records overlay inspection before scoring: merged cluster
+0 in 0/26/31, and the border-cut cup cluster 1 in 12. All seven missing independent
+placements retain the exact v1 defaults in the comparator. K1a places the upper
+object above its support (lid over pot, pot over rack, sweeper over rack) and
+skips horizontal clearance for vertically disjoint boxes; K1b uses existing
+footprint separation. Both use merged-cluster centroid and PCA yaw.
+K2 estimates signed body-up from other train episodes' frame-zero rotations,
+uses normalized means and singleton z-up fallback, then applies minimal up-axis
+rotation followed by PCA yaw. Geometry rotation and the full inertia tensor are
+re-expressed consistently in the diagnostic record. No simulator assets are
+exported by this operation.
+
+**Latest result (2026-11-02): recommend none.** All 40 trials completed. Each
+candidate has mean AUC **0.268844**, SP-SR **0/8**, MP-SR **0/8**. K1a wins the
+predeclared AUC tie by queue order, but fails the required +0.02 AUC improvement.
+
+| Candidate | RPE cm | MPPE cm | Amendment 1 outcome |
+|---|---:|---:|---|
+| v1 | 47.508 | 26.661 | Comparator |
+| K1a | 36.796 | 21.632 | Fails AUC gain |
+| K1b | 39.198 | 22.441 | Fails AUC gain |
+| K2 alone | 48.698 | 27.623 | Fails AUC gain and MPPE tolerance |
+| K1a+K2 | 36.782 | 21.747 | Fails AUC gain versus K1a |
+| Oracle static | 15.114 | 7.403 | AUC 0.531919; SP-SR 5/8; MP-SR 0/8 |
+
+The joint oracle replacement recovers the static reference benchmark; the
+per-episode best slot-0 heading flip adds no AUC. Those are diagnostics using
+reference outcomes, never candidates. The signed pot convention reverses between
+its two episodes; singleton fallback also leaves six objects uncalibrated. K2
+therefore cannot resolve every semantic frame from these eight episodes.
+
+The refactor was compared bit-for-bit against the old computation and all 20
+selected immutable v1 scenes (36 slots): positions, wxyz quaternions and metric
+dimensions are identical; before-clearance positions and clearance shifts also
+match. Evidence: `outputs/pose_insurance/placement/equivalence.json`; script:
+`.runtime/tmp/d2-placement/equivalence.py`. Historical runs were not rewritten.
+
+Caveats: this is **kinematic, not physical**. K2 mocap conventions are supervised
+calibration from public train labels, with leave-one-episode-out scoring; any
+future submitted K2 convention must instead fit all eight train episodes, with
+wooden_spoon z-up. Public scan surfaces are used **only for scoring**, with our
+1,000 samples per object (seed 0), which approximate the host's vertices. Scan
+sizes and origin offsets never enter placement. No shared video/mocap heading
+frame is released, so K3 is omitted. Any future passing candidate still needs
+real evaluator exports on affected scored episodes, with first poses within
+1 cm / 2 degrees of intended placement and the existing drift check, before a
+repack. This job ran no FlashCHORD evaluator or packing.
+
+A separate real-data metric audit (`placement/audit.json`) reproduced every
+candidate's metrics exactly. Slot 1 has zero AUC in all 40 trials: its smallest
+per-frame mean ADD is **9.950 cm**, above the kit's largest **9 cm** threshold.
+This explains why the substantial K1 distance improvements do not change AUC.
+The joint oracle differs from its reference by at most 1.25e-14 across the five
+metrics. A second queue invocation resumed **40/40** trials without new scoring.
