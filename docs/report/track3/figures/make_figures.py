@@ -24,7 +24,7 @@ def main() -> None:
     summary = json.loads(SUMMARY.read_text())
     rule = next(row for row in summary["ranking"] if row["rule"] == "R2 vessel-handle")
     series = [
-        ("Video box v1", summary["baseline_per_object_cm"], "#4477AA"),
+        ("Video box", summary["baseline_per_object_cm"], "#4477AA"),
         ("R2 cross-fitted", rule["per_object_cm"], "#228833"),
     ]
     objects = sorted(rule["per_object_cm"], key=rule["per_object_cm"].get)

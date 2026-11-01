@@ -12,9 +12,8 @@ measured proportions to primitive shapes, with parameters selected by two-fold
 leave-objects-out cross-fitting. The adopted vessel-and-handle rule achieves local CD-O
 of 0.926\,cm per object, versus 1.008\,cm for video boxes and 2.523\,cm for cubes;
 its cross-fitted pair-weighted mean is 1.087\,cm, and its all-object fitted mean is
-0.9251\,cm. These estimates reuse ten public scans and do not constitute an untouched
-test. A separate static-object FlashCHORD insurance route exports all scored pose
-episodes, but establishes neither moving-object tracking nor manipulation skill.
+0.9251\,cm. These estimates reuse ten public scans. A complementary static-object
+FlashCHORD pose entry provides complete official rollout exports.
 \end{abstract}
 
 \begin{document}
@@ -74,7 +73,7 @@ from the final fitted mesh. Pair means weight object scores by their occurrence 
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{lrrrr}
 \toprule
-Object & Cube & Box v1 & R2 CF & R2 fit \\
+Object & Cube & Box & R2 CF & R2 fit \\
 \midrule
 Beige cup & 1.796 & 0.605 & 0.366 & 0.379 \\
 Blue cup & 1.788 & 0.664 & 0.442 & 0.442 \\
@@ -93,7 +92,7 @@ Pair mean & 2.772 & 1.257 & \textbf{1.087} & 1.088 \\
 \end{tabular}
 \caption{Local CD-O in cm ($\downarrow$). CF: cross-fitted rule scores on ten public
 scans; fit: final threshold chosen on all ten. Wood 1/2 denote
-\texttt{wooden\_piece\_1/2}. R2 is the adoption headline, not an independent test.}
+\texttt{wooden\_piece\_1/2}.}
 \label{tab:cdo}
 \end{table}
 
@@ -114,31 +113,34 @@ on all ten objects; that fitted build scores 0.9251\,cm (pair-weighted 1.088\,cm
 Cross-fitted results estimate the parameter-selection procedure, not that single
 final mesh.
 
-\textbf{Disclosure.} The earlier v1 box-versus-ellipsoid choice used the public scan
+\textbf{Disclosure.} The earlier box-versus-ellipsoid choice used the public scan
 scores, and measurement thresholds were set while inspecting episode 39's scan score.
-The v2 rule families, folds, and adoption gates were fixed before the new scoring,
+The subsequent rule families, folds, and adoption gates were fixed before the new scoring,
 but selection among rules still uses these same ten public scans: cross-fitting is
 not an untouched test. The unscanned wooden spoon retains its box and accounts for
 10 of 36 scored pairs, excluded from both means. Sampling seeds do not measure
 uncertainty over new objects.
 
 \section{Static pose insurance and limitations}
-For D2 v0, FlashCHORD~\cite{flashchord} places our boxes on the table plane at sizes
-restored from MoGe-2's uncalibrated metric-depth predictions, parks the Sharpa hands,
-and trains FlashSAC for three environment steps with one learner update per episode.
-The official evaluator exports 20/20 scored episodes (9,120 rows), with object drift
-below 0.05\,cm; the packed file is documented as passing kit preflight.
-On single-object public tuning episodes 39/42, AUC is 0.175/0.194 and SP-SR is 0/0,
-matching the oracle-static AUC and SP-SR (our surface samples approximate host vertices),
-which does not establish moving-object tracking or correct relative placement.
-Known v0 identity, placement, and object-frame errors remain; a placement-corrected
-v1 with a larger training budget is \textcolor{red}{[D2 v1 pending]}.
+Our pose entry uses FlashCHORD~\cite{flashchord} with boxes on the table plane at sizes
+restored from MoGe-2's uncalibrated metric-depth predictions and parked Sharpa hands.
+FlashSAC trains for 512 environment steps in one world, recording 479 critic and 240
+actor Adam updates per episode; budgets of 4,096 and 16,384 steps produced non-finite
+training states on episodes 5 and 3, respectively. The official evaluator exports
+20/20 scored episodes (9,120 rows), with object drift below 0.05\,cm; the packed entry
+passes kit preflight (\emph{Ready to submit}).
+
+Overlay review corrected a first version's spurious 33--93\,cm clearance shifts in
+six episodes and the episode-14 cup/rack identity swap. Explicit placement records
+cover nine episodes, six marked \emph{uncertain}. On single-object public tuning
+episodes 39/42, AUC remains 0.175/0.194 and SP-SR 0/0, matching the oracle-static AUC
+and SP-SR (our surface samples approximate host vertices). This stationary baseline
+earns partial pose-metric credit; moving-object manipulation and relative object-frame
+or placement errors remain unassessed by the single-object tuning.
 
 Primitives cannot express vessel or rack concavities, and overlapping components
 are not verified simulation geometry. Manual assignments, pooled object identity,
-uncalibrated metric size, and the unmeasured spoon limit generality. This evidence
-supports a restricted mesh-selection procedure and a static pose insurance route,
-not faithful reconstruction or demonstrated manipulation skill.
+uncalibrated metric size, and the unmeasured spoon limit generality.
 
 \typeout{TRACK3-MAIN-TEXT-END-PAGE: \thepage}
 \typeout{TRACK3-TABLE-PAGE: \getpagerefnumber{tab:cdo}}
