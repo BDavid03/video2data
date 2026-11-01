@@ -2,67 +2,71 @@
 
 \venue{From Human Videos to Dexterous Robot Capability (CoRL 2026)}
 \submissionID{Anonymous submission}
-\title{Measure, Don't Reconstruct: Video-Measured Primitives for Track 3 Object Meshes}
-\shorttitle{Video-Measured Primitives for Track 3}
+\title{Video-Measured Primitives with Cross-Fitted Shape Rules for Track 3}
+\shorttitle{Cross-Fitted Primitive Rules for Track 3}
 
 \begin{abstract}
 \textbf{Abstract:}
-Track 3's object-mesh metric removes each candidate's scale and rigid pose before scoring shape.
-We therefore measure object proportions from monocular video and submit closed boxes, rather
-than reconstructing unseen surfaces. On the public scans, video boxes obtain local CD-O of
-1.008\,cm averaged over objects and 1.257\,cm weighted by scanned evaluation pairs, versus
-2.523\,cm and 2.772\,cm for cubes. These are development estimates: primitive selection and
-geometric thresholds used the same public references. We disclose manual object assignment,
-an unmeasured spoon, and a pending policy-rollout component.
+We select video-derived object meshes using a fixed rule protocol: name categories map
+measured proportions to primitive shapes, with parameters selected by two-fold
+leave-objects-out cross-fitting. The adopted vessel-and-handle rule achieves local CD-O
+of 0.926\,cm per object, versus 1.008\,cm for video boxes and 2.523\,cm for cubes;
+its cross-fitted pair-weighted mean is 1.087\,cm, and its all-object fitted mean is
+0.9251\,cm. These estimates reuse ten public scans and do not constitute an untouched
+test. A separate static-object FlashCHORD insurance route exports all scored pose
+episodes, but establishes neither moving-object tracking nor manipulation skill.
 \end{abstract}
 
 \begin{document}
 \maketitle
 
-\section{What the scorer rewards}
-Track 3 of the Video to Data Challenge evaluates reconstructed meshes separately from
-policy-rollout poses~\cite{challenge}. For CD-O, the kit normalizes a candidate's surface RMS
-radius to the reference, then registers it rigidly before symmetric Chamfer distance. This
-per-object similarity alignment removes absolute size and placement; shape remains scored.
-The packer also decimates and pads meshes to a fixed budget. Recovering metric depth or a
-globally aligned scene is therefore unnecessary for this mesh metric.
+\section{A fixed rule-selection protocol}
+Track 3 of the Video to Data Challenge separately scores reconstructed meshes and
+policy-rollout poses~\cite{challenge}. We fix a protocol before scoring new mesh rules:
+video measurements and predeclared object-name categories determine shape; scan-specific
+shape picking is disallowed. Round vessels, flat or blocky objects, and thin tools form
+the categories. Two fixed folds each hold five scanned objects, with category coverage
+in each fold. A rule's parameter is chosen on one fold and scored on the other, then
+the roles reverse; the headline averages these held-out object scores.
 
-As an analysis-only diagnostic, boxes using each scan's principal extents score 1.175\,cm
-against 2.523\,cm for cubes. This motivates a smaller estimation problem: measure three
-extents from video, retain their proportions, and construct a primitive. The scan-PCA
-diagnostic is not an optimal box bound. Public scans serve only as scoring references;
-no scan geometry, dimension, or template enters our submitted meshes, consistent with the
-FAQ's requirement for participants' own reconstructions~\cite{faq}.
+Adoption requires an object-mean gain over boxes greater than 0.03\,cm, no held-out
+object regression greater than 0.15\,cm, and no increase in pair-weighted mean. We try
+three rules: R1 replaces vessels with cylinders; R2 additionally maps long-axis excess
+to a side handle; R3 gives thin tools a head and handle. R2 and R1 pass the gates;
+R2 has the lowest cross-fitted mean and is adopted. R3 fails the gain gate.
 
-\section{Video to object proportions}
-We use MoGe-2 monocular depth~\cite{moge2} on sampled opening frames, usually within frames
-0--19 of public and evaluation videos. One recorded exception is evaluation episode 1,
-whose usable measurements are frames 110--230. We first fit the floor plane, then identify
-the table as the sharpest height peak above it. Points above a locally refitted table plane
-form object clusters. A \emph{manual visual assignment} maps first-measured-frame clusters
-to object names, recorded in \texttt{assignments.json}; multiple clusters may belong to one
-object. Merged or clipped objects are omitted from that episode.
+This restricted search exploits the metric: CD-O normalizes surface RMS radius, then
+registers each mesh rigidly before symmetric Chamfer distance~\cite{challenge}.
+Absolute scale and placement are removed; shape remains scored. The kit also decimates
+and pads meshes to a fixed budget. Thus proportions can be useful without recovering
+metric scale or unseen surfaces. Public scans are scoring references only: no scan
+geometry, dimension, or template enters a submitted mesh~\cite{faq}.
 
-For each assigned object, we compute in-plane PCA extents using the 2nd--98th percentile
-range and the 98th percentile of height above its local support plane. Later masks follow
-clusters overlapping a dilation of the reference mask. A frame contributes only while
-its mask area is within $0.8$--$1.25\times$ the reference area, reducing contamination by hands
-and occlusions. The reference is the first measured frame, usually frame 0.
+\section{Video measurements and shape rules}
+MoGe-2 depth~\cite{moge2} supplies sampled video frames, usually within frames 0--19;
+evaluation episode 1 instead uses frames 110--230. We fit the floor, identify the table
+as the sharpest height peak above it, and cluster points above a locally refitted table
+plane. A \emph{manual visual assignment} maps first-measured-frame clusters to names,
+recorded in \texttt{assignments.json}; merged or clipped objects are omitted from that
+episode. In-plane PCA extents use the 2nd--98th percentile range; height uses the 98th
+percentile above the local support plane. Later masks must remain within
+$0.8$--$1.25\times$ the reference area to contribute.
 
-Each extent vector is divided by its geometric mean before aggregation. Per-axis medians
-first pool accepted frames, then pool episodes, with scale normalized at both levels.
-An arbitrary common size can be restored for mesh construction: CD-O removes it. This
-avoids a metric calibration requirement, although monocular shape distortion remains.
-The recorded build pools 1--9 episodes per object (only one for the lid), across public
-and evaluation videos. One closed box per physical object is reused for every scored
-episode containing that object. Ellipsoids use the same measured proportions.
+Extent vectors are divided by their geometric mean before per-axis medians pool frames
+and then episodes. The build pools 1--9 episodes per object across public and evaluation
+videos (one for the lid), reusing one shape per physical object. This removes common
+depth scale, but not monocular shape distortion. R2 uses an elliptical cylinder for
+round vessels unless measured long/short aspect exceeds a threshold; then a circular
+body of the short extent plus a side handle accounts for the long-axis excess.
+Other categories retain boxes. Threshold candidates are 1.05, 1.15, and 1.30;
+handle height and width are fixed at 60\% of height and 15\% of the short extent.
+Components overlap and retain internal faces rather than forming a Boolean union.
 
-\section{Local results and disclosure}
-We use the kit's CD-O implementation with three kit-derived sampling seeds, applying the
-kit mesh budget to both candidates and public scan references. Table~\ref{tab:cdo} reports
-seed means. The object mean gives each of the ten scanned objects equal weight; the pair
-mean weights those scores by their occurrence among 26 scanned evaluation pairs. This
-weighted estimate does not rerun the scorer with every evaluation pair's seed.
+\section{Development results and disclosure}
+We use the kit CD-O code and mesh budget on both candidates and references, averaging
+three kit-derived sampling seeds. Table~\ref{tab:cdo} distinguishes cross-fitted R2
+from the final fitted mesh. Pair means weight object scores by their occurrence among
+26 scanned evaluation pairs; they do not rerun every pair's exact kit seed.
 
 \begin{table}[t]
 \centering
@@ -70,68 +74,75 @@ weighted estimate does not rerun the scorer with every evaluation pair's seed.
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{lrrrr}
 \toprule
-Object & Cube & Scan box & Video box & Ellip. \\
+Object & Cube & Box v1 & R2 CF & R2 fit \\
 \midrule
-Beige cup & 1.796 & 0.982 & 0.605 & 0.753 \\
-Blue cup & 1.788 & 0.813 & 0.664 & 0.840 \\
-Dust pan & 1.936 & 1.151 & 1.061 & 1.038 \\
-Sweeper & 1.389 & 0.948 & 0.724 & 0.722 \\
-Dish rack & 6.408 & 1.981 & 2.115 & 2.196 \\
-Pitcher & 2.625 & 1.642 & 1.577 & 1.592 \\
-Pot & 1.788 & 1.749 & 1.818 & 1.702 \\
-Lid & 1.993 & 1.021 & 0.669 & 0.573 \\
-Wood 1 & 2.772 & 0.749 & 0.444 & 0.505 \\
-Wood 2 & 2.734 & 0.713 & 0.400 & 0.462 \\
+Beige cup & 1.796 & 0.605 & 0.366 & 0.379 \\
+Blue cup & 1.788 & 0.664 & 0.442 & 0.442 \\
+Dust pan & 1.936 & 1.061 & 1.061 & 1.061 \\
+Sweeper & 1.389 & 0.724 & 0.724 & 0.724 \\
+Dish rack & 6.408 & 2.115 & 2.115 & 2.115 \\
+Pitcher & 2.625 & 1.577 & 1.683 & 1.683 \\
+Pot & 1.788 & 1.818 & 1.328 & 1.328 \\
+Lid & 1.993 & 0.669 & 0.696 & 0.676 \\
+Wood 1 & 2.772 & 0.444 & 0.444 & 0.444 \\
+Wood 2 & 2.734 & 0.399 & 0.399 & 0.399 \\
 \midrule
-Object mean & 2.523 & 1.175 & \textbf{1.008} & 1.038 \\
-Pair mean & 2.772 & 1.337 & \textbf{1.257} & 1.290 \\
+Object mean & 2.523 & 1.008 & \textbf{0.926} & 0.925 \\
+Pair mean & 2.772 & 1.257 & \textbf{1.087} & 1.088 \\
 \bottomrule
 \end{tabular}
-\caption{Local CD-O in cm ($\downarrow$), averaged over three seeds on public scans.
-Scan box uses scan-PCA extents for analysis only; both video primitives use video extents.
-Wood 1/2 denote \texttt{wooden\_piece\_1/2}.}
+\caption{Local CD-O in cm ($\downarrow$). CF: cross-fitted rule scores on ten public
+scans; fit: final threshold chosen on all ten. Wood 1/2 denote
+\texttt{wooden\_piece\_1/2}. R2 is the adoption headline, not an independent test.}
 \label{tab:cdo}
 \end{table}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\linewidth]{figures/d1-v1-cdo.pdf}
-\caption{Development scores: video proportions close much of the cube gap, while the
-pot is worse than the cube. Scan-PCA boxes are analysis references.}
+\includegraphics[width=\linewidth]{figures/d1-v2-cdo.pdf}
+\caption{Cross-fitted R2 versus video boxes on public scans. The pot improves,
+whereas the pitcher and lid regress. Remaining categories retain their boxes.}
 \label{fig:cdo}
-\Description{Per-object CD-O bars comparing cubes, scan-PCA boxes and video boxes.}
+\Description{Per-object CD-O bars comparing video boxes with the cross-fitted R2 rule.}
 \end{figure}
 
-Boxes score 1.008\,cm versus 1.038\,cm for video ellipsoids on the object mean, but do not
-win uniformly: the pot scores 1.818\,cm for the box, 1.788\,cm for the cube, and 1.702\,cm
-for the ellipsoid. An earlier input-split ablation on the nine common scanned objects
-scores 1.024\,cm using evaluation-video measurements only and 1.063\,cm using public videos
-only; the public-only build has no lid. These use the same public reference scans and
-are not evidence of held-out generalization.
+R2 scores 0.926\,cm per object versus 1.008\,cm for boxes (pair-weighted:
+1.087 versus 1.257\,cm). R1 scores 0.956\,cm; R3 scores 0.990\,cm and misses the gain
+gate. R2's largest held-out regression is 0.106\,cm on the pitcher. Its threshold
+chosen on fold A is 1.30; on fold B it is 1.05. The final threshold, 1.30, is chosen
+on all ten objects; that fitted build scores 0.9251\,cm (pair-weighted 1.088\,cm).
+Cross-fitted results estimate the parameter-selection procedure, not that single
+final mesh.
 
-\textbf{Development disclosure.} The box-versus-ellipsoid decision used these same public
-scan scores; thresholds were set while inspecting public episode 39's scan score.
-Thus these are development estimates against ten public scans, not an untouched assessment
-or a leaderboard result. The wooden spoon accounts for 10 of 36 scored pairs and has no
-public scan: a video-measured mesh exists, but its CD-O is unmeasured and it is excluded
-from both reported means. Seed variation measures sampling sensitivity, not uncertainty
-over new objects.
+\textbf{Disclosure.} The earlier v1 box-versus-ellipsoid choice used the public scan
+scores, and measurement thresholds were set while inspecting episode 39's scan score.
+The v2 rule families, folds, and adoption gates were fixed before the new scoring,
+but selection among rules still uses these same ten public scans: cross-fitting is
+not an untouched test. The unscanned wooden spoon retains its box and accounts for
+10 of 36 scored pairs, excluded from both means. Sampling seeds do not measure
+uncertainty over new objects.
 
-\section{Pose route and limitations}
-\textcolor{red}{[D2 pending]} FlashCHORD~\cite{flashchord} has run natively with Newton and
-MuJoCo-Warp, without Isaac Sim, on one 16\,GiB GPU; this establishes runtime feasibility,
-not a trained policy result. A separate static-objects diagnostic holds each object at
-its known initial public pose. Over 17 public episodes it gives AUC 0.46, SP-SR 0.41,
-MP-SR 0, RPE 12.8\,cm, and MPPE 9.3\,cm. AUC uses our own surface-point samples rather
-than the host's vertices. This is a diagnostic baseline, not a completed policy rollout.
+\section{Static pose insurance and limitations}
+For D2 v0, FlashCHORD~\cite{flashchord} places our boxes on the table plane at sizes
+restored from MoGe-2's uncalibrated metric-depth predictions, parks the Sharpa hands,
+and trains FlashSAC for three environment steps with one learner update per episode.
+The official evaluator exports 20/20 scored episodes (9,120 rows), with object drift
+below 0.05\,cm; the packed file is documented as passing kit preflight.
+On single-object public tuning episodes 39/42, AUC is 0.175/0.194 and SP-SR is 0/0,
+matching the oracle-static AUC and SP-SR (our surface samples approximate host vertices),
+which does not establish moving-object tracking or correct relative placement.
+Known v0 identity, placement, and object-frame errors remain; a placement-corrected
+v1 with a larger training budget is \textcolor{red}{[D2 v1 pending]}.
 
-Solid primitives cannot express concavities in pots, racks, or dust pans. Assignments
-require manual review; pooled shapes assume the same physical object across episodes.
-The absent spoon reference, development-set selection, and incomplete pose route limit
-any claim about overall Track 3 performance. The present evidence supports video-measured
-proportions as a practical mesh baseline; it does not establish faithful surface or
-interaction geometry.
+Primitives cannot express vessel or rack concavities, and overlapping components
+are not verified simulation geometry. Manual assignments, pooled object identity,
+uncalibrated metric size, and the unmeasured spoon limit generality. This evidence
+supports a restricted mesh-selection procedure and a static pose insurance route,
+not faithful reconstruction or demonstrated manipulation skill.
 
+\typeout{TRACK3-MAIN-TEXT-END-PAGE: \thepage}
+\typeout{TRACK3-TABLE-PAGE: \getpagerefnumber{tab:cdo}}
+\typeout{TRACK3-FIGURE-PAGE: \getpagerefnumber{fig:cdo}}
 \bibliographystyle{plainnat}
 \bibliography{references}
 \end{document}
