@@ -132,3 +132,31 @@ candidate and gate sections above where they differ.
 - **Before a repack**, the adopted scenes go through the real evaluator on the affected scored
   episodes; the first exported pose must match the intended initial pose within 1 cm / 2 degrees
   and drift stays within the slice check.
+
+## Amendment 2 (2026-11-02, after the train diagnostic, before any data on episodes 2 and 27 exist)
+
+Result of Amendment 1 (`outputs/pose_insurance/placement/summary.md`): no candidate passes. On
+all eight train episodes slot 1's frame-0 error is 10-74 cm, beyond the kit AUC's largest
+threshold (9 cm), so slot 1 earns no AUC or SP-SR under any candidate and AUC ties at 0.2688
+(oracle static 0.5319). The AUC gate therefore cannot see placement changes of this size. K1a
+lowers mean RPE 47.51 -> 36.80 cm and MPPE 26.66 -> 21.63 cm with no metric worse, entirely
+on its three episodes (0, 26, 31: RPE 53 -> 19, 50 -> 19, 39 -> 19 cm).
+
+This amendment is written after seeing those numbers, so it does not adopt K1a on them. It
+pre-registers one confirmation on fresh data instead:
+
+- **Confirmation episodes:** public 2 (Pot_with_lid, analogue of train 0 and scored 1) and 27
+  (Pan_In_Dishrack, analogue of train 26 and scored 28). Neither has been used for any choice in
+  this project (they were scored only as oracle static poses in context 01). Their frame-0
+  depth, measure runs and placement entries are produced by the same code as the train
+  episodes; placement entries are recorded from the overlays before any score on 2 or 27.
+- **Comparison:** K1a against v1, nothing else, no tuning on 2 or 27.
+- **K1a is adopted for scored episodes 1, 28 and 30 only if, on both 2 and 27,** RPE and MPPE
+  are lower and AUC, SP-SR and MP-SR are not lower. Otherwise v1 stays, and the result is
+  recorded as a finding.
+- If a confirmation episode cannot be measured (for example the objects are not merged there,
+  or a slot is absent from the opening frames), it is reported as such and does not count; K1a
+  is then adopted only if the remaining episode passes and the report says the confirmation
+  rests on one episode.
+- The report discloses the sequence: the fixed gates failed, the AUC saturation, this
+  post-result amendment and its confirmation outcome.
