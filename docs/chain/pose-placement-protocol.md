@@ -92,3 +92,43 @@ A candidate is adopted only if, over the eight train episodes:
 The adopted scene must then pass the slice's evaluator drift check on every affected scored
 episode. The repack, its run records and these tables go in `docs/chain/SUBMISSION.md` before the
 file is listed for the owner. Losers are logged in `docs/chain/IDEAS.md`.
+
+## Amendment 1 (2026-11-02, after the read-only route call `d2-route`, before any candidate was scored)
+
+The route call (answer `outputs/chain/codex/*-d2-route.answer.md`) established: the mocap pose is
+`world_T_object` of the **scanned mesh frame** in a gravity-aligned mocap world (dataset
+`track_3/README.md:60`), x/y centred per episode; no camera-to-mocap transform is released
+(`README.md:80`); scan frames are not z-up (blue_cup -z up, rack +x up, pot +x or -x, pitcher
+tilted 37.8 degrees); the old baseline sorted slots by name. This amendment replaces the
+candidate and gate sections above where they differ.
+
+- **Slot order** is the explicit evaluation-analogue roster in the table above, for both the
+  achieved and reference tensors (not metadata or name order). Comparator: the eight-episode
+  oracle static reference with that order, AUC 0.5319, SP-SR 0.625, MP-SR 0, RPE 15.11 cm,
+  MPPE 7.40 cm (route call; to be reproduced by the diagnostic).
+- **K1 merged-cluster placement**, two variants, scored on 0, 26, 31 (other episodes unchanged):
+  K1a, the slot without its own cluster takes the merged cluster's table-plane centroid and is
+  stacked on top of the other object's box (base on its top face; separation skipped when the
+  boxes are vertically disjoint); K1b, the same centroid, then the slice's minimal horizontal
+  footprint separation. Both take the merged cluster's PCA yaw. The merged cluster is the
+  frame-0 cluster covering both objects, recorded with its id in a placement file before scoring.
+- **K2 up-axis convention (supervised calibration from public train labels).** For each object,
+  `u` = the normalised mean over its train episodes of `R^T [0, 0, 1]` (signed, not snapped to an
+  axis), computed leave-one-episode-out when scoring a train episode; the initial body rotation
+  is the minimal rotation taking `u` to the table normal, then our PCA yaw about the normal.
+  Objects with no other train episode keep z up in the diagnostic (singleton fallback); the
+  submitted scene uses all eight train episodes, and wooden_spoon keeps z up. Mesh, collision
+  box and inertia are re-expressed in the new body frame so the physical object is unchanged.
+  Mocap labels therefore enter the scene through this learned per-object convention; the report
+  says so.
+- **K3 is not run**: no common frame between video and mocap exists in the public data.
+  Replaced by a diagnostic only: slot 0 heading as built versus flipped by 180 degrees, with the
+  per-episode best of the two reported as an ambiguity ceiling, never as a candidate.
+- **Gates** (cross-fitted, eight episodes, one world, each candidate against its predecessor in
+  the order v1, K1 (better of K1a/K1b by mean AUC), K1+K2): mean AUC +0.02 or more; SP-SR and
+  MP-SR pass counts not lower; mean MPPE not higher by more than 0.25 cm; no episode loses more
+  than 0.10 AUC. Report standalone and cumulative results, frame-0 transform errors and the
+  joint oracle replacement.
+- **Before a repack**, the adopted scenes go through the real evaluator on the affected scored
+  episodes; the first exported pose must match the intended initial pose within 1 cm / 2 degrees
+  and drift stays within the slice check.
