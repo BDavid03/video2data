@@ -161,7 +161,7 @@ pre-registers one confirmation on fresh data instead:
 - The report discloses the sequence: the fixed gates failed, the AUC saturation, this
   post-result amendment and its confirmation outcome.
 
-## Decision after the confirmation (2026-11-02, context 04, before any D2 v2 file exists)
+## Amendment 3: decision after the confirmation (2026-11-02, context 04, post-result: written after the physical checks, before any D2 v2 file existed)
 
 Amendment 2 outcome (`outputs/pose_insurance/placement/confirmation.md`): episode 27 cannot be
 measured (pot and rack are separate clusters in frame 0); on episode 2 K1a lowers RPE
