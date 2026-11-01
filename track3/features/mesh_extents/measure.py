@@ -20,6 +20,8 @@ class MeasureRequest:
     frames: list[int] | None = None  # None: every completed frame of the depth run
     objects: dict[str, list[int]] = field(default_factory=dict)  # object -> frame-0 cluster ids to unite
     assignment_note: str | None = None
+    reference_pixels: dict[str, list[int]] = field(default_factory=dict)  # reviewed frame-0 size of each id
+    reference_tolerance: float = 0.15
     minimum_height_m: float = 0.008
     maximum_height_m: float = 0.5
     neighbour_distance_m: float = 0.02
@@ -105,6 +107,11 @@ def measure(request: MeasureRequest):
                 if position == 0:
                     if max(ids) >= len(clusters):
                         raise ValueError(f"{name}: cluster id beyond the {len(clusters)} clusters of frame {index}")
+                    # Ids come from a size ordering; a rerun that reorders them must not rename objects silently.
+                    for i, expected in zip(ids, request.reference_pixels.get(name, [])):
+                        if abs(clusters[i]["pixels"] - expected) > request.reference_tolerance * expected:
+                            raise ValueError(f"{name}: cluster {i} has {clusters[i]['pixels']} px, the reviewed "
+                                             f"assignment had {expected}; re-check the overlay")
                     reference[name] = np.isin(label, [i + 1 for i in ids])
                     masks[name] = reference[name]
                 else:

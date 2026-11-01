@@ -5,12 +5,12 @@ Kept current by every chain context (see `PROGRAM.md` section 1). Freeze: 4 Nove
 
 | Id | Deliverable | State | Evidence | Blocked on |
 | --- | --- | --- | --- | --- |
-| D1 | Track 3 mesh Parquet (CD-O) | started: first stage (MoGe2 depth) ran on scored episode 38; local CD-O scorer built; primitive reference baselines measured (cube 2.52 cm, sphere 2.82 cm: per-object mean over the 10 scanned objects, three kit seeds; not the leaderboard's 36-pair mean, and the spoon, 10 of 36 pairs, has no scan) | `outputs/depth/evaluation/episode_000038/20261101T030402.023623Z/run.json`; `outputs/mesh_eval/*.json`; `scripts/track3/local_cdo.py` | nothing external: video-measured shapes for 11 objects, then packing (`.runtime/kit-env` installed) |
+| D1 | Track 3 mesh Parquet (CD-O) | **v1 packed, preflight "Ready to submit"** (context 02; v1 = v0 plus the Codex-review fixes, same method): one box per object with proportions measured from video (`mesh_extents` slice), 36 pairs. Local CD-O vs the 10 scans: v1 per-object mean 1.008 cm (v0 1.009; cube 2.52, scan-PCA oracle box 1.17; v1 ellipsoid 1.038); pair-weighted over the 26 scanned pairs 1.257 cm (cube 2.77, oracle 1.34). Input-split ablation (same references): on the 9 objects both splits cover, boxes built from evaluation-episode measurements only score 1.024 cm, public-episode only 1.063 (eval-only over all 10: 0.99). The spoon (10 pairs) has no scan, so its mesh is unmeasured | `submissions/20261101T1500Z-d1-v1/track3_meshes_v1.parquet`; build run `outputs/mesh_extents/build/20261101T103838.400965Z-117fbcff`; `outputs/mesh_eval/d1-ctx02/` (scores, `d1-v1-cdo.png`) | owner: GitHub push, then repack with the real URL (NEEDS-YOU 1, 2) |
 | D2 | Track 3 pose CSV (five pose metrics) | runtime installed and smoke-tested; no task parquet, checkpoint or rollout yet | `scripts/linux/install-flashchord.sh`, `.runtime/flashchord/install-logs/device.log`, `.scratch/fc-replay.log` (worktree) | object 6-DoF tracks from video, a task parquet per episode, hand references (no hand model installed), per-episode training |
 | D3 | Extended abstract PDF | draft LaTeX from the depth line only: `outputs/auto_research/report/20261029T040958.830501Z-d8ea4610/main.tex` | depth results only | LaTeX engine install (approved 2026-11-01, not yet done) |
 | D4 | Code at a GitHub commit URL | local git; this context's work is on branch `worktree-chain-ctx01` | `git log` | owner: GitHub remote (NEEDS-YOU 1) |
-| D5 | One reproduction command per deliverable | depth line (`scripts/research_loop.py --finalize --report`); installs (`scripts/linux/install-flashchord.sh`, `install-kit-env.sh`); local CD-O (`scripts/track3/local_cdo.py`) | this file | - |
-| D6 | Packed files, preflight clean, ready for the owner to upload | not started | - | D1 meshes first; upload is the owner's (NEEDS-YOU 2) |
+| D5 | One reproduction command per deliverable | depth line (`scripts/research_loop.py --finalize --report`); installs (`scripts/linux/install-flashchord.sh`, `install-kit-env.sh`); local CD-O (`scripts/track3/local_cdo.py`); D1 v0: the four commands under "D1 v0" below | this file | - |
+| D6 | Packed files, preflight clean, ready for the owner to upload | D1 v1 packed with a placeholder commit URL (not final); kit preflight `--track track_3 --skip-kaggle`: "Ready to submit" (warnings only: no pose results, Kaggle checks skipped) | `submissions/20261101T1500Z-d1-v1/` | GitHub remote for the real URL; upload is the owner's (NEEDS-YOU 1, 2) |
 
 ## Triage (context 01, 2026-11-01 03:30 UTC, 90 h before the freeze)
 
@@ -118,7 +118,45 @@ copy in `.runtime/tmp/rules-20261101/faqs.pdf`), the challenge page and the kit 
 - The kit's host checks evaluator hashes, so trajectories must come from the official
   `evaluate_policy.py`; no hand-built trajectories.
 
+## D1 v0 (context 02, 2026-11-01)
+
+Method (`track3/features/mesh_extents/README.md`): MoGe2 depth on opening frames 0-19 of each
+episode (no stereo: a per-frame scale does not change proportions); floor plane, then the table
+as the sharpest height peak above it (the camera_motion world plane was the floor on ep 39, which
+broke the opening-clusters route); clusters above a locally refitted table plane; a recorded
+visual assignment of frame-0 clusters to object names (`assignments.json`; 23 of 30 episodes
+used, the rest left out with a reason: merged or border-cut objects); per-frame in-plane PCA
+extents and 98th-percentile height, frames kept only while the mask size stays within
+0.8-1.25x frame 0's; per object, proportions pooled by per-axis median over episodes (2-9
+episodes per object). The same box goes to every scored pair of that object.
+
+Shape rule: box for every object, chosen once on the per-object mean over the 10 scans (box
+1.009, ellipsoid 1.044). **Disclosure:** this is selection on the public scans, and the
+thresholds were set while looking at public episode 39's scan score (ep 39 is tuning data). No
+scan geometry or dimension enters a mesh, but these local CD-O numbers are development
+estimates, not an untouched assessment; say so in the report. Per-object shape picking was not
+done. From context 03 on, any mesh choice is made on a fixed tuning protocol written down before
+scoring (see the hand-off).
+
+Reproduce (from the commit in the packed file):
+
+```bash
+bash scripts/track3/depth_opening_frames.sh evaluation 1 3 5 6 8 10 14 15 16 19 20 25 28 30 32 33 35 36 37 38
+# plus public 39 (frames 0-19) and evaluation 1 at stride 10: requests in each depth run.json
+PYTHONPATH=. .runtime/linux-cuda/bin/python scripts/track3/d1_measure.py --out .runtime/tmp/d1-runs.json
+PYTHONPATH=. .runtime/linux-cuda/bin/python -m track3.features.mesh_extents build --request <{"measure_runs": [...], "shape": "box"}>
+.runtime/kit-env/bin/python upstream/v2d_submission_kit/v2d_submission_kit/tools/pack_reconstruction.py track3-meshes \
+  --meshes outputs/mesh_extents/build/<run>/meshes \
+  --sample upstream/v2d_submission_kit/v2d_submission_kit/data/track_3_mesh_sample_submission.parquet \
+  --commit https://github.com/<owner>/<repo>/commit/<sha> --out submissions/<stamp>/track3_meshes.parquet
+```
+
+`assignments.json` names each episode's depth run by path, so a fresh rerun must regenerate the
+depth runs and update those paths (the run ids are timestamps).
+
 ## Packed files
 
 | Time (UTC) | File | SHA-256 | Commit | Final? | Scores (from the owner) |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-01 10:35 | `submissions/20261101T1035Z-d1-v0/track3_meshes_v0.parquet` (D1, 294,912 rows, 1.6 MB) | `f814da46bdaaa747012cc078d6ca29274070633ab4745bcbae5319fabc24b710` | `0f8619373f2953eada625e25aa53d98f0f06d11a` (branch `worktree-chain-ctx01`) in placeholder URL `https://github.com/OWNER-PLACEHOLDER-not-final/video2data/commit/...` | **no**: repack with the real URL after the push | - |
+| 2026-11-01 15:00 | `submissions/20261101T1500Z-d1-v1/track3_meshes_v1.parquet` (D1 v1, supersedes v0) | `a76143b933ba09453a02b8100f2fd15af39ab51ca1064b7dea274c0eff411a9b` | `93038d282478c8f7923425cdb2648ce8ef09d2c6` in the placeholder URL | **no**: repack with the real URL after the push | - |

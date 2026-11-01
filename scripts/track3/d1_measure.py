@@ -31,7 +31,8 @@ def main():
         split, episode = key.split(":")
         request = MeasureRequest(source_split=split, episode_index=int(episode), depth_run=entry["depth_run"],
                                  frames=entry.get("frames"), objects={} if args.no_assign else entry.get("objects", {}),
-                                 assignment_note=entry.get("note"), **entry.get("overrides", {}))
+                                 assignment_note=entry.get("note"), reference_pixels=entry.get("reference_pixels", {}),
+                                 **entry.get("overrides", {}))
         path = measure(request)
         record = json.loads(path.read_text())
         print(key, path.relative_to(ROOT), json.dumps({k: [round(x, 4) for x in v["median_m"]]
