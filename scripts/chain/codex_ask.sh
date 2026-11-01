@@ -77,8 +77,11 @@ points to. Rules that always bind you:
   it has finished, instead of waiting.
 - Install nothing. Upload nothing. No test suites: verify with py_compile, a CPU import, an
   old-versus-new equivalence script, and real runs on real data.
-How to build (docs/chain/PROGRAM.md section 9): let existing code do the heavy lifting
-(NumPy/SciPy/OpenCV/torch, the track3/ primitives, the kit) instead of hand-rolling; do not
+How to build (docs/chain/PROGRAM.md section 9): code runs the loop, agents steer it. For
+repeated trials (sweeps, tuning, ablations, seeds) build a resumable loop script once: it reads
+an editable space/queue file, runs each trial through the slice handlers, skips finished trials,
+appends a ledger, and ends with a compact ranked summary to read; do not run trials one by one
+yourself. Within trials use existing code (NumPy/SciPy/OpenCV/torch, track3/, the kit); do not
 over-engineer (smallest thing that works, no abstraction before its second use); keep library
 code (pure functions, no I/O, paths, gates or run records) apart from the slice handler that
 orchestrates them; keep each feature in its vertical slice track3/features/<slice>/; write clean,

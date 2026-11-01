@@ -305,7 +305,8 @@ so the brief names them explicitly and says which runtime flags and episodes are
    would separate the two, and the step most likely to fail. New ideas go in `IDEAS.md` with
    "Codex" as the source. You decide the route.
 2. **Build and run** (`workspace-write`, then `gpu` or a `CODEX_RESUME` follow-up in `gpu` mode
-   when CUDA is needed): Codex implements, runs on real data and reports.
+   when CUDA is needed): Codex implements, runs on real data and reports. Anything with more than a
+   couple of trials becomes a loop script (section 9) that Codex builds and you launch and read.
 3. **Review** (you, plus a `read-only` Codex defect review of `git diff` in a fresh session for
    behaviour-changing code): read the diff, re-run or re-hash at least the headline number, and
    check the research-integrity rules (section 4) and the build standard (section 9) yourself.
@@ -330,16 +331,30 @@ included) rather than stopping, record it under `### Codex`, and let the next co
 
 ## 9. How code is built
 
-The owner's standard (2026-11-02): let code do the heavy lifting, do not over-engineer, build
-clean, keep library code and implementation clearly apart, use vertical slices, and make it
-presentable. It binds Claude and Codex alike, and every review checks it. The detailed
+The owner's standard (2026-11-02): let code do the heavy lifting (a loop an agent runs and
+learns from, not an agent in a loop), do not over-engineer, build clean, keep library code and
+implementation clearly apart, use vertical slices, and make it presentable. It binds Claude and Codex alike, and every review checks it. The detailed
 removal list is `docs/design/simplification-standard.md`; the slice layout is
 `docs/design/feature-template.md`.
 
-- **Let existing code do the heavy lifting.** Reach for NumPy, SciPy, OpenCV, torch, the
-  `track3/` primitives, the official kit and the pinned upstream tools before writing anything.
-  Hand-rolled maths, parsers, loaders or training loops that a library already provides are
-  defects. Write scripts that do repeatable work instead of repeating it by hand.
+- **Code runs the loop; the agent steers it.** Do not put an agent in a loop (run one trial,
+  read it, tweak, run the next). Build a loop once that an agent can launch and learn from:
+  - Input is a plain file the agent edits: a search space, a queue of configs, or a list of
+    ablations, with a trial and time budget.
+  - It runs every trial through the slice handlers (gates, `run.json`, GPU lease), skips trials
+    already done (identity hash), survives a crash by resuming, and appends one record per trial
+    to a ledger (`.jsonl`).
+  - It ends by writing one compact summary for the agent: a ranked Markdown table (gates,
+    composite, seed spread), the best config, what changed since the last summary, and the
+    figures. Then it exits.
+  - The agent starts it detached, ends its turn, reads the summary, edits the input and starts
+    it again. Agents never hand-run trials one by one or babysit a running loop.
+  - Reuse what exists: `scripts/research_loop.py` and `track3/features/auto_research/`
+    (`recipes.py` identity hash, `ledger.py`, `campaign.py`, `metrics.py`, `visualize.py`) are
+    the pattern for depth. A new stage gets the same shape inside its own slice.
+  Within each trial, let existing code do the work: NumPy, SciPy, OpenCV, torch, the `track3/`
+  primitives, the official kit and the pinned upstream tools. Hand-rolled maths, parsers,
+  loaders or training loops that a library already provides are defects.
 - **Do not over-engineer.** Build the smallest thing that does the job and measure it. No
   abstraction before its second real use, no option nobody sets, no registries, plugin systems,
   base classes or wrapper layers, no defensive checks for cases the boundary already rules out.
