@@ -17,8 +17,8 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
    accept the rules on all six Track 3 competitions (five pose, one CD-O). There is no API for
    accepting rules.
 
-   **Both Track 3 files are ready (context 03, branch `worktree-chain-ctx01`).** Each carries a
-   placeholder commit URL. After item 1 (push a commit that contains `7bc1a36` or later), run from
+   **Both Track 3 files are ready (D1 v2 from context 03, D2 v2 from context 04; branch `worktree-chain-ctx01`).** Each carries a
+   placeholder commit URL. After item 1 (push a commit that contains context 04's last commit or later), run from
    the checkout that holds the outputs (the worktree `.claude/worktrees/chain-ctx01`, or main after
    copying `outputs/mesh_extents/` and `outputs/pose_insurance/` back), with `<owner>/<repo>` and the
    pushed `<sha>` filled in. The geometry and trajectories are identical to the packed files; only
@@ -32,20 +32,20 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
      --meshes outputs/mesh_extents/build/20261101T160402.316899Z-0c4f8b6f/meshes \
      --sample $K/data/track_3_mesh_sample_submission.parquet \
      --commit $URL --out submissions/20261101T1605Z-d1-v2/track3_meshes_v2_final.parquet
-   # D2 v1 poses (five pose metrics)
+   # D2 v2 poses (five pose metrics)
    .runtime/kit-env/bin/python $K/tools/pack_submission.py --track track_3 \
-     --results outputs/pose_insurance/results-v1 --code-commit $URL \
+     --results outputs/pose_insurance/results-v2 --code-commit $URL \
      --eval-script $K/flash_chord/scripts/evaluate_policy.py \
-     -o submissions/20261101T1703Z-d2-v1/track3_poses_v1_final.csv
-   .runtime/kit-env/bin/python $K/tools/preflight.py --track track_3 --results outputs/pose_insurance/results-v1
+     -o submissions/20261101T2315Z-d2-v2/track3_poses_v2_final.csv
+   .runtime/kit-env/bin/python $K/tools/preflight.py --track track_3 --results outputs/pose_insurance/results-v2
    # upload (needs KAGGLE_API_TOKEN and the rules accepted on all six Track 3 competitions)
    .runtime/kit-env/bin/python $K/submit/v2d_submit.py submissions/20261101T1605Z-d1-v2/track3_meshes_v2_final.parquet \
      --track track_3_mesh -m "Video-measured primitives, vessel+handle rule"
-   .runtime/kit-env/bin/python $K/submit/v2d_submit.py submissions/20261101T1703Z-d2-v1/track3_poses_v1_final.csv \
-     --track track_3 -m "Static-object insurance rollout"
+   .runtime/kit-env/bin/python $K/submit/v2d_submit.py submissions/20261101T2315Z-d2-v2/track3_poses_v2_final.csv \
+     --track track_3 -m "Static objects, merged-cluster placement on ep 1/28"
    ```
 
-   Superseded files (do not upload): D1 v0, v1; D2 v0. Please write the leaderboard scores back
+   Superseded files (do not upload): D1 v0, v1; D2 v0, v1. Please write the leaderboard scores back
    here or in `AGENTS.md` so the chain can record them in `SUBMISSION.md`.
 4. [ ] **Chain contexts cannot edit the main checkout (added by context 01).** Claude Code's
    background-job guard rejects file edits in `/home/ceolwolf/repos/video2data` and requires a
@@ -73,6 +73,12 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
    `outputs/pose_insurance`, `outputs/report` and `submissions/` with `cp -al`. Also note main's
    merge `9e79099` committed a stray gitlink `.claude/worktrees/chain-ctx01` (mode 160000); it is
    harmless but you may want `git rm --cached .claude/worktrees/chain-ctx01` in main.
+   *Update, context 04:* main again equalled the branch at start (`aa3b295`), but the guard still
+   refused edits in main, so context 04 worked on `worktree-chain-ctx01` (commits after `aa3b295`).
+   To continue: in main, `git merge worktree-chain-ctx01`; copy back with `cp -al`
+   `outputs/pose_insurance`, `outputs/depth/public/episode_000002`, `outputs/depth/public/episode_000027`,
+   `outputs/mesh_extents/public/episode_000002`, `outputs/mesh_extents/public/episode_000027`, and
+   `submissions/20261101T2315Z-d2-v2`. `.runtime/tools/poppler` already lives in main's `.runtime`.
    *Notifications (2026-11-02, at the owner's request):* the branch's `scripts/chain/session_chain.py`
    now logs `STRANDED` with the merge command when a newer hand-off exists only in a worktree, and
    rings the terminal bell on that and on every finish (STALLED, LIMIT, COMPLETE). Set
