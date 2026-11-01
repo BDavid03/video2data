@@ -30,6 +30,8 @@ results.relative_to(root)
 url = a.commit_url or m["code_commit_url"]
 if a.run and a.commit_url is None:
     p.error("--run requires RESULTS_DIR and an explicit commit URL")
+if a.run and results.exists() and any(results.iterdir()):
+    p.error(f"{results} already holds exports; pass a new, empty RESULTS_DIR so recorded exports stay intact")
 queue = json.loads(Path("track3/features/pose_insurance/queue.json").read_text())
 queue["budgets"]["learned"] = m["budget"]
 queue["evaluation_episodes"] = [int(Path(e["path"]).stem.split("_")[1]) for e in m["exports"]]
