@@ -1,4 +1,4 @@
-# Pose insurance v1
+# Pose insurance
 
 Train a FlashSAC policy with parked Sharpa hands in a static, video-derived box
 scene, then export achieved poses with the unchanged official evaluator. This is
@@ -182,7 +182,7 @@ rotation followed by PCA yaw. Geometry rotation and the full inertia tensor are
 re-expressed consistently in the diagnostic record. No simulator assets are
 exported by this operation.
 
-**Latest result (2026-11-02): recommend none.** All 40 trials completed. Each
+**Amendment 1 train result (2026-11-02): recommend none under its fixed gates.** All 40 trials completed. Each
 candidate has mean AUC **0.268844**, SP-SR **0/8**, MP-SR **0/8**. K1a wins the
 predeclared AUC tie by queue order, but fails the required +0.02 AUC improvement.
 
@@ -224,3 +224,108 @@ per-frame mean ADD is **9.950 cm**, above the kit's largest **9 cm** threshold.
 This explains why the substantial K1 distance improvements do not change AUC.
 The joint oracle differs from its reference by at most 1.25e-14 across the five
 metrics. A second queue invocation resumed **40/40** trials without new scoring.
+
+## Amendment 2 confirmation
+
+`placement_confirmation_queue.json` fixes public 2/27 and candidates v1/K1a only.
+Preparation clones the depth requests of train 0/26 (including stride 12/5,
+full-video stop, 768 px and 1,200 tokens) and the measure requests' frame lists
+(`[0, 12]` and `[0, 5, 10, 15]`) and thresholds. It resumes completed stages and
+runs teacher depth sequentially through `depth.generate` and its GPU lease:
+
+```bash
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 .runtime/linux-cuda/bin/python -B -m track3.features.pose_insurance.confirmation_prepare
+```
+
+After inspecting the two resulting overlays, record `placements_confirm.json`
+before scoring. Its `episodes` map must contain keys `2` and `27`, each with
+`measurable`, `note`, `measure_run`, `overlay`, `merged_cluster_ids`, `stacked_slot`
+and explicit `slots` entries (`cluster_ids` or null, note and confidence).
+An episode without a genuine merged opening cluster is marked unmeasurable;
+it contributes no candidate score and is reported as such. Train placements
+and the eight-episode K2 fitting roster remain separate.
+
+```bash
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' .runtime/linux-cuda/bin/python -B -m track3.features.pose_insurance.placement_loop --queue track3/features/pose_insurance/placement_confirmation_queue.json
+```
+
+The confirmation writes `confirmation_ledger.jsonl`, `confirmation.md`,
+`confirmation.json` and `confirmation_finished.json` under the placement output.
+It requires lower RPE and MPPE and no lower AUC/SP-SR/MP-SR on every measurable
+episode. No measurable episodes means keep v1. A passing confirmation is required
+before any scored scene changes, physical evaluation or D2 v2 packing.
+
+**Confirmation result (2026-11-02): adopt under Amendment 2, based on one episode.**
+After the owner enabled the separate validation flags, depth and measurement
+completed for 2/27. Episode 2 has merged cluster 0; episode 27 instead has separate
+rack cluster 1 and pot clusters 0/2, so it is excluded under the pre-registered
+cannot-measure clause without scoring. Overlay entries and hashes were recorded
+before scoring. On episode 2, K1a lowers RPE **54.389 -> 21.789 cm**, MPPE
+**28.287 -> 12.433 cm**, and frame-zero offset error **45.109 -> 12.887 cm**;
+AUC stays **0.334275**, SP-SR and MP-SR stay zero. This satisfies all Amendment 2
+conditions. Independent recomputation reproduced the five metrics exactly.
+See `outputs/pose_insurance/placement/confirmation.md` and `confirmation_audit.json`.
+The original eight-episode Amendment 1 failure remains recorded above; Amendment 2
+was registered after that result and confirmed on the fresh episode.
+
+The original placement ledger's 40 blank lines were removed after copying it to
+`.runtime/tmp/backup/20261101T225423.627578Z/ledger.jsonl`; record bytes and order
+are unchanged. Both queue writers now append exactly one JSON record per line.
+Evidence: `outputs/pose_insurance/placement/ledger_normalization.json`.
+
+
+## D2 v2: latest result
+
+**Packed 9,120 rows; kit preflight Ready to submit; verification 107/107 hashes
+OK, zero mismatches.** The committed “Decision after the confirmation” activates
+K1a only for scored **1 and 28**. Episode **30 and the other 17 unchanged
+episodes retain v1**: eighteen v1 exports plus two K1a exports in total.
+
+`placements_v2.json` contains only 1/28, with `enabled: true`; the scene builder
+returns the original v1 construction for every other episode. The reused 1/28
+policies were trained at **512 steps, one world, replay minimum 32**, with 479
+learner updates and 240 actor Adam steps. Their maximum first-pose errors are
+0.062205 / 0.062201 cm; maximum drifts are 0.057650 / 0.057644 cm, all 0 degrees.
+No new GPU run was required for finalisation.
+
+The exactness proof rebuilds the active twenty scenes through the CPU scene
+handler: **18 complete scene JSON byte matches against v1, plus two against the
+evaluated K1a scenes**. Task fields and visual/collision assets also match after
+normalising generated asset paths. Evidence:
+`outputs/pose_insurance/v2/active_scene_equivalence.json`.
+
+```bash
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' .runtime/flashchord/venv/bin/python -B -m track3.features.pose_insurance.loop --phase reuse --queue track3/features/pose_insurance/queue_v2.json --version v2
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 .runtime/kit-env/bin/python -B -m track3.features.pose_insurance.pack --version v2
+```
+
+The first command admits the already evaluated 1/28 exports against the current
+scene proof and budget. The second copies eighteen unchanged files from
+`results-v1/` and those two exports into `results-v2/`, then runs the official
+packer (`--skip-crosscheck`), preflight (`--skip-kaggle`) and the recorded
+`bash scripts/reproduce/verify.sh <manifest>` command. The manifest keeps its two
+kit commands in v1 format for `d2_poses.sh`; verification is recorded separately.
+
+The confirmation rests on **one fresh episode, public 2**. Public 27 had separate
+clusters and was excluded before scoring. Train 26, the analogue for scored 28,
+was part of the selection evidence, so rack/pot behaviour has no independent
+confirmation here. The original fixed gates failed, Amendment 2 was registered
+after those outcomes, and the lead subsequently applied the physical check per
+scene. Observed AUC and SP-SR remain unchanged at these placement errors; no
+host-score improvement is claimed.
+
+Episode 30's K1a trial failed first-pose error **1.471503 cm** and drift
+**17.002592 cm** because the elevated sweeper lay outside the rack footprint and
+fell. That failed producer is excluded; its original accepted v1 export is used.
+The raw physical results and exact earlier trial sources remain under `v2/`.
+
+CSV: `submissions/20261101T2315Z-d2-v2/track3_poses_v2.csv`
+
+SHA-256: `6ea6530b5408d2d24a4bf9a4f038b99aa6da659d6af3faf2020dea23a2923741`
+
+The timestamped directory contains `manifest.json`, completed `run.json`,
+`pack.log`, `preflight.log` and `verify.log`. The placeholder URL uses the
+packing-time HEAD; working-source hashes are also recorded for review. Complete
+composition, copied-file hashes, caveats and checks are in
+`outputs/pose_insurance/v2/report.md`. Existing v1 results and package remain
+unchanged.

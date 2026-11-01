@@ -57,7 +57,7 @@ def training_command(request, task, directory):
 def inspect_export(path, task_record):
     import numpy as np
     import pyarrow.parquet as pq
-    from ._scene import pose_statistics
+    from ._scene import pose_statistics, initial_pose_error
     df = pq.read_table(path).to_pylist()
     df.sort(key=lambda r:(r["reference_frame"], r["environment_id"], r["object_body_id"]))
     columns = [f"achieved_position_{s}" for s in "xyz"] + [f"achieved_quaternion_{s}" for s in "xyzw"]
@@ -77,7 +77,13 @@ def inspect_export(path, task_record):
     cm, deg = stats["drift_cm"], stats["drift_deg"]
     if cm > 1. or deg > 2.:
         raise ValueError(f"Static drift exceeds 1 cm / 2 degrees: {cm}, {deg}")
+    intended = np.array([row["position"] + [*row["quaternion_wxyz"][1:], row["quaternion_wxyz"][0]]
+                         for row in task_record["scene"]])
+    first_cm, first_deg = initial_pose_error(poses[0, 0], intended)
+    if first_cm > 1. or first_deg > 2.:
+        raise ValueError(f"First pose differs from intended by more than 1 cm / 2 degrees: {first_cm}, {first_deg}")
     return {"drift_cm":cm,"drift_deg":deg,"roster_keys":len(expected),"covered_keys":len(expected & actual),
+            "first_pose_cm":first_cm,"first_pose_deg":first_deg,
             "roster_frames":len(task_record["roster_frames"]),"export_frames":len(df)//len(names),"names":names}
 
 
@@ -93,7 +99,8 @@ def run(request):
                         inputs=[FEATURE / "runtime.json", "outputs/pose_insurance/runtime_inventory.json", KIT / "flash_chord/scripts/evaluate_policy.py"])
     record.update(split=request.source_split, episode_index=request.episode_index,
                   dataset_revision=task[1]["dataset_revision"], scene=task[1]["scene"])
-    directory = output_path(ROOT, f"outputs/pose_insurance/run-v1/{new_run_id()}/episode_{request.episode_index:06d}")
+    version = "v2" if task[1].get("placement_candidate") == "K1a" else "v1"
+    directory = output_path(ROOT, f"outputs/pose_insurance/run-{version}/{new_run_id()}/episode_{request.episode_index:06d}")
     with recorded(directory, record):
         task_path = artifact(task, "task.parquet", record)
         # The main checkout and this worktree share a GPU; do not enter alongside its owner.

@@ -19,6 +19,18 @@ D1 = "outputs/mesh_extents/build/20261101T103838.400965Z-117fbcff/run.json"
 TEMPLATE = ROOT / ".runtime/flashchord/video_to_data/robotic_grounding/source/robotic_grounding/robotic_grounding/assets/human_motion_data/ego_recon/processed/sequence_id=tissue_box_simple/robot_name=sharpa_wave"
 
 
+def placement_v2(request):
+    """Admit K1a only for the two physically accepted scenes in the lead decision."""
+    if request.source_split != "evaluation" or request.episode_index not in (1, 28):
+        return None
+    config = read_json(FEATURE / "placements_v2.json")
+    if config.get("enabled", True) is not True:
+        return None
+    if read_json(config["confirmation"])["verdict"] != "adopt":
+        raise PermissionError("K1a scene construction requires an adopt confirmation verdict")
+    return config["episodes"][str(request.episode_index)]
+
+
 def episode_layout(request):
     if request.source_split == "evaluation":
         import csv
@@ -59,11 +71,14 @@ def build(request):
     runtime = runtime_flag(FEATURE, "build_authorized", "Insurance task build")
     authorize_episode(runtime, request, "insurance task build")
     heavy_execution(runtime)
+    placement = placement_v2(request)
     d1 = producer(D1, "mesh_extents.build")
     placement_path = FEATURE / "placements.json"
     placements = [p for p in read_json(placement_path)["placements"]
                   if (p["source_split"], p["episode_index"]) == (request.source_split, request.episode_index)]
     measure = select_measure(request, d1, placements)
+    if placement and measure[0] != ROOT / placement["measure_run"]:
+        raise ValueError("K1a cluster ids must use their reviewed measure run")
     by_name = {p["slot_name"]:p for p in placements}
     assignment_path = "track3/features/mesh_extents/assignments.json"
     assignment = read_json(assignment_path)["episodes"][f"{request.source_split}:{request.episode_index}"]
@@ -73,7 +88,15 @@ def build(request):
                                 KIT / "data/track_3_evaluation_objects.json"], allowed=("video_only",))
     record.update(split=request.source_split, episode_index=request.episode_index,
                   dataset_revision=depth[1]["dataset_revision"])
-    directory = output_path(ROOT, f"outputs/pose_insurance/build-v1/{new_run_id()}/episode_{request.episode_index:06d}")
+    version = "v2" if placement else "v1"
+    if placement:
+        from track3.runs import record_input
+        from track3.provenance import input_file
+        for path in (FEATURE / "placements_v2.json", "outputs/pose_insurance/placement/confirmation.json",
+                     "docs/chain/pose-placement-protocol.md"):
+            record_input(input_file(ROOT, path), record)
+        record.update(placement_candidate="K1a", placement_confirmation="Amendment 2; one measurable episode")
+    directory = output_path(ROOT, f"outputs/pose_insurance/build-{version}/{new_run_id()}/episode_{request.episode_index:06d}")
     with recorded(directory, record):
         objects = read_json(artifact(d1, "objects.json", record))["objects"]
         names, roster = episode_layout(request)
@@ -102,14 +125,20 @@ def build(request):
             confidence = entry["confidence"] if entry else (
                 "uncertain" if any(word in assignment_note.lower() for word in ("arbitrary", "not known")) else "reviewed")
             note = entry["note"] if entry else "Reviewed mesh_extents assignment"
+            if placement:
+                note = placement["note"]
             if entry is None and (ids is None or first["frame_index"] != 0):
                 raise ValueError(f"{name}: record an explicit placement before building this slot")
             clusters.append(points[np.isin(labels, [i+1 for i in ids])] if ids is not None else None)
             if ids is None:
-                note += "; default 0.5 m slot spacing with identity orientation"
+                note += ("; K1a merged centroid and PCA yaw" if placement else
+                         "; default 0.5 m slot spacing with identity orientation")
             slot_metadata.append((entry, ids, confidence, note))
+        merged = points[np.isin(labels, [i+1 for i in placement["merged_cluster_ids"]])] if placement else None
         geometry = place_boxes(proportions, measurements, clusters, normal,
-                               [entry is not None for entry, _, _, _ in slot_metadata])
+                               [entry is not None for entry, _, _, _ in slot_metadata],
+                               merged=merged, k1="K1a" if placement else None,
+                               stacked_slot=placement["stacked_slot"] if placement else 1)
         for slot, name in enumerate(names):
             shape = objects[name]
             entry, ids, confidence, note = slot_metadata[slot]
@@ -143,6 +172,9 @@ def build(request):
                           "assignment_note":assignment_note,
                           "placement_overlay":entry["overlay"] if entry else None,
                           "placement_source":"placements.json" if entry else "mesh_extents.assignments.json"})
+            if placement:
+                scene[-1].update(placement_source="placements_v2.json", merged_cluster_ids=placement["merged_cluster_ids"],
+                                 placement_candidate="K1a", stacked_slot=placement["stacked_slot"])
         for row, new, shift in zip(scene, geometry["positions"], geometry["shifts"]):
             row["collision_displacement_cm"] = float(shift)
             row["position"] = new.tolist()

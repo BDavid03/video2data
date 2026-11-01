@@ -1,0 +1,29 @@
+{
+  "purpose": "confirmation",
+  "episodes": [
+    2,
+    27
+  ],
+  "candidates": [
+    "v1",
+    "K1a"
+  ],
+  "max_trials": 4,
+  "selection": "Amendment 2: on every measurable episode RPE and MPPE strictly lower; AUC, SP-SR and MP-SR not lower. No measurable episodes means keep v1.",
+  "preparation": [
+    {
+      "episode": 2,
+      "depth_request": "track3/features/pose_insurance/requests/confirmation_depth_2.json",
+      "measure_request": "track3/features/pose_insurance/requests/confirmation_measure_2.json",
+      "depth_template": "outputs/depth/public/episode_000000/20261029T020915.737479Z/run.json",
+      "measure_template": "outputs/mesh_extents/public/episode_000000/20261101T150512.015735Z-5ff23e7a/run.json"
+    },
+    {
+      "episode": 27,
+      "depth_request": "track3/features/pose_insurance/requests/confirmation_depth_27.json",
+      "measure_request": "track3/features/pose_insurance/requests/confirmation_measure_27.json",
+      "depth_template": "outputs/depth/public/episode_000026/20261029T021014.452728Z/run.json",
+      "measure_template": "outputs/mesh_extents/public/episode_000026/20261101T150527.858368Z-51cea8f6/run.json"
+    }
+  ]
+}

@@ -121,3 +121,8 @@ def pose_statistics(poses):
     unit = bool(np.allclose(np.linalg.norm(values[...,3:], axis=-1), 1, atol=1e-4))
     cm, deg = drift(values) if finite and unit else (None, None)
     return {"finite":finite, "unit_quaternions":unit, "drift_cm":cm, "drift_deg":deg}
+
+
+def initial_pose_error(first_export, intended):
+    """Measure worst translation and geodesic rotation from the intended initial poses."""
+    return drift(np.stack((intended, first_export)))

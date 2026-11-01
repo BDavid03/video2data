@@ -21,6 +21,17 @@ ROSTER = {0: ["white_pot", "white_pot_lid"], 11: ["blue_cup", "beige_cup"],
           12: ["blue_cup", "plastic_dish_rack"], 18: ["mini_sweeper", "mini_dust_pan"],
           21: ["blue_cup", "water_pitcher"], 23: ["wooden_piece_1", "wooden_piece_2"],
           26: ["plastic_dish_rack", "white_pot"], 31: ["mini_sweeper", "plastic_dish_rack"]}
+CONFIRM_ROSTER = {2: ["white_pot", "white_pot_lid"], 27: ["plastic_dish_rack", "white_pot"]}
+
+
+def episode_names(episode):
+    """Resolve explicit analogue slots without expanding the convention-fitting train set."""
+    return (CONFIRM_ROSTER if episode in CONFIRM_ROSTER else ROSTER)[episode]
+
+
+def placement_file(episode):
+    """Keep confirmation observations separate from the fixed train placements."""
+    return FEATURE / ("placements_confirm.json" if episode in CONFIRM_ROSTER else "placements_train.json")
 
 
 @dataclass(frozen=True)
@@ -31,8 +42,10 @@ class PlacementRequest:
     source_split: str = "public"
 
     def __post_init__(self):
-        if self.source_split != "public" or self.episode_index not in ROSTER:
-            raise PermissionError("Placement diagnostics use only the eight protocol train episodes")
+        if self.source_split != "public" or self.episode_index not in (ROSTER | CONFIRM_ROSTER):
+            raise PermissionError("Placement diagnostics require a protocol train or confirmation episode")
+        if self.episode_index in CONFIRM_ROSTER and self.candidate not in ("v1", "K1a"):
+            raise PermissionError("Amendment 2 confirmation compares only v1 and K1a")
         if self.candidate not in ("v1", "K1a", "K1b", "K2", "K1+K2"):
             raise ValueError("Unknown placement candidate")
         if (self.candidate == "K1+K2" and self.k1 not in ("K1a", "K1b")) or (
@@ -53,13 +66,13 @@ def baseline_module():
     return module
 
 
-@lru_cache(maxsize=8)
+@lru_cache(maxsize=10)
 def reference(episode):
     """Load nearest-visible-filled mocap and reorder explicitly into analogue slots."""
-    if episode not in ROSTER:
+    if episode not in (ROSTER | CONFIRM_ROSTER):
         raise PermissionError("Reference episode outside placement protocol")
     names, poses = baseline_module().load_reference(episode)
-    return poses[:, :, [names.index(name) for name in ROSTER[episode]]]
+    return poses[:, :, [names.index(name) for name in episode_names(episode)]]
 
 
 def label_paths(episode, all_train=False):
@@ -81,8 +94,10 @@ def conventions(episode):
 
 def video_geometry(request, record):
     """Admit video producers and pass their arrays to the shared scene computation."""
-    placement_path = FEATURE / "placements_train.json"
+    placement_path = placement_file(request.episode_index)
     entries = read_json(placement_path)["episodes"][str(request.episode_index)]
+    if request.episode_index in CONFIRM_ROSTER and entries["measurable"] is not True:
+        raise ValueError("Confirmation episode cannot measure merged-cluster placement")
     d1 = producer(D1, "mesh_extents.build")
     measure = select_measure(request, d1, [entries])
     depth = producer(measure[1]["request"]["depth_run"], "depth.generate", request)
@@ -98,9 +113,10 @@ def video_geometry(request, record):
     with np.load(artifact(depth, "preprocessing.npz", record, depth[1]["preprocessing_artifact_sha256"])) as arrays:
         points = camera_points(z, arrays["input_intrinsics_pixels"])
     artifact(measure, "overlay_000000.png", record)
-    assignment = read_json(FEATURE.parent / "mesh_extents/assignments.json")["episodes"][f"public:{request.episode_index}"]
+    assignment = read_json(FEATURE.parent / "mesh_extents/assignments.json")["episodes"].get(
+        f"public:{request.episode_index}", {"objects": {}})
     proportions, measurements, clusters, movable = [], [], [], []
-    for name in ROSTER[request.episode_index]:
+    for name in episode_names(request.episode_index):
         proportions.append(objects[name]["extents_m"])
         measurements.append(measure[1].get("objects", {}).get(name, {}).get("median_m", objects[name]["extents_m"]))
         entry = entries["slots"].get(name)
@@ -124,11 +140,11 @@ def diagnose(request):
     sampling = read_json(FEATURE / "diagnostic_sampling.json")
     if sampling["surface_points_per_object"] != 1000 or sampling["seed"] != 0:
         raise ValueError("The fixed protocol requires 1,000 scan samples per object with seed zero")
-    entries = read_json(FEATURE / "placements_train.json")["episodes"][str(request.episode_index)]
+    entries = read_json(placement_file(request.episode_index))["episodes"][str(request.episode_index)]
     measure = producer(entries["measure_run"], "mesh_extents.measure", request)
     depth = producer(measure[1]["request"]["depth_run"], "depth.generate", request)
     baseline = baseline_module()
-    names = ROSTER[request.episode_index]
+    names = episode_names(request.episode_index)
     dataset = next(ROOT.glob("datasets--*/snapshots/*/track_3/public"))
     meshes = []
     for name in names:
@@ -136,7 +152,7 @@ def diagnose(request):
         meshes.append(mesh if mesh.exists() else mesh.with_name(f"{name}_visual.glb"))
     record = run_fields(ROOT, "pose_insurance", "placement_diagnostic", asdict(request),
                         parents=[D1, measure[0], depth[0]], provenance="public_label_diagnostic",
-                        inputs=[PROTOCOL, FEATURE / "placements_train.json", FEATURE / "runtime.json",
+                        inputs=[PROTOCOL, placement_file(request.episode_index), FEATURE / "runtime.json",
                                 FEATURE / "diagnostic_sampling.json", FEATURE.parent / "mesh_extents/assignments.json",
                                 ROOT / "scripts/track3/static_pose_baseline.py", KIT / "metric_code/track_3/AUC.py",
                                 *label_paths(request.episode_index, "K2" in request.candidate), *meshes])

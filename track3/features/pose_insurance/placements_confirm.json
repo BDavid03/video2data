@@ -1,0 +1,81 @@
+{
+  "rule": "Recorded by direct frame-zero overlay inspection before any confirmation candidate scoring. Cluster ids zero-based; label ids add one. Episode 27 is excluded because its objects are not merged, without accessing its reference poses.",
+  "episodes": {
+    "2": {
+      "measure_run": "outputs/mesh_extents/public/episode_000002/20261101T225804.589153Z-e6d3b35f/run.json",
+      "overlay": "outputs/mesh_extents/public/episode_000002/20261101T225804.589153Z-e6d3b35f/overlay_000000.png",
+      "overlay_sha256": "704b76d44d835866b20b50f83b78b6bd4ea5a221015c85949dc7f06deda677ef",
+      "overlay_reviewed": true,
+      "reviewed_utc": "2026-11-01T22:58:56.093021+00:00",
+      "measurable": true,
+      "merged_cluster_ids": [
+        0
+      ],
+      "stacked_slot": 1,
+      "note": "Frame-zero cluster 0 covers the pot body, handle and seated lid. Handle reaches the bottom image border. Pot and lid have no independent clusters; K1a seats lid above pot as in train 0. Confirmation is measurable.",
+      "confidence": "uncertain",
+      "slots": {
+        "white_pot": {
+          "cluster_ids": null,
+          "observed_cluster_ids": [
+            0
+          ],
+          "merged_cluster_ids": [
+            0
+          ],
+          "note": "Merged pot/lid cluster 0; no independent slot cluster. v1 uses its documented default.",
+          "confidence": "uncertain"
+        },
+        "white_pot_lid": {
+          "cluster_ids": null,
+          "observed_cluster_ids": [
+            0
+          ],
+          "merged_cluster_ids": [
+            0
+          ],
+          "note": "Merged pot/lid cluster 0; no independent slot cluster. v1 uses its documented default.",
+          "confidence": "uncertain"
+        }
+      }
+    },
+    "27": {
+      "measure_run": "outputs/mesh_extents/public/episode_000027/20261101T225816.131017Z-ebd30c8f/run.json",
+      "overlay": "outputs/mesh_extents/public/episode_000027/20261101T225816.131017Z-ebd30c8f/overlay_000000.png",
+      "overlay_sha256": "a375dd67656e4122d6816065058f89bc03967d59add9dc022f9b7470b59fda9f",
+      "overlay_reviewed": true,
+      "reviewed_utc": "2026-11-01T22:58:56.095656+00:00",
+      "measurable": false,
+      "merged_cluster_ids": null,
+      "stacked_slot": null,
+      "note": "Frame zero shows the pot in front of and separate from the rack: rack is cluster 1, pot body cluster 0 and its handle cluster 2. No merged pot/rack cluster exists. Exclude under Amendment 2; do not score or invent stacking.",
+      "confidence": "reviewed",
+      "slots": {
+        "plastic_dish_rack": {
+          "cluster_ids": [
+            1
+          ],
+          "observed_cluster_ids": [
+            1
+          ],
+          "merged_cluster_ids": null,
+          "note": "Independent rack cluster 1, behind the pot.",
+          "confidence": "reviewed"
+        },
+        "white_pot": {
+          "cluster_ids": [
+            0,
+            2
+          ],
+          "observed_cluster_ids": [
+            0,
+            2
+          ],
+          "merged_cluster_ids": null,
+          "note": "Pot body cluster 0 and disconnected handle cluster 2, both separate from rack.",
+          "confidence": "reviewed"
+        }
+      }
+    }
+  }
+}

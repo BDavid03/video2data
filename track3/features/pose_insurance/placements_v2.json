@@ -1,0 +1,53 @@
+{
+  "candidate": "K1a",
+  "confirmation": "outputs/pose_insurance/placement/confirmation.json",
+  "episodes": {
+    "1": {
+      "merged_cluster_ids": [
+        0
+      ],
+      "stacked_slot": 1,
+      "measure_run": "outputs/mesh_extents/evaluation/episode_000001/20261101T100622.518004Z-c49e3a40/run.json",
+      "overlay": "outputs/mesh_extents/evaluation/episode_000001/20261101T100622.518004Z-c49e3a40/overlay_000000.png",
+      "slots": {
+        "white_pot": {
+          "cluster_ids": null,
+          "confidence": "uncertain"
+        },
+        "white_pot_lid": {
+          "cluster_ids": null,
+          "confidence": "uncertain"
+        }
+      },
+      "note": "K1a: cluster 0 merges both objects; each independent cluster remains null. Seat the lid above pot (1) or pot above rack (28).",
+      "confidence": "uncertain"
+    },
+    "28": {
+      "merged_cluster_ids": [
+        0
+      ],
+      "stacked_slot": 1,
+      "measure_run": "outputs/mesh_extents/evaluation/episode_000028/20261101T150649.595967Z-af6e54aa/run.json",
+      "overlay": "outputs/mesh_extents/evaluation/episode_000028/20261101T150649.595967Z-af6e54aa/overlay_000000.png",
+      "slots": {
+        "plastic_dish_rack": {
+          "cluster_ids": null,
+          "confidence": "uncertain"
+        },
+        "white_pot": {
+          "cluster_ids": null,
+          "confidence": "uncertain"
+        }
+      },
+      "note": "K1a: cluster 0 merges both objects; each independent cluster remains null. Seat the lid above pot (1) or pot above rack (28).",
+      "confidence": "uncertain"
+    }
+  },
+  "enabled": true,
+  "physical_status": "accepted on 1 and 28; episode 30 stays v1",
+  "physical_evidence": "outputs/pose_insurance/v2/physical_checks.json",
+  "decision_protocol": "docs/chain/pose-placement-protocol.md",
+  "fallback_v1_episodes": [
+    30
+  ]
+}

@@ -1,0 +1,95 @@
+{
+  "budgets": {
+    "contract": {
+      "environment_steps": 1,
+      "worlds": 1,
+      "replay_minimum": 1
+    },
+    "learned": {
+      "environment_steps": 512,
+      "worlds": 1,
+      "replay_minimum": 32
+    }
+  },
+  "pilots": [
+    {
+      "source_split": "evaluation",
+      "episode_index": 38,
+      "budget_name": "contract",
+      "contract_only": true
+    },
+    {
+      "source_split": "evaluation",
+      "episode_index": 38,
+      "budget_name": "learned"
+    },
+    {
+      "source_split": "evaluation",
+      "episode_index": 10,
+      "budget_name": "learned"
+    },
+    {
+      "source_split": "public",
+      "episode_index": 39,
+      "budget_name": "learned"
+    },
+    {
+      "source_split": "public",
+      "episode_index": 42,
+      "budget_name": "learned"
+    }
+  ],
+  "evaluation_episodes": [
+    1,
+    28
+  ],
+  "budget_pilots": [
+    {
+      "environment_steps": 512,
+      "worlds": 1,
+      "replay_minimum": 32
+    }
+  ],
+  "budget_pilot_history": [
+    {
+      "environment_steps": 512,
+      "worlds": 1,
+      "replay_minimum": 32
+    },
+    {
+      "environment_steps": 4096,
+      "worlds": 1,
+      "replay_minimum": 32
+    },
+    {
+      "environment_steps": 16384,
+      "worlds": 1,
+      "replay_minimum": 32
+    }
+  ],
+  "rejected_budgets": [
+    {
+      "budget": {
+        "environment_steps": 16384,
+        "worlds": 1,
+        "replay_minimum": 32
+      },
+      "reason": "Episode 3 campaign state became nonfinite and took 6.70 minutes.",
+      "evidence": "outputs/pose_insurance/v1/large_budget_failure.json"
+    },
+    {
+      "budget": {
+        "environment_steps": 4096,
+        "worlds": 1,
+        "replay_minimum": 32
+      },
+      "reason": "Episode 5 campaign state became nonfinite.",
+      "evidence": "outputs/pose_insurance/v1/medium_budget_failure.json"
+    }
+  ],
+  "version": "v2",
+  "reuse_runs": {
+    "1": "outputs/pose_insurance/run-v2/20261101T230158.645100Z-0a611b4d/episode_000001/run.json",
+    "28": "outputs/pose_insurance/run-v2/20261101T230238.970403Z-c83004d8/episode_000028/run.json"
+  }
+}
