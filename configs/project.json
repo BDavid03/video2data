@@ -26,6 +26,7 @@
   },
   "artifact_roots": [
     "/home/ceolwolf/repos/video2data",
+    "/home/ceolwolf/repos/video2data/.claude/worktrees/chain-ctx01",
     "Z:/hugging-face/video2data",
     "/mnt/z/hugging-face/video2data"
   ],
