@@ -96,15 +96,6 @@ scans; fit: final threshold chosen on all ten. Wood 1/2 denote
 \label{tab:cdo}
 \end{table}
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\linewidth]{figures/d1-v2-cdo.pdf}
-\caption{Cross-fitted R2 versus video boxes on public scans. The pot improves,
-whereas the pitcher and lid regress. Remaining categories retain their boxes.}
-\label{fig:cdo}
-\Description{Per-object CD-O bars comparing video boxes with the cross-fitted R2 rule.}
-\end{figure}
-
 R2 scores 0.926\,cm per object versus 1.008\,cm for boxes (pair-weighted:
 1.087 versus 1.257\,cm). R1 scores 0.956\,cm; R3 scores 0.990\,cm and misses the gain
 gate. R2's largest held-out regression is 0.106\,cm on the pitcher. Its threshold
@@ -113,8 +104,17 @@ on all ten objects; that fitted build scores 0.9251\,cm (pair-weighted 1.088\,cm
 Cross-fitted results estimate the parameter-selection procedure, not that single
 final mesh.
 
+Paired gains over boxes are $+0.239/+0.222$\,cm for the cups, $+0.490$ for the pot,
+$-0.106$ for the pitcher, $-0.027$ for the lid, and zero for the other five objects.
+The mean gain is 0.082\,cm (object-level sample SD 0.180, SE 0.057 over ten objects:
+about 1.4 SE). The pot supplies 60\% of the net object-mean gain and 67\% of the net
+pair-weighted gain. R2's threshold candidates span only about 0.002\,cm in mean score;
+the effective selection is R2 over R1 on these same scans. These descriptive
+object-level summaries do not remove selection bias.
+
 \textbf{Disclosure.} The earlier box-versus-ellipsoid choice used the public scan
 scores, and measurement thresholds were set while inspecting episode 39's scan score.
+The rules were designed after observing the pot box lose to a cube.
 The subsequent rule families, folds, and adoption gates were fixed before the new scoring,
 but selection among rules still uses these same ten public scans: cross-fitting is
 not an untouched test. The unscanned wooden spoon retains its box and accounts for
@@ -122,8 +122,10 @@ not an untouched test. The unscanned wooden spoon retains its box and accounts f
 uncertainty over new objects.
 
 \section{Static pose insurance and limitations}
-Our pose entry uses FlashCHORD~\cite{flashchord} with boxes on the table plane at sizes
-restored from MoGe-2's uncalibrated metric-depth predictions and parked Sharpa hands.
+Our pose entry uses FlashCHORD~\cite{flashchord} to simulate the earlier video boxes,
+rather than the submitted vessel-rule meshes; both are our own reconstructions.
+Box sizes are restored from MoGe-2's uncalibrated metric-depth predictions, with
+objects on the table plane and Sharpa hands parked.
 FlashSAC trains for 512 environment steps in one world, recording 479 critic and 240
 actor Adam updates per episode; budgets of 4,096 and 16,384 steps produced non-finite
 training states on episodes 5 and 3, respectively. The official evaluator exports
@@ -132,11 +134,14 @@ passes kit preflight (\emph{Ready to submit}).
 
 Overlay review corrected a first version's spurious 33--93\,cm clearance shifts in
 six episodes and the episode-14 cup/rack identity swap. Explicit placement records
-cover nine episodes, six marked \emph{uncertain}. On single-object public tuning
-episodes 39/42, AUC remains 0.175/0.194 and SP-SR 0/0, matching the oracle-static AUC
-and SP-SR (our surface samples approximate host vertices). This stationary baseline
-earns partial pose-metric credit; moving-object manipulation and relative object-frame
-or placement errors remain unassessed by the single-object tuning.
+cover nine episodes, six marked \emph{uncertain}. Five of 36 scored pairs (episode 1
+pot/lid, 28 rack/pot, 30 sweeper) use defaults because clusters are merged or unnamed:
+horizontal position $(0.5s,0)$\,m for slot index $s$, with identity yaw, before clearance.
+On single-object public tuning episodes 39/42, AUC is 0.175/0.194 and SP-SR 0/0,
+equal to the oracle static baseline by construction after initial-pose alignment
+(our surface samples approximate host vertices). This stationary baseline earns
+partial pose-metric credit; moving-object manipulation and relative-placement accuracy
+remain unmeasured by these diagnostics.
 
 Primitives cannot express vessel or rack concavities, and overlapping components
 are not verified simulation geometry. Manual assignments, pooled object identity,
@@ -144,7 +149,6 @@ uncalibrated metric size, and the unmeasured spoon limit generality.
 
 \typeout{TRACK3-MAIN-TEXT-END-PAGE: \thepage}
 \typeout{TRACK3-TABLE-PAGE: \getpagerefnumber{tab:cdo}}
-\typeout{TRACK3-FIGURE-PAGE: \getpagerefnumber{fig:cdo}}
 \bibliographystyle{plainnat}
 \bibliography{references}
 \end{document}
