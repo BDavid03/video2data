@@ -16,13 +16,36 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
    `KAGGLE_API_TOKEN` (a legacy `~/.kaggle/kaggle.json` does not work with kaggle>=2), and
    accept the rules on all six Track 3 competitions (five pose, one CD-O). There is no API for
    accepting rules.
+4. [ ] **Chain contexts cannot edit the main checkout (added by context 01).** Claude Code's
+   background-job guard rejects file edits in `/home/ceolwolf/repos/video2data` and requires a
+   worktree. Context 01 therefore worked in `.claude/worktrees/chain-ctx01` on branch
+   `worktree-chain-ctx01`, and its hand-off is committed there, not in the main checkout the
+   driver watches, so the driver will report STALLED. To continue, in the main checkout:
+   `git merge --ff-only worktree-chain-ctx01` (main's uncommitted driver edits are untouched; the
+   branch does not change AGENTS.md, PROGRAM.md or scripts/chain/), then restart the driver.
+   To let later contexts work in place, add `"worktree": {"bgIsolation": "none"}` to
+   `.claude/settings.json`; otherwise every context will branch again. Run outputs from context 01
+   are under the worktree's `outputs/` (hard-linked copies of the old ones plus the new runs); the
+   next context can copy them back with `cp -al`.
+5. [ ] **Hand-pose model for D2 (proposal).** Simulated hands must follow a hand reference
+   estimated from the egocentric video. The `hand_motion` slice is written for WiLoR (weights)
+   plus the MANO hand model; neither is present, and MANO requires registering at
+   <https://mano.is.tue.mpg.de> and accepting its licence, which only the owner can do. Approve in
+   one line, e.g. "2026-11-0x: WiLoR + MANO approved, MANO files in models/mano/", or say D2 may
+   use parked (non-moving) hands, which the chain will try first anyway.
+6. [ ] **Docker group (optional).** `docker` is unusable for this user (`/var/run/docker.sock`
+   permission denied; sudo needs a password). Not needed now: FlashCHORD runs natively. If the
+   official container is ever wanted: `sudo usermod -aG docker ceolwolf`, then restart WSL.
 3. [ ] **`coursework/` material** lost on 2026-10-29 (Week 1-12 notebooks, `data/`,
    `glove.6B.100d.txt`, `make_coursework.py`, `helper_funcs/`), if another copy exists. Only the
    hashed subset that `scratch_depth` needs is present. Not needed for the submission.
 
 ## Answered
 
-- [x] Isaac Lab / FlashCHORD install: approved 2026-11-01.
+- [x] Isaac Lab / FlashCHORD install: approved 2026-11-01. Done 2026-11-01 by context 01:
+  FlashCHORD at aee95f25 needs no Isaac Sim or Isaac Lab (Newton + MuJoCo-Warp + JAX), so only
+  FlashCHORD was installed, natively, in `.runtime/flashchord/venv`. No NVIDIA Isaac Sim licence
+  was accepted because Isaac Sim was not installed.
 - [x] Kaggle: the owner uploads; the chain packs and preflights only (2026-11-01).
 - [x] LaTeX: install a reputable engine from its official source, do not write one
   (2026-11-01).

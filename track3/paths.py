@@ -36,12 +36,18 @@ def project_path(root, value):
     """Read a project path stored in Windows, WSL or local-checkout notation."""
     text = str(value).replace("\\", "/")
     prefixes = (*_LEGACY_PREFIXES, *permitted_roots(), str(Path(root).resolve()).replace("\\", "/"))
-    for prefix in prefixes:
+    # Longest prefix first: a linked worktree lives inside the main checkout's directory.
+    for prefix in sorted(prefixes, key=len, reverse=True):
         if text.casefold() == prefix.casefold() or text.casefold().startswith(prefix.casefold() + "/"):
             text = text[len(prefix):].lstrip("/")
             break
-    path = (Path(root) / text).resolve()
-    if not path.is_relative_to(Path(root).resolve()):
+    base = Path(root).resolve()
+    if not Path(os.path.normpath(base / text)).is_relative_to(base):
+        raise ValueError("Path escapes the project")
+    path = (base / text).resolve()
+    # Only links may leave the root: a worktree's .runtime links resolve into the main checkout.
+    inside = [base, *(Path(r) for r in permitted_roots() if Path(r).is_absolute())]
+    if not any(path.is_relative_to(b) for b in inside):
         raise ValueError("Path escapes the project")
     return path
 
