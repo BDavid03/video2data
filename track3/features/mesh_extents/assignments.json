@@ -1,0 +1,663 @@
+{
+ "rule": "Per episode: object -> frame-0 cluster ids of a mesh_extents.measure run, recorded by the chain context from the run's overlay_<frame>.png. Only clean, isolated, fully visible objects are assigned; merged or cut-off objects are left out. Pass 2 (2026-11-01, after the multi-part local re-cut) re-checked every overlay; ids refer to that version of _geometry.py. reference_pixels: frame-0 size of each assigned id in the reviewed run; measure refuses a rerun whose cluster deviates by more than 15 %.",
+ "episodes": {
+  "public:0": {
+   "depth_run": "outputs/depth/public/episode_000000/20261029T020915.737479Z/run.json",
+   "frames": [
+    0,
+    12
+   ],
+   "objects": {},
+   "note": "Left out: Pot and lid merged; handle cut by the image border."
+  },
+  "public:11": {
+   "depth_run": "outputs/depth/public/episode_000011/20261029T020928.345436Z/run.json",
+   "frames": [
+    0,
+    5,
+    10,
+    15
+   ],
+   "objects": {
+    "beige_cup": [
+     0
+    ],
+    "blue_cup": [
+     1
+    ]
+   },
+   "note": "Right cup (beige) is cluster 0, left cup (blue) cluster 1; hand cluster 2 ignored.",
+   "reference_pixels": {
+    "beige_cup": [
+     10055
+    ],
+    "blue_cup": [
+     9615
+    ]
+   }
+  },
+  "public:12": {
+   "depth_run": "outputs/depth/public/episode_000012/20261029T020937.002419Z/run.json",
+   "frames": [
+    0,
+    6,
+    12,
+    18
+   ],
+   "objects": {
+    "plastic_dish_rack": [
+     0,
+     2,
+     3,
+     4,
+     5,
+     6
+    ]
+   },
+   "note": "Rack is cluster 0 plus its tines 2-6; the blue cup (1) is cut by the image border, left out.",
+   "reference_pixels": {
+    "plastic_dish_rack": [
+     17179,
+     489,
+     369,
+     336,
+     321,
+     317
+    ]
+   }
+  },
+  "public:18": {
+   "depth_run": "outputs/depth/public/episode_000018/20261029T020946.139727Z/run.json",
+   "frames": [
+    0,
+    12
+   ],
+   "objects": {
+    "mini_dust_pan": [
+     0
+    ],
+    "mini_sweeper": [
+     1
+    ]
+   },
+   "note": "Pan 0, upright sweeper 1.",
+   "reference_pixels": {
+    "mini_dust_pan": [
+     8004
+    ],
+    "mini_sweeper": [
+     3851
+    ]
+   }
+  },
+  "public:21": {
+   "depth_run": "outputs/depth/public/episode_000021/20261029T020955.740261Z/run.json",
+   "frames": [
+    0,
+    6,
+    12,
+    18
+   ],
+   "objects": {
+    "water_pitcher": [
+     0
+    ],
+    "blue_cup": [
+     1
+    ]
+   },
+   "note": "Pitcher 0, blue cup 1.",
+   "reference_pixels": {
+    "water_pitcher": [
+     33979
+    ],
+    "blue_cup": [
+     10107
+    ]
+   }
+  },
+  "public:23": {
+   "depth_run": "outputs/depth/public/episode_000023/20261029T021005.260544Z/run.json",
+   "frames": [
+    0,
+    11
+   ],
+   "objects": {
+    "wooden_piece_1": [
+     0
+    ],
+    "wooden_piece_2": [
+     1
+    ]
+   },
+   "note": "Two near-identical boards; which is piece 1 or 2 is not known from video, so 0/1 is arbitrary.",
+   "reference_pixels": {
+    "wooden_piece_1": [
+     13659
+    ],
+    "wooden_piece_2": [
+     13646
+    ]
+   }
+  },
+  "public:26": {
+   "depth_run": "outputs/depth/public/episode_000026/20261029T021014.452728Z/run.json",
+   "frames": [
+    0,
+    5,
+    10,
+    15
+   ],
+   "objects": {},
+   "note": "Left out: Pot rests on the rack: one merged cluster."
+  },
+  "public:31": {
+   "depth_run": "outputs/depth/public/episode_000031/20261029T021023.736359Z/run.json",
+   "frames": [
+    0,
+    10
+   ],
+   "objects": {},
+   "note": "Left out: Sweeper stands in the rack: one merged cluster."
+  },
+  "public:39": {
+   "depth_run": "outputs/depth/public/episode_000039/20261101T094931.143511Z/run.json",
+   "frames": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    19
+   ],
+   "objects": {
+    "mini_dust_pan": [
+     0
+    ]
+   },
+   "note": "Pan 0; cluster 1 is a hand.",
+   "reference_pixels": {
+    "mini_dust_pan": [
+     7367
+    ]
+   }
+  },
+  "public:42": {
+   "depth_run": "outputs/depth/public/episode_000042/20261029T021042.911743Z/run.json",
+   "frames": [
+    0,
+    9,
+    18
+   ],
+   "objects": {
+    "white_pot": [
+     0
+    ]
+   },
+   "note": "Pot with handle, cluster 0.",
+   "reference_pixels": {
+    "white_pot": [
+     21156
+    ]
+   }
+  },
+  "evaluation:1": {
+   "depth_run": "outputs/depth/evaluation/episode_000001/20261101T101819.573444Z/run.json",
+   "frames": [
+    110,
+    130,
+    150,
+    170,
+    190,
+    210,
+    230
+   ],
+   "objects": {
+    "white_pot_lid": [
+     1
+    ]
+   },
+   "note": "Lid-on-table phase (frames 110-230): lid is cluster 1; the pot (0) is held and cut by the border.",
+   "overrides": {
+    "minimum_height_m": 0.004
+   },
+   "reference_pixels": {
+    "white_pot_lid": [
+     10830
+    ]
+   }
+  },
+  "evaluation:3": {
+   "depth_run": "outputs/depth/evaluation/episode_000003/20261101T095822.320168Z/run.json",
+   "frames": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    19
+   ],
+   "objects": {},
+   "note": "Left out: pot handle cut by the image border; only the spoon handle is segmented (bowl missing)."
+  },
+  "evaluation:5": {
+   "depth_run": "outputs/depth/evaluation/episode_000005/20261101T095843.854701Z/run.json",
+   "frames": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    19
+   ],
+   "objects": {
+    "white_pot": [
+     0
+    ],
+    "wooden_spoon": [
+     1
+    ]
+   },
+   "note": "Pot 0 (handle inside the image), spoon 1.",
+   "reference_pixels": {
+    "white_pot": [
+     22098
+    ],
+    "wooden_spoon": [
+     3394
+    ]
+   }
+  },
+  "evaluation:6": {
+   "depth_run": "outputs/depth/evaluation/episode_000006/20261101T095855.652815Z/run.json",
+   "frames": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    19
+   ],
+   "objects": {
+    "wooden_spoon": [
+     1
+    ]
+   },
+   "note": "Spoon 1; the pot handle is cut by the image border, pot left out.",
+   "reference_pixels": {
+    "wooden_spoon": [
+     4487
+    ]
+   }
+  },
+  "evaluation:8": {
+   "depth_run": "outputs/depth/evaluation/episode_000008/20261101T095913.303187Z/run.json",
+   "frames": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    19
+   ],
+   "objects": {
+    "white_pot": [
+     0
+    ],
+    "beige_cup": [
+     1
+    ]
+   },
+   "note": "Pot 0, beige cup 1.",
+   "reference_pixels": {
+    "white_pot": [
+     22087
+    ],
+    "beige_cup": [
+     9259
+    ]
+   }
+  },
+  "evaluation:10": {
+   "depth_run": "outputs/depth/evaluation/episode_000010/20261101T095927.720752Z/run.json",
+   "frames": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    19
+   ],
+   "objects": {
+    "beige_cup": [
+     0
+    ],
+    "blue_cup": [
+     1
+    ]
+   },
+   "note": "Right cup (beige) 0, left cup (blue) 1; hand 2 ignored.",
+   "reference_pixels": {
+    "beige_cup": [
+     12064
+    ],
+    "blue_cup": [
+     10683
+    ]
+   }
+  },
+  "evaluation:14": {
+   "depth_run": "outputs/depth/evaluation/episode_000014/20261101T095959.543038Z/run.json",
+   "frames": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    19
+   ],
+   "objects": {},
+   "note": "Left out: Rack only partly segmented (holder separate); cup cut by the border."
+  },
+  "evaluation:15": {
+   "depth_run": "outputs/depth/evaluation/episode_000015/20261101T100033.113995Z/run.json",
+   "frames": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    19
+   ],
+   "objects": {
+    "plastic_dish_rack": [
+     0
+    ],
+    "wooden_spoon": [
+     1
+    ]
+   },
+   "note": "Rack 0, spoon 1.",
+   "reference_pixels": {
+    "plastic_dish_rack": [
+     38829
+    ],
+    "wooden_spoon": [
+     8513
+    ]
+   }
+  },
+  "evaluation:16": {
+   "depth_run": "outputs/depth/evaluation/episode_000016/20261101T100056.129766Z/run.json",
+   "frames": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    19
+   ],
+   "objects": {
+    "plastic_dish_rack": [
+     0
+    ],
+    "wooden_spoon": [
+     1
+    ]
+   },
+   "note": "Rack 0, spoon 1.",
+   "reference_pixels": {
+    "plastic_dish_rack": [
+     36148
+    ],
+    "wooden_spoon": [
+     8322
+    ]
+   }
+  },
+  "evaluation:19": {
+   "depth_run": "outputs/depth/evaluation/episode_000019/20261101T100143.510380Z/run.json",
+   "frames": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    19
+   ],
+   "objects": {
+    "mini_dust_pan": [
+     1
+    ],
+    "mini_sweeper": [
+     2
+    ]
+   },
+   "note": "Pan 1, sweeper 2; hand 0 ignored.",
+   "reference_pixels": {
+    "mini_dust_pan": [
+     7416
+    ],
+    "mini_sweeper": [
+     2924
+    ]
+   }
+  },
+  "evaluation:20": {
+   "depth_run": "outputs/depth/evaluation/episode_000020/20261101T100209.219021Z/run.json",
+   "frames": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    19
+   ],
+   "objects": {
+    "water_pitcher": [
+     0
+    ]
+   },
+   "note": "Pitcher 0; the cup is merged with the hand (1), left out.",
+   "reference_pixels": {
+    "water_pitcher": [
+     34428
+    ]
+   }
+  },
+  "evaluation:25": {
+   "depth_run": "outputs/depth/evaluation/episode_000025/20261101T100256.218897Z/run.json",
+   "frames": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    19
+   ],
+   "objects": {
+    "wooden_piece_1": [
+     0
+    ],
+    "wooden_piece_2": [
+     1
+    ]
+   },
+   "note": "Two near-identical boards; 0/1 identity arbitrary, as in public 23.",
+   "reference_pixels": {
+    "wooden_piece_1": [
+     14324
+    ],
+    "wooden_piece_2": [
+     13452
+    ]
+   }
+  },
+  "evaluation:28": {
+   "depth_run": "outputs/depth/evaluation/episode_000028/20261101T100311.102881Z/run.json",
+   "frames": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    19
+   ],
+   "objects": {},
+   "note": "Left out: Rack and pot merged and cut by the border."
+  },
+  "evaluation:30": {
+   "depth_run": "outputs/depth/evaluation/episode_000030/20261101T100327.001419Z/run.json",
+   "frames": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    19
+   ],
+   "objects": {},
+   "note": "Left out: Sweeper stands in the rack: merged clusters."
+  },
+  "evaluation:32": {
+   "depth_run": "outputs/depth/evaluation/episode_000032/20261101T100405.449866Z/run.json",
+   "frames": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    19
+   ],
+   "objects": {
+    "wooden_spoon": [
+     1,
+     2
+    ]
+   },
+   "note": "Spoon split at the neck into handle 1 and bowl 2; cup held in hand (0), left out.",
+   "reference_pixels": {
+    "wooden_spoon": [
+     2622,
+     2377
+    ]
+   }
+  },
+  "evaluation:33": {
+   "depth_run": "outputs/depth/evaluation/episode_000033/20261101T100425.754911Z/run.json",
+   "frames": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    19
+   ],
+   "objects": {
+    "blue_cup": [
+     0
+    ],
+    "wooden_spoon": [
+     1
+    ]
+   },
+   "note": "Cup 0, spoon 1.",
+   "reference_pixels": {
+    "blue_cup": [
+     9304
+    ],
+    "wooden_spoon": [
+     4899
+    ]
+   }
+  },
+  "evaluation:35": {
+   "depth_run": "outputs/depth/evaluation/episode_000035/20261101T100450.692079Z/run.json",
+   "frames": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    19
+   ],
+   "objects": {
+    "wooden_spoon": [
+     0
+    ]
+   },
+   "note": "Spoon 0; hand 1 ignored.",
+   "reference_pixels": {
+    "wooden_spoon": [
+     4901
+    ]
+   }
+  },
+  "evaluation:36": {
+   "depth_run": "outputs/depth/evaluation/episode_000036/20261101T100510.436966Z/run.json",
+   "frames": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    19
+   ],
+   "objects": {
+    "wooden_spoon": [
+     0
+    ]
+   },
+   "note": "Spoon 0.",
+   "reference_pixels": {
+    "wooden_spoon": [
+     4995
+    ]
+   }
+  },
+  "evaluation:37": {
+   "depth_run": "outputs/depth/evaluation/episode_000037/20261101T100530.448005Z/run.json",
+   "frames": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    19
+   ],
+   "objects": {
+    "wooden_spoon": [
+     0
+    ]
+   },
+   "note": "Spoon 0.",
+   "reference_pixels": {
+    "wooden_spoon": [
+     5392
+    ]
+   }
+  },
+  "evaluation:38": {
+   "depth_run": "outputs/depth/evaluation/episode_000038/20261101T030402.023623Z/run.json",
+   "frames": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    19
+   ],
+   "objects": {
+    "mini_dust_pan": [
+     0
+    ]
+   },
+   "note": "Pan 0.",
+   "reference_pixels": {
+    "mini_dust_pan": [
+     8313
+    ]
+   }
+  }
+ }
+}

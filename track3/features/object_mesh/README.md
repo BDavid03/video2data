@@ -72,14 +72,17 @@ All disabled by default.
 
 **Mesh for pose tracking and simulation (Design).**
 
-- Scanned objects: use the public scan unchanged. Its frame is the frame the
-  reference poses use, which no reconstruction can match as well. `resolve`
-  also reads the public URDF's collision-mesh reference and copies that file
-  unchanged, recording `collision_file` and `collision_sha256` separately from
-  visual `file` and `sha256`. This includes the separate `_collision.glb`
-  assets for `mini_sweeper`, `wooden_piece_1` and `wooden_piece_2`. A nonidentity
-  collision origin or scale is refused rather than silently changing frames.
-- `wooden_spoon`: use the reconstructed mesh, with a body frame set by a written
+- **Reconstruction only (2026-11-01).** The challenge FAQ says participants
+  "should reconstruct the objects ... and submit their own reconstructed
+  meshes" although public scans exist. `sources.json` therefore lists all
+  eleven objects as `reconstructed`, and `resolve` refuses every other source
+  and every reconstruction from another split or episode. The public scans and
+  URDFs are read only by the local CD-O scorer (`scripts/track3/local_cdo.py`),
+  to measure reconstructions on public episodes. Earlier text in this README
+  about resolving scans unchanged, scan collision meshes and the scans-first
+  spoon pass describes the superseded design: with every object reconstructed,
+  `scans_only: true` simply lists every object as pending.
+- `wooden_spoon` (and now every object): use the reconstructed mesh, with a body frame set by a written
   rule until the organisers publish the scan or its frame. The provisional rule:
   origin at the centroid of the surface, x along the longest principal axis from
   bowl to handle end, z along the shortest. The rule is a placeholder. A wrong

@@ -1,15 +1,16 @@
 {
+  "policy": "Reconstruction only. The challenge FAQ (read 2026-11-01) requires participants to submit their own reconstructed meshes; the public scans in track_3/public/mesh are for measuring reconstructions only and never enter a submitted mesh or a simulated asset. resolve refuses every other source.",
   "objects": {
-    "white_pot": {"source": "public_scan", "path": "track_3/public/mesh/white_pot/white_pot.glb"},
-    "white_pot_lid": {"source": "public_scan", "path": "track_3/public/mesh/white_pot_lid/white_pot_lid.glb"},
-    "blue_cup": {"source": "public_scan", "path": "track_3/public/mesh/blue_cup/blue_cup.glb"},
-    "beige_cup": {"source": "public_scan", "path": "track_3/public/mesh/beige_cup/beige_cup.glb"},
-    "plastic_dish_rack": {"source": "public_scan", "path": "track_3/public/mesh/plastic_dish_rack/plastic_dish_rack.glb"},
-    "mini_sweeper": {"source": "public_scan", "path": "track_3/public/mesh/mini_sweeper/mini_sweeper_visual.glb"},
-    "mini_dust_pan": {"source": "public_scan", "path": "track_3/public/mesh/mini_dust_pan/mini_dust_pan.glb"},
-    "water_pitcher": {"source": "public_scan", "path": "track_3/public/mesh/water_pitcher/water_pitcher.glb"},
-    "wooden_piece_1": {"source": "public_scan", "path": "track_3/public/mesh/wooden_piece_1/wooden_piece_1_visual.glb"},
-    "wooden_piece_2": {"source": "public_scan", "path": "track_3/public/mesh/wooden_piece_2/wooden_piece_2_visual.glb"},
+    "white_pot": {"source": "reconstructed", "body_frame": "provisional_rule"},
+    "white_pot_lid": {"source": "reconstructed", "body_frame": "provisional_rule"},
+    "blue_cup": {"source": "reconstructed", "body_frame": "provisional_rule"},
+    "beige_cup": {"source": "reconstructed", "body_frame": "provisional_rule"},
+    "plastic_dish_rack": {"source": "reconstructed", "body_frame": "provisional_rule"},
+    "mini_sweeper": {"source": "reconstructed", "body_frame": "provisional_rule"},
+    "mini_dust_pan": {"source": "reconstructed", "body_frame": "provisional_rule"},
+    "water_pitcher": {"source": "reconstructed", "body_frame": "provisional_rule"},
+    "wooden_piece_1": {"source": "reconstructed", "body_frame": "provisional_rule"},
+    "wooden_piece_2": {"source": "reconstructed", "body_frame": "provisional_rule"},
     "wooden_spoon": {"source": "reconstructed", "body_frame": "provisional_rule"}
   },
   "spoon_frame": {
