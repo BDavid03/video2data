@@ -1,5 +1,11 @@
 # Current user instructions
 
+- On 2026-11-02 (chain context 04) the user replied "approved" right after the context listed
+  its new proposal to install poppler-utils for PDF page rendering (`docs/chain/NEEDS-YOU.md`
+  item 7). Read as approval of that install. `sudo` needs a password, so the context installed
+  Ubuntu's own packages without root: `apt-get download` of poppler-utils and libpoppler156
+  26.01.0-2ubuntu0.3 plus their missing libraries, unpacked with `dpkg-deb -x` into
+  `.runtime/tools/poppler/root/`, run with `LD_LIBRARY_PATH` set to its `usr/lib/x86_64-linux-gnu`.
 - Later on 2026-11-02 the user added: "also in instructions let \"code\" do the heavy lifting,
   dont over-engineer, build clean, clear seperation between library code & implementation,
   vertical slice, presentable format", then explained the first point: "i meant rather than try

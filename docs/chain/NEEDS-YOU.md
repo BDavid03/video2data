@@ -96,6 +96,11 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
 
 ## Answered
 
+- [x] PDF page renderer (item 7, context 04): approved 2026-11-02 ("approved"). Installed
+  without root under `.runtime/tools/poppler/root/` (see `AGENTS.md`); render with
+  `LD_LIBRARY_PATH=.runtime/tools/poppler/root/usr/lib/x86_64-linux-gnu .runtime/tools/poppler/root/usr/bin/pdftoppm -r 110 -png <pdf> <prefix>`.
+  If you prefer a system install: `sudo apt-get install poppler-utils`.
+
 - [x] Isaac Lab / FlashCHORD install: approved 2026-11-01. Done 2026-11-01 by context 01:
   FlashCHORD at aee95f25 needs no Isaac Sim or Isaac Lab (Newton + MuJoCo-Warp + JAX), so only
   FlashCHORD was installed, natively, in `.runtime/flashchord/venv`. No NVIDIA Isaac Sim licence
