@@ -8,6 +8,7 @@ and go quiet, and repeats. Every context still starts clean from a hand-off writ
 quality of the chain is unchanged; only the manual step is gone. On every launch the driver also appends a short
 note to the system prompt: the real clock, the hours left to the leaderboard freeze, and a pointer to PROGRAM.md.
 That way the standing rules come back every time, whatever the hand-off remembered to copy.
+Each context leads and Codex does most of the hands-on work (docs/chain/PROGRAM.md section 8).
 
 Usage (in WSL, from the checkout):
   python3 scripts/chain/session_chain.py --dry-run     # print the next launch and exit
@@ -46,7 +47,8 @@ nobody is pasting prompts. Clock at launch: {now_utc} UTC ({now_local} local). L
 {hours_left} hours from launch. Context number {number} of this run.
 1. Before anything else read docs/chain/PROGRAM.md. It binds every context, together with AGENTS.md and CLAUDE.md.
    Where your prompt and PROGRAM.md disagree, PROGRAM.md wins; record the disagreement in your hand-off.
-   Collaborate with Codex as its section 8 says, through scripts/chain/codex_ask.sh only.
+   Codex does the large majority of the work (section 8): you lead, brief, review, re-check and commit;
+   Codex builds, runs (gpu mode for CUDA) and analyses, through scripts/chain/codex_ask.sh only.
 2. Hand off exactly as PROGRAM.md says: a new file docs/chain/handoffs/HANDOFF-<UTC yyyymmddTHHMMZ>-<NN>.md whose
    last section is "## Prompt for the next context (paste as the first message)" with the complete next prompt.
    Write that file last, in one write, once this context is finished with: its appearance starts the next context.

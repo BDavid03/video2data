@@ -1,5 +1,12 @@
 # Current user instructions
 
+- On 2026-11-02 the user asked, for `scripts/chain/session_chain.py`: "do large majority of
+  work with codex". Each chain context now leads (chooses items, briefs, reviews diffs, re-checks
+  headline numbers, commits, hands off) and Codex does most of the hands-on work: code, runs,
+  analysis, figures and text (`docs/chain/PROGRAM.md` section 8). Codex's workspace-write sandbox
+  blocks the GPU on this WSL machine, and the user chose to allow unsandboxed Codex jobs for GPU
+  work: `scripts/chain/codex_ask.sh` mode `gpu` runs Codex with danger-full-access, one such job
+  at a time. Codex still never commits, installs, uploads or deletes outside `.runtime/tmp/`.
 - Later on 2026-11-01 the user asked: "ensure codex collaboration please". Every chain context
   now works with Codex as `docs/chain/PROGRAM.md` section 8 describes, through
   `scripts/chain/codex_ask.sh` only: route and idea consultation and a cross-family critic in

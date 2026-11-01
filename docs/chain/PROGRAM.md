@@ -172,12 +172,14 @@ These rules make the numbers believable. They are not optional, and they bind ev
    `docs/chain/IDEAS.md`, `docs/chain/NEEDS-YOU.md`. Then say in one line what you will do.
 2. **Check the machine.** Look at `ps`, `.runtime/gpu-stage.lock` and `git status`. Check the
    processes the hand-off lists as running. A run still going is waited on, never relaunched.
-3. **Work** on the items chosen by section 2, with section 3 in mind. Ask Codex for its route
-   and its best unconventional alternative before committing to one (section 8). Keep the vertical-slice
+3. **Work** on the items chosen by section 2, with section 3 in mind, by briefing Codex: route,
+   then build and run, then review (section 8). Codex does most of the hands-on work; you lead,
+   review and commit. Keep the vertical-slice
    pattern: request, gate, `run.json`, hashed inputs and artifacts. Long GPU work is started
    detached (`setsid nohup ... > outputs/<slice>/<name>.log 2>&1 &`), with its PID and log path
    written down at once.
-4. **Measure** every change by running it on real data, and record where the evidence is.
+4. **Measure** every change by running it on real data (usually Codex's job), re-check the headline
+   number yourself, and record where the evidence is.
 5. **Critic** pass, with a Claude critic and a Codex critic, and the scoreboard update
    (sections 2 and 8).
 6. **Commit** the finished item (section 6), then **hand off** (section 7) and end the turn.
@@ -253,44 +255,75 @@ one of these holds:
 
 Still write the prompt section, so the owner can restart the chain after answering `NEEDS-YOU.md`.
 
-## 8. Collaborating with Codex
+## 8. Collaborating with Codex: Codex does most of the work
 
-The owner asked for Codex collaboration in every context (2026-11-01). A second model family sees
-different routes and different flaws, which is exactly what the road less travelled needs. Codex
-is a collaborator, not a rubber stamp: weigh what it says against the evidence, and write down
-where you disagree and why.
+The owner asked for Codex collaboration in every context (2026-11-01), then, on 2026-11-02, for
+the large majority of the work to be done with Codex. So the Claude context is the **lead**, and
+Codex is the **hands**:
+
+- **Claude owns:** reading the state, choosing the items (section 2), writing briefs, running
+  the GPU schedule, reviewing every diff, re-checking the numbers that matter, the critic pass,
+  commits, the scoreboard and the hand-off.
+- **Codex does:** the implementation, the runs (CPU and GPU), the measurement, the analysis,
+  figures, documentation and report text, and the fixes the review asks for.
+
+Claude writes code itself only for small fixes (about 20 lines or less) to Codex's work, for
+glue nobody else can do, or when Codex is unavailable (see Budget). If you notice you are doing
+a stage by hand, stop and brief Codex instead. Codex is still a collaborator, not a rubber stamp,
+in both directions: weigh what it says against the evidence, review what it writes, and write
+down where you disagree and why.
 
 **One helper, always.** Call Codex only through
-`bash scripts/chain/codex_ask.sh <label> <brief.md> [read-only|workspace-write] [model] [effort]`.
-Never hand-roll a `codex exec` command. The helper adds the safety rules to every brief, keeps
-the brief, answer and log under `outputs/chain/codex/`, and logs each call in
+`bash scripts/chain/codex_ask.sh <label> <brief.md> [mode] [model] [effort]`. Never hand-roll a
+`codex exec` command. The helper adds the safety rules to every brief, keeps the brief, answer and
+log under `outputs/chain/codex/`, and logs each call (with its session id) in
 `outputs/chain/codex/calls.jsonl`. Launch it with `run_in_background`, end the turn, and read the
 answer when you are woken. Never poll it. Write each brief to a file under `.runtime/tmp/` first.
-Codex starts with no context, so the brief carries the facts, numbers, file paths and line ranges
-it needs, and says what has already been ruled out.
 
-**What every context does with Codex, at least:**
+| Mode | Use it for | Sandbox | Default model |
+| --- | --- | --- | --- |
+| `read-only` | routes, ideas, defect reviews, critic, report reading | read-only | `gpt-6-astra` high |
+| `workspace-write` | code, docs, figures, CPU runs and analysis | writes inside the checkout only; **no GPU** (blocked on this WSL machine) | `gpt-6.1-sol` high |
+| `gpu` | anything that needs CUDA: teacher depth, training, prediction, scoring on GPU, ONNX checks | **none** (danger-full-access, owner-approved 2026-11-02); one `gpu` job at a time, enforced by `outputs/chain/codex/gpu.lock` | `gpt-6.1-sol` high |
 
-1. **Route and ideas** (read-only, `gpt-6-astra` high). Before committing to a stage's route, send
-   Codex the stage, the measured facts, your intended route and the metric it is scored on. Ask
-   for its preferred route, its best unconventional alternative with the cheapest test that would
-   separate the two, and the step most likely to fail. Each new idea goes in `IDEAS.md` with
-   "Codex" as its source.
-2. **Critic** (read-only, `gpt-6-astra` high). At the end of the context, Codex scores the lenses
-   you touched, beside the Claude critic (section 2).
+Job modes are capped at 180 minutes (`CODEX_TIMEOUT_MIN` changes it); Codex starts anything
+longer detached and reports PID, log and the finish signal. **Follow-ups keep context:**
+`CODEX_RESUME=<earlier answer.md> bash scripts/chain/codex_ask.sh ...` sends the new brief into
+the same Codex session, so review defects, "now run it on the tuning episodes" and "write the
+figure for that" go back to the session that did the work rather than to a cold one.
 
-**Where Codex can carry more:**
+**Briefs.** A new Codex session starts with no context, so the brief carries the goal, the
+measured facts, file paths and line ranges, what has been ruled out, the exact paths it may
+write, and a definition of done ("files written, run on real data, numbers and artifact paths
+reported"). In `gpu` mode nothing enforces paths, so the brief names them explicitly and says
+which runtime flags and episodes are in scope.
 
-- **Review before a commit that changes behaviour** (read-only): give it `git diff` of the change
-  and ask for defects only.
-- **A bounded job in parallel** (workspace-write, `gpt-6.1-sol` high): one item with exclusive
-  paths that nothing else in this context touches, a definition of done ("files written, run on
-  real data, numbers reported"), and the files it may edit. You then review `git diff -- <paths>`,
-  run its result yourself, and commit it. Codex never commits. Never give Codex and a Claude
-  sub-agent the same paths, and never let a Codex job start GPU work while you hold the GPU.
-- **Report and figure review** (read-only): a cold reading of the extended abstract or a figure,
-  asking what a workshop reviewer would attack first.
+**The loop for each item:**
 
-**Budget.** Codex usage is limited. Plan about eight calls per context, and say the running count
-in your hand-off. If an answer is empty and the log shows a usage limit, carry on with Claude
-alone, record it under `### Codex`, and let the next context try again.
+1. **Route** (read-only): send the stage, the measured facts, your intended route and the metric.
+   Ask for its preferred route, its best unconventional alternative with the cheapest test that
+   would separate the two, and the step most likely to fail. New ideas go in `IDEAS.md` with
+   "Codex" as the source. You decide the route.
+2. **Build and run** (`workspace-write`, then `gpu` or a `CODEX_RESUME` follow-up in `gpu` mode
+   when CUDA is needed): Codex implements, runs on real data and reports.
+3. **Review** (you, plus a `read-only` Codex defect review of `git diff` in a fresh session for
+   behaviour-changing code): read the diff, re-run or re-hash at least the headline number, and
+   check the research-integrity rules (section 4) yourself. Send defects back with
+   `CODEX_RESUME`.
+4. **Commit** by explicit path (section 6). Codex never commits.
+
+**Parallel work.** Up to three Codex jobs may run at once when their write paths are disjoint;
+at most one of them in `gpu` mode, and never while this context or a detached run holds the GPU
+(check `.runtime/gpu-stage.lock` and `ps` first). Never give Codex and a Claude sub-agent the same
+paths. While jobs run, review the previous job's output or write the next brief; do not redo
+Codex's job yourself.
+
+**Every context, at least:** one route call per item, the build and run jobs for each item,
+and a Codex **critic** (read-only, fresh session) at the end, beside the Claude critic
+(section 2). A cold Codex reading of the extended abstract or a figure, asking what a workshop
+reviewer would attack first, is worth one call whenever either changes.
+
+**Budget.** Codex usage is limited but is now the main workforce: plan on roughly 15 to 30 calls
+per context, spent on build and run jobs first, and say the running count in your hand-off. If
+an answer is empty and the log shows a usage limit, do the work with Claude alone (sub-agents
+included) rather than stopping, record it under `### Codex`, and let the next context try again.
