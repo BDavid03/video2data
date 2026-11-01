@@ -22,8 +22,12 @@ From a WSL shell in the checkout:
 
 ```bash
 python3 scripts/chain/session_chain.py --dry-run     # shows the next launch, changes nothing
-tmux new -s chain 'python3 scripts/chain/session_chain.py'   # run it; detach with Ctrl-b d
+bash scripts/chain/run.sh                            # run it in tmux session "chain"; detach with Ctrl-b d
+tmux attach -t chain                                 # look at it again later
 ```
+
+`run.sh` keeps the window open after the driver exits and appends everything it prints to
+`outputs/chain/driver.log`. Only one driver can run at a time (`outputs/chain/driver.lock`).
 
 Every context runs on Opus (`--model` changes it). Other useful flags: `--max-contexts 6`,
 `--token-budget 3000000`. Watch a context with `claude attach <id>` (the driver prints the id).

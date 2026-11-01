@@ -29,15 +29,16 @@ A blocked context that is not a usage limit (for example a permission prompt) is
 with `claude attach <id>` and the chain carries on.
 
 Standard library only. It writes only outputs/chain/; it never stops a session or a process.
-Exit codes: 0 COMPLETE, 2 BUDGET, 3 LIMIT, 4 STALLED, 5 STOPPED.
+Exit codes: 0 COMPLETE, 2 BUDGET, 3 LIMIT, 4 STALLED, 5 STOPPED, 6 another driver is already running.
+Start it with `bash scripts/chain/run.sh`: a tmux session that keeps its window open and logs to driver.log.
 """
-import argparse, datetime, glob, json, os, re, shutil, subprocess, sys, time
+import argparse, datetime, fcntl, glob, json, os, re, shutil, subprocess, sys, time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 HEADING = re.compile(r"^## Prompt for the .*\(paste as the first message\)[ \t]*\r?$", re.M)
 STOP_LINE = re.compile(r"^\s*CHAIN:\s*STOP\b[ \t]*(.*)$", re.M)
 LIMIT_WORDS = re.compile(r"usage|credit|rate.?limit|hit your limit", re.I)
-EXIT = {"COMPLETE": 0, "BUDGET": 2, "LIMIT": 3, "STALLED": 4, "STOPPED": 5}
+EXIT = {"COMPLETE": 0, "BUDGET": 2, "LIMIT": 3, "STALLED": 4, "STOPPED": 5, "RUNNING": 6}
 
 CHAIN_NOTE = """\
 CHAIN CONTEXT. The chain driver (scripts/chain/session_chain.py) started this session and will start the next one:
@@ -381,6 +382,15 @@ def main():
     p.add_argument("--claude", default=find_claude(), help="claude executable")
     p.add_argument("--dry-run", action="store_true", help="print the next launch and exit")
     a = p.parse_args()
+    os.makedirs(os.path.join(ROOT, a.log_dir), exist_ok=True)
+    if not a.dry_run:
+        # One driver at a time: two would both see an unlaunched hand-off and start it twice.
+        lock = open(os.path.join(ROOT, a.log_dir, "driver.lock"), "w")
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            print(f"another driver already holds {a.log_dir}/driver.lock (tmux attach -t chain); not starting")
+            sys.exit(EXIT["RUNNING"])
     try:
         sys.exit(Chain(a).run() or 0)
     except KeyboardInterrupt:
