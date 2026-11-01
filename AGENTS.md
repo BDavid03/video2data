@@ -1,5 +1,11 @@
 # Current user instructions
 
+- Later on 2026-11-01 the user asked: "ensure codex collaboration please". Every chain context
+  now works with Codex as `docs/chain/PROGRAM.md` section 8 describes, through
+  `scripts/chain/codex_ask.sh` only: route and idea consultation and a cross-family critic in
+  every context, plus diff reviews and bounded workspace-write jobs where they help. Letting
+  Codex write files (exclusive paths, reviewed and committed by the Claude context) is my
+  reading of "collaboration"; Codex never commits, installs or uploads.
 - On 2026-11-01 the user answered the chain's owner list (`docs/chain/NEEDS-YOU.md`) in these
   words: "Isaac Lab/FlashCHORD is approved for install, ill upload to kaggle, dont make a latex
   engine, find a reputable one online, init a git repo, team name is and author not important

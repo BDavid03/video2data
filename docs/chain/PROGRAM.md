@@ -93,9 +93,11 @@ Each lens has a score from 0 to 5, the evidence for it, and the single next impr
 **Who scores.** A lens score is set by a fresh-context critic, not by the context that did the
 work. At the end of each context, launch one critic sub-agent (Opus 5.5 or Sonnet 5.5, as
 `AGENTS.md` requires). Give it the scoreboard, the artifacts you changed and this section. Ask it
-to score only the lenses you touched, with evidence, and to name the next improvement. Write its
-scores into the scoreboard, and keep your disagreements with it in the hand-off. A score never
-rises without new evidence.
+to score only the lenses you touched, with evidence, and to name the next improvement. Ask Codex
+the same question as a second, cross-family critic (section 8). Where the two critics differ by
+more than one point, the scoreboard takes the lower score and the hand-off says why they
+differed. Keep your own disagreements with either critic in the hand-off. A score never rises
+without new evidence.
 
 **Choosing work.** In order:
 
@@ -170,12 +172,14 @@ These rules make the numbers believable. They are not optional, and they bind ev
    `docs/chain/IDEAS.md`, `docs/chain/NEEDS-YOU.md`. Then say in one line what you will do.
 2. **Check the machine.** Look at `ps`, `.runtime/gpu-stage.lock` and `git status`. Check the
    processes the hand-off lists as running. A run still going is waited on, never relaunched.
-3. **Work** on the items chosen by section 2, with section 3 in mind. Keep the vertical-slice
+3. **Work** on the items chosen by section 2, with section 3 in mind. Ask Codex for its route
+   and its best unconventional alternative before committing to one (section 8). Keep the vertical-slice
    pattern: request, gate, `run.json`, hashed inputs and artifacts. Long GPU work is started
    detached (`setsid nohup ... > outputs/<slice>/<name>.log 2>&1 &`), with its PID and log path
    written down at once.
 4. **Measure** every change by running it on real data, and record where the evidence is.
-5. **Critic** pass and scoreboard update (section 2).
+5. **Critic** pass, with a Claude critic and a Codex critic, and the scoreboard update
+   (sections 2 and 8).
 6. **Commit** the finished item (section 6), then **hand off** (section 7) and end the turn.
 
 **Context size.** Hand off after the second item, or at about 200k tokens of context, whichever
@@ -228,7 +232,10 @@ current, and commit them with the hand-off.
 Sections, in this order:
 
 1. `# Hand-off NN: <one line on what this context did>`
-2. `## Findings` — what was learned, with numbers and artifact paths.
+2. `## Findings` — what was learned, with numbers and artifact paths. Include a `### Codex`
+   list: each call's label and answer path, what it found, and what you took or declined and
+   why. End it with the call count for this context and for the chain (`wc -l
+   outputs/chain/codex/calls.jsonl`).
 3. `## State` — a table: item, state, evidence path, next step.
 4. `## Running` — every process still running: PID, command, log, how to tell it has finished.
 5. `## Changed` — commits (hashes), runtime flags turned on, installs made.
@@ -245,3 +252,45 @@ one of these holds:
 - everything left waits on the owner.
 
 Still write the prompt section, so the owner can restart the chain after answering `NEEDS-YOU.md`.
+
+## 8. Collaborating with Codex
+
+The owner asked for Codex collaboration in every context (2026-11-01). A second model family sees
+different routes and different flaws, which is exactly what the road less travelled needs. Codex
+is a collaborator, not a rubber stamp: weigh what it says against the evidence, and write down
+where you disagree and why.
+
+**One helper, always.** Call Codex only through
+`bash scripts/chain/codex_ask.sh <label> <brief.md> [read-only|workspace-write] [model] [effort]`.
+Never hand-roll a `codex exec` command. The helper adds the safety rules to every brief, keeps
+the brief, answer and log under `outputs/chain/codex/`, and logs each call in
+`outputs/chain/codex/calls.jsonl`. Launch it with `run_in_background`, end the turn, and read the
+answer when you are woken. Never poll it. Write each brief to a file under `.runtime/tmp/` first.
+Codex starts with no context, so the brief carries the facts, numbers, file paths and line ranges
+it needs, and says what has already been ruled out.
+
+**What every context does with Codex, at least:**
+
+1. **Route and ideas** (read-only, `gpt-6-astra` high). Before committing to a stage's route, send
+   Codex the stage, the measured facts, your intended route and the metric it is scored on. Ask
+   for its preferred route, its best unconventional alternative with the cheapest test that would
+   separate the two, and the step most likely to fail. Each new idea goes in `IDEAS.md` with
+   "Codex" as its source.
+2. **Critic** (read-only, `gpt-6-astra` high). At the end of the context, Codex scores the lenses
+   you touched, beside the Claude critic (section 2).
+
+**Where Codex can carry more:**
+
+- **Review before a commit that changes behaviour** (read-only): give it `git diff` of the change
+  and ask for defects only.
+- **A bounded job in parallel** (workspace-write, `gpt-6.1-sol` high): one item with exclusive
+  paths that nothing else in this context touches, a definition of done ("files written, run on
+  real data, numbers reported"), and the files it may edit. You then review `git diff -- <paths>`,
+  run its result yourself, and commit it. Codex never commits. Never give Codex and a Claude
+  sub-agent the same paths, and never let a Codex job start GPU work while you hold the GPU.
+- **Report and figure review** (read-only): a cold reading of the extended abstract or a figure,
+  asking what a workshop reviewer would attack first.
+
+**Budget.** Codex usage is limited. Plan about eight calls per context, and say the running count
+in your hand-off. If an answer is empty and the log shows a usage limit, carry on with Claude
+alone, record it under `### Codex`, and let the next context try again.

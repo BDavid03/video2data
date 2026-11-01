@@ -14,6 +14,7 @@ prompts by hand.
 | `NEEDS-YOU.md` | What only the owner can do; grant an item with a dated line in `AGENTS.md` |
 | `handoffs/HANDOFF-<UTC>-<NN>.md` | One per context; the last section is the next context's prompt |
 | `../../scripts/chain/session_chain.py` | The driver |
+| `../../scripts/chain/codex_ask.sh` | The one way a context calls Codex (route and ideas, critic, review, bounded jobs); answers in `outputs/chain/codex/` |
 | `../../outputs/chain/` | The driver's log (`chain.jsonl`) and its `PAUSE` / `STOP` control files |
 
 ## Running it
