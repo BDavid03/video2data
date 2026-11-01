@@ -1,0 +1,10 @@
+{
+  "source_split": "public",
+  "episode_index": 42,
+  "budget": {
+    "environment_steps": 3,
+    "worlds": 1,
+    "replay_minimum": 1
+  },
+  "contract_only": false
+}

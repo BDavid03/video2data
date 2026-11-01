@@ -1,0 +1,64 @@
+{
+  "budgets": {
+    "contract": {
+      "environment_steps": 1,
+      "worlds": 1,
+      "replay_minimum": 1
+    },
+    "learned": {
+      "environment_steps": 3,
+      "worlds": 1,
+      "replay_minimum": 1
+    }
+  },
+  "pilots": [
+    {
+      "source_split": "evaluation",
+      "episode_index": 38,
+      "budget_name": "contract",
+      "contract_only": true
+    },
+    {
+      "source_split": "evaluation",
+      "episode_index": 38,
+      "budget_name": "learned"
+    },
+    {
+      "source_split": "evaluation",
+      "episode_index": 10,
+      "budget_name": "learned"
+    },
+    {
+      "source_split": "public",
+      "episode_index": 39,
+      "budget_name": "learned"
+    },
+    {
+      "source_split": "public",
+      "episode_index": 42,
+      "budget_name": "learned"
+    }
+  ],
+  "evaluation_episodes": [
+    1,
+    3,
+    5,
+    6,
+    8,
+    10,
+    14,
+    15,
+    16,
+    19,
+    20,
+    25,
+    28,
+    30,
+    32,
+    33,
+    35,
+    36,
+    37,
+    38
+  ]
+}
