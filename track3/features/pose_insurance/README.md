@@ -1,126 +1,148 @@
-# Pose insurance
+# Pose insurance v1
 
-Train a small FlashSAC parked-hand policy for each video-derived static box scene,
-then run the unchanged Submission Kit evaluator to export achieved object poses.
-The final `results/` directory contains official trajectory Parquets only. No packing
-or upload is performed here.
+Train a FlashSAC policy with parked Sharpa hands in a static, video-derived box
+scene, then export achieved poses with the unchanged official evaluator. This is
+an insurance entry; it does not reconstruct manipulation or establish semantic
+object frames.
 
-Execution is authorised by the owner's 2026-10-18 “all flags are go” direction and
-this D2 brief for the 20 scored episodes and public tuning episodes 39/42. Runtime
-flags and the episode allow-list are in `runtime.json`. Episodes 41/43/44 are refused.
-The FlashCHORD source and environment are read-only. No packages were installed.
+The owner's 2026-10-18 execution authorisation and the D2 briefs authorise the 20
+scored episodes plus public tuning 39/42. `runtime.json` gates each operation.
+Episodes 41/43/44 are refused. No packages are installed or submissions uploaded.
 
 ## Run
 
-From the worktree, with no other GPU operation running:
+Use the read-only project environments and run one GPU operation at a time:
 
 ```bash
-PYTHONPYCACHEPREFIX="$PWD/.cache/pycache" PYTHONPATH=. \
-  .runtime/flashchord/venv/bin/python -m track3.features.pose_insurance.loop --phase pilots
-
-# After reviewing successful pilots and confirming <=30 minutes per episode:
-setsid nohup env PYTHONPYCACHEPREFIX="$PWD/.cache/pycache" PYTHONPATH=. \
-  .runtime/flashchord/venv/bin/python -m track3.features.pose_insurance.loop --phase evaluation \
-  > outputs/pose_insurance/loop.log 2>&1 &
+export PYTHONPATH=. PYTHONPYCACHEPREFIX="$PWD/.cache/pycache"
+.runtime/flashchord/venv/bin/python -m track3.features.pose_insurance.loop --phase budgets
+.runtime/flashchord/venv/bin/python -m track3.features.pose_insurance.loop --phase choose_budget
+.runtime/flashchord/venv/bin/python -m track3.features.pose_insurance.loop --phase tasks
+.runtime/flashchord/venv/bin/python -m track3.features.pose_insurance.loop --phase evaluation
+.runtime/flashchord/venv/bin/python -m track3.features.pose_insurance.loop --phase tuning
+.runtime/kit-env/bin/python -m track3.features.pose_insurance.pack
 ```
 
-`queue.json` sets the ordered pilots, scored episode list and editable budgets
-(environment steps, worlds, replay minimum). Each trial calls the slice handlers;
-they enforce gates, create hashed `run.json` records and acquire `track3.gpu.GpuLease`.
-The loop hashes requests and code, checks completed exports before skipping them,
-appends `ledger.jsonl`, and writes `summary.md` and `checkpoints.json`. A phase ends
-with `<phase>_finished.json`; any failure stops the queue. Failed records are retained.
-Use a changed budget for a new identity. A diagnostic uses public labels only after
-export and writes a separate `public_label_diagnostic` artifact.
+`queue.json` is the editable experiment queue and canonical learned budget. Budget
+selection chooses the largest measured learner-update count among passing pilots
+that took at most 300 seconds. Each pilot/training operation uses the slice handlers,
+hashed `run.json` records, and `track3.gpu.GpuLease`. All repeated runs belong to the
+loop. A failed evaluation episode stops the campaign.
 
-The initial contract budget is one world / one step / replay minimum one, n-step
-three, so replay has no committed transitions and no update should occur. The
-learned budget is one world / three steps / replay minimum one, n-step three.
-The handler reads `global_update_step` from the saved learner state and requires
-it and the actor Adam step counter to be positive for every learned export. Training uses float32 and finite state
-checks; these tiny budgets establish optimizer use, not meaningful manipulation skill.
-Three is the minimum budget with this one-world, three-step replay: the first two
-collections remain pending and the third commits one sample and performs an update.
-The initial eight-step pilots recorded six learner updates and three actor Adam steps.
-The actor/critic widths are 32/64 with one residual block each, batch eight, replay
-capacity 64. Evaluation always uses one world, deterministic inference, explicit
-reset, 20 Hz and zero VOC assistance.
+A standalone operation uses `python -m track3.features.pose_insurance run --request
+track3/features/pose_insurance/requests/learned_10.json`. The contract request is a
+one-step, zero-update envelope check and is never published into the v1 results.
 
-The CPU task batch is resumable as well:
+## Learned budget and measured pilots
+
+The selected campaign budget is **512 environment steps, one world, replay minimum 32**.
+All three episode-10 pilots passed, but 16,384 steps produced a nonfinite training
+state on episode 3 after 6.70 minutes, and 4,096 steps produced a nonfinite state
+on episode 5. These recipes are retained as rejected evidence. The queue uses the
+largest remaining tested budget; `v1/budget_selection.json` records the decision.
+This yields 479 learner updates and 240 actor Adam steps after warm-up.
+Replay capacity is 64, n-step is three, batch size eight, with one update per
+collection after warm-up. Training uses float32; actor/critic widths are 32/64 with
+one residual block each. Evaluation always uses one world, explicit reset, 20 Hz,
+static references and zero VOC assistance. Hands remain parked far from the objects.
+
+| Episode 10 steps | Learner updates | Actor Adam steps | Drift cm / degrees | Minutes | Peak device MiB |
+|---:|---:|---:|---|---:|---:|
+| 512 | 479 | 240 | 0.047694 / 0 | 1.70 | 1940 |
+| 4,096 | 4,063 | 2,032 | 0.047694 / 0 | 1.20 | 1951 |
+| 16,384 | 16,351 | 8,176 | 0.047694 / 0 | 2.34 | 1951 |
+
+These are measured training-plus-evaluation times including setup and compilation;
+cache state differs. Peak memory is sampled device-wide allocation, not isolated
+process memory. Saved actor and critic Adam counters independently confirmed these
+update counts, with no skipped updates. Passing exports require finite unit poses,
+valid environments, official slot order, complete roster keys, no duplicates, and
+maximum drift below 1 cm / 2 degrees from the first exported pose.
+
+## Geometry and reviewed identities
+
+D1 v1 box proportions come from build `20261101T103838.400965Z-117fbcff`. Episode
+MoGe-2 geometric-mean size restores their metric dimensions where measured; otherwise
+pooled D1 size is retained. MoGe depth scale is unanchored and uncalibrated, with no
+established absolute error bound. The table normal defines world +z and its plane
+becomes z=0. Box centres use projected cluster centres and half-height seating;
+heading is in-plane PCA. `_scene.py` contains only pure numerical functions.
+
+`placements.json` records directly inspected frame-0 overlays, explicit cluster
+IDs (or a documented default), notes, and `reviewed` / `uncertain` confidence for
+every slot missing a reviewed measurement assignment. Cluster size never assigns
+an object name. Episode 14 is corrected to cup=1, rack=0. Episode 30's cluster 0 is
+the rack holder; cluster 1 mixes the rack rim and sweeper, so the sweeper retains
+an uncertain default rather than being assigned the rack holder. Episode 28's
+merged rack/pot cluster cannot establish separate placements; both use defaults.
+Episode 1's merged pot/lid likewise retains defaults. Hand-contaminated cup centres
+in 20/32 and the partial rack centre in 30 remain uncertain.
+
+Original assignment notes and identity confidence propagate into scene records,
+`v1/tasks.json`, ledger and summaries. Episode 25's near-identical board names remain
+**arbitrary and uncertain**; inspection does not identify which named board is which.
+
+Clearance uses the separating-axis test on oriented table footprints. Disjoint
+boxes are unchanged. An overlap gets the minimum separating translation plus a
+10 micrometre numerical margin, preferentially moving a placement override.
+The old sphere rule's 33–93 cm shifts disappear. Episode 28's revised default boxes
+need a 3.776 cm correction. The complete before/after table and per-slot IDs are
+in `outputs/pose_insurance/v1/displacements.md` and `displacements.json`.
+
+**Main known limit: semantic object frames are unresolved.** PCA axes and visible
+centroids are not reference object frames. Host alignment of slot 0 can rotate the
+relative displacement and orientation of slot 1 incorrectly. Public 39/42 each
+have one object; static-oracle agreement there cannot measure this two-object risk
+or establish absolute scale accuracy. Semantic-frame work is explicitly deferred.
+
+## Outputs and resume
+
+V0 run directories, `results/`, and the v0 submission are retained intact. V1 uses:
+
+- `outputs/pose_insurance/build-v1/` and `run-v1/`: immutable producers and assets.
+- `outputs/pose_insurance/results-v1/`: official trajectory Parquets only.
+- `outputs/pose_insurance/v1/`: queue ledger, task registry, budget selection,
+  summaries, checkpoints and completion markers.
+- `outputs/pose_insurance/diagnostic-v1/`: recorded public-label diagnostics.
+- `submissions/<UTC stamp>-d2-v1/`: CSV, manifest, pack/preflight logs and run record.
+
+Resume re-admits producer records and checkpoint/trajectory hashes, restores any
+missing or stale flat result on both execution and resume, and verifies the entire
+selected export set before writing `evaluation_finished.json`. Packing repeats that
+admission, checks the exact 9,120-row roster and requires kit preflight's “Ready to
+submit” verdict. The requested commit URL is a placeholder using the current HEAD;
+`manifest.json` also records the actual working-source hashes for owner review.
+
+## Recorded public diagnostics
+
+The tuning queue trains the chosen policy for public 39/42 and calls the CPU recorded
+operation, also available directly:
 
 ```bash
-PYTHONPYCACHEPREFIX="$PWD/.cache/pycache" PYTHONPATH=. \
-  .runtime/flashchord/venv/bin/python -m track3.features.pose_insurance.loop --phase tasks
+.runtime/linux-cuda/bin/python -m track3.features.pose_insurance.diagnostic \
+  --episode 39 --run outputs/pose_insurance/run-v1/<run>/episode_000039/run.json
 ```
 
-It has built all 20 scored tasks; `outputs/pose_insurance/tasks.json` records their
-producer paths and every fallback decision. Each policy run retains its own complete
-task and assets beside its producer run.
+Each `pose_insurance.diagnostic` record hashes the admitted trajectory and policy
+producer, public pose Parquet, public meshes, baseline and official metric code,
+`diagnostic_sampling.json` (1,000 surface points/object, seed zero) and runtime gates.
+Public labels never enter task construction or the scored policy lineage. Sampled
+public mesh points approximate the host's vertices. The oracle static 17-episode
+mean is AUC 0.460898 / SP-SR 0.411765; it starts from true initial poses.
 
-## Geometry and fallback
+The shipped tissue task contract and old/new PCA extents equivalence remain
+confirmed: one row with 390 nested frames at 30 Hz, 22 joints, 67 robot frames and
+16 contact slots per hand, plus the accepted zero-articulation placeholder. The
+new pure axes helper preserves all original extent fields exactly on 8,313 real
+points. The unchanged runtime is pinned at `aee95f25`; evaluator package SHA-256 is
+`b1b3ebe3ae4629d1687a83f420149e3f6fdfc154d70acad55c12fc8fa69811a1`.
 
-Task positions use MoGe-2 monocular metric-depth predictions from the recorded
-`mesh_extents` producers. Their scale is unanchored: there is no measured absolute
-scale error bound. Opening-frame spread is not a calibration uncertainty estimate.
-D1 v1 box proportions come from build `20261101T103838.400965Z-117fbcff`; the
-per-episode measured geometric-mean dimensions restore size where available.
-Otherwise the pooled D1 size is used. These boxes simplify visible object shape.
+## Completed v1 pack
 
-The table normal defines world +z; its plane becomes z=0. Camera +x projected into
-the plane defines world +x. Each object centre is projected horizontally into this
-frame and seated at half its metric box height. Its yaw is the frame-0 cluster's
-in-plane PCA heading, with a deterministic sign and right-handed axes. The private
-pure helper adds axes while retaining the original extents numbers. The old slice
-is unchanged. `outputs/pose_insurance/geometry_equivalence.json` records exact
-agreement on all three original fields for 8,313 real episode-38 points.
+`submissions/20261101T1703Z-d2-v1/track3_poses_v1.csv`: 9,120 rows; preflight **Ready to submit**.
 
-Unassigned slots use the largest unclaimed frame-0 cluster, without claiming a name
-match, with pooled D1 size. If no frame-0 cluster is available, use documented
-0.5 m slot spacing and identity orientation. Only fallback placements are shifted
-when bounding radii would overlap. `initial_scene.json` records every decision.
-Fully unassigned scored episodes: 3, 14, 28, 30. Additional missing initial slots:
-1 (pot and lid: its reviewed assignment starts at frame 110), 6 (pot), 20 (cup),
-32 (cup). No public 0/26/31 tasks are generated: they are outside this slice's scope.
+SHA-256: `fa3b1c320128a196648e0a966eb81b8e5cb8e65cb8ad6b1de0a3fbbb4523c26b`.
 
-The host aligns only slot 0's first pose. Our PCA box frames are arbitrary relative
-to the reference's object frames; slot 1 orientation/placement error remains scored.
-Tuning episodes 39 and 42 are single-object, so they do not measure that two-object
-risk. Both are nevertheless exported and scored with the kit's pose functions.
-The oracle static reference over 17 public episodes is AUC 0.460898, SP-SR 0.411765;
-it starts from true public poses and is not an expected reconstructed-scene score.
-
-## Evidence
-
-`outputs/pose_insurance/contract.json` inventories the shipped tissue-box Parquet:
-one row, 390 source frames at 30 Hz, 22 joints and 67 robot frames per hand, 16
-contact slots, and one object. It has no schema_version, uses an all-zero articulation
-placeholder, and includes extra MANO and task-frame metadata. This matches the
-legacy reader's required columns; this slice retains only required robot fields,
-translates wrist and frame positions consistently, and disables every contact ID.
-No MANO assets or pose labels are used to build scored tasks.
-
-The queue's latest results, including failures, are in `summary.md`; per-run logs
-and telemetry are beside the checkpoint and exported trajectory. Peak MiB is sampled
-device-wide usage including unrelated/display allocation, not isolated process VRAM,
-and short peaks can be missed. Drift is maximum motion from the first exported pose;
-the evaluator records frame zero after one control step. Successful exports require
-finite unit poses, valid environments, official slot names, no duplicate keys, every
-roster key, and maximum drift <=1 cm and <=1 degree. Absolute initial seating is a
-separate uncertainty.
-
-Installed runtime identity: commit `aee95f25ae0943f335d8bb42fa95b6a9acfa266f`,
-evaluator package SHA-256 `b1b3ebe3ae4629d1687a83f420149e3f6fdfc154d70acad55c12fc8fa69811a1`.
-See `outputs/pose_insurance/runtime_inventory.json` for file hashes and package versions.
-
-## Latest measured result
-
-The final three-step learned pilots all passed: evaluation 38/10 and public 39/42,
-one learner update and one actor Adam step each, full roster coverage, <0.048 cm
-drift, and 0.73–1.12 minutes per episode with warm caches. Public AUC was 0.174961
-and 0.194066, respectively, identical to each episode’s oracle static AUC; both
-SP-SR values were zero. The cold contract pilot took 5.14 minutes.
-
-Detailed tables and immutable run paths: `outputs/pose_insurance/pilot_report.md`.
-The 20-episode queue was launched detached; its PID is in `loop.pid`, its output
-in `loop.log`, and successful completion is marked by `evaluation_finished.json`.
-The initial eight-step pilots remain in the ledger as measured history.
+All 20 policies passed. Complete per-episode timing, drift, update counts, placement
+confidence, resume evidence and recorded tuning metrics are in
+`outputs/pose_insurance/v1/report.md`. All saved v0 file hashes remain unchanged.

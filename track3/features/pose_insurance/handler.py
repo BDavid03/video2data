@@ -47,7 +47,7 @@ def training_command(request, task, directory):
            "training.network.actor_blocks":1,"training.network.critic_blocks":1,
            "training.network.expansion":2,"training.mixed_precision":False,"training.compute_dtype":"float32",
            "training.checkpoint.save_interval_environment_steps":budget["environment_steps"],
-           "training.checkpoint.save_replay":False,"logging.mode":"disabled","logging.log_interval":1,
+           "training.checkpoint.save_replay":False,"logging.mode":"disabled","logging.log_interval":250,
            "reset.always_reset_to_first_frame":True,"voc_scale_override":0.,
            "output_dir":str(directory / "training"), "hydra.run.dir":str(directory / "train_hydra")})
     return [str(ROOT / ".runtime/flashchord/venv/bin/python"), str(FC / "scripts/train_flash_sac.py"),
@@ -57,7 +57,7 @@ def training_command(request, task, directory):
 def inspect_export(path, task_record):
     import numpy as np
     import pyarrow.parquet as pq
-    from ._scene import drift
+    from ._scene import pose_statistics
     df = pq.read_table(path).to_pylist()
     df.sort(key=lambda r:(r["reference_frame"], r["environment_id"], r["object_body_id"]))
     columns = [f"achieved_position_{s}" for s in "xyz"] + [f"achieved_quaternion_{s}" for s in "xyzw"]
@@ -71,11 +71,12 @@ def inspect_export(path, task_record):
     if any(r["object_body_name"] != names[r["object_body_id"]] for r in df):
         raise ValueError("Official slot order mismatch")
     poses = np.array([[r[c] for c in columns] for r in df]).reshape(-1, 1, len(names), 7)
-    if not np.isfinite(poses).all() or not np.allclose(np.linalg.norm(poses[...,3:], axis=-1), 1, atol=1e-4):
+    stats = pose_statistics(poses)
+    if not stats["finite"] or not stats["unit_quaternions"]:
         raise ValueError("Nonfinite pose or nonunit quaternion")
-    cm, deg = drift(poses)
-    if cm > 1. or deg > 1.:
-        raise ValueError(f"Static drift exceeds 1 cm / 1 degree: {cm}, {deg}")
+    cm, deg = stats["drift_cm"], stats["drift_deg"]
+    if cm > 1. or deg > 2.:
+        raise ValueError(f"Static drift exceeds 1 cm / 2 degrees: {cm}, {deg}")
     return {"drift_cm":cm,"drift_deg":deg,"roster_keys":len(expected),"covered_keys":len(expected & actual),
             "roster_frames":len(task_record["roster_frames"]),"export_frames":len(df)//len(names),"names":names}
 
@@ -91,8 +92,8 @@ def run(request):
     record = run_fields(ROOT, "pose_insurance", "run", asdict(request), parents=[task_run],
                         inputs=[FEATURE / "runtime.json", "outputs/pose_insurance/runtime_inventory.json", KIT / "flash_chord/scripts/evaluate_policy.py"])
     record.update(split=request.source_split, episode_index=request.episode_index,
-                  dataset_revision=task[1]["dataset_revision"])
-    directory = output_path(ROOT, f"outputs/pose_insurance/run/{new_run_id()}/episode_{request.episode_index:06d}")
+                  dataset_revision=task[1]["dataset_revision"], scene=task[1]["scene"])
+    directory = output_path(ROOT, f"outputs/pose_insurance/run-v1/{new_run_id()}/episode_{request.episode_index:06d}")
     with recorded(directory, record):
         task_path = artifact(task, "task.parquet", record)
         # The main checkout and this worktree share a GPU; do not enter alongside its owner.

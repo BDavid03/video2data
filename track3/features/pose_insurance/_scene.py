@@ -79,13 +79,45 @@ def camera_points(z, k):
     return np.stack(((u-k[0,2])*z/k[0,0], (v-k[1,2])*z/k[1,1], z), axis=-1)
 
 
-def separate_fallbacks(positions, radii, fallback):
-    """Move only uncertain fallback boxes to clear all other boxes' bounding spheres."""
+def box_properties(dimensions, mass=.1):
+    """Principal inertia and enclosing radius of one solid metric box."""
+    dims = np.asarray(dimensions, float)
+    return mass / 12 * (np.sum(dims**2) - dims**2), float(np.linalg.norm(dims) / 2)
+
+
+def rectangle_translation(first, second, first_dims, second_dims, first_quat, second_quat):
+    """Minimum separating translation of the first oriented footprint, or zero if disjoint."""
+    angles = [2 * np.arctan2(q[3], q[0]) for q in (first_quat, second_quat)]
+    bases = [np.array([[np.cos(a), np.sin(a)], [-np.sin(a), np.cos(a)]]) for a in angles]
+    axes = np.concatenate(bases)
+    delta = np.asarray(first)[:2] - np.asarray(second)[:2]
+    radius = sum(np.abs(axes @ basis.T) @ (np.asarray(dims)[:2] / 2)
+                 for basis, dims in zip(bases, (first_dims, second_dims)))
+    penetration = radius - np.abs(axes @ delta)
+    if (penetration <= 0).any():
+        return np.zeros(2)
+    index = int(penetration.argmin())
+    direction = 1 if axes[index] @ delta >= 0 else -1
+    return direction * axes[index] * (penetration[index] + 1e-5)
+
+
+def separate_boxes(positions, dimensions, quaternions, movable):
+    """Separate actual footprint overlaps, preferentially moving an uncertain placement."""
     result = np.array(positions, float)
-    for i in np.flatnonzero(fallback):
-        # Moving past the furthest right boundary clears every existing object in one pass.
-        others = np.arange(len(result)) != i
-        distances = np.linalg.norm(result[others,:2] - result[i,:2], axis=-1)
-        if np.any(distances < np.asarray(radii)[others] + radii[i] + .03):
-            result[i,0] = np.max(result[others,0] + np.asarray(radii)[others]) + radii[i] + .03
-    return result
+    for first in range(len(result)):
+        for second in range(first + 1, len(result)):
+            i, j = (first, second) if movable[first] else (second, first)
+            shift = rectangle_translation(result[i], result[j], dimensions[i], dimensions[j],
+                                          quaternions[i], quaternions[j])
+            result[i,:2] += shift
+    distances = np.linalg.norm(result - np.asarray(positions), axis=1) * 100
+    return result, distances
+
+
+def pose_statistics(poses):
+    """Finite/unit-pose checks and drift, without any file or admission state."""
+    values = np.asarray(poses, float)
+    finite = bool(np.isfinite(values).all())
+    unit = bool(np.allclose(np.linalg.norm(values[...,3:], axis=-1), 1, atol=1e-4))
+    cm, deg = drift(values) if finite and unit else (None, None)
+    return {"finite":finite, "unit_quaternions":unit, "drift_cm":cm, "drift_deg":deg}

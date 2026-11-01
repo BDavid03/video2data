@@ -1,0 +1,5 @@
+{
+  "surface_points_per_object": 1000,
+  "seed": 0,
+  "sampler": "trimesh.sample.sample_surface"
+}

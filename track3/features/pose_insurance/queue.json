@@ -6,9 +6,9 @@
       "replay_minimum": 1
     },
     "learned": {
-      "environment_steps": 3,
+      "environment_steps": 512,
       "worlds": 1,
-      "replay_minimum": 1
+      "replay_minimum": 32
     }
   },
   "pilots": [
@@ -60,5 +60,49 @@
     36,
     37,
     38
+  ],
+  "budget_pilots": [
+    {
+      "environment_steps": 512,
+      "worlds": 1,
+      "replay_minimum": 32
+    }
+  ],
+  "budget_pilot_history": [
+    {
+      "environment_steps": 512,
+      "worlds": 1,
+      "replay_minimum": 32
+    },
+    {
+      "environment_steps": 4096,
+      "worlds": 1,
+      "replay_minimum": 32
+    },
+    {
+      "environment_steps": 16384,
+      "worlds": 1,
+      "replay_minimum": 32
+    }
+  ],
+  "rejected_budgets": [
+    {
+      "budget": {
+        "environment_steps": 16384,
+        "worlds": 1,
+        "replay_minimum": 32
+      },
+      "reason": "Episode 3 campaign state became nonfinite and took 6.70 minutes.",
+      "evidence": "outputs/pose_insurance/v1/large_budget_failure.json"
+    },
+    {
+      "budget": {
+        "environment_steps": 4096,
+        "worlds": 1,
+        "replay_minimum": 32
+      },
+      "reason": "Episode 5 campaign state became nonfinite.",
+      "evidence": "outputs/pose_insurance/v1/medium_budget_failure.json"
+    }
   ]
 }

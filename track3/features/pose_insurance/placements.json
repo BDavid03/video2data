@@ -1,0 +1,175 @@
+{
+  "method": "Human-visible RGB plus labelled frame-0 overlays inspected directly; no cluster-size assignment. Null cluster_ids means a documented default.",
+  "placements": [
+    {
+      "source_split": "evaluation",
+      "episode_index": 1,
+      "slot_name": "white_pot",
+      "cluster_ids": null,
+      "overlay": "outputs/mesh_extents/evaluation/episode_000001/20261101T100622.518004Z-c49e3a40/overlay_000000.png",
+      "measure_run": "outputs/mesh_extents/evaluation/episode_000001/20261101T100622.518004Z-c49e3a40/run.json",
+      "note": "Pot and lid share cluster 0; no separate object origin can be read. Retain default slot-0 placement.",
+      "confidence": "uncertain"
+    },
+    {
+      "source_split": "evaluation",
+      "episode_index": 1,
+      "slot_name": "white_pot_lid",
+      "cluster_ids": null,
+      "overlay": "outputs/mesh_extents/evaluation/episode_000001/20261101T100622.518004Z-c49e3a40/overlay_000000.png",
+      "measure_run": "outputs/mesh_extents/evaluation/episode_000001/20261101T100622.518004Z-c49e3a40/run.json",
+      "note": "Lid sits on the pot in merged cluster 0; no separate cluster. Retain documented default slot-1 placement.",
+      "confidence": "uncertain"
+    },
+    {
+      "source_split": "evaluation",
+      "episode_index": 3,
+      "slot_name": "white_pot",
+      "cluster_ids": [
+        0
+      ],
+      "overlay": "outputs/mesh_extents/evaluation/episode_000003/20261101T150542.888997Z-c9f232e1/overlay_000000.png",
+      "measure_run": "outputs/mesh_extents/evaluation/episode_000003/20261101T150542.888997Z-c9f232e1/run.json",
+      "note": "Cluster 0 is the pot; handle leaves the image, so pooled D1 size is used.",
+      "confidence": "reviewed"
+    },
+    {
+      "source_split": "evaluation",
+      "episode_index": 3,
+      "slot_name": "wooden_spoon",
+      "cluster_ids": [
+        1
+      ],
+      "overlay": "outputs/mesh_extents/evaluation/episode_000003/20261101T150542.888997Z-c9f232e1/overlay_000000.png",
+      "measure_run": "outputs/mesh_extents/evaluation/episode_000003/20261101T150542.888997Z-c9f232e1/run.json",
+      "note": "Cluster 1 covers the spoon handle; bowl is absent from the mask. Placement uses partial geometry.",
+      "confidence": "reviewed"
+    },
+    {
+      "source_split": "evaluation",
+      "episode_index": 6,
+      "slot_name": "white_pot",
+      "cluster_ids": [
+        0
+      ],
+      "overlay": "outputs/mesh_extents/evaluation/episode_000006/20261101T103724.693338Z-7fe489fb/overlay_000000.png",
+      "measure_run": "outputs/mesh_extents/evaluation/episode_000006/20261101T103724.693338Z-7fe489fb/run.json",
+      "note": "Cluster 0 is the pot; truncated handle does not prevent identity review.",
+      "confidence": "reviewed"
+    },
+    {
+      "source_split": "evaluation",
+      "episode_index": 14,
+      "slot_name": "blue_cup",
+      "cluster_ids": [
+        1
+      ],
+      "overlay": "outputs/mesh_extents/evaluation/episode_000014/20261101T150604.257503Z-25cd4adb/overlay_000000.png",
+      "measure_run": "outputs/mesh_extents/evaluation/episode_000014/20261101T150604.257503Z-25cd4adb/run.json",
+      "note": "Cluster 1 is the blue cup in front of the rack; corrects the v0 swap.",
+      "confidence": "reviewed"
+    },
+    {
+      "source_split": "evaluation",
+      "episode_index": 14,
+      "slot_name": "plastic_dish_rack",
+      "cluster_ids": [
+        0
+      ],
+      "overlay": "outputs/mesh_extents/evaluation/episode_000014/20261101T150604.257503Z-25cd4adb/overlay_000000.png",
+      "measure_run": "outputs/mesh_extents/evaluation/episode_000014/20261101T150604.257503Z-25cd4adb/run.json",
+      "note": "Cluster 0 is the broad rack body; holder is not fully segmented. Corrects the v0 swap.",
+      "confidence": "reviewed"
+    },
+    {
+      "source_split": "evaluation",
+      "episode_index": 20,
+      "slot_name": "blue_cup",
+      "cluster_ids": [
+        1
+      ],
+      "overlay": "outputs/mesh_extents/evaluation/episode_000020/20261101T103747.840770Z-df7f60e1/overlay_000000.png",
+      "measure_run": "outputs/mesh_extents/evaluation/episode_000020/20261101T103747.840770Z-df7f60e1/run.json",
+      "note": "Cluster 1 includes the blue cup and holding hand; identity is visible but the centroid is biased by the hand.",
+      "confidence": "uncertain"
+    },
+    {
+      "source_split": "evaluation",
+      "episode_index": 25,
+      "slot_name": "wooden_piece_1",
+      "cluster_ids": [
+        0
+      ],
+      "overlay": "outputs/mesh_extents/evaluation/episode_000025/20261101T103752.334255Z-7418c0b6/overlay_000000.png",
+      "measure_run": "outputs/mesh_extents/evaluation/episode_000025/20261101T103752.334255Z-7418c0b6/run.json",
+      "note": "Right board is cluster 0; the video does not establish which near-identical board is piece 1. Preserve the arbitrary assignment.",
+      "confidence": "uncertain"
+    },
+    {
+      "source_split": "evaluation",
+      "episode_index": 25,
+      "slot_name": "wooden_piece_2",
+      "cluster_ids": [
+        1
+      ],
+      "overlay": "outputs/mesh_extents/evaluation/episode_000025/20261101T103752.334255Z-7418c0b6/overlay_000000.png",
+      "measure_run": "outputs/mesh_extents/evaluation/episode_000025/20261101T103752.334255Z-7418c0b6/run.json",
+      "note": "Left board is cluster 1; the video does not establish which near-identical board is piece 2. Preserve the arbitrary assignment.",
+      "confidence": "uncertain"
+    },
+    {
+      "source_split": "evaluation",
+      "episode_index": 28,
+      "slot_name": "plastic_dish_rack",
+      "cluster_ids": null,
+      "overlay": "outputs/mesh_extents/evaluation/episode_000028/20261101T150649.595967Z-af6e54aa/overlay_000000.png",
+      "measure_run": "outputs/mesh_extents/evaluation/episode_000028/20261101T150649.595967Z-af6e54aa/run.json",
+      "note": "Cluster 0 merges rack and pot. No separate rack cluster; use documented slot-0 default.",
+      "confidence": "uncertain"
+    },
+    {
+      "source_split": "evaluation",
+      "episode_index": 28,
+      "slot_name": "white_pot",
+      "cluster_ids": null,
+      "overlay": "outputs/mesh_extents/evaluation/episode_000028/20261101T150649.595967Z-af6e54aa/overlay_000000.png",
+      "measure_run": "outputs/mesh_extents/evaluation/episode_000028/20261101T150649.595967Z-af6e54aa/run.json",
+      "note": "Cluster 0 merges pot and rack. No separate pot cluster; use documented slot-1 default.",
+      "confidence": "uncertain"
+    },
+    {
+      "source_split": "evaluation",
+      "episode_index": 30,
+      "slot_name": "mini_sweeper",
+      "cluster_ids": null,
+      "overlay": "outputs/mesh_extents/evaluation/episode_000030/20261101T150653.632601Z-be7f1046/overlay_000000.png",
+      "measure_run": "outputs/mesh_extents/evaluation/episode_000030/20261101T150653.632601Z-be7f1046/run.json",
+      "note": "Sweeper is mixed with the rack rim in cluster 1; no independently named sweeper cluster. Use slot-0 default, never rack-holder cluster 0.",
+      "confidence": "uncertain"
+    },
+    {
+      "source_split": "evaluation",
+      "episode_index": 30,
+      "slot_name": "plastic_dish_rack",
+      "cluster_ids": [
+        0
+      ],
+      "overlay": "outputs/mesh_extents/evaluation/episode_000030/20261101T150653.632601Z-be7f1046/overlay_000000.png",
+      "measure_run": "outputs/mesh_extents/evaluation/episode_000030/20261101T150653.632601Z-be7f1046/run.json",
+      "note": "Cluster 0 is the rack holder and adjacent tines, not the sweeper. Partial geometry biases its centroid; pooled D1 size is used.",
+      "confidence": "uncertain"
+    },
+    {
+      "source_split": "evaluation",
+      "episode_index": 32,
+      "slot_name": "blue_cup",
+      "cluster_ids": [
+        0
+      ],
+      "overlay": "outputs/mesh_extents/evaluation/episode_000032/20261101T103810.555047Z-d1853705/overlay_000000.png",
+      "measure_run": "outputs/mesh_extents/evaluation/episode_000032/20261101T103810.555047Z-d1853705/run.json",
+      "note": "Cluster 0 contains the blue cup and gripping hand; identity is visible but centroid includes the hand.",
+      "confidence": "uncertain"
+    }
+  ]
+}

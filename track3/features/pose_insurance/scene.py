@@ -9,7 +9,7 @@ from track3.paths import output_path
 from track3.provenance import run_fields, write_json, sha256_file
 from track3.runs import (ROOT, artifact, producer, read_json, new_run_id, recorded, runtime_flag,
                          authorize_episode, heavy_execution)
-from ._scene import box_pose, scaled_dimensions, parked_robot, camera_points, separate_fallbacks
+from ._scene import box_pose, scaled_dimensions, parked_robot, camera_points, separate_boxes, box_properties
 
 FEATURE = Path(__file__).parent
 KIT = ROOT / "upstream/v2d_submission_kit/v2d_submission_kit"
@@ -35,7 +35,12 @@ def episode_layout(request):
     return list(assignment["objects"]), list(range(info.num_rows))
 
 
-def select_measure(request, d1):
+def select_measure(request, d1, placements=()):
+    if placements:
+        paths = {p["measure_run"] for p in placements}
+        if len(paths) != 1:
+            raise ValueError("Placement overlays must use one consistent measure run per episode")
+        return producer(paths.pop(), "mesh_extents.measure", request)
     for value in d1[1]["request"]["measure_runs"]:
         row = read_json(value)
         if (row["split"], row["episode_index"]) == (request.source_split, request.episode_index):
@@ -54,16 +59,20 @@ def build(request):
     authorize_episode(runtime, request, "insurance task build")
     heavy_execution(runtime)
     d1 = producer(D1, "mesh_extents.build")
-    measure = select_measure(request, d1)
+    placement_path = FEATURE / "placements.json"
+    placements = [p for p in read_json(placement_path)["placements"]
+                  if (p["source_split"], p["episode_index"]) == (request.source_split, request.episode_index)]
+    measure = select_measure(request, d1, placements)
+    by_name = {p["slot_name"]:p for p in placements}
     assignment_path = "track3/features/mesh_extents/assignments.json"
     assignment = read_json(assignment_path)["episodes"][f"{request.source_split}:{request.episode_index}"]
-    depth = producer(assignment["depth_run"], "depth.generate", request)
+    depth = producer(measure[1]["request"]["depth_run"], "depth.generate", request)
     record = run_fields(ROOT, "pose_insurance", "build", asdict(request), parents=[p[0] for p in (d1, measure, depth)],
-                        inputs=[assignment_path, FEATURE / "runtime.json", KIT / "data/track_3_sample_submission.csv",
+                        inputs=[assignment_path, placement_path, FEATURE / "runtime.json", KIT / "data/track_3_sample_submission.csv",
                                 KIT / "data/track_3_evaluation_objects.json"], allowed=("video_only",))
     record.update(split=request.source_split, episode_index=request.episode_index,
                   dataset_revision=depth[1]["dataset_revision"])
-    directory = output_path(ROOT, f"outputs/pose_insurance/build/{new_run_id()}/episode_{request.episode_index:06d}")
+    directory = output_path(ROOT, f"outputs/pose_insurance/build-v1/{new_run_id()}/episode_{request.episode_index:06d}")
     with recorded(directory, record):
         objects = read_json(artifact(d1, "objects.json", record))["objects"]
         names, roster = episode_layout(request)
@@ -78,22 +87,26 @@ def build(request):
             points = camera_points(z, a["input_intrinsics_pixels"])
         normal = np.asarray(first["plane"]["normal"], float)
         positions, quaternions, meshes, urdfs, radii, scene = [], [], [], [], [], []
-        claimed = {i for ids in assignment["objects"].values() for i in ids} if first["frame_index"] == 0 else set()
-        unused = [r["cluster"] for r in first["clusters"] if r["cluster"] not in claimed]
+        if placements:
+            artifact(measure, "overlay_000000.png", record)
+        assignment_note = assignment.get("note", "")
         for slot, name in enumerate(names):
             shape = objects[name]
             measured = measure[1].get("objects", {}).get(name, {}).get("median_m", shape["extents_m"])
             dims = scaled_dimensions(shape["extents_m"], measured)
-            ids = assignment["objects"].get(name) if first["frame_index"] == 0 else None
-            note = "reviewed frame-0 assignment"
-            if ids is None and first["frame_index"] == 0 and unused:
-                ids, note = [unused.pop(0)], "fallback: largest unclaimed frame-0 cluster; identity unverified"
+            entry = by_name.get(name)
+            ids = entry["cluster_ids"] if entry else assignment["objects"].get(name)
+            confidence = entry["confidence"] if entry else (
+                "uncertain" if any(word in assignment_note.lower() for word in ("arbitrary", "not known")) else "reviewed")
+            note = entry["note"] if entry else "Reviewed mesh_extents assignment"
+            if entry is None and (ids is None or first["frame_index"] != 0):
+                raise ValueError(f"{name}: record an explicit placement before building this slot")
             if ids is not None:
                 mask = np.isin(labels, [i+1 for i in ids])
                 pos, quat = box_pose(points[mask], normal, dims)
             else:
                 pos, quat = np.array([slot * 0.5, 0., dims[2]/2]), np.array([1.,0,0,0])
-                note = "fallback: no frame-0 cluster; default 0.5 m slot spacing"
+                note += "; default 0.5 m slot spacing with identity orientation"
             mesh = directory / f"{name}.obj"
             source_mesh = artifact(d1, shape["file"], record, shape["sha256"])
             obj = trimesh.load(source_mesh, force="mesh")
@@ -101,7 +114,7 @@ def build(request):
             obj.export(mesh)
             urdf = directory / f"{name}.urdf"
             mass = .1
-            inertia = mass / 12 * (np.sum(dims**2) - dims**2)
+            inertia, radius = box_properties(dims, mass)
             urdf.write_text(f'''<robot name="{name}">
   <link name="{name}">
     <inertial><mass value="{mass}"/>
@@ -116,13 +129,17 @@ def build(request):
             quaternions.append(quat.tolist())
             meshes.append(str(mesh))
             urdfs.append(str(urdf))
-            radii.append(float(np.linalg.norm(dims)/2))
+            radii.append(radius)
             scene.append({"slot":slot,"name":name,"dimensions_m":dims.tolist(),"position":pos.tolist(),
-                          "quaternion_wxyz":quat.tolist(),"clusters":ids,"placement":note})
-        separated = separate_fallbacks(positions, radii, [r["placement"].startswith("fallback") for r in scene])
-        for row, old, new in zip(scene, positions, separated):
-            if not np.array_equal(old, new):
-                row["placement"] += "; shifted for collision clearance"
+                          "quaternion_wxyz":quat.tolist(),"clusters":ids,"placement":note,
+                          "position_before_clearance":pos.tolist(), "identity_confidence":confidence,
+                          "assignment_note":assignment_note,
+                          "placement_overlay":entry["overlay"] if entry else None,
+                          "placement_source":"placements.json" if entry else "mesh_extents.assignments.json"})
+        separated, shifts = separate_boxes(positions, [r["dimensions_m"] for r in scene], quaternions,
+                                            [r["placement_source"] == "placements.json" for r in scene])
+        for row, new, shift in zip(scene, separated, shifts):
+            row["collision_displacement_cm"] = float(shift)
             row["position"] = new.tolist()
         positions = separated.tolist()
         template_path = next(TEMPLATE.glob("*.parquet"))
