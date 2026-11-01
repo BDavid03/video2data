@@ -108,7 +108,7 @@ def main():
                     continue
                 candidate_path = matches[0]
             elif args.primitive == "scan":
-                candidate_path = reference_path  # self-check: measures the scorer's sampling floor
+                candidate_path = reference_path  # plumbing check: same seed both sides, so exactly 0
             else:
                 extents = pca_extents(reference_path) if args.oracle_proportions else None
                 candidate_path = Path(scratch) / f"{name}-{args.primitive}.ply"

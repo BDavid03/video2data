@@ -5,7 +5,7 @@ Kept current by every chain context (see `PROGRAM.md` section 1). Freeze: 4 Nove
 
 | Id | Deliverable | State | Evidence | Blocked on |
 | --- | --- | --- | --- | --- |
-| D1 | Track 3 mesh Parquet (CD-O) | started: first stage (MoGe2 depth) ran on scored episode 38; local CD-O scorer built; primitive floor measured (cube 2.52 cm, sphere 2.82 cm mean over 10 public scans) | `outputs/depth/evaluation/episode_000038/20261101T030402.023623Z/run.json`; `outputs/mesh_eval/*.json`; `scripts/track3/local_cdo.py` | nothing external: video-measured shapes for 11 objects, then packing (`.runtime/kit-env` installed) |
+| D1 | Track 3 mesh Parquet (CD-O) | started: first stage (MoGe2 depth) ran on scored episode 38; local CD-O scorer built; primitive reference baselines measured (cube 2.52 cm, sphere 2.82 cm: per-object mean over the 10 scanned objects, three kit seeds; not the leaderboard's 36-pair mean, and the spoon, 10 of 36 pairs, has no scan) | `outputs/depth/evaluation/episode_000038/20261101T030402.023623Z/run.json`; `outputs/mesh_eval/*.json`; `scripts/track3/local_cdo.py` | nothing external: video-measured shapes for 11 objects, then packing (`.runtime/kit-env` installed) |
 | D2 | Track 3 pose CSV (five pose metrics) | runtime installed and smoke-tested; no task parquet, checkpoint or rollout yet | `scripts/linux/install-flashchord.sh`, `.runtime/flashchord/install-logs/device.log`, `.scratch/fc-replay.log` (worktree) | object 6-DoF tracks from video, a task parquet per episode, hand references (no hand model installed), per-episode training |
 | D3 | Extended abstract PDF | draft LaTeX from the depth line only: `outputs/auto_research/report/20261029T040958.830501Z-d8ea4610/main.tex` | depth results only | LaTeX engine install (approved 2026-11-01, not yet done) |
 | D4 | Code at a GitHub commit URL | local git; this context's work is on branch `worktree-chain-ctx01` | `git log` | owner: GitHub remote (NEEDS-YOU 1) |
@@ -49,10 +49,18 @@ under WSL (exit 0). What blocks it:
   mapping must change before any pose work.
 - FlashCHORD's README asks 48 GiB GPU for full training; this GPU has 16 GiB (use few worlds).
 
-Shortest D2 route, to be tested next: measure on public mocap what "objects stay at their first
-pose" scores (CPU, no simulator). If it is competitive, build per-episode task parquets with
-static objects at video-estimated initial poses and parked hands, train a few FlashSAC steps per
-episode, roll out through the kit's `evaluate_policy.py`, pack.
+Measured floor (`scripts/track3/static_pose_baseline.py`, `outputs/pose_eval/static-baseline.md`):
+if every object stays at its first pose, the kit's pose metrics on 17 public episodes give AUC
+0.46, SP-SR 0.41 (7 of 17 pass), MP-SR 0, RPE 12.8 cm, MPPE 9.3 cm (AUC approximate: our own
+vertex samples). Objects move 4-16 cm on average. Moving slot 1's start by 5 cm costs 0.12 AUC
+and 0.18 SP-SR, so first-frame relative placement matters. A static-objects rollout is therefore
+a real insurance entry for D2 (it needs initial object poses from video, our meshes and a
+checkpoint whose hands leave the objects alone); beating it needs metric object tracks and a
+policy that moves the objects. Shortest route: (1) 6-DoF object tracks from stereo with our own meshes
+(idea 11), (2) a task parquet per episode, with hand references from a hand model (NEEDS-YOU 5)
+or scripted approach paths, (3) a short FlashSAC run per episode with few worlds, (4) the kit's
+`evaluate_policy.py`, then pack. Still worth one valid static-object D2 file as insurance if
+time allows: every metric competition needs some file before the freeze to rank at all.
 
 ## Scored episodes and objects
 

@@ -1,0 +1,12 @@
+{
+  "source_split": "evaluation",
+  "episode_index": 38,
+  "start_frame": 0,
+  "stop_frame": 20,
+  "max_image_side": 768,
+  "num_tokens": 1200,
+  "use_fp16": true,
+  "save_normals": false,
+  "gpu_headroom_mib": 2048,
+  "gpu_admission_allowance_mib": 4096
+}

@@ -54,10 +54,9 @@ def project_path(root, value):
 
 def linux_path(root, value):
     """Store a project-owned artifact path for Linux consumers."""
-    base = str(Path(root).resolve()).replace("\\", "/")
-    if os.name == "nt":
-        base = "/mnt/z/hugging-face/video2data"
-    return base + "/" + project_path(root, value).relative_to(Path(root).resolve()).as_posix()
+    if os.name != "nt":  # the resolved path (possibly through a worktree link) is what Linux reads
+        return project_path(root, value).as_posix()
+    return "/mnt/z/hugging-face/video2data/" + project_path(root, value).relative_to(Path(root).resolve()).as_posix()
 
 
 def output_path(root, value):
