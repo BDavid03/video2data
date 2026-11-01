@@ -67,6 +67,12 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
    `outputs/mesh_eval`, `outputs/depth/evaluation`, `outputs/depth/public/episode_000039`,
    `outputs/stereo_depth`, `outputs/camera_motion`), and add `"worktree": {"bgIsolation": "none"}`
    to `.claude/settings.json` so the next context can work in place.
+   *Update, context 03:* main merged context 02 but `bgIsolation` is still unset, so context 03
+   again worked on `worktree-chain-ctx01` (commits `78df274`..the hand-off). To continue: in main,
+   `git merge worktree-chain-ctx01`; copy back `outputs/mesh_extents`, `outputs/mesh_eval`,
+   `outputs/pose_insurance`, `outputs/report` and `submissions/` with `cp -al`. Also note main's
+   merge `9e79099` committed a stray gitlink `.claude/worktrees/chain-ctx01` (mode 160000); it is
+   harmless but you may want `git rm --cached .claude/worktrees/chain-ctx01` in main.
    *Notifications (2026-11-02, at the owner's request):* the branch's `scripts/chain/session_chain.py`
    now logs `STRANDED` with the merge command when a newer hand-off exists only in a worktree, and
    rings the terminal bell on that and on every finish (STALLED, LIMIT, COMPLETE). Set
