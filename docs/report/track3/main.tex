@@ -11,8 +11,9 @@ Video-derived proportions and name categories determine primitive meshes; two-fo
 leave-objects-out cross-fitting selects rule parameters. The adopted vessel-and-handle
 rule scores local CD-O of 0.926\,cm per object versus 1.008\,cm for boxes and
 2.523\,cm for cubes (pair-weighted: 1.087\,cm; all-object fitted: 0.9251\,cm).
-These estimates reuse ten public scans. A static-object FlashCHORD pose entry
-provides complete official rollout exports.
+These estimates reuse ten public scans. A two-object diagnostic exposes pose-frame
+errors and saturated success metrics; a physically filtered static FlashCHORD entry
+provides complete exports.
 \end{abstract}
 
 \begin{document}
@@ -120,26 +121,39 @@ not an untouched test. The unscanned wooden spoon retains its box and accounts f
 10 of 36 scored pairs, excluded from both means. Sampling seeds do not measure
 uncertainty over new objects.
 
-\section{Static pose insurance and limitations}
-FlashCHORD~\cite{flashchord} simulates our earlier video boxes, not the submitted
-vessel-rule meshes. Sizes use MoGe-2's uncalibrated metric depth; objects sit on
-the table, Sharpa hands parked. FlashSAC uses 512 steps in one world (479 critic/240
-actor Adam updates per episode). Budgets of 4,096/16,384 steps yield non-finite
-states on episodes 5/3. Official exports cover 20/20 episodes (9,120 rows), drift
-$<0.05$\,cm; kit preflight reports \emph{Ready to submit}.
+\section{Pose placement and physical filtering}
+FlashCHORD~\cite{flashchord} simulates our video boxes at MoGe-2 metric size,
+with hands parked; FlashSAC uses 512 steps in one world. The kit aligns slot 0's
+full initial pose, including rotation: slot 1 is scored in slot 0's body frame.
+Anchor-frame errors therefore rotate the entire inter-object offset.
 
-Overlay review corrected spurious 33--93\,cm clearance shifts in six episodes
-and an episode-14 cup/rack swap. Nine episodes have explicit placement records,
-six \emph{uncertain}. Five of 36 pairs (episode 1 pot/lid, 28 rack/pot, 30 sweeper)
-default to $(0.5s,0)$\,m for slot $s$, identity yaw, before clearance, owing to
-merged/unnamed clusters. Single-object tuning episodes 39/42 yield AUC
-0.175/0.194, SP-SR 0/0, matching oracle-static scores by construction after
-initial-pose alignment (our surface samples approximate host vertices).
-Moving-object manipulation and relative-placement accuracy remain unmeasured.
+On eight public train two-object episodes, kinematic static-placement diagnostics
+using kit metrics give v1 AUC 0.2688 versus oracle-static 0.5319. Across candidates,
+slot-1 frame-zero offsets err by 10--74\,cm, beyond the largest AUC threshold
+(9\,cm); slot 1 earns no AUC credit and AUC/SP-SR remain tied.
+On clean episodes 11/18/21/23, video/mocap distance ratios are 1.37--1.80,
+including centroid-versus-origin offsets. Leave-one-episode-out body-up calibration
+from public mocap (K2) gives no aggregate gain and is not adopted. Heading remains
+unobservable without a released camera-to-mocap transform.
 
-Primitives cannot express vessel or rack concavities, and overlapping components
-are not verified simulation geometry. Manual assignments, pooled object identity,
-uncalibrated metric size, and the unmeasured spoon limit generality.
+All candidates fail the fixed adoption gates. K1a, stacking merged-cluster objects
+at their video centroid, lowers mean RPE 47.51 $\to$ 36.80\,cm and MPPE
+26.66 $\to$ 21.63\,cm. A \emph{post-result amendment} registers fresh public
+2/27 confirmation: episode 2 yields RPE 54.39 $\to$ 21.79\,cm and MPPE
+28.29 $\to$ 12.43\,cm, with AUC/SP-SR/MP-SR unchanged. Episode 27 has separate
+clusters and is unmeasurable for this rule. Confirmation thus rests on one episode;
+train 26, scored episode 28's analogue, was selection data.
+
+A subsequent physical validity filter applies per scene. Scored episodes 1/28 pass
+(maximum deviation from intended first pose 0.062\,cm, drift 0.058\,cm); episode 30's sweeper
+falls 17\,cm and retains v1's default placement. D2 v2 uses K1a only on 1/28,
+keeping the other eighteen v1 exports: 20 episodes, 9,120 rows, kit preflight
+\emph{Ready to submit}. No host-score gain is claimed; diagnostics use scan surface
+samples to approximate host vertices. Static rollouts do not demonstrate manipulation.
+
+Primitives omit vessel/rack concavities; overlapping components are not verified
+simulation geometry. Manual identities, uncalibrated metric size, body-frame ambiguity,
+and the unmeasured spoon limit generality.
 
 \typeout{TRACK3-MAIN-TEXT-END-PAGE: \thepage}
 \typeout{TRACK3-TABLE-PAGE: \getpagerefnumber{tab:cdo}}
