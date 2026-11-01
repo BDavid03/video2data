@@ -1,0 +1,6 @@
+{
+  "investigation_run": "outputs/learning_experiments/investigate/20261018T113050.188730Z-d4ce9207/run.json",
+  "opening_result": "outputs/opening_experiments/20261018T120039.470932Z-e0b15dc0/result.json",
+  "external_cuda_run": "outputs/scratch_depth/external_cuda_experiment/20261018T115832.389940Z-02e77ccb/run.json",
+  "synthetic_dataset": "outputs/synthetic_depth/20261018T115837.781490Z-06a78723/dataset.json"
+}

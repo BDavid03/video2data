@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "split_id": "track3-public-dev13-val7-v1",
+  "status": "frozen_provisional_engineering_split_not_official",
+  "frozen_on": "2026-09-24",
+  "dataset_repo": "nvidia/video_to_data_challenge",
+  "dataset_revision": "5f68335f3acc802033d1e80728c1633197521de8",
+  "source_split": "public",
+  "source_metadata_sha256": {
+    "track_3/public/meta/episodes_metadata.jsonl": "d777b64f6d0fe8485add1840c1450ad01da64443567a26539bdae5bdee5ba65b",
+    "track_3/public/meta/info.json": "37d81af0bf3554ffb65cbb36967c3a3b5709a9b037ac0e2fde19ed5e3c2e204c"
+  },
+  "selection_rule": "Group released public episode_index integers by metadata task; hold out the maximum numeric episode_index in each task with at least two episodes; put all remaining episodes in development. No randomness or pose/video quality selection.",
+  "group_key": ["dataset_revision", "source_split", "episode_index"],
+  "group_includes": ["all_frames", "all_objects", "all_camera_streams", "all_derived_artifacts"],
+  "camera_streams": ["ego_cam_a", "ego_cam_b", "ego_cam_c"],
+  "development_episode_indices": [0, 11, 12, 18, 21, 23, 26, 31, 39, 41, 42, 43, 44],
+  "validation_episode_indices": [2, 13, 22, 24, 27, 40, 45],
+  "tasks": [
+    {"task": "Pot_with_lid", "task_index": 0, "development": [0], "validation": [2]},
+    {"task": "Cup_Stack", "task_index": 4, "development": [11], "validation": []},
+    {"task": "Cup_In_Dish_Rack", "task_index": 5, "development": [12], "validation": [13]},
+    {"task": "Dust_Brush", "task_index": 7, "development": [18], "validation": []},
+    {"task": "Water_Can_Blue_Cup", "task_index": 8, "development": [21], "validation": [22]},
+    {"task": "Planter_Stand", "task_index": 9, "development": [23], "validation": [24]},
+    {"task": "Pan_In_Dishrack", "task_index": 10, "development": [26], "validation": [27]},
+    {"task": "Brush_Dishrack", "task_index": 11, "development": [31], "validation": []},
+    {"task": "Dustpan_Solo", "task_index": 14, "development": [39], "validation": [40]},
+    {"task": "Pan_Solo", "task_index": 15, "development": [41, 42, 43, 44], "validation": [45]}
+  ],
+  "singleton_tasks_without_within_task_validation": ["Cup_Stack", "Dust_Brush", "Brush_Dishrack"],
+  "limitations": [
+    "Only seven tasks have within-task validation; singleton tasks have development-only evidence.",
+    "Episode IDs do not establish independence of participants, sessions or near-duplicate demonstrations; those metadata are unavailable.",
+    "The maximum-ID selection is deterministic and may have capture-order bias; it is not a randomized population estimate.",
+    "The stale public info.json train range 0:46 is not an episode enumeration.",
+    "Evaluation is a separate namespace and is never assigned to this split, even if episode numbers overlap."
+  ]
+}

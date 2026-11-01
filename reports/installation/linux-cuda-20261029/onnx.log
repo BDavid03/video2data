@@ -1,0 +1,15 @@
+Using Python 3.13.18 environment at: .runtime/linux-cuda
+Resolved 12 packages in 693ms
+Downloading onnxruntime (22.7MiB)
+Downloading onnx (8.5MiB)
+ Downloaded onnx
+ Downloaded onnxruntime
+Prepared 7 packages in 11.37s
+Installed 7 packages in 552ms
+ + flatbuffers==25.12.19
+ + ml-dtypes==0.6.0
+ + onnx==1.23.2
+ + onnx-ir==1.1.0
+ + onnxruntime==1.31.1
+ + onnxscript==0.7.2
+ + protobuf==7.36.2

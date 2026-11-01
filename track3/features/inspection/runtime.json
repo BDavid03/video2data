@@ -1,0 +1,7 @@
+{
+  "export_authorized": false,
+  "serve_authorized": false,
+  "encode_authorized": false,
+  "compatible_environment_authorized": false,
+  "authorized_episode_indices": []
+}

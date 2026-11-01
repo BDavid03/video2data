@@ -1,0 +1,11 @@
+{
+  "execution": {
+    "rollout_authorized": false,
+    "inspect_authorized": false,
+    "self_score_authorized": false,
+    "compare_achieved_authorized": false,
+    "evaluation_authorized": false,
+    "validation_authorized": false
+  },
+  "authorized_episode_indices": {"public": [], "evaluation": []}
+}

@@ -1,0 +1,187 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Two-page extended abstract
+% From Human Videos to Dexterous Robot Capability workshop (CoRL 2026)
+% Formatting: NVIDIA tech report.
+%
+% Limit: 2 pages of main text; references, acknowledgments and
+% appendices do not count.
+%
+% Build:  pdflatex main && bibtex main && pdflatex main && pdflatex main
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\pdfoutput=1
+
+%%% == IMPORTANT ==
+%%% For anonymized submission (no authors, logo, copyright or
+%%% acknowledgments), use this:
+%\documentclass[10pt, logo, copyright, anonymous]{nvidiaextabstract}
+
+%%% For camera-ready, use this:
+\documentclass[10pt]{nvidiaextabstract}
+
+%%% Load required packages here (many are loaded by the class already:
+%%% amsmath, amssymb, graphicx, booktabs, xcolor, hyperref, natbib,
+%%% balance, enumitem, caption).
+\usepackage{microtype}
+\usepackage{multirow}
+\usepackage{subcaption}
+\usepackage{xspace}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% Venue: printed in the first-page footer. Comment out to drop it.
+\venue{From Human Videos to Dexterous Robot Capability (CoRL 2026)}
+
+%%% Logo in the top-left corner of page 1 (shown with the `logo' class
+%%% option). Options in [] go to \includegraphics; default is the NVIDIA
+%%% logo at width=90pt. The header is about 40pt tall, so keep height below that.
+%\logo[height=28pt]{assets/mylogo.png}
+
+%%% Printed instead of the authors when the `anonymous' option is set.
+\submissionID{<<Registration team name>>}
+
+%%% Title. The subtitle defaults to "Extended Abstract".
+\title{Video to Data Challenge Technical Report Template}
+%\subtitle{Extended Abstract}
+%\shorttitle{Short Running Title}   % running head on page 2
+
+%%% Authors (authblk syntax).
+\author[1]{First Author}
+\author[1]{Second Author}
+\author[2]{Third Author}
+\affil[1]{NVIDIA}
+\affil[2]{University Name}
+\affil[ ]{\texttt{\{first,second\}@nvidia.com}, \texttt{third@university.edu}}
+
+%%% Abstract. Must be in the preamble and must not contain any
+%%% \begin...\end environments.
+\begin{abstract}
+\textbf{Abstract:}
+This extended abstract should be two pages, not including references, acknowledgments, and appendices.
+NVIDIA logos are placeholders.
+\end{abstract}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% Author-defined commands.
+\definecolor{NvidiaGreen}{RGB}{118, 185, 0}
+\newcommand{\method}{\textsc{Method}\xspace}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\maketitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Introduction}
+\label{sec:intro}
+
+Motivate the problem and place it in the video to data challenge and the
+tracks your team participates in. Briefly position your work against the
+closest prior work in lieu of a full related works. Cite with
+\verb|\cite|, e.g.~\cite{Lam94}.
+
+Close the introduction with the contributions and findings of this work:
+\begin{itemize}
+  \item the first contribution;
+  \item the second contribution;
+  \item ...
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Approach}
+\label{sec:approach}
+
+Introduce the setting and notation. For example, a policy
+$\pi_\theta(a_t \mid o_t)$ maps observations $o_t$ to robot actions $a_t$.
+Display only the equations you refer back to:
+%
+\begin{equation}
+\label{eq:objective}
+J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}
+  \Big[ \sum_{t=0}^{T} \gamma^{t} \, r_t \Big].
+\end{equation}
+%
+Refer to numbered equations with \verb|\eqref|, as in~\eqref{eq:objective}.
+Then describe \method: the key idea, what is new, and why it should work.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Experiments and Results}
+\label{sec:experiments}
+
+Summarize your experimental setup in a few sentences, then report the main results.
+For Track 2, please report results separately for each tier. You do not need to redefine
+metrics that are already defined as a part of the video to data challenge. It may be
+useful to include informative baselines and ablations that support and provide insight
+into your claimed contributions.
+
+\begin{table}[t]
+  \centering
+  \begin{tabular}{lcc}
+    \toprule
+    \textit{Method} & \textit{Metric 1} & \textit{Metric 2} \\
+    \midrule
+    Baseline 1      & $0.00 \pm 0.00$ & $0.00 \pm 0.00$ \\
+    Baseline 2      & $0.00 \pm 0.00$ & $0.00 \pm 0.00$ \\
+    \method (ours)  & $\mathbf{0.00 \pm 0.00}$ & $\mathbf{0.00 \pm 0.00}$ \\
+    \bottomrule
+  \end{tabular}
+  \caption{Main results (mean $\pm$ std over 5 seeds).}
+  \label{tab:results}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.6\linewidth]{assets/nvlogo2.png}
+  \caption{Overview of \method. Replace with your own figure.}
+  \label{fig:overview}
+  \Description{Placeholder figure showing the NVIDIA logo.}
+\end{figure}
+
+%%% Issue \balance somewhere in the first column of the last page.
+\balance
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+Restate the main finding and the most important direction for future work.
+Briefly describe any practical implications for your approach at scale.
+If a full version of the paper exists, you may point to it here, but this 
+is not guaranteed to be reviewed.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% References, acknowledgments and appendices do not count toward
+%%% the two-page limit.
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% Optional appendix: starts on a new page and does not count toward
+%%% the two-page limit. Delete this part if you do not need it.
+\clearpage
+\appendix
+
+\section{Appendix}
+\label{sec:appendix}
+
+\textit{The appendix is optional and is not guaranteed to be read by the
+judges. The main text must stand on its own; use this space only for
+supporting material such as additional results, implementation details
+or hyperparameters.}
+
+\subsection{Additional Results}
+\label{sec:appendix-results}
+
+Report supplementary results, additional details, or additional examples here.
+
+\end{document}

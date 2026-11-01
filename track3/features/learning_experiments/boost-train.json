@@ -1,0 +1,8 @@
+{
+  "dataset": null,
+  "parameters": {},
+  "seed": 31,
+  "train_episodes": [0, 11, 12, 18, 21, 23, 26, 31],
+  "tuning_episodes": [39, 42],
+  "holdout_episodes": [43, 44]
+}

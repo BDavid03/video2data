@@ -1,0 +1,163 @@
+{
+  "schema_version": 2,
+  "contract_type": "local_track3_contract_record",
+  "as_of_date": "2026-09-30",
+  "previous_revision": "configs/evaluator/contract-2026-09-24.json",
+  "contract_published": true,
+  "ready_for_official_evaluation": false,
+  "ready_for_official_packaging": false,
+  "readiness_note": "The contract is known. Readiness stays false because no policy environment, Git repository or Kaggle access exists and no operation is authorized.",
+  "report": "reports/contract.md",
+  "evidence": "reports/contract-evidence/2026-09-30",
+  "method": "read_only_source_reading_nothing_executed",
+  "pins": {
+    "dataset": "5f68335f3acc802033d1e80728c1633197521de8",
+    "starter": "43a3f5b4d479581f2e8bdf5e6ed7ca361d39ec5a",
+    "submission_kit_archive_sha256": "a2de2aeed5821c28efedf36ddbe08a7e595f9b7d7298e4be2c07fe4665cf91b3",
+    "policy_runtime": "aee95f25ae0943f335d8bb42fa95b6a9acfa266f",
+    "upstream_main_at_retrieval": "8c778f905cb35f76f8e6cd6e2ea486da4fb9e0ef"
+  },
+  "sources": {
+    "challenge": "https://nvidia-isaac.github.io/video_to_data/v2d_challenge/",
+    "submission_kit": "https://nvidia-isaac.github.io/video_to_data/v2d_challenge/assets/v2d_submission_kit.zip",
+    "policy_runtime": "https://github.com/nvidia-isaac/video_to_data/tree/aee95f25ae0943f335d8bb42fa95b6a9acfa266f/robotic_grounding/flash_chord",
+    "dataset_card": "https://huggingface.co/datasets/nvidia/video_to_data_challenge/blob/5f68335f3acc802033d1e80728c1633197521de8/README.md",
+    "track3_readme": "https://huggingface.co/datasets/nvidia/video_to_data_challenge/blob/5f68335f3acc802033d1e80728c1633197521de8/track_3/README.md"
+  },
+  "evaluator": {
+    "status": "published",
+    "entrypoint": "flash_chord/scripts/evaluate_policy.py",
+    "kit_path": "upstream/v2d_submission_kit/v2d_submission_kit/flash_chord/scripts/evaluate_policy.py",
+    "runtime": "FlashCHORD",
+    "physics": "Newton 1.2.0 with the MuJoCo Warp solver",
+    "named_on_website_but_absent": "eval_e2e.py",
+    "executed_locally": false
+  },
+  "submission": {
+    "pose_file": {
+      "format": "csv",
+      "rows": 9120,
+      "columns": ["row_id", "pos_x", "pos_y", "pos_z", "quat_x", "quat_y", "quat_z", "quat_w", "eval_script_sha256", "eval_code_sha256", "checkpoint_sha256", "packer_script_sha256", "uploader_script_sha256", "code_commit_url"],
+      "row_id_pattern": "track_3/e{episode:06d}/w{world:03d}/f{frame:06d}/o{slot}",
+      "position_unit": "m",
+      "quaternion_order": "xyzw",
+      "worlds": [0],
+      "packer": "tools/pack_submission.py",
+      "competitions": ["v2d-challenge-track3-auc", "v2d-challenge-track3-sp-sr", "v2d-challenge-track3-mp-sr", "v2d-challenge-track3-rpe", "v2d-challenge-track3-mppe"]
+    },
+    "mesh_file": {
+      "format": "parquet",
+      "columns": ["row_id", "x", "y", "z", "code_commit_url"],
+      "episode_object_pairs": 36,
+      "budget_vertices": 4096,
+      "budget_faces": 4096,
+      "budget_source": "config/tracks.json; the sample parquet was not opened",
+      "accepted_mesh_suffixes": [".glb", ".obj", ".ply", ".stl", ".off"],
+      "packer": "tools/pack_reconstruction.py track3-meshes",
+      "competitions": ["v2d-challenge-track3-cd-o"]
+    },
+    "partial_credit": false,
+    "local_score_available": false
+  },
+  "scored_episodes": [
+    {"episode": 1, "objects": ["white_pot", "white_pot_lid"], "frames": 335},
+    {"episode": 3, "objects": ["white_pot", "wooden_spoon"], "frames": 313},
+    {"episode": 5, "objects": ["white_pot", "wooden_spoon"], "frames": 288},
+    {"episode": 6, "objects": ["white_pot", "wooden_spoon"], "frames": 243},
+    {"episode": 8, "objects": ["beige_cup", "white_pot"], "frames": 219},
+    {"episode": 10, "objects": ["blue_cup", "beige_cup"], "frames": 161},
+    {"episode": 14, "objects": ["blue_cup", "plastic_dish_rack"], "frames": 158},
+    {"episode": 15, "objects": ["plastic_dish_rack", "wooden_spoon"], "frames": 166},
+    {"episode": 16, "objects": ["plastic_dish_rack", "wooden_spoon"], "frames": 173},
+    {"episode": 19, "objects": ["mini_sweeper", "mini_dust_pan"], "frames": 235},
+    {"episode": 20, "objects": ["blue_cup", "water_pitcher"], "frames": 202},
+    {"episode": 25, "objects": ["wooden_piece_1", "wooden_piece_2"], "frames": 356},
+    {"episode": 28, "objects": ["plastic_dish_rack", "white_pot"], "frames": 220},
+    {"episode": 30, "objects": ["mini_sweeper", "plastic_dish_rack"], "frames": 263},
+    {"episode": 32, "objects": ["blue_cup", "wooden_spoon"], "frames": 259},
+    {"episode": 33, "objects": ["blue_cup", "wooden_spoon"], "frames": 348},
+    {"episode": 35, "objects": ["wooden_spoon"], "frames": 421},
+    {"episode": 36, "objects": ["wooden_spoon"], "frames": 407},
+    {"episode": 37, "objects": ["wooden_spoon"], "frames": 151},
+    {"episode": 38, "objects": ["mini_dust_pan"], "frames": 263}
+  ],
+  "objects_without_public_scan": ["wooden_spoon"],
+  "scoring": {
+    "source": "v2dlb/object_pose.py, v2dlb/object_mesh.py",
+    "alignment": {
+      "kind": "one rigid rotation and translation per episode",
+      "anchor": "object slot 0 at the first frame",
+      "scale_fitted": false,
+      "applied_by": "scorer"
+    },
+    "aggregation": "unweighted mean over the 20 episodes",
+    "metrics": [
+      {"key": "add_auc", "display": "AUC", "unit": null, "higher_is_better": true, "thresholds_m": [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09], "symmetry_handling": false},
+      {"key": "spider_sr", "display": "SP-SR", "unit": null, "higher_is_better": true, "position_m": 0.1, "orientation_rad": 0.5, "averaged_over_objects": true},
+      {"key": "maniptrans_sr", "display": "MP-SR", "unit": null, "higher_is_better": true, "position_m": 0.03, "orientation_deg": 30.0, "every_object_must_pass": true},
+      {"key": "rpe_cm", "display": "RPE", "unit": "cm", "higher_is_better": false, "single_object_episode_value": 0.0},
+      {"key": "mppe_cm", "display": "MPPE", "unit": "cm", "higher_is_better": false, "keypoint_radius_m": 0.05, "keypoints": 6},
+      {"key": "cd_o_cm", "display": "CD-O", "unit": "cm", "higher_is_better": false, "scale_normalised_by_scorer": true, "surface_samples": 10000}
+    ],
+    "combined_ranking": null,
+    "tie_breaking": null
+  },
+  "rollout_protocol": {
+    "world_count_submitted": 1,
+    "reset_mode": "explicit",
+    "start_frame": 0,
+    "assistance": "off",
+    "failure_termination": "disabled",
+    "horizon": "length of the reference after resampling to the control rate",
+    "frame_index_written": "step + start_frame, on the resampled reference",
+    "released_floating_hand_recipe": {"control_fps": 20.0, "motion_speed": 0.5}
+  },
+  "rules_from_kit_configuration": {
+    "submission_limit": "five per week, unlimited in the final three days",
+    "kaggle_daily_limit_configured": 5,
+    "final_submissions_per_competition": 2,
+    "max_team_size": 10,
+    "private_fraction": 0,
+    "winner_code_licence": "Apache-2.0",
+    "freeze_utc": "2026-11-04T22:00:00Z",
+    "evaluator_hash_allowlists": "empty",
+    "website_prevails_on_conflict": true
+  },
+  "requirements": [
+    {"id": "U01", "field": "evaluator_source_and_cli", "status": "resolved", "value": "Submission Kit; evaluate_policy.py at upstream commit aee95f25"},
+    {"id": "U02", "field": "embodiment_and_simulator", "status": "partly_resolved", "value": {"simulator": "FlashCHORD", "embodiments_available": ["sharpa_hands", "dexmate_sharpa", "g1_dex3"], "embodiment_required": null}},
+    {"id": "U03", "field": "policy_observations", "status": "resolved", "value": "defined by the runtime's recipes; includes simulated object pose and current-frame reference targets"},
+    {"id": "U04", "field": "policy_actions", "status": "resolved", "value": "floating hands: 56 residuals at 20 control steps per second"},
+    {"id": "U05", "field": "reference_access", "status": "resolved", "value": "the policy tracks the participant's own reconstructed reference; the organisers' reference is confidential"},
+    {"id": "U06", "field": "episode_specific_policy_rules", "status": "resolved", "value": "one policy per sequence"},
+    {"id": "U07", "field": "permitted_inputs", "status": "unresolved", "value": null, "question": "May scored inference use the stereo streams, the public calibration file, the public scans and URDFs, and manual annotation?"},
+    {"id": "U08", "field": "reconstruction_schema", "status": "resolved", "value": "object meshes only, for CD-O; no hand, body or scene reconstruction is submitted"},
+    {"id": "U09", "field": "rollout_protocol", "status": "resolved", "value": "see rollout_protocol"},
+    {"id": "U10", "field": "scoring_protocol", "status": "partly_resolved", "value": "formulas and thresholds published in code; combined ranking and tie-breaking not published"},
+    {"id": "U11", "field": "submission_schema", "status": "resolved", "value": "see submission"},
+    {"id": "U12", "field": "registration_and_final_rules", "status": "partly_resolved", "value": "kit configuration read; Kaggle rules text not retrieved; FAQ not found; week reset unpublished"}
+  ],
+  "open_questions": [
+    "permitted inputs at evaluation",
+    "body frame of wooden_spoon",
+    "intended alignment of rollout frames with dataset frames",
+    "required embodiment, if any",
+    "combined ranking and tie-breaking",
+    "submission week reset and the start of the final three days",
+    "whether the official evaluator is mandatory and whether allowlists will be filled",
+    "reference rows for frames where motion capture lost the object"
+  ],
+  "project_choices_not_official_rules": {
+    "embodiment": "sharpa_hands",
+    "motion_speed": 1.0,
+    "declared_reference_fps": 20.0,
+    "evaluator": "official, unmodified",
+    "decisions": "docs/design/decisions.md"
+  },
+  "prohibited_inferences": [
+    "Do not treat an unresolved field as allowed, disallowed or defaultable.",
+    "Do not treat the absence of enforcement in the packer as permission.",
+    "Do not treat the evaluator's own metrics as leaderboard scores; they compare with this project's reference.",
+    "Do not treat project choices as challenge rules."
+  ]
+}

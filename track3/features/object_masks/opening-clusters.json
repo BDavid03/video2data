@@ -1,0 +1,13 @@
+{
+  "source_split": "public",
+  "episode_index": 39,
+  "depth_run": null,
+  "anchor_run": null,
+  "camera_run": null,
+  "stop_frame": 20,
+  "minimum_height_m": 0.015,
+  "maximum_height_m": 0.5,
+  "neighbour_distance_m": 0.025,
+  "minimum_cluster_pixels": 50,
+  "border_margin_pixels": 2
+}

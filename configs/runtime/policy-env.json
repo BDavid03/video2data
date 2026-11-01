@@ -1,0 +1,17 @@
+{
+  "create_authorized": false,
+  "install_authorized": false,
+  "distro": "video2data-policy",
+  "ubuntu_version": "24.04",
+  "vhdx_directory": ".runtime/wsl/video2data-policy",
+  "windows_root": "Z:/hugging-face/video2data",
+  "linux_root": "/mnt/z/hugging-face/video2data",
+  "source_url": "https://github.com/nvidia-isaac/video_to_data.git",
+  "source_commit": "aee95f25ae0943f335d8bb42fa95b6a9acfa266f",
+  "installation_root": "/opt/video2data",
+  "checkout": "/opt/video2data/video_to_data",
+  "policy_environment": "/opt/video2data/policy-python311",
+  "retarget_environment": "/opt/video2data/retarget-python311",
+  "kit": "/opt/video2data/submission-kit",
+  "installation_record": "reports/runtime/policy-env.json"
+}

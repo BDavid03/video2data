@@ -1,0 +1,23 @@
+{
+  "schema": "independent-geometry-protocol-v1",
+  "frozen_utc": null,
+  "episode_index": 39,
+  "frame_indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+  "holdback_partition": "sha256-episode-frame-query-v1",
+  "holdback_modulus": 5,
+  "correspondences_run_sha256": null,
+  "candidate": {
+    "run_sha256": null,
+    "fixed_metric_scale": null,
+    "scale_origin": "reserved_disjoint_anchor",
+    "anchor_run": null,
+    "anchor_run_sha256": null
+  },
+  "baseline": {
+    "run_sha256": null,
+    "fixed_metric_scale": null,
+    "scale_origin": "reserved_disjoint_anchor",
+    "anchor_run": null,
+    "anchor_run_sha256": null
+  }
+}

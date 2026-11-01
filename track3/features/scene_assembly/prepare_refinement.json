@@ -1,0 +1,13 @@
+{
+  "pose_run": "outputs/object_pose/public/episode_000039/SELECT_COMPOSE_RUN/run.json",
+  "camera_run": "outputs/camera_motion/public/episode_000039/SELECT_CAMERA_RUN/run.json",
+  "correspondence_run": "outputs/object_masks/public/episode_000039/SELECT_CORRESPONDENCE_RUN/run.json",
+  "depth_run": "outputs/stereo_depth/public/episode_000039/SELECT_STEREO_RUN/run.json",
+  "observations_file": "outputs/object_pose/public/episode_000039/SELECT_ADMITTED_POSE_RECEIPT.json",
+  "observations_sha256": "SELECT_EXACT_ADMITTED_RECEIPT_SHA256",
+  "source_split": "public",
+  "episode_index": 39,
+  "maximum_frames": 512,
+  "maximum_points_per_frame": 128,
+  "minimum_points": 6
+}

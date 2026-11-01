@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "audited_date": "2026-09-24",
+  "status": "moge2_installed_full_reconstruction_blocked",
+  "installation_update_date": "2026-09-25",
+  "latest_installation": "reports/installation/moge-20260925/installation.json",
+  "upstream": {"repository": "https://github.com/nvidia-isaac/video_to_data", "ref": "release/0.2.0", "revision": "43a3f5b4d479581f2e8bdf5e6ed7ca361d39ec5a"},
+  "scope": "Pan_Solo supplied-mesh HaMeR route with metric depth and moving-camera reconstruction",
+  "execution": {"installed_dependencies": true, "downloaded_weights": true, "installation_scope": "moge2_only", "model_inference_run": false, "reconstruction_complete": false},
+  "local_assets": {"scope": "project models directory only; no machine-wide/private-file crawl", "initial_audit_files_found": 0, "approved_download_completed": "models/moge/model.pt", "licensed_mano_found": false, "external_cache_scan": "Historical initial audit: hf cache ls on Z:/hugging-face found no recognized model repos and 10 inconsistencies; absence elsewhere is unknown"},
+  "artifact_roots": {"workspace_windows": "Z:/hugging-face/video2data", "workspace_wsl": "/mnt/z/hugging-face/video2data", "models": "models", "runtime": ".runtime", "caches": ".cache", "outputs": "outputs", "constraint": "All new artifacts, environments, caches and container storage must remain within workspace"},
+  "recommended_immediate_step": {"action": "installation complete; continue only within the current no-testing scope", "status": "approved_moge2_installation_complete_unexecuted", "model": "moge2", "weight_bytes": 1323815904, "transitive_lock": "configs/perception/moge/pylock.python313.toml", "resolution_report": "manifests/models/moge-resolution.json", "python314_compatibility": "binary-only declared dependency resolution failed on moderngl cp314 wheel availability", "python313_result": "69 dependency packages installed including separate CUDA torch pair; not a model runtime test", "testing_hold": "User instructed absolutely 0 testing; no further checks/resolution/experiments after steering", "note": "broader batches below are deferred eventual-route candidates"},
+  "approval_batches": [
+    {"id": "perception_feasibility", "status": "proposal_requires_confirmation_and_dependency_resolution", "models": ["grounding_dino", "sam2", "moge2"], "candidate_python_minor": "3.11", "python_patch_build": null, "candidate_torch": "2.7.1", "candidate_torchvision": "0.22.1", "candidate_cuda": "12.8", "candidate_numpy": "1.26.4", "image_digest": null, "transitive_dependency_lock": null, "verified_main_weight_bytes": 2915897192, "additional_bytes": "BERT assets, small configs, wheels/container/build layers unknown", "completion_claim_allowed": "actual masks and depth only, not full reconstruction"},
+    {"id": "pose_hands_camera", "status": "deferred_requires_confirmation_license_actions_and_native_build_validation", "models": ["foundation_pose", "wilor", "hamer", "mano", "droid_slam"], "known_additional_download_bytes": 8656127911, "unknown_download_sizes": ["FoundationPose scorer/refiner", "DROID checkpoint", "official MANO", "dependencies", "archive expansion"], "completion_claim_allowed": "only after validated end-to-end episode artifacts and measured resources"}
+  ],
+  "models": [
+    {
+      "id": "grounding_dino", "purpose": "pan text detection / initial object box", "required": true,
+      "code": {"repository": "https://github.com/IDEA-Research/GroundingDINO", "revision": "856dde20aee659246248e20734ef9ba5214f5e44", "pin_kind": "proposed resolved upstream HEAD; wrapper previously floats"},
+      "license": {"code": "Apache-2.0", "source": "https://github.com/IDEA-Research/GroundingDINO/blob/main/LICENSE", "weight_separate_terms": "no separate checkpoint license audited"},
+      "weights": [{"url": "https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth", "destination": "models/grounding_dino/groundingdino_swint_ogc.pth", "size_bytes": 693997677, "size_evidence": "GitHub release assets API", "sha256": null, "hash_status": "publisher release API digest null; compute after approved download", "downloaded": false}],
+      "access": "public", "documented_peak_vram_gib": null,
+      "blockers": ["new dependencies unapproved", "CUDA operator built without sm120 by original Dockerfile", "transformers4.27.4 compatibility untested against proposed torch", "bert-base-uncased implicit pretrained assets need model revision and size pin"]
+    },
+    {
+      "id": "sam2", "purpose": "object and hand mask propagation", "required": true,
+      "code": {"repository": "https://github.com/facebookresearch/sam2", "revision": "2b90b9f5ceec907a1c18123530e92e794ad901a4", "pin_kind": "proposed resolved upstream HEAD"},
+      "license": {"code_and_weights": "Apache-2.0", "source": "https://github.com/facebookresearch/sam2#license"},
+      "hub": {"repo_id": "facebook/sam2.1-hiera-large", "revision": "665f8e2ad61cf5f53d65644ff27c8ee525124610", "gated": false},
+      "weights": [{"file": "sam2.1_hiera_large.pt", "destination": "models/sam2/sam2.1_hiera_large.pt", "size_bytes": 898083611, "sha256": "2647878d5dfa5098f2f8649825738a9345572bae2d4350a2468587ece47dd318", "hash_status": "Hub LFS metadata only; not locally verified", "downloaded": false}],
+      "small_assets": [{"file": "sam2.1_hiera_l.yaml", "size_bytes": 3798}],
+      "exclude_files": ["model.safetensors"], "exclusion_reason": "alternate format duplicates weights; wrapper uses .pt",
+      "documented_peak_vram_gib": null, "minimum_official_runtime": "Python>=3.10 torch>=2.5.1 torchvision>=0.20.1; sm120 needs compatible newer torch/CUDA",
+      "blockers": ["new dependencies unapproved", "actual long-video memory unknown", "optional CUDA postprocessing build and low-memory wrapper require tests"]
+    },
+    {
+      "id": "moge2", "purpose": "metric monocular depth and intrinsics", "required": true,
+      "code": {"repository": "https://github.com/microsoft/MoGe", "revision": "07444410f1e33f402353b99d6ccd26bd31e469e8", "pin_kind": "proposed last commit before2026-07-01; pyproject declares2.0.0; avoids MoGe3 dependency expansion", "current_head_observed": "74fbce054ebed49800de42d0ad0e83495065719a"},
+      "license": {"code": "MIT, DINOv2 code Apache-2.0", "weights_model_card": "MIT", "source": "https://github.com/microsoft/MoGe#license"},
+      "hub": {"repo_id": "Ruicheng/moge-2-vitl-normal", "revision": "cb0e8bbd6b1e243589717c78e750b1ba4c093acf", "gated": false},
+      "weights": [{"file": "model.pt", "destination": "models/moge/model.pt", "size_bytes": 1323815904, "sha256": "280741fd09bc3f403ccff9967784c2a391b52d2c0742ae3efdb21d9f90cc1a01", "hash_status": "Hub LFS metadata; no separate checksum validation run", "downloaded": true}],
+      "pinned_transitive_sources": {"EasternJournalist/utils3d": "3fab839f0be9931dac7c8488eb0e1600c236e183", "EasternJournalist/pipeline": "866f059d2a05cde05e4a52211ec5051fd5f276d6"},
+      "documented_peak_vram_gib": null,
+      "blockers": ["model execution and testing not authorized", "metric prediction accuracy on target unmeasured", "pinned wrapper always uses MoGe; stereo depth requires adapter", "known calibration currently becomes fov prior, output intrinsics remain model predictions"]
+    },
+    {
+      "id": "foundation_pose", "purpose": "known-mesh object pose initialization and tracking", "required": true,
+      "code": {"repository": "https://github.com/nvidia-isaac/video_to_data", "revision": "43a3f5b4d479581f2e8bdf5e6ed7ca361d39ec5a", "path": "reconstruction/modules/v2d_foundation_pose/lib/FoundationPose", "pin_kind": "vendored tree in pinned wrapper; original standalone revision not established"},
+      "license": {"name": "NVIDIA Source Code License", "restriction": "research/evaluation noncommercial use limitation; confirm applicable use", "source": "https://github.com/NVlabs/FoundationPose/blob/master/LICENSE"},
+      "weights": [
+        {"kind": "scorer", "run": "2024-01-11-20-02-45", "url": "https://drive.google.com/drive/folders/12Te_3TELLes5cim1d7F7EBTwUSe7iRBj", "files": ["model_best.pth", "config.yml"], "size_bytes": null, "sha256": null, "downloaded": false},
+        {"kind": "refiner", "run": "2023-10-28-18-33-37", "url": "https://drive.google.com/drive/folders/1BEQLZH69UO5EOfah-K9bfI3JyP9Hf7wC", "files": ["model_best.pth", "config.yml"], "size_bytes": null, "sha256": null, "downloaded": false}
+      ],
+      "destination_root": "models/foundation_pose", "documented_peak_vram_gib": null,
+      "blockers": ["weights absent and sizes/checksums unresolved", "license use confirmation", "kaolin0.18.0 torch2.5.1/cu124 hard pin", "PyTorch3D nvdiffrast mycpp mycuda Warp native compatibility", "mesh geometry units/orientation and depth validation required"]
+    },
+    {
+      "id": "wilor", "purpose": "hand detection and initial MANO regression before HaMeR", "required": true,
+      "code": {"repository": "https://github.com/warmshao/WiLoR-mini", "revision": "ebec42f94c389070cdd7dda6fd1bf0b4a659c960", "pin_kind": "proposed resolved upstream HEAD; same implementation used by wrapper"},
+      "license": {"models": "WiLoR CC BY-NC-ND per official upstream; independent Ultralytics and MANO terms", "mirror_card_license": null, "source": "https://github.com/rolpotamias/WiLoR#license", "status": "review_required; mirror public access is not license approval"},
+      "hub": {"repo_id": "warmshao/WiLoR-mini", "revision": "b00adea9a6843bbb4c9042109c5eb29ab2a59dea", "gated": false, "provenance": "third-party implementation's default model mirror; compare official distribution before approved acquisition"},
+      "weights": [
+        {"file": "pretrained_models/wilor_final.ckpt", "size_bytes": 2564989533, "sha256": "3e97aafc7dd08d883a4cc5a027df61fdb6fda6136dbd1319405413862ada6bb2", "downloaded": false},
+        {"file": "pretrained_models/detector.pt", "size_bytes": 53582271, "sha256": "5ef3df44e42d2db52d4ffe91f83a22ce9925e2acc9abebf453f2c5d22e380033", "downloaded": false},
+        {"file": "pretrained_models/mano_mean_params.npz", "size_bytes": 1178, "sha256": "efc0ec58e4a5cef78f3abfb4e8f91623b8950be9eff8b8e0dbb0d036ebc63988", "downloaded": false}
+      ],
+      "hash_status": "Hub LFS metadata only; none locally verified", "destination_root": "models/wilor", "exclude_files": ["pretrained_models/MANO_RIGHT.pkl", "pretrained_models/wilor_vit.onnx"],
+      "documented_peak_vram_gib": null,
+      "blockers": ["license review and local licensed MANO", "constructor auto-downloads MANO and may allocate GPU; do not call as metadata downloader", "PyTorch checkpoint loading compatibility", "numpy<2 rendering manotorch/chumpy deps unresolved"]
+    },
+    {
+      "id": "hamer", "purpose": "per-frame hand MANO regression from tracked masks", "required": true,
+      "code": {"repository": "https://github.com/geopavlakos/hamer", "revision": "3a01849f4148352e9260b69bf28b65d1671a4905", "pin_kind": "exact upstream Dockerfile pin"},
+      "license": {"repository": "MIT", "source": "https://github.com/geopavlakos/hamer/blob/main/LICENSE.md", "separate_assets": "MANO; archive contents must retain relevant licenses"},
+      "weights": [{"url": "https://www.cs.utexas.edu/~pavlakos/hamer/data/hamer_demo_data.tar.gz", "size_bytes": 6037554929, "size_evidence": "HTTP HEAD Content-Length on2026-09-24", "sha256": null, "etag": "167ddc6f1-60c69e4dd5f93", "expected_checkpoint": "_DATA/hamer_ckpts/checkpoints/hamer.ckpt", "downloaded": false}],
+      "destination_root": "models/hamer", "documented_peak_vram_gib": null,
+      "blockers": ["MANO manually supplied", "archive hash and expanded size unknown", "manotorch/chumpy and EGL rendering compatibility", "numpy<2 requirement"]
+    },
+    {
+      "id": "mano", "purpose": "licensed parametric hand model used by both WiLoR and HaMeR", "required": true,
+      "access": "manual registration, official download and user license acceptance", "license_url": "https://mano.is.tue.mpg.de/license.html", "official_source": "https://mano.is.tue.mpg.de/",
+      "weights": [{"file": "MANO_RIGHT.pkl", "destination": "models/hand/models/MANO_RIGHT.pkl", "size_bytes": null, "sha256": null, "downloaded": false}],
+      "licensed_file_provided": false, "license_accepted": false, "redistribution_permitted_by_this_audit": false,
+      "consumer_layouts_after_authorization": ["models/wilor/pretrained_models/MANO_RIGHT.pkl", "models/wilor/pretrained_models/models/MANO_RIGHT.pkl", "models/hamer/_DATA/data/models/MANO_RIGHT.pkl"],
+      "blockers": ["user manual action; never acquire MANO through public mirror as a substitute", "record private local checksum and version after legitimate supply without publishing model data"]
+    },
+    {
+      "id": "droid_slam", "purpose": "time-varying camera motion; metric alignment must be verified", "required": true,
+      "code": {"repository": "https://github.com/princeton-vl/DROID-SLAM", "revision": "2dfd39f0dcad44012ca7bbb8aa70b55edbfa9c99", "pin_kind": "proposed resolved upstream HEAD; recursive gitlinks must remain pinned"},
+      "license": {"code": "BSD-3-Clause", "source": "https://github.com/princeton-vl/DROID-SLAM/blob/main/LICENSE", "weights": "official public Drive link; distinct license not established"},
+      "weights": [{"url": "https://drive.google.com/file/d/1PpqVt1H4maBa_GbPJp4NwxRsd9jk-elh/view", "destination": "models/droid_slam/droid.pth", "size_bytes": null, "sha256": null, "downloaded": false}],
+      "documented_memory": {"inference_demo_g": 11, "training_g": 24, "some_evaluations_g": 24, "units": "upstream states G, not locally measured GiB", "source": "https://github.com/princeton-vl/DROID-SLAM#requirements", "local_peak_total_device_bytes": null},
+      "blockers": ["droid_backends lietorch scatter sm120 build tests", "fixed older CUDA architecture flags", "actual sequence-buffer memory and camera drift unknown", "dynamic hands/objects must be masked for background camera evidence"]
+    }
+  ],
+  "auxiliary_code_candidates": [
+    {"repo": "lixiny/manotorch", "revision": "a2a70c591f91551078b7bb2af9b5d9f275b626e0"},
+    {"repo": "mattloper/chumpy", "revision": "580566eafc9ac68b2614b64d6f7aaa84eebb70da"},
+    {"repo": "NVlabs/nvdiffrast", "revision": "253ac4fcea7de5f396371124af597e6cc957bfae"},
+    {"repo": "facebookresearch/pytorch3d", "revision": "978cd99221b9e0a6a568f1d427854d73363265cf"}
+  ],
+  "auxiliary_pin_status": "resolved public source HEADs only; compatibility, recursive dependencies and all binary hashes remain untested",
+  "deferred_models": ["SAM3D", "DynHaMR/BMC", "gsplat refinement", "AnyCalib weights pending calibrated preprocessing decision", "GeoCalib weights pending gravity/world-frame decision"],
+  "local_model_peak_vram_measured": false,
+  "known_weight_bytes_subtotal": 11572025103,
+  "known_weight_bytes_subtotal_excludes": ["MANO", "FoundationPose", "DROID", "BERT", "small configs", "dependencies", "container layers", "archive expansion", "outputs"],
+  "measurement_policy": "one GPU stage at a time; short segment, batch1 initially; total-device memory and host RAM/disk/runtime recorded; approximately2GiB headroom goal; never derive VRAM from checkpoint bytes",
+  "validation": "JSON syntax, revision shapes, nonempty hashes, size sums and referenced checkout inspected; no model execution"
+}

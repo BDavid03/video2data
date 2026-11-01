@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "contract_type": "local_track3_readiness_audit",
+  "as_of_date": "2026-09-24",
+  "ready_for_official_evaluation": false,
+  "ready_for_official_packaging": false,
+  "source_checks": "configs/evaluator/source-checks.json",
+  "report": "reports/contract.md",
+  "pins": {
+    "dataset": "5f68335f3acc802033d1e80728c1633197521de8",
+    "starter": "43a3f5b4d479581f2e8bdf5e6ed7ca361d39ec5a",
+    "inspected_main": "33129dd0f2d2dcfd1164d43fd076542660756ed2",
+    "inspected_release_0_3_0": "595ad68d897b986cd154d4575a022411af096eb3"
+  },
+  "sources": {
+    "challenge": "https://nvidia-isaac.github.io/video_to_data/v2d_challenge/",
+    "dataset_card": "https://huggingface.co/datasets/nvidia/video_to_data_challenge/blob/5f68335f3acc802033d1e80728c1633197521de8/README.md",
+    "track3_readme": "https://huggingface.co/datasets/nvidia/video_to_data_challenge/blob/5f68335f3acc802033d1e80728c1633197521de8/track_3/README.md",
+    "leaderboard": "https://github.com/nvidia-isaac/video_to_data/blob/33129dd0f2d2dcfd1164d43fd076542660756ed2/docs/v2d_challenge/leaderboard.json",
+    "generic_demo": "https://github.com/nvidia-isaac/video_to_data/blob/33129dd0f2d2dcfd1164d43fd076542660756ed2/README.md",
+    "draft_rules": "https://github.com/nvidia-isaac/video_to_data/blob/3889b7cf4558529d0d76690b0cec36835d2915fa/docs/v2d_challenge/rules.html",
+    "draft_rules_pr": "https://github.com/nvidia-isaac/video_to_data/pull/164"
+  },
+  "confirmed": [
+    {"id": "C01", "status": "published_fact", "topic": "objective", "value": "egocentric human demonstration video to executable robot policy", "evidence": ["challenge", "dataset_card"]},
+    {"id": "C02", "status": "published_fact", "topic": "method_families", "value": ["explicit reconstruction and retargeting", "implicit end-to-end learning", "pretrained VLA or WAM", "hybrid"], "evidence": ["challenge", "dataset_card"]},
+    {"id": "C03", "status": "published_fact", "topic": "required_artifact_categories", "value": ["reconstructions", "recorded policy evaluations"], "evidence": ["challenge", "dataset_card"]},
+    {"id": "C04", "status": "published_instruction_not_runnable_verified", "topic": "named_packager", "value": "eval_e2e.py", "evidence": ["challenge", "dataset_card"]},
+    {"id": "C05", "status": "published_fact", "topic": "freeze_utc", "value": "2026-11-04T22:00:00Z", "evidence": ["challenge"]},
+    {"id": "C06", "status": "published_fact", "topic": "award_requirements", "value": ["valid final submission", "agreed research-license code release", "short technical report"], "evidence": ["challenge"]},
+    {"id": "C07", "status": "published_input_convention_not_policy_permission", "topic": "public_object_poses", "value": {"direction": "world_T_object", "translation_unit": "m", "quaternion_order": "wxyz", "invalid_pose": "all zeros when visible is false", "horizontal_origin": "per episode", "camera_to_mocap_world_extrinsic_provided": false}, "evidence": ["track3_readme"]}
+  ],
+  "evaluator_availability": {
+    "status": "not_found_in_inspected_sources",
+    "named_entrypoint": "eval_e2e.py",
+    "resolved_path": null,
+    "revision": null,
+    "command": null,
+    "validation_performed": false,
+    "absence_scope": "Complete GitHub trees recorded in source-checks.json and current dataset file listing; not a claim about all branches or external services."
+  },
+  "leaderboard_display_metadata": {
+    "status": "published_display_metadata_only",
+    "evidence": ["leaderboard"],
+    "competition_access_verified": false,
+    "metrics": [
+      {"key": "add_auc", "display": "AUC", "unit": null, "higher_is_better": true, "competition_slug": "v2d-challenge-track3-auc"},
+      {"key": "spider_sr", "display": "SP-SR", "unit": null, "higher_is_better": true, "competition_slug": "v2d-challenge-track3-sp-sr"},
+      {"key": "maniptrans_sr", "display": "MP-SR", "unit": null, "higher_is_better": true, "competition_slug": "v2d-challenge-track3-mp-sr"},
+      {"key": "rpe_cm", "display": "RPE", "unit": "cm", "higher_is_better": false, "competition_slug": "v2d-challenge-track3-rpe"},
+      {"key": "mppe_cm", "display": "MPPE", "unit": "cm", "higher_is_better": false, "competition_slug": "v2d-challenge-track3-mppe"}
+    ],
+    "formulas": null,
+    "aggregation": null
+  },
+  "unresolved": [
+    {"id": "U01", "status": "unresolved", "field": "evaluator_source_and_cli", "value": null, "question": "Where are the versioned Track 3 evaluator, installation instructions, CLI, validator and sample artifact?", "blocks": ["official_evaluation", "official_packaging"]},
+    {"id": "U02", "status": "unresolved", "field": "embodiment_and_simulator", "value": null, "question": "Which robot assets, joints, simulator version and physics configuration apply to Track 3?", "blocks": ["compliant_retargeting", "compliant_simulator_pilot"]},
+    {"id": "U03", "status": "unresolved", "field": "policy_observations", "value": null, "question": "Which sensors, privileged state, histories, normalization and reset API may policies use?", "blocks": ["policy_architecture"]},
+    {"id": "U04", "status": "unresolved", "field": "policy_actions", "value": null, "question": "What are the action shape, joint order, units, control mode/rate, actuator model and limits?", "blocks": ["policy_interface", "control"]},
+    {"id": "U05", "status": "unresolved", "field": "reference_access", "value": null, "question": "Are demonstration trajectories, future targets, phase/time and reconstructed or simulator object state allowed during training and rollout?", "blocks": ["reference_tracking_design"]},
+    {"id": "U06", "status": "unresolved", "field": "episode_specific_policy_rules", "value": null, "question": "May policies be optimized per supplied episode or task; what must be shared and what test-time optimization is allowed?", "blocks": ["training_scope", "compute_budget", "evaluation_separation"]},
+    {"id": "U07", "status": "unresolved", "field": "permitted_inputs", "value": null, "question": "May scored inference use all ego streams, calibration, known meshes/URDFs, manual annotations and external data/models?", "blocks": ["evaluation_input_policy"]},
+    {"id": "U08", "status": "unresolved", "field": "reconstruction_schema", "value": null, "question": "Which hands/body/object contents, frames, alignment, indexing, shapes and invalid-track encoding are required?", "blocks": ["official_reconstruction_export"]},
+    {"id": "U09", "status": "unresolved", "field": "rollout_protocol", "value": null, "question": "What are the episode list, reset distribution, seeds, repetitions, horizon, termination and recording requirements?", "blocks": ["official_rollouts", "success_claims"]},
+    {"id": "U10", "status": "unresolved", "field": "scoring_protocol", "value": null, "question": "What formulas, thresholds, symmetries, masks, aggregation, tie-breaks and final ranking rules apply?", "blocks": ["official_scoring"]},
+    {"id": "U11", "status": "unresolved", "field": "submission_schema", "value": null, "question": "What archive layout, formats, names, checkpoints, manifest fields, size limits and per-metric portal uploads are required?", "blocks": ["official_packaging"]},
+    {"id": "U12", "status": "unresolved", "field": "registration_and_final_rules", "value": null, "question": "What final rules version, registration completion, accessible portal, quota-reset period and report/material deadlines apply?", "blocks": ["submission_acceptance", "award_eligibility_verification"]}
+  ],
+  "proposals": [
+    {"id": "P01", "status": "unmerged_upstream_proposal_not_adopted", "topic": "private_final_ranking_split_and_late_materials_policy", "evidence": ["draft_rules", "draft_rules_pr"]},
+    {"id": "P02", "status": "local_project_proposal_not_official_rule", "topic": "continue_public_reconstruction_with_provenance_and_separate_reference_diagnostics"},
+    {"id": "P03", "status": "local_project_proposal_not_official_rule", "topic": "defer_contract_dependent_architecture_and_label_generic_simulator_smokes"}
+  ],
+  "prohibited_inferences": [
+    "Do not inherit Track 2 G1 + Dex3 as the Track 3 embodiment.",
+    "Do not inherit generic floating Sharpa or Vega Sharpa demo interfaces as the Track 3 contract.",
+    "Do not treat dataset observation column names as permitted policy observations.",
+    "Do not treat leaderboard display fields or generic metric implementations as the full scoring protocol.",
+    "Do not treat unresolved fields as false, allowed, disallowed, or defaultable."
+  ]
+}

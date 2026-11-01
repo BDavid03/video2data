@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "checked_at_utc": "2026-09-24T10:38:12.0984185Z",
+  "trees": [
+    {
+      "id": "release_0_2_0",
+      "url": "https://api.github.com/repos/nvidia-isaac/video_to_data/git/trees/43a3f5b4d479581f2e8bdf5e6ed7ca361d39ec5a?recursive=1",
+      "commit": "43a3f5b4d479581f2e8bdf5e6ed7ca361d39ec5a",
+      "retrieved_at_utc": "2026-09-24T10:38:05.1432917Z",
+      "response_sha256_utf8": "a5fe18461a8ae6aff77e8fb3cbc9eb0151d33f65e43bdee82937920032d4fe92",
+      "entry_count": 2579,
+      "truncated": false,
+      "eval_e2e_matches": [],
+      "rules_paths": [],
+      "evaluation_python_paths": [
+        "robotic_grounding/scripts/rsl_rl/eval.py",
+        "video_ingestion_agent/src/video_ingestion_agent/benchmark/evaluate.py",
+        "video_ingestion_agent/src/video_ingestion_agent/benchmark/evaluate_hot3d.py"
+      ]
+    },
+    {
+      "id": "main",
+      "url": "https://api.github.com/repos/nvidia-isaac/video_to_data/git/trees/33129dd0f2d2dcfd1164d43fd076542660756ed2?recursive=1",
+      "commit": "33129dd0f2d2dcfd1164d43fd076542660756ed2",
+      "retrieved_at_utc": "2026-09-24T10:38:06.7506903Z",
+      "response_sha256_utf8": "e8eebe80054917f309a4d2b707974a4ffd9be4a28b81c8de7bfa89fe5465751c",
+      "entry_count": 4840,
+      "truncated": false,
+      "eval_e2e_matches": [],
+      "rules_paths": [],
+      "evaluation_python_paths": [
+        "reconstruction/modules/v2d_hoi_object_reconstruction/tools/evaluate_mesh_quality.py",
+        "robotic_grounding/flash_chord/scripts/evaluate_policy.py",
+        "robotic_grounding/flash_chord/src/flash_chord/training/flash_sac/evaluation.py",
+        "robotic_grounding/flash_chord/src/flash_chord/training/ppo/evaluation.py",
+        "robotic_grounding/groot_finetune/closed_loop/evaluation.py",
+        "robotic_grounding/scripts/rsl_rl/eval.py",
+        "video_ingestion_agent/src/video_ingestion_agent/benchmark/evaluate.py",
+        "video_ingestion_agent/src/video_ingestion_agent/benchmark/evaluate_hot3d.py"
+      ]
+    },
+    {
+      "id": "release_0_3_0",
+      "url": "https://api.github.com/repos/nvidia-isaac/video_to_data/git/trees/595ad68d897b986cd154d4575a022411af096eb3?recursive=1",
+      "commit": "595ad68d897b986cd154d4575a022411af096eb3",
+      "retrieved_at_utc": "2026-09-24T10:38:08.1798016Z",
+      "response_sha256_utf8": "60932bb0a11a4baba052bfe4dd3e105363fbc55a422e66531406d7615932c2d6",
+      "entry_count": 3439,
+      "truncated": false,
+      "eval_e2e_matches": [],
+      "rules_paths": [],
+      "evaluation_python_paths": [
+        "reconstruction/modules/v2d_hoi_object_reconstruction/tools/evaluate_mesh_quality.py",
+        "robotic_grounding/groot_finetune/closed_loop/evaluation.py",
+        "robotic_grounding/scripts/rsl_rl/eval.py",
+        "video_ingestion_agent/src/video_ingestion_agent/benchmark/evaluate.py",
+        "video_ingestion_agent/src/video_ingestion_agent/benchmark/evaluate_hot3d.py"
+      ]
+    },
+    {
+      "id": "draft_rules",
+      "url": "https://api.github.com/repos/nvidia-isaac/video_to_data/git/trees/3889b7cf4558529d0d76690b0cec36835d2915fa?recursive=1",
+      "commit": "3889b7cf4558529d0d76690b0cec36835d2915fa",
+      "retrieved_at_utc": "2026-09-24T10:38:09.4399472Z",
+      "response_sha256_utf8": "17495c75c015857a756265686dc81a6b9a0f769cb03bfb9d248906718fdf5680",
+      "entry_count": 3012,
+      "truncated": false,
+      "eval_e2e_matches": [],
+      "rules_paths": [
+        ".github/V2D_CHALLENGE_RELEASE_CHECKLIST.md",
+        "docs/v2d_challenge/rules.html"
+      ],
+      "evaluation_python_paths": [
+        "robotic_grounding/scripts/rsl_rl/eval.py",
+        "video_ingestion_agent/src/video_ingestion_agent/benchmark/evaluate.py",
+        "video_ingestion_agent/src/video_ingestion_agent/benchmark/evaluate_hot3d.py"
+      ]
+    }
+  ],
+  "dataset": {
+    "url": "https://huggingface.co/api/datasets/nvidia/video_to_data_challenge",
+    "sha": "5f68335f3acc802033d1e80728c1633197521de8",
+    "track3_file_count": 169,
+    "eval_e2e_matches": []
+  },
+  "live_leaderboard": {
+    "url": "https://nvidia-isaac.github.io/video_to_data/v2d_challenge/leaderboard.json",
+    "generated": "2026-09-21T08:04:59Z",
+    "track3": {
+      "key": "track_3",
+      "title": "Track 3 - Egocentric",
+      "short_title": "Track 3",
+      "metrics": [
+        {
+          "key": "add_auc",
+          "display": "AUC",
+          "unit": "",
+          "higher_is_better": true,
+          "competition": "v2d-challenge-track3-auc",
+          "available": true
+        },
+        {
+          "key": "spider_sr",
+          "display": "SP-SR",
+          "unit": "",
+          "higher_is_better": true,
+          "competition": "v2d-challenge-track3-sp-sr",
+          "available": true
+        },
+        {
+          "key": "maniptrans_sr",
+          "display": "MP-SR",
+          "unit": "",
+          "higher_is_better": true,
+          "competition": "v2d-challenge-track3-mp-sr",
+          "available": true
+        },
+        {
+          "key": "rpe_cm",
+          "display": "RPE",
+          "unit": "cm",
+          "higher_is_better": false,
+          "competition": "v2d-challenge-track3-rpe",
+          "available": true
+        },
+        {
+          "key": "mppe_cm",
+          "display": "MPPE",
+          "unit": "cm",
+          "higher_is_better": false,
+          "competition": "v2d-challenge-track3-mppe",
+          "available": true
+        }
+      ],
+      "rows": [],
+      "incomplete": []
+    }
+  },
+  "draft_rules_pr": {
+    "url": "https://github.com/nvidia-isaac/video_to_data/pull/164",
+    "number": 164,
+    "state": "open",
+    "merged_at": null,
+    "head_sha": "3889b7cf4558529d0d76690b0cec36835d2915fa"
+  },
+  "limitations": [
+    "Tree checks prove absence only at the listed commits, not every upstream branch or external service.",
+    "Kaggle competition overview pages could not be read by web browser retrieval.",
+    "Draft rules PR is open and unmerged; its policies are not adopted."
+  ]
+}

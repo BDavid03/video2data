@@ -1,0 +1,15 @@
+{
+  "source_split": "public",
+  "episode_index": 39,
+  "start_frame": 0,
+  "stop_frame": 16,
+  "max_image_side": 384,
+  "depth_run": null,
+  "baseline_run": null,
+  "correspondences_run": null,
+  "regions_run": null,
+  "motion_run": null,
+  "frozen_protocol": null,
+  "maximum_wall_seconds": 1200,
+  "temporal_relative_tolerance": 0.03
+}

@@ -1,0 +1,11 @@
+{
+  "source_split": "public",
+  "episode_index": 39,
+  "start_frame": 0,
+  "stop_frame": 16,
+  "max_image_side": 384,
+  "rectification_run": null,
+  "depth_run": null,
+  "vertical_tolerance_px": 3.0,
+  "reprojection_tolerance_px": 2.0
+}

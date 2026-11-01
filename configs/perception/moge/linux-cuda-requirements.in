@@ -1,0 +1,19 @@
+# Approved MoGe2 declared dependencies plus the project's own research imports.
+click
+gradio
+huggingface_hub
+matplotlib
+moderngl
+numpy
+opencv-python
+pillow
+scipy
+setuptools==80.10.2
+torch
+torchvision
+trimesh
+wheel==0.47.0
+pyarrow
+onnx
+onnxruntime
+onnxscript

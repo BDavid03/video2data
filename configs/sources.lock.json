@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "dataset": {
+    "repo_id": "nvidia/video_to_data_challenge",
+    "revision": "5f68335f3acc802033d1e80728c1633197521de8",
+    "cache_path": "datasets--nvidia--video_to_data_challenge",
+    "track": "track_3",
+    "immutable": true
+  },
+  "upstream": {
+    "url": "https://github.com/nvidia-isaac/video_to_data.git",
+    "release": "release/0.2.0",
+    "commit": "43a3f5b4d479581f2e8bdf5e6ed7ca361d39ec5a",
+    "path": "upstream/video_to_data",
+    "initialize_submodules": false
+  },
+  "submission_kit": {
+    "url": "https://nvidia-isaac.github.io/video_to_data/v2d_challenge/assets/v2d_submission_kit.zip",
+    "retrieved": "2026-09-30",
+    "http_last_modified": "Tue, 29 Sep 2026 06:52:06 GMT",
+    "archive": "upstream/v2d_submission_kit/v2d_submission_kit.zip",
+    "archive_bytes": 691560,
+    "archive_sha256": "a2de2aeed5821c28efedf36ddbe08a7e595f9b7d7298e4be2c07fe4665cf91b3",
+    "path": "upstream/v2d_submission_kit/v2d_submission_kit",
+    "manifest": "upstream/v2d_submission_kit/v2d_submission_kit/KIT_MANIFEST.json",
+    "use": "read_only_reference_not_executed",
+    "note": "Unversioned URL. The organisers can replace the archive; compare archive_sha256 before relying on this copy."
+  },
+  "policy_runtime": {
+    "name": "FlashCHORD",
+    "url": "https://github.com/nvidia-isaac/video_to_data.git",
+    "branch": "main",
+    "commit": "aee95f25ae0943f335d8bb42fa95b6a9acfa266f",
+    "named_by": "upstream/v2d_submission_kit/v2d_submission_kit/KIT_MANIFEST.json",
+    "path": "upstream/video_to_data-flashchord-aee95f2",
+    "checkout": "partial_clone_sparse",
+    "sparse_paths": [
+      "robotic_grounding/flash_chord",
+      "robotic_grounding/docs",
+      "robotic_grounding/scripts",
+      "robotic_grounding/workflow",
+      "robotic_grounding/source/robotic_grounding/robotic_grounding/motion_schema",
+      "robotic_grounding/source/robotic_grounding/robotic_grounding/retarget"
+    ],
+    "lfs_objects_fetched": false,
+    "use": "read_only_reference_not_installed",
+    "note": "Source reading only. Git LFS assets are pointer files. Not an installed or runnable environment."
+  },
+  "evaluation_contract": {
+    "status": "published_partially_resolved",
+    "as_of_date": "2026-09-30",
+    "config_path": "configs/evaluator/contract.json",
+    "evidence": "reports/contract-evidence/2026-09-30"
+  }
+}

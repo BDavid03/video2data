@@ -1,0 +1,16 @@
+# Static declared dependencies of the three source pins; source projects remain separate.
+# Torch and torchvision are intentionally excluded by compile command and reused read-only.
+click
+gradio
+huggingface_hub
+matplotlib
+moderngl
+numpy
+opencv-python
+pillow
+scipy
+setuptools==80.10.2
+torch>=2.0.0
+torchvision
+trimesh
+wheel==0.47.0

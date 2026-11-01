@@ -1,0 +1,185 @@
+{
+  "schema_version": 1,
+  "authorized_date": "2026-09-25",
+  "authorization": "User approved the MoGe2 installation proposal; no testing or model execution.",
+  "started_utc": "2026-09-24T14:15:39.9738552Z",
+  "status": "installed_unexecuted",
+  "environment": ".runtime/moge-python313",
+  "package_lock": "configs/perception/moge/pylock.python313.toml",
+  "source_pins": "manifests/models/moge-source-pins.json",
+  "model": {
+    "repo_id": "Ruicheng/moge-2-vitl-normal",
+    "revision": "cb0e8bbd6b1e243589717c78e750b1ba4c093acf",
+    "file": "model.pt",
+    "destination": "models/moge/model.pt"
+  },
+  "tests_run": false,
+  "validation_commands_run": false,
+  "model_executed": false,
+  "source_build_hooks_run": false,
+  "steps": [
+    {
+      "name": "environment",
+      "executable": "uv",
+      "arguments": [
+        "venv",
+        ".runtime/moge-python313",
+        "--allow-existing",
+        "--python",
+        "C:/Users/db009/AppData/Roaming/uv/python/cpython-3.13.14-windows-x86_64-none/python.exe",
+        "--no-python-downloads"
+      ],
+      "started_utc": "2026-09-24T14:15:40.0102241Z",
+      "status": "completed",
+      "log": "reports/installation/moge-20260925/environment.log",
+      "exit_code": 0,
+      "finished_utc": "2026-09-24T14:15:40.0789492Z"
+    },
+    {
+      "name": "packages",
+      "executable": "uv",
+      "arguments": [
+        "pip",
+        "sync",
+        "configs/perception/moge/pylock.python313.toml",
+        "--python",
+        ".runtime/moge-python313/Scripts/python.exe",
+        "--only-binary",
+        ":all:",
+        "--no-python-downloads"
+      ],
+      "started_utc": "2026-09-24T14:15:40.0814960Z",
+      "status": "completed",
+      "log": "reports/installation/moge-20260925/packages.log",
+      "exit_code": 0,
+      "finished_utc": "2026-09-24T14:35:48.1511737Z"
+    },
+    {
+      "name": "moge-clone",
+      "executable": "git",
+      "arguments": [
+        "clone",
+        "--filter=blob:none",
+        "--no-checkout",
+        "https://github.com/microsoft/MoGe.git",
+        "upstream/moge"
+      ],
+      "started_utc": "2026-09-24T14:35:48.1558799Z",
+      "status": "completed",
+      "log": "reports/installation/moge-20260925/moge-clone.log",
+      "exit_code": 0,
+      "finished_utc": "2026-09-24T14:35:49.6228699Z"
+    },
+    {
+      "name": "moge-checkout",
+      "executable": "git",
+      "arguments": [
+        "-C",
+        "upstream/moge",
+        "-c",
+        "core.autocrlf=false",
+        "-c",
+        "core.longpaths=true",
+        "checkout",
+        "--detach",
+        "07444410f1e33f402353b99d6ccd26bd31e469e8"
+      ],
+      "started_utc": "2026-09-24T14:35:49.6276124Z",
+      "status": "completed",
+      "log": "reports/installation/moge-20260925/moge-checkout.log",
+      "exit_code": 0,
+      "finished_utc": "2026-09-24T14:35:55.7598275Z"
+    },
+    {
+      "name": "moge-utils3d-clone",
+      "executable": "git",
+      "arguments": [
+        "clone",
+        "--filter=blob:none",
+        "--no-checkout",
+        "https://github.com/EasternJournalist/utils3d.git",
+        "upstream/moge-utils3d"
+      ],
+      "started_utc": "2026-09-24T14:35:55.7608749Z",
+      "status": "completed",
+      "log": "reports/installation/moge-20260925/moge-utils3d-clone.log",
+      "exit_code": 0,
+      "finished_utc": "2026-09-24T14:35:56.9160447Z"
+    },
+    {
+      "name": "moge-utils3d-checkout",
+      "executable": "git",
+      "arguments": [
+        "-C",
+        "upstream/moge-utils3d",
+        "-c",
+        "core.autocrlf=false",
+        "-c",
+        "core.longpaths=true",
+        "checkout",
+        "--detach",
+        "3fab839f0be9931dac7c8488eb0e1600c236e183"
+      ],
+      "started_utc": "2026-09-24T14:35:56.9171758Z",
+      "status": "completed",
+      "log": "reports/installation/moge-20260925/moge-utils3d-checkout.log",
+      "exit_code": 0,
+      "finished_utc": "2026-09-24T14:35:57.8619168Z"
+    },
+    {
+      "name": "moge-pipeline-clone",
+      "executable": "git",
+      "arguments": [
+        "clone",
+        "--filter=blob:none",
+        "--no-checkout",
+        "https://github.com/EasternJournalist/pipeline.git",
+        "upstream/moge-pipeline"
+      ],
+      "started_utc": "2026-09-24T14:35:57.8629097Z",
+      "status": "completed",
+      "log": "reports/installation/moge-20260925/moge-pipeline-clone.log",
+      "exit_code": 0,
+      "finished_utc": "2026-09-24T14:35:58.8875172Z"
+    },
+    {
+      "name": "moge-pipeline-checkout",
+      "executable": "git",
+      "arguments": [
+        "-C",
+        "upstream/moge-pipeline",
+        "-c",
+        "core.autocrlf=false",
+        "-c",
+        "core.longpaths=true",
+        "checkout",
+        "--detach",
+        "866f059d2a05cde05e4a52211ec5051fd5f276d6"
+      ],
+      "started_utc": "2026-09-24T14:35:58.8886294Z",
+      "status": "completed",
+      "log": "reports/installation/moge-20260925/moge-pipeline-checkout.log",
+      "exit_code": 0,
+      "finished_utc": "2026-09-24T14:35:59.7291794Z"
+    },
+    {
+      "name": "model-download",
+      "executable": "hf",
+      "arguments": [
+        "download",
+        "Ruicheng/moge-2-vitl-normal",
+        "model.pt",
+        "--revision",
+        "cb0e8bbd6b1e243589717c78e750b1ba4c093acf",
+        "--local-dir",
+        "models/moge"
+      ],
+      "started_utc": "2026-09-24T14:35:59.7300703Z",
+      "status": "completed",
+      "log": "reports/installation/moge-20260925/model-download.log",
+      "exit_code": 0,
+      "finished_utc": "2026-09-24T14:47:41.0183449Z"
+    }
+  ],
+  "finished_utc": "2026-09-24T14:47:41.0201035Z"
+}

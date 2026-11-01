@@ -1,0 +1,10 @@
+{
+  "artifact_root": "configs/project.json:artifact_roots",
+  "python": {
+    "windows": ".runtime/moge-python313/Scripts/python.exe",
+    "linux": ".runtime/linux-cuda/bin/python"
+  },
+  "execution": {
+    "run_authorized": true
+  }
+}

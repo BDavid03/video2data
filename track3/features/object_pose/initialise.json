@@ -1,0 +1,12 @@
+{
+  "source_split": "public",
+  "episode_index": 39,
+  "method": "geometric",
+  "mesh_run": null,
+  "masks_run": null,
+  "depth_run": null,
+  "anchor_run": null,
+  "camera_run": null,
+  "residual_limit_m": 0.025,
+  "allow_degraded_opening": false
+}

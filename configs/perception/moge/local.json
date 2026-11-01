@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "authorization_date": "2026-09-25",
+  "scope": "installation_and_2026-10-18_bounded_teacher_run",
+  "installation_status": "installed",
+  "paths_relative_to": "project_root",
+  "environment": ".runtime/moge-python313",
+  "python": {
+    "windows": ".runtime/moge-python313/Scripts/python.exe",
+    "linux": ".runtime/linux-cuda/bin/python"
+  },
+  "activation_script": "scripts/use-moge.ps1",
+  "package_lock": "configs/perception/moge/pylock.python313.toml",
+  "source_pins": "manifests/models/moge-source-pins.json",
+  "source_paths": [
+    "upstream/moge",
+    "upstream/moge-utils3d",
+    "upstream/moge-pipeline"
+  ],
+  "model": {
+    "repository": "Ruicheng/moge-2-vitl-normal",
+    "revision": "cb0e8bbd6b1e243589717c78e750b1ba4c093acf",
+    "checkpoint": "models/moge/model.pt",
+    "publisher_sha256": "280741fd09bc3f403ccff9967784c2a391b52d2c0742ae3efdb21d9f90cc1a01"
+  },
+  "execution": {
+    "tests_enabled": false,
+    "validation_enabled": false,
+    "model_execution_authorized": true,
+    "implicit_downloads_enabled": false
+  },
+  "installation_record": "reports/installation/moge-20260925/installation.json"
+}

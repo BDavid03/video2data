@@ -1,0 +1,10 @@
+{
+  "execution": {
+    "generate_authorized": true,
+    "challenger_ingest_authorized": false,
+    "preview_authorized": false,
+    "evaluation_authorized": false,
+    "validation_authorized": false
+  },
+  "authorized_episode_indices": {"public": [0, 11, 12, 18, 21, 23, 26, 31, 39, 42, 43, 44], "evaluation": []}
+}

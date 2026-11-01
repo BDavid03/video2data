@@ -1,0 +1,8 @@
+# Keep the already installed scientific core when reusing the read-only environment.
+numpy==2.5.0
+scipy==1.18.0
+matplotlib==3.11.1
+pillow==12.2.0
+click==8.4.2
+setuptools==80.10.2
+wheel==0.47.0

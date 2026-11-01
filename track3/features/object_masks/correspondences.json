@@ -1,0 +1,15 @@
+{
+  "source_split": "public",
+  "episode_index": 39,
+  "depth_run": null,
+  "masks_run": null,
+  "corrections": null,
+  "corrections_sha256": null,
+  "start_frame": 0,
+  "frame_count": 32,
+  "points_per_instance": 128,
+  "minimum_support": 6,
+  "forward_backward_limit_px": 1.0,
+  "geometric_limit_px": 2.0,
+  "maximum_displacement_px": 40.0
+}

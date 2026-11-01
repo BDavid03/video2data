@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "dataset_revision": "5f68335f3acc802033d1e80728c1633197521de8",
+  "source_relative_path": "track_3/public/meta/camera_calibration.json",
+  "source_sha256": "23e2d9c46369292cdda492a777e7a6083815369a25d1af4bb82560669fde5d52",
+  "status": "provisional_public_pilot_geometry_requires_refinement",
+  "orientation": {
+    "rig_metadata_rotation_deg": 180,
+    "decoder_autorotation": false,
+    "additional_pixel_rotation_deg": 0,
+    "evidence": "Public episode 41 frames 0/149: decoded upright; extra 180 worsens calibrated epipolar residual",
+    "scope": "sampled public streams only; verify each new source's decode/preprocessing history"
+  },
+  "camera_frame": {
+    "convention": "OpenCV optical x-right y-down z-forward",
+    "status": "project adopted interpretation of Perspective calibration",
+    "transforms": "A_T_B maps column-vector B coordinates to A; translations in meters",
+    "rigid_extrinsics_anchor": "ego_cam_b",
+    "rgb_to_b": "cameras.ego_cam_a.extrinsics_to_stereo_left interpreted as B_T_A",
+    "c_to_b": "stereo_pairs[camera=ego].left_to_right interpreted as B_T_C",
+    "rgb_to_c": "inverse(B_T_C) * B_T_A",
+    "camera_to_mocap_world": null
+  },
+  "stereo": {
+    "left": "ego_cam_c",
+    "right": "ego_cam_b",
+    "rectification": "recompute using full K,D and left_to_right R,t; never reuse stored rectification rotations without closure/image checks",
+    "nominal_baseline_m": 0.07500000476837158,
+    "extrinsic_translation_norm_m": 0.07547102070195857,
+    "metric_depth": "use Q or P matrices generated in the same stereoRectify call; do not mix nominal baseline with calibrated P/Q",
+    "validated_for_dense_metric_depth": false
+  },
+  "distortion": {
+    "model": "Perspective rational polynomial plus thin-prism and tilt",
+    "coefficient_order": ["k1", "k2", "p1", "p2", "k3", "k4", "k5", "k6", "s1", "s2", "s3", "s4", "tau_x", "tau_y"],
+    "coefficient_count": 14,
+    "preserve_factory_coefficients": true,
+    "after_undistortion": "record output K or stereo P, output size/crop and zero-distortion state; do not undistort twice"
+  },
+  "pixel_coordinates": {
+    "origin": "top-left pixel center (0,0)",
+    "rotation_180": "u'=width-1-u; v'=height-1-v",
+    "resize": "half-pixel: u'=sx*(u+0.5)-0.5; v'=sy*(v+0.5)-0.5",
+    "intrinsics": "K'=H*K if optical coordinates retained; negative focal values after180 are intentional, not canonical OpenCV K",
+    "positive_focal_rotated_basis": "S=diag(-1,-1,1); K'=H*K*S; A'_T_B'=S4*A_T_B*S4; full distortion handling must change consistently"
+  },
+  "pairing": {
+    "key": ["split", "episode_index", "frame_index"],
+    "policy": "Use exact frame index per released README; validate counts/PTS and preserve all clocks separately",
+    "container_pts_comparison_tolerance_seconds": 0.000001,
+    "tolerance_status": "engineering serialization tolerance only; not a physical exposure guarantee",
+    "physical_exposure_sync_verified": false,
+    "cross_device_ego_exo_skew_metadata_ms": {"mean": 7.39, "max": 7.41},
+    "cross_device_note": "Separate rigs are explicitly not hardware synchronized; these skew figures are not within-ego RGB/stereo lag estimates",
+    "timebases": ["video_pts_seconds", "parquet.timestamp", "parquet.capture_time"],
+    "timebase_policy": "Never align parquet timestamp to video PTS by nearest time or rescale implicitly; use frame identity and retain original clocks"
+  },
+  "object_poses": {
+    "layout": ["x", "y", "z", "qw", "qx", "qy", "qz"],
+    "units": "meters",
+    "direction": "world_T_object (scanned mesh frame)",
+    "invalid": "visible=false means all-zero pose; zero quaternion is not a rotation",
+    "world_origin": "x/y centered independently per episode; offsets not provided; z is not centered",
+    "world_composition": "world_T_object(t)=world_T_camera(t)*camera_T_object(t)"
+  }
+}

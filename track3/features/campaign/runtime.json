@@ -1,0 +1,5 @@
+{
+  "execution": {"board_authorized": false, "pin_authorized": false, "stale_authorized": false, "queue_authorized": false,
+                "materialize_authorized": false, "evidence_authorized": false,
+                "freeze_authorized": false}
+}

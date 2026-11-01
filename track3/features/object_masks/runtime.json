@@ -1,0 +1,6 @@
+{
+  "execution": {"generate_authorized": false, "opening_clusters_authorized": true,
+                "correspondences_authorized": false,
+                "evaluation_authorized": false, "validation_authorized": false},
+  "authorized_episode_indices": {"public": [39], "evaluation": []}
+}

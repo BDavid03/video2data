@@ -1,0 +1,16 @@
+{
+  "source_split": "public",
+  "episode_index": 39,
+  "masks_run": null,
+  "depth_run": null,
+  "minimum_score": 0.5,
+  "minimum_mask_iou": 0.1,
+  "maximum_detections": 8,
+  "maximum_track_gap": 5,
+  "maximum_center_step": 0.2,
+  "handedness_penalty": 0.2,
+  "assignment_margin": 0.05,
+  "crop_expansion": 2.5,
+  "gpu_headroom_mib": 2048,
+  "gpu_admission_mib": 4096
+}

@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "authorized_date": "2026-10-29",
+  "authorization": "User instructed: install linux cuda, do not use the windows mount.",
+  "environment": ".runtime/linux-cuda",
+  "python_install_dir": ".runtime/python",
+  "uv_dir": ".runtime/uv",
+  "constraints": "configs/perception/moge/linux-cuda-constraints.txt",
+  "requirements": "configs/perception/moge/linux-cuda-requirements.in",
+  "frozen_lock": "configs/perception/moge/linux-cuda.lock.txt",
+  "status": "installed",
+  "steps": [
+    "python-install:completed",
+    "venv:completed",
+    "torch:completed",
+    "packages:completed",
+    "freeze:completed",
+    "cuda-check:completed"
+  ],
+  "updated_utc": "2026-10-29T01:34:00.372103+00:00"
+}

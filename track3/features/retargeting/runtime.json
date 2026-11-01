@@ -1,0 +1,7 @@
+{
+  "execution": {"export_authorized": false, "assets_authorized": false, "retarget_authorized": false,
+                "support_authorized": false, "inspect_authorized": false,
+                "evaluation_authorized": false, "validation_authorized": false,
+                "contact_transfer_authorized": false, "uncertainty_proposal_authorized": false},
+  "authorized_episode_indices": {"public": [], "evaluation": []}
+}

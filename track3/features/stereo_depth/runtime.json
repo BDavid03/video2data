@@ -1,0 +1,13 @@
+{
+  "execution": {
+    "rectify_authorized": true,
+    "generate_authorized": true,
+    "anchor_authorized": true,
+    "anchor_research_authorized": false,
+    "report_authorized": false,
+    "correspondences_authorized": false,
+    "evaluation_authorized": false,
+    "validation_authorized": false
+  },
+  "authorized_episode_indices": {"public": [39], "evaluation": []}
+}

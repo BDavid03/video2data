@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "cell_numbering": "zero-based notebook cell indices",
+  "sources": [
+    {
+      "path": "coursework/Neural_Networks_with_Keras_Beginner_Guide.ipynb",
+      "cells": [5, 6, 7, 33, 34, 37, 65, 66, 67, 68, 77, 78, 79, 80, 83, 84],
+      "concepts": ["forward/backward/update loop", "regression output and loss", "split discipline", "weight regularization", "dropout", "RGB rescaling", "convolution and pooling", "augmentation"]
+    },
+    {
+      "path": "coursework/Week 4 Introduction to Convolutional Neural Networks (CNNs)/W4_T4_Lab.ipynb",
+      "cells": [26, 27, 30, 33],
+      "concepts": ["Conv2D and MaxPooling2D", "Adam", "capacity control", "stacked convolution blocks"]
+    }
+  ],
+  "original_extensions": [
+    "A fully convolutional decoder with bilinear upsampling and skip connections for dense depth",
+    "A positive softplus depth head and masked log-depth MAE",
+    "Calibrated RGB-to-depth pixel pairing with explicit pseudo-label lineage",
+    "A repository-local vertical slice with preparation, training and prediction operations"
+  ],
+  "translation": "Coursework Keras concepts implemented with already installed PyTorch; no TensorFlow/Keras dependency added",
+  "notebook_execution": false
+}

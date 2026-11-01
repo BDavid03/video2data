@@ -1,0 +1,1528 @@
+{
+  "schema_version": 1,
+  "revision": "5f68335f3acc802033d1e80728c1633197521de8",
+  "tree_sha256": "df845eb15b16d08c19361d6c9b597ddbc5303d6681620c4ff9dcaa68eb6e431a",
+  "files": [
+    {
+      "path": "track_3/.gitignore",
+      "expected_size": 49,
+      "algorithm": "git-blob-sha1",
+      "expected_hash": "f14d548797a1e0f1408657dd55e858fd8bfc8105",
+      "actual_size": 49,
+      "actual_hash": "f14d548797a1e0f1408657dd55e858fd8bfc8105",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/README.md",
+      "expected_size": 3381,
+      "algorithm": "git-blob-sha1",
+      "expected_hash": "afc2fe826955cedce0fd67579653ee4c05dec0bb",
+      "actual_size": 3381,
+      "actual_hash": "afc2fe826955cedce0fd67579653ee4c05dec0bb",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000001.mp4",
+      "expected_size": 37903304,
+      "algorithm": "sha256",
+      "expected_hash": "88c2b59924c65ba60b8457b565d03d0458a46484a711bbb2583ec3ceaa4406ae",
+      "actual_size": 37903304,
+      "actual_hash": "88c2b59924c65ba60b8457b565d03d0458a46484a711bbb2583ec3ceaa4406ae",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000003.mp4",
+      "expected_size": 35191176,
+      "algorithm": "sha256",
+      "expected_hash": "0b0c6fc26a93fbe8a01a77c22d2a88b3acc562bb01beb2c7b795d4a69c7276e1",
+      "actual_size": 35191176,
+      "actual_hash": "0b0c6fc26a93fbe8a01a77c22d2a88b3acc562bb01beb2c7b795d4a69c7276e1",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000005.mp4",
+      "expected_size": 34361968,
+      "algorithm": "sha256",
+      "expected_hash": "c2b0fae7458637e7d76b606d52c068b987a19b8cb8a4bed954d1fde9f87bbf8b",
+      "actual_size": 34361968,
+      "actual_hash": "c2b0fae7458637e7d76b606d52c068b987a19b8cb8a4bed954d1fde9f87bbf8b",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000006.mp4",
+      "expected_size": 29092915,
+      "algorithm": "sha256",
+      "expected_hash": "d40b0a8197aa03f671348faafc791cc19a297f2449c61a01882bc798327efa0a",
+      "actual_size": 29092915,
+      "actual_hash": "d40b0a8197aa03f671348faafc791cc19a297f2449c61a01882bc798327efa0a",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000008.mp4",
+      "expected_size": 24195085,
+      "algorithm": "sha256",
+      "expected_hash": "7de7900f452cbdcdadc3ccb15c38b2d6353ed539c702ab179e9dc89b91d7399a",
+      "actual_size": 24195085,
+      "actual_hash": "7de7900f452cbdcdadc3ccb15c38b2d6353ed539c702ab179e9dc89b91d7399a",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000010.mp4",
+      "expected_size": 18722280,
+      "algorithm": "sha256",
+      "expected_hash": "babc1428bdbf54dfda4bafe859df109e3bdc3278de19634cfcd6053c4fa15c40",
+      "actual_size": 18722280,
+      "actual_hash": "babc1428bdbf54dfda4bafe859df109e3bdc3278de19634cfcd6053c4fa15c40",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000014.mp4",
+      "expected_size": 18090752,
+      "algorithm": "sha256",
+      "expected_hash": "ae005a010cf61fbe71e0e71dca1a4ee1c34a40f9536626fc8d95426e1f649195",
+      "actual_size": 18090752,
+      "actual_hash": "ae005a010cf61fbe71e0e71dca1a4ee1c34a40f9536626fc8d95426e1f649195",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000015.mp4",
+      "expected_size": 17304258,
+      "algorithm": "sha256",
+      "expected_hash": "613432b991fd51f9bca00fef3960e6d52480a0d21a1742d5c55f1cc34e191df9",
+      "actual_size": 17304258,
+      "actual_hash": "613432b991fd51f9bca00fef3960e6d52480a0d21a1742d5c55f1cc34e191df9",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000016.mp4",
+      "expected_size": 19803621,
+      "algorithm": "sha256",
+      "expected_hash": "04fdcd63651092b5f5273ddffe62f41827a12a866695870ecbadd9bcc6e573d0",
+      "actual_size": 19803621,
+      "actual_hash": "04fdcd63651092b5f5273ddffe62f41827a12a866695870ecbadd9bcc6e573d0",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000019.mp4",
+      "expected_size": 28678755,
+      "algorithm": "sha256",
+      "expected_hash": "43eee0a55256592595b6a5dc20958b9fc4aafdc04865ba31a78c88f1540de425",
+      "actual_size": 28678755,
+      "actual_hash": "43eee0a55256592595b6a5dc20958b9fc4aafdc04865ba31a78c88f1540de425",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000020.mp4",
+      "expected_size": 21131083,
+      "algorithm": "sha256",
+      "expected_hash": "48ed17cd35187777a95e773b558e9bb3372c43930e1e9c759be8459a41915116",
+      "actual_size": 21131083,
+      "actual_hash": "48ed17cd35187777a95e773b558e9bb3372c43930e1e9c759be8459a41915116",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000025.mp4",
+      "expected_size": 38085818,
+      "algorithm": "sha256",
+      "expected_hash": "e5945e6258963e1a96864ddda9ec43548f0bd3233208cf7780facd384c6cb249",
+      "actual_size": 38085818,
+      "actual_hash": "e5945e6258963e1a96864ddda9ec43548f0bd3233208cf7780facd384c6cb249",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000028.mp4",
+      "expected_size": 20599462,
+      "algorithm": "sha256",
+      "expected_hash": "0d572057fae96d4bbda723987aad5e86111b1c8c07953b5f5df6b4ec1767343f",
+      "actual_size": 20599462,
+      "actual_hash": "0d572057fae96d4bbda723987aad5e86111b1c8c07953b5f5df6b4ec1767343f",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000030.mp4",
+      "expected_size": 23692187,
+      "algorithm": "sha256",
+      "expected_hash": "dd1a14be4f6be07656bec533b5f9561edc07ddbbc0b94e9d5e79b653f25576c3",
+      "actual_size": 23692187,
+      "actual_hash": "dd1a14be4f6be07656bec533b5f9561edc07ddbbc0b94e9d5e79b653f25576c3",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000032.mp4",
+      "expected_size": 28253380,
+      "algorithm": "sha256",
+      "expected_hash": "dad802a215d11bca6a524f0b9c2ada132b625ce5983e101d391c78d9aa0c4b8a",
+      "actual_size": 28253380,
+      "actual_hash": "dad802a215d11bca6a524f0b9c2ada132b625ce5983e101d391c78d9aa0c4b8a",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000033.mp4",
+      "expected_size": 37691681,
+      "algorithm": "sha256",
+      "expected_hash": "c33dfd0b7109171be3b3535429aecf5d84abaa83766e5a815f066fb4a65dd8af",
+      "actual_size": 37691681,
+      "actual_hash": "c33dfd0b7109171be3b3535429aecf5d84abaa83766e5a815f066fb4a65dd8af",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000035.mp4",
+      "expected_size": 45299161,
+      "algorithm": "sha256",
+      "expected_hash": "45f6b3f4e2cfca99fe47489f23535e7baf0621afc13a850c5a5aad24c3b4c70a",
+      "actual_size": 45299161,
+      "actual_hash": "45f6b3f4e2cfca99fe47489f23535e7baf0621afc13a850c5a5aad24c3b4c70a",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000036.mp4",
+      "expected_size": 43180371,
+      "algorithm": "sha256",
+      "expected_hash": "d40dbdc9faa8eac4b52a799d008f30e688a1ea9204ec7a0d0ac19945b4562e41",
+      "actual_size": 43180371,
+      "actual_hash": "d40dbdc9faa8eac4b52a799d008f30e688a1ea9204ec7a0d0ac19945b4562e41",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000037.mp4",
+      "expected_size": 15103512,
+      "algorithm": "sha256",
+      "expected_hash": "8a656d12cdedd0026c828869e6b50253ba1c11e618750e4ad118c5bda48459cd",
+      "actual_size": 15103512,
+      "actual_hash": "8a656d12cdedd0026c828869e6b50253ba1c11e618750e4ad118c5bda48459cd",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000038.mp4",
+      "expected_size": 26719276,
+      "algorithm": "sha256",
+      "expected_hash": "1d9ac176b1b6161be7cc01d457caf66bd5417e6f86cb02f656a430b3f96ce145",
+      "actual_size": 26719276,
+      "actual_hash": "1d9ac176b1b6161be7cc01d457caf66bd5417e6f86cb02f656a430b3f96ce145",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000001.mp4",
+      "expected_size": 4769176,
+      "algorithm": "sha256",
+      "expected_hash": "1047256c4fcad8a9b719f9cd75c2898e542bf9ab14c3b102ed441a435fac4e4f",
+      "actual_size": 4769176,
+      "actual_hash": "1047256c4fcad8a9b719f9cd75c2898e542bf9ab14c3b102ed441a435fac4e4f",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000003.mp4",
+      "expected_size": 4478948,
+      "algorithm": "sha256",
+      "expected_hash": "9298417bbe78cc3cd398a09137ff38208c06c0a1c936bacf938ced66589578b7",
+      "actual_size": 4478948,
+      "actual_hash": "9298417bbe78cc3cd398a09137ff38208c06c0a1c936bacf938ced66589578b7",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000005.mp4",
+      "expected_size": 4607399,
+      "algorithm": "sha256",
+      "expected_hash": "2670eb353821127959a512e610791125c4616703b175e104252d2891109abcb8",
+      "actual_size": 4607399,
+      "actual_hash": "2670eb353821127959a512e610791125c4616703b175e104252d2891109abcb8",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000006.mp4",
+      "expected_size": 3746143,
+      "algorithm": "sha256",
+      "expected_hash": "4f11d1b97f23a44e36bdcd419e8b880801ca589395415c9ba873b2858c4f8814",
+      "actual_size": 3746143,
+      "actual_hash": "4f11d1b97f23a44e36bdcd419e8b880801ca589395415c9ba873b2858c4f8814",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000008.mp4",
+      "expected_size": 3143446,
+      "algorithm": "sha256",
+      "expected_hash": "af0db5afe8b057260791b0706a9ac43e8b71108bad1a08f26bed424d45479697",
+      "actual_size": 3143446,
+      "actual_hash": "af0db5afe8b057260791b0706a9ac43e8b71108bad1a08f26bed424d45479697",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000010.mp4",
+      "expected_size": 2118467,
+      "algorithm": "sha256",
+      "expected_hash": "2d28e2a9b7beabd89fc57a60e27794b0287ef004c8bd947dc5eafabc40735978",
+      "actual_size": 2118467,
+      "actual_hash": "2d28e2a9b7beabd89fc57a60e27794b0287ef004c8bd947dc5eafabc40735978",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000014.mp4",
+      "expected_size": 2420030,
+      "algorithm": "sha256",
+      "expected_hash": "c23582366a8bf384403488c0df44cb9c20a68996347b1b31dcb2a46c4c747cdd",
+      "actual_size": 2420030,
+      "actual_hash": "c23582366a8bf384403488c0df44cb9c20a68996347b1b31dcb2a46c4c747cdd",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000015.mp4",
+      "expected_size": 2366410,
+      "algorithm": "sha256",
+      "expected_hash": "a82dd0ae28687469de39e7bdae5ab7546fc8ddec1932cb712577d719448dcd0c",
+      "actual_size": 2366410,
+      "actual_hash": "a82dd0ae28687469de39e7bdae5ab7546fc8ddec1932cb712577d719448dcd0c",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000016.mp4",
+      "expected_size": 2640628,
+      "algorithm": "sha256",
+      "expected_hash": "82164eff996c1e665911b6b2b67f1e26b0596ef5cdb5d613c4a12ec7ed566584",
+      "actual_size": 2640628,
+      "actual_hash": "82164eff996c1e665911b6b2b67f1e26b0596ef5cdb5d613c4a12ec7ed566584",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000019.mp4",
+      "expected_size": 3403661,
+      "algorithm": "sha256",
+      "expected_hash": "42852f7763399b602eba69499e2059c7402e8c9142bea8b460e7b786ec8bfa03",
+      "actual_size": 3403661,
+      "actual_hash": "42852f7763399b602eba69499e2059c7402e8c9142bea8b460e7b786ec8bfa03",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000020.mp4",
+      "expected_size": 2737641,
+      "algorithm": "sha256",
+      "expected_hash": "3a9e42d83ebef246a2e34dc633275412bfba7a150c7f24a6efd80d708a15d6fa",
+      "actual_size": 2737641,
+      "actual_hash": "3a9e42d83ebef246a2e34dc633275412bfba7a150c7f24a6efd80d708a15d6fa",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000025.mp4",
+      "expected_size": 4434760,
+      "algorithm": "sha256",
+      "expected_hash": "47ba19f1ab285dc524c55f75c6de95ab027062cc34b75d8eb70c2e1ecd5f7d95",
+      "actual_size": 4434760,
+      "actual_hash": "47ba19f1ab285dc524c55f75c6de95ab027062cc34b75d8eb70c2e1ecd5f7d95",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000028.mp4",
+      "expected_size": 2923365,
+      "algorithm": "sha256",
+      "expected_hash": "15b9bab21a60da546b2f491821bcf795b6ab41564313a7b0b1260cf9475ed766",
+      "actual_size": 2923365,
+      "actual_hash": "15b9bab21a60da546b2f491821bcf795b6ab41564313a7b0b1260cf9475ed766",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000030.mp4",
+      "expected_size": 2883049,
+      "algorithm": "sha256",
+      "expected_hash": "6308640a440881b1618d8172df2b5639b00f058d445ae3dd6370540aaa0b19bb",
+      "actual_size": 2883049,
+      "actual_hash": "6308640a440881b1618d8172df2b5639b00f058d445ae3dd6370540aaa0b19bb",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000032.mp4",
+      "expected_size": 3228621,
+      "algorithm": "sha256",
+      "expected_hash": "3450c156bff19085bb78655f252163f99d20267c3ad6f8ddd8a66edc6c5c1da3",
+      "actual_size": 3228621,
+      "actual_hash": "3450c156bff19085bb78655f252163f99d20267c3ad6f8ddd8a66edc6c5c1da3",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000033.mp4",
+      "expected_size": 4355787,
+      "algorithm": "sha256",
+      "expected_hash": "7565274c4845c565a59e6af6c88ecbb7c24839256bcddd8f3989a729038f8821",
+      "actual_size": 4355787,
+      "actual_hash": "7565274c4845c565a59e6af6c88ecbb7c24839256bcddd8f3989a729038f8821",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000035.mp4",
+      "expected_size": 5256205,
+      "algorithm": "sha256",
+      "expected_hash": "df075aed1a63d2aded3d27f65b0e3bda4252e289836cdf12291ce2cf0f4b65b7",
+      "actual_size": 5256205,
+      "actual_hash": "df075aed1a63d2aded3d27f65b0e3bda4252e289836cdf12291ce2cf0f4b65b7",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000036.mp4",
+      "expected_size": 5030775,
+      "algorithm": "sha256",
+      "expected_hash": "11dc63f99a146c2c1dfc1430e985f72cf45a2cc54e3a11f426d6db15713fd983",
+      "actual_size": 5030775,
+      "actual_hash": "11dc63f99a146c2c1dfc1430e985f72cf45a2cc54e3a11f426d6db15713fd983",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000037.mp4",
+      "expected_size": 1772258,
+      "algorithm": "sha256",
+      "expected_hash": "02ca2a2a1919a17ca6dd7cad7e2d794848ea24eba86a0ebf7b34d3d8d0dbd5f8",
+      "actual_size": 1772258,
+      "actual_hash": "02ca2a2a1919a17ca6dd7cad7e2d794848ea24eba86a0ebf7b34d3d8d0dbd5f8",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000038.mp4",
+      "expected_size": 2804943,
+      "algorithm": "sha256",
+      "expected_hash": "2ab56ff7c77e824032d2f87f511899b2a82f124b99142c896311f3908c00f977",
+      "actual_size": 2804943,
+      "actual_hash": "2ab56ff7c77e824032d2f87f511899b2a82f124b99142c896311f3908c00f977",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000001.mp4",
+      "expected_size": 3866763,
+      "algorithm": "sha256",
+      "expected_hash": "0d641d96f8df7ccd51c6af8852e96cd49fd4c00b55e045807e0482f1dc8d927e",
+      "actual_size": 3866763,
+      "actual_hash": "0d641d96f8df7ccd51c6af8852e96cd49fd4c00b55e045807e0482f1dc8d927e",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000003.mp4",
+      "expected_size": 3688007,
+      "algorithm": "sha256",
+      "expected_hash": "880aea79f75e3ded2945c73859e22b801ce343bbcfb97a25ffcc79489cc1a023",
+      "actual_size": 3688007,
+      "actual_hash": "880aea79f75e3ded2945c73859e22b801ce343bbcfb97a25ffcc79489cc1a023",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000005.mp4",
+      "expected_size": 3835045,
+      "algorithm": "sha256",
+      "expected_hash": "5dac3c21d7cc6bb79cc1b14e63d76b2cd6df4372d3f75bcb7cbfa96354dd8e2d",
+      "actual_size": 3835045,
+      "actual_hash": "5dac3c21d7cc6bb79cc1b14e63d76b2cd6df4372d3f75bcb7cbfa96354dd8e2d",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000006.mp4",
+      "expected_size": 3092251,
+      "algorithm": "sha256",
+      "expected_hash": "928036fc620b2f06791e53e97e3bebf40bb43c732b712500f7abd71b429965b8",
+      "actual_size": 3092251,
+      "actual_hash": "928036fc620b2f06791e53e97e3bebf40bb43c732b712500f7abd71b429965b8",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000008.mp4",
+      "expected_size": 2463697,
+      "algorithm": "sha256",
+      "expected_hash": "aeacbbb8e0566a15e1344b0993e0f28e49070207666397b49392dc3488a5245f",
+      "actual_size": 2463697,
+      "actual_hash": "aeacbbb8e0566a15e1344b0993e0f28e49070207666397b49392dc3488a5245f",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000010.mp4",
+      "expected_size": 1630543,
+      "algorithm": "sha256",
+      "expected_hash": "bf7489b44d48dc3ea33b0c88a888b846b96ffb0a30b0db2c7167c0a2a8e817ba",
+      "actual_size": 1630543,
+      "actual_hash": "bf7489b44d48dc3ea33b0c88a888b846b96ffb0a30b0db2c7167c0a2a8e817ba",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000014.mp4",
+      "expected_size": 1902395,
+      "algorithm": "sha256",
+      "expected_hash": "29336a691be0bdb402cb16299eadf821f6ede4e536be9b0a5cc031f7111dc523",
+      "actual_size": 1902395,
+      "actual_hash": "29336a691be0bdb402cb16299eadf821f6ede4e536be9b0a5cc031f7111dc523",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000015.mp4",
+      "expected_size": 1896681,
+      "algorithm": "sha256",
+      "expected_hash": "85c7798f84672200ea6743a744b086b4e59975df15a476f091f3a9f6aecbe759",
+      "actual_size": 1896681,
+      "actual_hash": "85c7798f84672200ea6743a744b086b4e59975df15a476f091f3a9f6aecbe759",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000016.mp4",
+      "expected_size": 2098683,
+      "algorithm": "sha256",
+      "expected_hash": "3e0e0c84a07de79eb5de2d181b02d03b78d44c546be02796bc04b7a32120448f",
+      "actual_size": 2098683,
+      "actual_hash": "3e0e0c84a07de79eb5de2d181b02d03b78d44c546be02796bc04b7a32120448f",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000019.mp4",
+      "expected_size": 2720188,
+      "algorithm": "sha256",
+      "expected_hash": "97fcf7431e46b3ef9522f15857cd10c68d7c47dc16770f240dade70f81933e3c",
+      "actual_size": 2720188,
+      "actual_hash": "97fcf7431e46b3ef9522f15857cd10c68d7c47dc16770f240dade70f81933e3c",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000020.mp4",
+      "expected_size": 2193239,
+      "algorithm": "sha256",
+      "expected_hash": "848685c4f3d2891371ca8d145d4eace4aaa639330cd13762617ed502cde00369",
+      "actual_size": 2193239,
+      "actual_hash": "848685c4f3d2891371ca8d145d4eace4aaa639330cd13762617ed502cde00369",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000025.mp4",
+      "expected_size": 3606520,
+      "algorithm": "sha256",
+      "expected_hash": "452f626bcbe579af590415c502ba99588bd4abf5088ceacfc7bef1fc4a95ce67",
+      "actual_size": 3606520,
+      "actual_hash": "452f626bcbe579af590415c502ba99588bd4abf5088ceacfc7bef1fc4a95ce67",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000028.mp4",
+      "expected_size": 2173964,
+      "algorithm": "sha256",
+      "expected_hash": "cdc406e1447e87bf82034d632b3062fe630c4ff1af85899be4984fbac1c07977",
+      "actual_size": 2173964,
+      "actual_hash": "cdc406e1447e87bf82034d632b3062fe630c4ff1af85899be4984fbac1c07977",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000030.mp4",
+      "expected_size": 2192171,
+      "algorithm": "sha256",
+      "expected_hash": "6f7cd5cc62ccb93930e072a8521893d810949d33ef7f8a9c1f63d9e3baa27d2a",
+      "actual_size": 2192171,
+      "actual_hash": "6f7cd5cc62ccb93930e072a8521893d810949d33ef7f8a9c1f63d9e3baa27d2a",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000032.mp4",
+      "expected_size": 2666804,
+      "algorithm": "sha256",
+      "expected_hash": "3b2ad4aeacc756eb324a9842be1a0b014dc03bdaf654211fdaf871f8b3e86e8c",
+      "actual_size": 2666804,
+      "actual_hash": "3b2ad4aeacc756eb324a9842be1a0b014dc03bdaf654211fdaf871f8b3e86e8c",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000033.mp4",
+      "expected_size": 3506708,
+      "algorithm": "sha256",
+      "expected_hash": "50f865242b9499dbad1457685277394e9a276f496d6d55f5e661c876485ff03a",
+      "actual_size": 3506708,
+      "actual_hash": "50f865242b9499dbad1457685277394e9a276f496d6d55f5e661c876485ff03a",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000035.mp4",
+      "expected_size": 4245211,
+      "algorithm": "sha256",
+      "expected_hash": "41fde5245a2b537aaecf888f711917cc5ef39ba150a9b3049b639d9e3287fbcd",
+      "actual_size": 4245211,
+      "actual_hash": "41fde5245a2b537aaecf888f711917cc5ef39ba150a9b3049b639d9e3287fbcd",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000036.mp4",
+      "expected_size": 4039277,
+      "algorithm": "sha256",
+      "expected_hash": "beb018c3e74cee506f2e279fe9a35a327a5a30e0e9a8180303bc0e408c7e47b2",
+      "actual_size": 4039277,
+      "actual_hash": "beb018c3e74cee506f2e279fe9a35a327a5a30e0e9a8180303bc0e408c7e47b2",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000037.mp4",
+      "expected_size": 1420936,
+      "algorithm": "sha256",
+      "expected_hash": "8c6a6a12fa07d17e83b2e5e029980a156a86ad9b266e374d1885c032c89994b9",
+      "actual_size": 1420936,
+      "actual_hash": "8c6a6a12fa07d17e83b2e5e029980a156a86ad9b266e374d1885c032c89994b9",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000038.mp4",
+      "expected_size": 2283995,
+      "algorithm": "sha256",
+      "expected_hash": "435d0ec8b35881631193bf2fa4d3f0e2de78a96a636c80eba100873fd3378cb1",
+      "actual_size": 2283995,
+      "actual_hash": "435d0ec8b35881631193bf2fa4d3f0e2de78a96a636c80eba100873fd3378cb1",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/data/chunk-000/episode_000000.parquet",
+      "expected_size": 41099,
+      "algorithm": "sha256",
+      "expected_hash": "cec5ecb4f696e3ecde143afaa4d655f71e8311d4c3dfceb7b264d515a8ef94bb",
+      "actual_size": 41099,
+      "actual_hash": "cec5ecb4f696e3ecde143afaa4d655f71e8311d4c3dfceb7b264d515a8ef94bb",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/data/chunk-000/episode_000002.parquet",
+      "expected_size": 38502,
+      "algorithm": "sha256",
+      "expected_hash": "a1cd007e34edbdaa51138c168312ad4f0bb6e60ed65b52e72d253d6f949ae00b",
+      "actual_size": 38502,
+      "actual_hash": "a1cd007e34edbdaa51138c168312ad4f0bb6e60ed65b52e72d253d6f949ae00b",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/data/chunk-000/episode_000011.parquet",
+      "expected_size": 17772,
+      "algorithm": "sha256",
+      "expected_hash": "3117f30e5b34c5f7767e05493330fed17568a1c676b6a3c05c6ddccb3a5a741f",
+      "actual_size": 17772,
+      "actual_hash": "3117f30e5b34c5f7767e05493330fed17568a1c676b6a3c05c6ddccb3a5a741f",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/data/chunk-000/episode_000012.parquet",
+      "expected_size": 21644,
+      "algorithm": "sha256",
+      "expected_hash": "fcb6afc6b8d4b23cecc7877c9f800a6b966cb52a86a8b9841c64cc3de0d4988d",
+      "actual_size": 21644,
+      "actual_hash": "fcb6afc6b8d4b23cecc7877c9f800a6b966cb52a86a8b9841c64cc3de0d4988d",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/data/chunk-000/episode_000013.parquet",
+      "expected_size": 23100,
+      "algorithm": "sha256",
+      "expected_hash": "0aa539031d8b87545779d848084d19074afa3741e6c685ce8ecd9e4ae4e6937b",
+      "actual_size": 23100,
+      "actual_hash": "0aa539031d8b87545779d848084d19074afa3741e6c685ce8ecd9e4ae4e6937b",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/data/chunk-000/episode_000018.parquet",
+      "expected_size": 39835,
+      "algorithm": "sha256",
+      "expected_hash": "f52f60b1fe0d7c16b4a216bfa1456cea30f915ec1ff628b38c9cc2be1c8d45ed",
+      "actual_size": 39835,
+      "actual_hash": "f52f60b1fe0d7c16b4a216bfa1456cea30f915ec1ff628b38c9cc2be1c8d45ed",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/data/chunk-000/episode_000021.parquet",
+      "expected_size": 22824,
+      "algorithm": "sha256",
+      "expected_hash": "c479de8ba38b3a1b3ab42504bcc530c5d70675f0b0b7864413a0ebac7ac9ce6d",
+      "actual_size": 22824,
+      "actual_hash": "c479de8ba38b3a1b3ab42504bcc530c5d70675f0b0b7864413a0ebac7ac9ce6d",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/data/chunk-000/episode_000022.parquet",
+      "expected_size": 23052,
+      "algorithm": "sha256",
+      "expected_hash": "c3081fab85ddf7f99ceaa0457a0acd1ad9a24bca83fdda312b70ae5e85d8e34c",
+      "actual_size": 23052,
+      "actual_hash": "c3081fab85ddf7f99ceaa0457a0acd1ad9a24bca83fdda312b70ae5e85d8e34c",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/data/chunk-000/episode_000023.parquet",
+      "expected_size": 37070,
+      "algorithm": "sha256",
+      "expected_hash": "242f8fd98799486d452c366fdef393c4b45f8de8ee43c5f0f15147a0aeaa38e2",
+      "actual_size": 37070,
+      "actual_hash": "242f8fd98799486d452c366fdef393c4b45f8de8ee43c5f0f15147a0aeaa38e2",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/data/chunk-000/episode_000024.parquet",
+      "expected_size": 31625,
+      "algorithm": "sha256",
+      "expected_hash": "416c771fe758cf2ec87a5212ecea8ab18bacb25a791c327bd17bb5d88063b0d1",
+      "actual_size": 31625,
+      "actual_hash": "416c771fe758cf2ec87a5212ecea8ab18bacb25a791c327bd17bb5d88063b0d1",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/data/chunk-000/episode_000026.parquet",
+      "expected_size": 19929,
+      "algorithm": "sha256",
+      "expected_hash": "06dff16367326db7e62b66d0744a32499c607b23da842117e05009241ad75eab",
+      "actual_size": 19929,
+      "actual_hash": "06dff16367326db7e62b66d0744a32499c607b23da842117e05009241ad75eab",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/data/chunk-000/episode_000027.parquet",
+      "expected_size": 28157,
+      "algorithm": "sha256",
+      "expected_hash": "c48f07c96c15c517b14b464e3f6408a8689e5f95f76413dbe3c71e4d49b0b844",
+      "actual_size": 28157,
+      "actual_hash": "c48f07c96c15c517b14b464e3f6408a8689e5f95f76413dbe3c71e4d49b0b844",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/data/chunk-000/episode_000031.parquet",
+      "expected_size": 33105,
+      "algorithm": "sha256",
+      "expected_hash": "3afbb1b3e1c64c18c422770747dac97d78238a5ba1d311458074658134ba38de",
+      "actual_size": 33105,
+      "actual_hash": "3afbb1b3e1c64c18c422770747dac97d78238a5ba1d311458074658134ba38de",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/data/chunk-000/episode_000039.parquet",
+      "expected_size": 23541,
+      "algorithm": "sha256",
+      "expected_hash": "2d72abe60690507fcaca5de7f095f3d5a3deae72b50bd1e7da9e99fac62d47db",
+      "actual_size": 23541,
+      "actual_hash": "2d72abe60690507fcaca5de7f095f3d5a3deae72b50bd1e7da9e99fac62d47db",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/data/chunk-000/episode_000040.parquet",
+      "expected_size": 19841,
+      "algorithm": "sha256",
+      "expected_hash": "119414da28e073016b572bb657f6538f90ecf7b601e785c3787b79e406afb12a",
+      "actual_size": 19841,
+      "actual_hash": "119414da28e073016b572bb657f6538f90ecf7b601e785c3787b79e406afb12a",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/data/chunk-000/episode_000041.parquet",
+      "expected_size": 22312,
+      "algorithm": "sha256",
+      "expected_hash": "3b9256847d8f928589399f73b1635ef065c09fe288508880cc83bf8582dedc83",
+      "actual_size": 22312,
+      "actual_hash": "3b9256847d8f928589399f73b1635ef065c09fe288508880cc83bf8582dedc83",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/data/chunk-000/episode_000042.parquet",
+      "expected_size": 19647,
+      "algorithm": "sha256",
+      "expected_hash": "91a09988da1f1c2b54ac708f8fd604cc43385c015a5da982e0d85a25b272bd85",
+      "actual_size": 19647,
+      "actual_hash": "91a09988da1f1c2b54ac708f8fd604cc43385c015a5da982e0d85a25b272bd85",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/data/chunk-000/episode_000043.parquet",
+      "expected_size": 23939,
+      "algorithm": "sha256",
+      "expected_hash": "addff2f68ed16c667ceb684bedf4f4864ca91e6bf7111d6dbd7bcc0d39d2e2bc",
+      "actual_size": 23939,
+      "actual_hash": "addff2f68ed16c667ceb684bedf4f4864ca91e6bf7111d6dbd7bcc0d39d2e2bc",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/data/chunk-000/episode_000044.parquet",
+      "expected_size": 19050,
+      "algorithm": "sha256",
+      "expected_hash": "2c3a00e605faf4fa1bd98cf7ed97d69dd811f0a1449fa1e7743cca5b4cc438d6",
+      "actual_size": 19050,
+      "actual_hash": "2c3a00e605faf4fa1bd98cf7ed97d69dd811f0a1449fa1e7743cca5b4cc438d6",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/data/chunk-000/episode_000045.parquet",
+      "expected_size": 21567,
+      "algorithm": "sha256",
+      "expected_hash": "7bb2e222dfcc5d024b220611533485db59c7c4f0b3a387d04735ead256b55325",
+      "actual_size": 21567,
+      "actual_hash": "7bb2e222dfcc5d024b220611533485db59c7c4f0b3a387d04735ead256b55325",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/mesh/beige_cup/beige_cup.glb",
+      "expected_size": 8238412,
+      "algorithm": "sha256",
+      "expected_hash": "63666c81013009d0c396163a34207efbc5fcf77bd3325dcfa68161017d2ddc50",
+      "actual_size": 8238412,
+      "actual_hash": "63666c81013009d0c396163a34207efbc5fcf77bd3325dcfa68161017d2ddc50",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/mesh/blue_cup/blue_cup.glb",
+      "expected_size": 8175052,
+      "algorithm": "sha256",
+      "expected_hash": "c8d97225b932cecfd9ec9e8a844df9ffe71c1944ce10580d7ea333c8f0c4ae4c",
+      "actual_size": 8175052,
+      "actual_hash": "c8d97225b932cecfd9ec9e8a844df9ffe71c1944ce10580d7ea333c8f0c4ae4c",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/mesh/mini_dust_pan/mini_dust_pan.glb",
+      "expected_size": 8492620,
+      "algorithm": "sha256",
+      "expected_hash": "6358b4f913fd8164a797b9375948cd09d47c5e60abcef0843fe43af5109737e3",
+      "actual_size": 8492620,
+      "actual_hash": "6358b4f913fd8164a797b9375948cd09d47c5e60abcef0843fe43af5109737e3",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/mesh/mini_sweeper/mini_sweeper_collision.glb",
+      "expected_size": 3455916,
+      "algorithm": "sha256",
+      "expected_hash": "b7c4b3cfbcdcb37eb632e5acfedb10350cdac47fd9fece161f903142490da91a",
+      "actual_size": 3455916,
+      "actual_hash": "b7c4b3cfbcdcb37eb632e5acfedb10350cdac47fd9fece161f903142490da91a",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/mesh/mini_sweeper/mini_sweeper_visual.glb",
+      "expected_size": 8378616,
+      "algorithm": "sha256",
+      "expected_hash": "5aa3af228ce53d0fc2e8252391aeb09930535d66f7af9129ff2dd6edf55bb216",
+      "actual_size": 8378616,
+      "actual_hash": "5aa3af228ce53d0fc2e8252391aeb09930535d66f7af9129ff2dd6edf55bb216",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/mesh/plastic_dish_rack/plastic_dish_rack.glb",
+      "expected_size": 11360704,
+      "algorithm": "sha256",
+      "expected_hash": "4ee134a483b39bae7d7fabf3a07858a7401a21920e13b86c97face8f7578f963",
+      "actual_size": 11360704,
+      "actual_hash": "4ee134a483b39bae7d7fabf3a07858a7401a21920e13b86c97face8f7578f963",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/mesh/water_pitcher/water_pitcher.glb",
+      "expected_size": 8341496,
+      "algorithm": "sha256",
+      "expected_hash": "1780f92ff3ae3e471874799f5133ae49d09d18f062892878550606ea611b6e1e",
+      "actual_size": 8341496,
+      "actual_hash": "1780f92ff3ae3e471874799f5133ae49d09d18f062892878550606ea611b6e1e",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/mesh/white_pot/white_pot.glb",
+      "expected_size": 8948208,
+      "algorithm": "sha256",
+      "expected_hash": "2627b01350864cc7f52540cb1ccfb9d67544e245d7061d8e313ecfd9d3eb5151",
+      "actual_size": 8948208,
+      "actual_hash": "2627b01350864cc7f52540cb1ccfb9d67544e245d7061d8e313ecfd9d3eb5151",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/mesh/white_pot_lid/white_pot_lid.glb",
+      "expected_size": 8262028,
+      "algorithm": "sha256",
+      "expected_hash": "672a2965dd785fc958db39a2ce94a6df215f58dfdfafedf7dd193ffc6d83b363",
+      "actual_size": 8262028,
+      "actual_hash": "672a2965dd785fc958db39a2ce94a6df215f58dfdfafedf7dd193ffc6d83b363",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/mesh/wooden_piece_1/wooden_piece_1_collision.glb",
+      "expected_size": 1763120,
+      "algorithm": "sha256",
+      "expected_hash": "cdbf531321156965c7b1e624e3b8a8150d3046b4f0e807d8dc4cb21a0d9caf56",
+      "actual_size": 1763120,
+      "actual_hash": "cdbf531321156965c7b1e624e3b8a8150d3046b4f0e807d8dc4cb21a0d9caf56",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/mesh/wooden_piece_1/wooden_piece_1_visual.glb",
+      "expected_size": 7762620,
+      "algorithm": "sha256",
+      "expected_hash": "30b681f4030fd85c8cee426f27f1e09d9c0dd9f33dca54f7fd82aa5a25f2e8b9",
+      "actual_size": 7762620,
+      "actual_hash": "30b681f4030fd85c8cee426f27f1e09d9c0dd9f33dca54f7fd82aa5a25f2e8b9",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/mesh/wooden_piece_2/wooden_piece_2_collision.glb",
+      "expected_size": 1763408,
+      "algorithm": "sha256",
+      "expected_hash": "6a240664e5ea41a290949be1d0fc01abdc1d956400bd3a8f747ed08237d7d2db",
+      "actual_size": 1763408,
+      "actual_hash": "6a240664e5ea41a290949be1d0fc01abdc1d956400bd3a8f747ed08237d7d2db",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/mesh/wooden_piece_2/wooden_piece_2_visual.glb",
+      "expected_size": 8230028,
+      "algorithm": "sha256",
+      "expected_hash": "2063471068b6c3f73f89223f4f541502c84cc8c7f99a0075487e4cb65faf0025",
+      "actual_size": 8230028,
+      "actual_hash": "2063471068b6c3f73f89223f4f541502c84cc8c7f99a0075487e4cb65faf0025",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/meta/camera_calibration.json",
+      "expected_size": 16640,
+      "algorithm": "git-blob-sha1",
+      "expected_hash": "90441677a5ec502eebe41b3fd428c998c5688f67",
+      "actual_size": 16640,
+      "actual_hash": "90441677a5ec502eebe41b3fd428c998c5688f67",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/meta/episodes_metadata.jsonl",
+      "expected_size": 1263,
+      "algorithm": "git-blob-sha1",
+      "expected_hash": "1949ffb5d34be0250eab7eb560425b0a636ed497",
+      "actual_size": 1263,
+      "actual_hash": "1949ffb5d34be0250eab7eb560425b0a636ed497",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/meta/info.json",
+      "expected_size": 4487,
+      "algorithm": "git-blob-sha1",
+      "expected_hash": "0bba01daf3d559e97e3125be2989e863ddb03c87",
+      "actual_size": 4487,
+      "actual_hash": "0bba01daf3d559e97e3125be2989e863ddb03c87",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/urdf/beige_cup_rigid.urdf",
+      "expected_size": 880,
+      "algorithm": "git-blob-sha1",
+      "expected_hash": "0c88717eec1cef270993b536e5440732ac16f479",
+      "actual_size": 880,
+      "actual_hash": "0c88717eec1cef270993b536e5440732ac16f479",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/urdf/blue_cup_rigid.urdf",
+      "expected_size": 874,
+      "algorithm": "git-blob-sha1",
+      "expected_hash": "0b1590c9b2659536fe54f28fa442bdbdf39af3f7",
+      "actual_size": 874,
+      "actual_hash": "0b1590c9b2659536fe54f28fa442bdbdf39af3f7",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/urdf/mini_dust_pan_rigid.urdf",
+      "expected_size": 901,
+      "algorithm": "git-blob-sha1",
+      "expected_hash": "d9579a2d58d9a02c8394105d679536658bbc4869",
+      "actual_size": 901,
+      "actual_hash": "d9579a2d58d9a02c8394105d679536658bbc4869",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/urdf/mini_sweeper_rigid.urdf",
+      "expected_size": 1023,
+      "algorithm": "git-blob-sha1",
+      "expected_hash": "66ed773d4794eb54e3a232e64c2a591c377fc262",
+      "actual_size": 1023,
+      "actual_hash": "66ed773d4794eb54e3a232e64c2a591c377fc262",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/urdf/plastic_dish_rack_rigid.urdf",
+      "expected_size": 920,
+      "algorithm": "git-blob-sha1",
+      "expected_hash": "5df15f6b999c4294f8825a6000e1b02a967251c4",
+      "actual_size": 920,
+      "actual_hash": "5df15f6b999c4294f8825a6000e1b02a967251c4",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/urdf/water_pitcher_rigid.urdf",
+      "expected_size": 899,
+      "algorithm": "git-blob-sha1",
+      "expected_hash": "3807710e235253b89db6d24a76eceb5971bffea8",
+      "actual_size": 899,
+      "actual_hash": "3807710e235253b89db6d24a76eceb5971bffea8",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/urdf/white_pot_lid_rigid.urdf",
+      "expected_size": 900,
+      "algorithm": "git-blob-sha1",
+      "expected_hash": "d7b36e2f79da3392f72e7a73dfed4792f5a4e9e3",
+      "actual_size": 900,
+      "actual_hash": "d7b36e2f79da3392f72e7a73dfed4792f5a4e9e3",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/urdf/white_pot_rigid.urdf",
+      "expected_size": 879,
+      "algorithm": "git-blob-sha1",
+      "expected_hash": "acfcd4ae04be3022e03ebe156cfc1f97be21564c",
+      "actual_size": 879,
+      "actual_hash": "acfcd4ae04be3022e03ebe156cfc1f97be21564c",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/urdf/wooden_piece_1_rigid.urdf",
+      "expected_size": 1029,
+      "algorithm": "git-blob-sha1",
+      "expected_hash": "b3e09861a7a70a0e6d7bef10b02825686a4d6465",
+      "actual_size": 1029,
+      "actual_hash": "b3e09861a7a70a0e6d7bef10b02825686a4d6465",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/urdf/wooden_piece_2_rigid.urdf",
+      "expected_size": 1031,
+      "algorithm": "git-blob-sha1",
+      "expected_hash": "6cd4986d416ee07b1af367ec98d7804605ea3126",
+      "actual_size": 1031,
+      "actual_hash": "6cd4986d416ee07b1af367ec98d7804605ea3126",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000000.mp4",
+      "expected_size": 44205378,
+      "algorithm": "sha256",
+      "expected_hash": "f00c98c2fafee0dc686ff3f508edcf72bea3408c6a2fa218d419209df4570b44",
+      "actual_size": 44205378,
+      "actual_hash": "f00c98c2fafee0dc686ff3f508edcf72bea3408c6a2fa218d419209df4570b44",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000002.mp4",
+      "expected_size": 39538104,
+      "algorithm": "sha256",
+      "expected_hash": "ccefecc6a10f41e321315a02d99ba8a8cf4e35aa6b06f6757d7915c994202417",
+      "actual_size": 39538104,
+      "actual_hash": "ccefecc6a10f41e321315a02d99ba8a8cf4e35aa6b06f6757d7915c994202417",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000011.mp4",
+      "expected_size": 15759846,
+      "algorithm": "sha256",
+      "expected_hash": "508a4fc94747741f35fd12780e6d5e6e7f78a233e2bf379202515cb9bff32585",
+      "actual_size": 15759846,
+      "actual_hash": "508a4fc94747741f35fd12780e6d5e6e7f78a233e2bf379202515cb9bff32585",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000012.mp4",
+      "expected_size": 20340612,
+      "algorithm": "sha256",
+      "expected_hash": "8a35f19e4f52750373e8fdf9ba2b3fda16aadb4ac55e03a9f6f9fbb98db5a62b",
+      "actual_size": 20340612,
+      "actual_hash": "8a35f19e4f52750373e8fdf9ba2b3fda16aadb4ac55e03a9f6f9fbb98db5a62b",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000013.mp4",
+      "expected_size": 20616589,
+      "algorithm": "sha256",
+      "expected_hash": "01b67471420a65726e5c460bd923f880b3b526124cd6802ae7a7778e170afa84",
+      "actual_size": 20616589,
+      "actual_hash": "01b67471420a65726e5c460bd923f880b3b526124cd6802ae7a7778e170afa84",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000018.mp4",
+      "expected_size": 39446269,
+      "algorithm": "sha256",
+      "expected_hash": "c364969e93dcb69120df5544cabe8d67f7d3f5cefe2d2f0e1c4620d85ed82271",
+      "actual_size": 39446269,
+      "actual_hash": "c364969e93dcb69120df5544cabe8d67f7d3f5cefe2d2f0e1c4620d85ed82271",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000021.mp4",
+      "expected_size": 21050367,
+      "algorithm": "sha256",
+      "expected_hash": "82122cf91e92eedf8ee193b0d0202c5008744ee96f9fcafcdfa72f0b8f85c9ae",
+      "actual_size": 21050367,
+      "actual_hash": "82122cf91e92eedf8ee193b0d0202c5008744ee96f9fcafcdfa72f0b8f85c9ae",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000022.mp4",
+      "expected_size": 20002851,
+      "algorithm": "sha256",
+      "expected_hash": "34455e7e287fe73813dc1ad6b4921ea124694bfdc4ef59918cf3dd9405a4048a",
+      "actual_size": 20002851,
+      "actual_hash": "34455e7e287fe73813dc1ad6b4921ea124694bfdc4ef59918cf3dd9405a4048a",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000023.mp4",
+      "expected_size": 35373524,
+      "algorithm": "sha256",
+      "expected_hash": "b71caaad408d4f468787ab05fd1be9b8ee184cd0e0fa91b173293c736dfbd4fe",
+      "actual_size": 35373524,
+      "actual_hash": "b71caaad408d4f468787ab05fd1be9b8ee184cd0e0fa91b173293c736dfbd4fe",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000024.mp4",
+      "expected_size": 31443302,
+      "algorithm": "sha256",
+      "expected_hash": "30d08191dbe3f02880d4950197ab6a1d1d6c97de7483255835152c1ee1a5d3b3",
+      "actual_size": 31443302,
+      "actual_hash": "30d08191dbe3f02880d4950197ab6a1d1d6c97de7483255835152c1ee1a5d3b3",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000026.mp4",
+      "expected_size": 15274598,
+      "algorithm": "sha256",
+      "expected_hash": "2655a73537c78b901ec282598543a95a39c8aca7246ac40a2e997ac2846174f7",
+      "actual_size": 15274598,
+      "actual_hash": "2655a73537c78b901ec282598543a95a39c8aca7246ac40a2e997ac2846174f7",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000027.mp4",
+      "expected_size": 21890081,
+      "algorithm": "sha256",
+      "expected_hash": "1a32fac0a04c5dd6747610d16ab45f8bea8c8874fe0ae4d12924d7ad5d11cb57",
+      "actual_size": 21890081,
+      "actual_hash": "1a32fac0a04c5dd6747610d16ab45f8bea8c8874fe0ae4d12924d7ad5d11cb57",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000031.mp4",
+      "expected_size": 26875848,
+      "algorithm": "sha256",
+      "expected_hash": "fd30198d9470efd5e57b2419debcf325caa017791b68a1b61ced29e980e5e83c",
+      "actual_size": 26875848,
+      "actual_hash": "fd30198d9470efd5e57b2419debcf325caa017791b68a1b61ced29e980e5e83c",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000039.mp4",
+      "expected_size": 33452686,
+      "algorithm": "sha256",
+      "expected_hash": "1b82aad03eb26c97d5fbf62c337f97f5b96c2638b90fd7ad24cbb0378e75afd1",
+      "actual_size": 33452686,
+      "actual_hash": "1b82aad03eb26c97d5fbf62c337f97f5b96c2638b90fd7ad24cbb0378e75afd1",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000040.mp4",
+      "expected_size": 26370286,
+      "algorithm": "sha256",
+      "expected_hash": "5ad4fbffe0ee508be427df2948b81340d31b6c176e74df7578bba449e9fb3e91",
+      "actual_size": 26370286,
+      "actual_hash": "5ad4fbffe0ee508be427df2948b81340d31b6c176e74df7578bba449e9fb3e91",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000041.mp4",
+      "expected_size": 32094361,
+      "algorithm": "sha256",
+      "expected_hash": "099ab5aeb2e908952b373097c57ad5eb07528c318fea84d762cde4ede8760e9f",
+      "actual_size": 32094361,
+      "actual_hash": "099ab5aeb2e908952b373097c57ad5eb07528c318fea84d762cde4ede8760e9f",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000042.mp4",
+      "expected_size": 27339741,
+      "algorithm": "sha256",
+      "expected_hash": "8c78eccf81ea555816aef9d8231db516db5b2d6e9e9d0b0e231c995a7741c2da",
+      "actual_size": 27339741,
+      "actual_hash": "8c78eccf81ea555816aef9d8231db516db5b2d6e9e9d0b0e231c995a7741c2da",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000043.mp4",
+      "expected_size": 33796942,
+      "algorithm": "sha256",
+      "expected_hash": "c3616897b683c7562da82cd1dfa3afcc0240f2650fe6c862c95aa433368d9a4c",
+      "actual_size": 33796942,
+      "actual_hash": "c3616897b683c7562da82cd1dfa3afcc0240f2650fe6c862c95aa433368d9a4c",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000044.mp4",
+      "expected_size": 26315404,
+      "algorithm": "sha256",
+      "expected_hash": "5018dbc5c724b3c9e830a771e5509f81b8e23e0bafad343071ab5e848527f030",
+      "actual_size": 26315404,
+      "actual_hash": "5018dbc5c724b3c9e830a771e5509f81b8e23e0bafad343071ab5e848527f030",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000045.mp4",
+      "expected_size": 31815852,
+      "algorithm": "sha256",
+      "expected_hash": "b6b08338f934a68925c80cb889e7d728c2e9c09e325ed4ec0a0350a48fa90583",
+      "actual_size": 31815852,
+      "actual_hash": "b6b08338f934a68925c80cb889e7d728c2e9c09e325ed4ec0a0350a48fa90583",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000000.mp4",
+      "expected_size": 5648231,
+      "algorithm": "sha256",
+      "expected_hash": "55e5e8b76766eef2c209a84b54a86d108c4ed07b4ed6fdf182deb6c76e8657b5",
+      "actual_size": 5648231,
+      "actual_hash": "55e5e8b76766eef2c209a84b54a86d108c4ed07b4ed6fdf182deb6c76e8657b5",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000002.mp4",
+      "expected_size": 4919102,
+      "algorithm": "sha256",
+      "expected_hash": "0c054cd1ba87781fb2da50bd812ef782e27ad7d32f9c30f9b0116d0095107e30",
+      "actual_size": 4919102,
+      "actual_hash": "0c054cd1ba87781fb2da50bd812ef782e27ad7d32f9c30f9b0116d0095107e30",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000011.mp4",
+      "expected_size": 1903739,
+      "algorithm": "sha256",
+      "expected_hash": "3a65796d17122b232be13fde82d5a398cf49fc3cad30a14520ac6f3ff0d5e494",
+      "actual_size": 1903739,
+      "actual_hash": "3a65796d17122b232be13fde82d5a398cf49fc3cad30a14520ac6f3ff0d5e494",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000012.mp4",
+      "expected_size": 2515591,
+      "algorithm": "sha256",
+      "expected_hash": "48e31b345a027ea5077995f98d065df5e96862f3a3703720cb5b90467d037376",
+      "actual_size": 2515591,
+      "actual_hash": "48e31b345a027ea5077995f98d065df5e96862f3a3703720cb5b90467d037376",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000013.mp4",
+      "expected_size": 2503538,
+      "algorithm": "sha256",
+      "expected_hash": "d9b6090e940b02c53910943736397a1246c9aa9a3b77c40549c73b9b7d9f2382",
+      "actual_size": 2503538,
+      "actual_hash": "d9b6090e940b02c53910943736397a1246c9aa9a3b77c40549c73b9b7d9f2382",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000018.mp4",
+      "expected_size": 4491790,
+      "algorithm": "sha256",
+      "expected_hash": "4eb281f029d43681e5885515e56c7f8b94ac2bc8ff421e5ec779290afa724b44",
+      "actual_size": 4491790,
+      "actual_hash": "4eb281f029d43681e5885515e56c7f8b94ac2bc8ff421e5ec779290afa724b44",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000021.mp4",
+      "expected_size": 2706871,
+      "algorithm": "sha256",
+      "expected_hash": "92702dd9278b4f4418756889690a58f424c6259ef46cf3d8820cd323ea8dd767",
+      "actual_size": 2706871,
+      "actual_hash": "92702dd9278b4f4418756889690a58f424c6259ef46cf3d8820cd323ea8dd767",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000022.mp4",
+      "expected_size": 2583538,
+      "algorithm": "sha256",
+      "expected_hash": "8f703cace8a2059fa0c89a8bafd3f830cc345c6e0cc192e74305d9efb6cd20a7",
+      "actual_size": 2583538,
+      "actual_hash": "8f703cace8a2059fa0c89a8bafd3f830cc345c6e0cc192e74305d9efb6cd20a7",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000023.mp4",
+      "expected_size": 4254732,
+      "algorithm": "sha256",
+      "expected_hash": "eded1bc113fe6ba71d12333ee0fcc3e7dae2eb2bccdb7f24030a36c12b819017",
+      "actual_size": 4254732,
+      "actual_hash": "eded1bc113fe6ba71d12333ee0fcc3e7dae2eb2bccdb7f24030a36c12b819017",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000024.mp4",
+      "expected_size": 3957919,
+      "algorithm": "sha256",
+      "expected_hash": "b6ce94d9fdc43984abb9dd649ef7cca9671f338469fdf167ebb59a490b02682a",
+      "actual_size": 3957919,
+      "actual_hash": "b6ce94d9fdc43984abb9dd649ef7cca9671f338469fdf167ebb59a490b02682a",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000026.mp4",
+      "expected_size": 2052424,
+      "algorithm": "sha256",
+      "expected_hash": "76027990412ee0e72a731f7ad90da07c8eb29a23fcba48f99060799e623e585c",
+      "actual_size": 2052424,
+      "actual_hash": "76027990412ee0e72a731f7ad90da07c8eb29a23fcba48f99060799e623e585c",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000027.mp4",
+      "expected_size": 2937523,
+      "algorithm": "sha256",
+      "expected_hash": "38ce1b1e562a0388221ae66097bba7b42435495f4e99b7350e0829889dc670e8",
+      "actual_size": 2937523,
+      "actual_hash": "38ce1b1e562a0388221ae66097bba7b42435495f4e99b7350e0829889dc670e8",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000031.mp4",
+      "expected_size": 3319616,
+      "algorithm": "sha256",
+      "expected_hash": "e806f936b5554eb642977bf64ef69593c8db4335b4346170fc8645ad36999ba0",
+      "actual_size": 3319616,
+      "actual_hash": "e806f936b5554eb642977bf64ef69593c8db4335b4346170fc8645ad36999ba0",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000039.mp4",
+      "expected_size": 3864358,
+      "algorithm": "sha256",
+      "expected_hash": "711598812e993d08b4f9ec9eec06b97388f8d199ed03d67a5aaff7f779d6d95f",
+      "actual_size": 3864358,
+      "actual_hash": "711598812e993d08b4f9ec9eec06b97388f8d199ed03d67a5aaff7f779d6d95f",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000040.mp4",
+      "expected_size": 3004007,
+      "algorithm": "sha256",
+      "expected_hash": "14ccfcfcdce2c6870630b80c3b40f0dbd0a8c0527289e7f303e176401166ae48",
+      "actual_size": 3004007,
+      "actual_hash": "14ccfcfcdce2c6870630b80c3b40f0dbd0a8c0527289e7f303e176401166ae48",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000041.mp4",
+      "expected_size": 4060928,
+      "algorithm": "sha256",
+      "expected_hash": "0178b4701568a69762582525d76b3a268ecc9ce3fc2a239af2f7a26ec6f29278",
+      "actual_size": 4060928,
+      "actual_hash": "0178b4701568a69762582525d76b3a268ecc9ce3fc2a239af2f7a26ec6f29278",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000042.mp4",
+      "expected_size": 3337816,
+      "algorithm": "sha256",
+      "expected_hash": "8b1bfe08540b2f62d8b4b058a72a23fc199bac07d47dc9dcc5a6558f51fd7dbf",
+      "actual_size": 3337816,
+      "actual_hash": "8b1bfe08540b2f62d8b4b058a72a23fc199bac07d47dc9dcc5a6558f51fd7dbf",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000043.mp4",
+      "expected_size": 3998966,
+      "algorithm": "sha256",
+      "expected_hash": "53541f396ff0324824d1509b389a2e7e4abbef484fde9882ae2c23d8db8615a5",
+      "actual_size": 3998966,
+      "actual_hash": "53541f396ff0324824d1509b389a2e7e4abbef484fde9882ae2c23d8db8615a5",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000044.mp4",
+      "expected_size": 3227182,
+      "algorithm": "sha256",
+      "expected_hash": "64036d5558e8a212b285f2cfd68df4a5e79aa93057fa9c5cfe8cd105858cf8c0",
+      "actual_size": 3227182,
+      "actual_hash": "64036d5558e8a212b285f2cfd68df4a5e79aa93057fa9c5cfe8cd105858cf8c0",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000045.mp4",
+      "expected_size": 4096018,
+      "algorithm": "sha256",
+      "expected_hash": "e3bf89df0d85f511ed51a97b803151fc9d8a640ef33fdd5d3e2c31bd28cc7864",
+      "actual_size": 4096018,
+      "actual_hash": "e3bf89df0d85f511ed51a97b803151fc9d8a640ef33fdd5d3e2c31bd28cc7864",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000000.mp4",
+      "expected_size": 4545702,
+      "algorithm": "sha256",
+      "expected_hash": "64e32dded47e4fd3b74015ccd8aaf71183140853d3f6f105136b91917fec4b99",
+      "actual_size": 4545702,
+      "actual_hash": "64e32dded47e4fd3b74015ccd8aaf71183140853d3f6f105136b91917fec4b99",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000002.mp4",
+      "expected_size": 3937003,
+      "algorithm": "sha256",
+      "expected_hash": "255208a8be8d6ef7a817b68b9fe444bea6886981a6d210249e6da199a5770ee0",
+      "actual_size": 3937003,
+      "actual_hash": "255208a8be8d6ef7a817b68b9fe444bea6886981a6d210249e6da199a5770ee0",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000011.mp4",
+      "expected_size": 1467296,
+      "algorithm": "sha256",
+      "expected_hash": "363dd0ab1eb0245f9591ff9b2c1a8221e396bfeb6b11fdc5165848dbf302dba1",
+      "actual_size": 1467296,
+      "actual_hash": "363dd0ab1eb0245f9591ff9b2c1a8221e396bfeb6b11fdc5165848dbf302dba1",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000012.mp4",
+      "expected_size": 1953823,
+      "algorithm": "sha256",
+      "expected_hash": "98051f539b208cd053f451a3bf05d64c0a765ea685e362a1430e933b91c8702b",
+      "actual_size": 1953823,
+      "actual_hash": "98051f539b208cd053f451a3bf05d64c0a765ea685e362a1430e933b91c8702b",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000013.mp4",
+      "expected_size": 1962101,
+      "algorithm": "sha256",
+      "expected_hash": "808b2b19c1ec529a1fa24087fb480e1f00639686db66b77deb7b810e6f27514d",
+      "actual_size": 1962101,
+      "actual_hash": "808b2b19c1ec529a1fa24087fb480e1f00639686db66b77deb7b810e6f27514d",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000018.mp4",
+      "expected_size": 3594630,
+      "algorithm": "sha256",
+      "expected_hash": "10ee9942c1105a7cf6db7ede1e057fd7c85a0e283104e2acfccbb7c4231dc9a9",
+      "actual_size": 3594630,
+      "actual_hash": "10ee9942c1105a7cf6db7ede1e057fd7c85a0e283104e2acfccbb7c4231dc9a9",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000021.mp4",
+      "expected_size": 2175528,
+      "algorithm": "sha256",
+      "expected_hash": "4777a3bd3ff64e21587b292a3d82d7adb0cbee4435ed2f1ee16eb983e6e3c788",
+      "actual_size": 2175528,
+      "actual_hash": "4777a3bd3ff64e21587b292a3d82d7adb0cbee4435ed2f1ee16eb983e6e3c788",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000022.mp4",
+      "expected_size": 2043691,
+      "algorithm": "sha256",
+      "expected_hash": "acce0b5a41029aaad0c08c8f7f6b739e90496e5d995ae3231fb22efd41c6f187",
+      "actual_size": 2043691,
+      "actual_hash": "acce0b5a41029aaad0c08c8f7f6b739e90496e5d995ae3231fb22efd41c6f187",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000023.mp4",
+      "expected_size": 3409388,
+      "algorithm": "sha256",
+      "expected_hash": "86e03e4daf4a55a4f9b1774fca2ed1624685695fee560811e3b3bc44d7733682",
+      "actual_size": 3409388,
+      "actual_hash": "86e03e4daf4a55a4f9b1774fca2ed1624685695fee560811e3b3bc44d7733682",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000024.mp4",
+      "expected_size": 3170550,
+      "algorithm": "sha256",
+      "expected_hash": "054fb00b58d58d374519bce9c02d7bace89d2aa9d8a8bf2c41b1dd350bf2ed93",
+      "actual_size": 3170550,
+      "actual_hash": "054fb00b58d58d374519bce9c02d7bace89d2aa9d8a8bf2c41b1dd350bf2ed93",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000026.mp4",
+      "expected_size": 1635457,
+      "algorithm": "sha256",
+      "expected_hash": "25ef85421b5afd6819b1d3d9842d0f3c19bf61cb1a155a5652f0564f74499eaa",
+      "actual_size": 1635457,
+      "actual_hash": "25ef85421b5afd6819b1d3d9842d0f3c19bf61cb1a155a5652f0564f74499eaa",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000027.mp4",
+      "expected_size": 2182735,
+      "algorithm": "sha256",
+      "expected_hash": "0b25e77086d34539c32e0a18f995542baf1023571b49e95703e4a31fabf91536",
+      "actual_size": 2182735,
+      "actual_hash": "0b25e77086d34539c32e0a18f995542baf1023571b49e95703e4a31fabf91536",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000031.mp4",
+      "expected_size": 2479876,
+      "algorithm": "sha256",
+      "expected_hash": "d24c829dd1a7cbcc5ee8577fcf171cb22853864bae4df5bfbb40061b50691fd2",
+      "actual_size": 2479876,
+      "actual_hash": "d24c829dd1a7cbcc5ee8577fcf171cb22853864bae4df5bfbb40061b50691fd2",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000039.mp4",
+      "expected_size": 3183641,
+      "algorithm": "sha256",
+      "expected_hash": "5e2b2ca9e0776d1a87cfcbadd106461261b21f5c531bdf9d09a2fded9a2f4e0d",
+      "actual_size": 3183641,
+      "actual_hash": "5e2b2ca9e0776d1a87cfcbadd106461261b21f5c531bdf9d09a2fded9a2f4e0d",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000040.mp4",
+      "expected_size": 2469653,
+      "algorithm": "sha256",
+      "expected_hash": "5d20f7f94775609536c904b80d175b9e1f18bc279a79ac4129e704ce1c5a8369",
+      "actual_size": 2469653,
+      "actual_hash": "5d20f7f94775609536c904b80d175b9e1f18bc279a79ac4129e704ce1c5a8369",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000041.mp4",
+      "expected_size": 3240282,
+      "algorithm": "sha256",
+      "expected_hash": "6bbce3a62c3752dad6ef2a678a2fe08220feffbad93815e47669b139bf7a44ca",
+      "actual_size": 3240282,
+      "actual_hash": "6bbce3a62c3752dad6ef2a678a2fe08220feffbad93815e47669b139bf7a44ca",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000042.mp4",
+      "expected_size": 2681699,
+      "algorithm": "sha256",
+      "expected_hash": "5031911448343986921574f77266ac3a4facc7451c0c535f215b3398ff1008a8",
+      "actual_size": 2681699,
+      "actual_hash": "5031911448343986921574f77266ac3a4facc7451c0c535f215b3398ff1008a8",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000043.mp4",
+      "expected_size": 3172629,
+      "algorithm": "sha256",
+      "expected_hash": "1f3c96b68dbded3ecf438e9d4a1ca3aca6b999e29e220cf9e9e93dd26dd2b7b8",
+      "actual_size": 3172629,
+      "actual_hash": "1f3c96b68dbded3ecf438e9d4a1ca3aca6b999e29e220cf9e9e93dd26dd2b7b8",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000044.mp4",
+      "expected_size": 2581261,
+      "algorithm": "sha256",
+      "expected_hash": "914e5f082f342080f8a9d857f791009b448e523fa06a8cbfa2cadd4db81f65bb",
+      "actual_size": 2581261,
+      "actual_hash": "914e5f082f342080f8a9d857f791009b448e523fa06a8cbfa2cadd4db81f65bb",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000045.mp4",
+      "expected_size": 3279760,
+      "algorithm": "sha256",
+      "expected_hash": "593a43a79ab2eb0eae1c292905488c921052db41d8b1c09a53c0721c104c432a",
+      "actual_size": 3279760,
+      "actual_hash": "593a43a79ab2eb0eae1c292905488c921052db41d8b1c09a53c0721c104c432a",
+      "status": "ok"
+    },
+    {
+      "path": "track_3/v2d-challenge-track3.md",
+      "expected_size": 2069,
+      "algorithm": "git-blob-sha1",
+      "expected_hash": "c46e7bbcee58696ffb12ce814ee3789cc63bd07e",
+      "actual_size": 2069,
+      "actual_hash": "c46e7bbcee58696ffb12ce814ee3789cc63bd07e",
+      "status": "ok"
+    }
+  ]
+}

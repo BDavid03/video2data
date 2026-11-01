@@ -1,0 +1,38 @@
+{
+  "zero_update": {
+    "world_count": 64,
+    "total_environment_steps": 64,
+    "curriculum_thresholds": [19660800, 34406400, 49152000, 63897600, 78643200, 93388800, 108134400, 122880000, 137625600, 200007680, 250003456],
+    "updates_per_collection": 1.0,
+    "minimum_size": 64,
+    "capacity": 2048,
+    "checkpoint_interval": 64,
+    "observation_storage_dtype": "float16",
+    "save_replay": false,
+    "note": "Unmeasured one-collection recipe; n_step=3 leaves replay empty, so no optimizer update. Capacity is the recipe batch size, the smallest upstream accepts. Positive update horizon satisfies upstream schedule validation."
+  },
+  "contact_feasibility": {
+    "world_count": 64,
+    "total_environment_steps": 128000,
+    "curriculum_thresholds": [10048, 17600, 25152, 32704, 40256, 47808, 55360, 62912, 70464, 102400, 128000],
+    "updates_per_collection": 0.125,
+    "minimum_size": 6400,
+    "capacity": 16384,
+    "checkpoint_interval": 5120,
+    "observation_storage_dtype": "float16",
+    "save_replay": false,
+    "note": "Unrun bounded contact-objective comparison. Final scheduled checkpoint only; memory fit and learning unestablished."
+  },
+  "scaled_template": {
+    "world_count": 1024,
+    "total_environment_steps": 10240000,
+    "curriculum_thresholds": [804864, 1409024, 2013184, 2617344, 3221504, 3825664, 4428800, 5032960, 5637120, 8192000, 10240000],
+    "updates_per_collection": 2.0,
+    "minimum_size": 102400,
+    "capacity": 1048576,
+    "checkpoint_interval": 409600,
+    "observation_storage_dtype": "float16",
+    "save_replay": false,
+    "note": "Complete arithmetic template, not a measured memory or training recommendation. Change only as a complete budget after authorization."
+  }
+}

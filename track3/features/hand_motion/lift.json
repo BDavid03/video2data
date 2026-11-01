@@ -1,0 +1,17 @@
+{
+  "source_split": "public",
+  "episode_index": 39,
+  "kinematics_run": null,
+  "masks_run": null,
+  "depth_run": null,
+  "stereo_run": null,
+  "anchor_run": null,
+  "camera_run": null,
+  "minimum_score": 0.5,
+  "minimum_in_frame_fraction": 0.5,
+  "minimum_depth_support": 20,
+  "fit_iterations": 5,
+  "maximum_depth_shift_m": 0.5,
+  "maximum_depth_residual_m": 0.025,
+  "outlier_floor_m": 0.01
+}

@@ -1,0 +1,82 @@
+{
+  "status": "static_metadata_only_no_source_execution",
+  "sources": [
+    {
+      "name": "moge",
+      "repository": "https://github.com/microsoft/MoGe",
+      "revision": "07444410f1e33f402353b99d6ccd26bd31e469e8",
+      "metadata_url": "https://raw.githubusercontent.com/microsoft/MoGe/07444410f1e33f402353b99d6ccd26bd31e469e8/pyproject.toml",
+      "metadata_sha256": "1c1c41fc449cee5e30cb02c36d4c7b208812f48739e7bcfdffc5a22207f1a3c2",
+      "version": "2.0.0",
+      "requires_python": ">=3.9",
+      "dependencies": [
+        "click",
+        "opencv-python",
+        "scipy",
+        "matplotlib",
+        "trimesh",
+        "pillow",
+        "huggingface_hub",
+        "numpy",
+        "torch>=2.0.0",
+        "torchvision",
+        "gradio",
+        "utils3d @ git+https://github.com/EasternJournalist/utils3d.git@3fab839f0be9931dac7c8488eb0e1600c236e183",
+        "pipeline @ git+https://github.com/EasternJournalist/pipeline.git@866f059d2a05cde05e4a52211ec5051fd5f276d6"
+      ],
+      "build_system": {
+        "requires": [
+          "setuptools>=61.0",
+          "wheel"
+        ],
+        "build-backend": "setuptools.build_meta"
+      }
+    },
+    {
+      "name": "utils3d",
+      "repository": "https://github.com/EasternJournalist/utils3d",
+      "revision": "3fab839f0be9931dac7c8488eb0e1600c236e183",
+      "metadata_url": "https://raw.githubusercontent.com/EasternJournalist/utils3d/3fab839f0be9931dac7c8488eb0e1600c236e183/pyproject.toml",
+      "metadata_sha256": "ef177b54dca47833673dbb830cc2a4ea1f616c74b362ff87ecf4a9267fb0c7a7",
+      "version": "1.3",
+      "requires_python": ">=3.7",
+      "dependencies": [
+        "moderngl",
+        "numpy",
+        "scipy",
+        "matplotlib"
+      ],
+      "build_system": {
+        "requires": [
+          "setuptools>=61.0",
+          "wheel"
+        ],
+        "build-backend": "setuptools.build_meta"
+      }
+    },
+    {
+      "name": "pipeline",
+      "repository": "https://github.com/EasternJournalist/pipeline",
+      "revision": "866f059d2a05cde05e4a52211ec5051fd5f276d6",
+      "metadata_url": "https://raw.githubusercontent.com/EasternJournalist/pipeline/866f059d2a05cde05e4a52211ec5051fd5f276d6/pyproject.toml",
+      "metadata_sha256": "9b161aebcb4a37286e490539355dc897f32d864fc6d1d3f14ebe3ff033af1056",
+      "version": "1.0.0",
+      "requires_python": ">=3.8",
+      "dependencies": [],
+      "build_system": {
+        "requires": [
+          "setuptools>=61.0",
+          "wheel"
+        ],
+        "build-backend": "setuptools.build_meta"
+      }
+    }
+  ],
+  "source_install_status": "three exact source checkouts acquired 2026-09-25; no source build/install hooks or runtime execution",
+  "external_reuse": {
+    "torch": "2.12.1+cu132",
+    "torchvision": "0.27.1+cu132",
+    "interpreter": "Z:/hugging-face/locals/.venv/Scripts/python.exe",
+    "access": "read_only; no modifications"
+  }
+}

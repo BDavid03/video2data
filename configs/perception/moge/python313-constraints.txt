@@ -1,0 +1,4 @@
+# Candidate independent Windows runtime; does not reuse the external Python3.14 CUDA environment.
+torch==2.7.1+cu128
+torchvision==0.22.1+cu128
+numpy==2.2.6

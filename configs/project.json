@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "paths_relative_to": "project_root",
+  "input_cache": "datasets--nvidia--video_to_data_challenge",
+  "models": "models",
+  "outputs": "outputs",
+  "runs": "runs",
+  "reports": "reports",
+  "submissions": "submissions",
+  "artifact_storage": "all_generated_artifacts_inside_project_root",
+  "temporary_files": ".runtime/tmp",
+  "download_caches": ".cache",
+  "external_environments": "read_only_reuse_only",
+  "execution_policy": {
+    "testing": "runs_authorized_2026_10_29",
+    "allow_validation_runs": true,
+    "allow_dependency_resolution_experiments": false
+  },
+  "runtime": {
+    "compute": "local_only",
+    "max_concurrent_gpu_stages": 1,
+    "provisional_gpu_headroom_mib": 2048,
+    "provisional_project_storage_budget_gb": 300,
+    "allow_implicit_model_downloads": false,
+    "allow_shared_runtime_migration": false
+  },
+  "artifact_roots": [
+    "/home/ceolwolf/repos/video2data",
+    "Z:/hugging-face/video2data",
+    "/mnt/z/hugging-face/video2data"
+  ],
+  "linux_runtime": {
+    "python": ".runtime/linux-cuda/bin/python",
+    "installer": "scripts/linux/install-linux-cuda.sh",
+    "record": "reports/installation/linux-cuda-20261029/installation.json"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "source_split": "public",
+  "episode_index": 39,
+  "start_frame": 0,
+  "stop_frame": 20,
+  "rectification_run": null,
+  "depth_run": null,
+  "minimum_disparity": 0,
+  "num_disparities": 128,
+  "block_size": 5,
+  "left_right_tolerance_px": 1.0,
+  "minimum_depth_m": 0.05,
+  "maximum_depth_m": 20.0
+}

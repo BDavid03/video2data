@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "project_root_windows": "Z:/hugging-face/video2data",
+  "project_root_wsl": "/mnt/z/hugging-face/video2data",
+  "upstream_revision": "43a3f5b4d479581f2e8bdf5e6ed7ca361d39ec5a",
+  "gpu": {
+    "count": 1,
+    "device": "NVIDIA GeForce RTX 5080",
+    "compute_capability": "12.0",
+    "minimum_headroom_mib": 2048,
+    "single_owner_required": true
+  },
+  "existing_gpu_python_read_only": "Z:/hugging-face/locals/.venv/Scripts/python.exe",
+  "existing_gpu_python_scope": "Validated synthetic torch smoke only; shared environment must not be modified",
+  "new_artifact_paths_relative_to_project": {
+    "python_installs": ".runtime/python",
+    "virtual_environments": ".runtime/envs",
+    "uv_cache": ".runtime/cache/uv",
+    "pip_cache": ".runtime/cache/pip",
+    "huggingface_cache": ".runtime/cache/huggingface",
+    "torch_cache": ".runtime/cache/torch",
+    "cuda_cache": ".runtime/cache/cuda",
+    "torch_extensions": ".runtime/cache/torch_extensions",
+    "temporary_files": ".runtime/tmp",
+    "simulator_user_data": ".runtime/isaac/user",
+    "simulator_cache": ".runtime/isaac/cache",
+    "simulator_logs": ".runtime/isaac/logs",
+    "isolated_linux_disk_if_approved": ".runtime/wsl/Track3-Ubuntu24/ext4.vhdx",
+    "models": "models",
+    "derived_data": "outputs",
+    "checkpoints": "runs",
+    "reports": "reports/runtime"
+  },
+  "storage_budget_gib": {
+    "planning_reserve_total": 300,
+    "runtime_and_download_caches": 120,
+    "selected_models": 80,
+    "derived_data_checkpoints_reports": 100,
+    "status": "planning allowances, not measured downloads or allocated storage"
+  },
+  "simulation": {
+    "status": "blocked_not_installed_and_official_contract_unresolved",
+    "candidate_only": {"isaacsim": "5.1.0", "isaaclab": "2.3.0", "python": "3.11", "torch": "2.7.0+cu128", "torchvision": "0.22.0+cu128"},
+    "candidate_is_official_track3_contract": false,
+    "installed": false,
+    "headless_step_tested": false,
+    "policy_training_tested": false,
+    "rendered_recording_tested": false
+  },
+  "authorization": {
+    "new_production_packages_require_confirmation": true,
+    "system_group_or_permission_changes": false,
+    "shared_wsl_or_docker_migration": false,
+    "cloud_compute": false
+  }
+}

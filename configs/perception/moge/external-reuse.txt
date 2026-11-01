@@ -1,0 +1,3 @@
+# Deliberately absent from the new-package lock; verify imports before the pilot.
+torch
+torchvision

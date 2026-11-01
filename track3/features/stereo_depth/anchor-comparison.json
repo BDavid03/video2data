@@ -1,0 +1,23 @@
+{
+  "kind": "stereo_depth.research_design",
+  "status": "proposed_not_executable",
+  "execution_authorized": false,
+  "hypothesis": "One robust static-background metric scale reduces depth scale error without hiding dynamic or unsupported regions",
+  "baseline": "existing per-frame median admitted stereo/monocular ratio",
+  "alternatives": ["episode median of frame medians", "episode robust log-ratio fit on static support"],
+  "changed_variable": "scale aggregation only",
+  "source_split": "public",
+  "episodes": [39, 42],
+  "excluded_episodes": [41, 43, 44],
+  "maximum_sample_centres_per_episode": 16,
+  "maximum_image_side": 384,
+  "maximum_cpu_seconds": 1200,
+  "maximum_generated_bytes": 2147483648,
+  "fit_support": "admitted static support excluding supplied hand/object masks; deterministic correspondence holdback",
+  "independent_support": "reserved correspondence IDs hash-mod-five equals zero, never used in anchor fitting",
+  "strata": ["static_background", "hands", "moving_objects", "unknown"],
+  "metrics": ["reserved_correspondence_reprojection_px", "fixed_scale_log_depth_error", "log_scale_drift", "support_share"],
+  "stopping_rule": "stop on lineage, calibration, grid, clock or resource failure; retain failed/unsupported rows",
+  "promotion_rule": "item11 independent-evidence rule; no selection using consumed holdout",
+  "blockers": ["canonical storage not writable in this session", "admitted object/hand masks and reserved correspondence artifact absent", "no-testing instruction remains active"]
+}

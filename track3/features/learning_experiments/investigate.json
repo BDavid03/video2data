@@ -1,0 +1,10 @@
+{
+  "previous_tuning_run": "outputs/learning_experiments/tune/20261018T105658.305032Z-7407936a/run.json",
+  "teacher_samples_per_episode": 16,
+  "prepared_max_image_side": 128,
+  "neural_epochs": 20,
+  "scratch_epochs": 10,
+  "batch_size": 4,
+  "seed": 31,
+  "compiler_experiments": true
+}

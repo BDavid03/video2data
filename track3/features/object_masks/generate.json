@@ -1,0 +1,20 @@
+{
+  "source_split": "public",
+  "episode_index": 39,
+  "depth_run": null,
+  "opening_run": null,
+  "opening_masks_run": null,
+  "keyframe_interval": 10,
+  "minimum_box_score": 0.3,
+  "minimum_text_score": 0.25,
+  "minimum_mask_score": 0.7,
+  "minimum_mask_pixels": 50,
+  "maximum_boxes_per_prompt": 8,
+  "nms_iou": 0.7,
+  "assignment_margin": 0.05,
+  "maximum_center_distance": 0.35,
+  "maximum_identity_gap": 40,
+  "direction_agreement_iou": 0.3,
+  "gpu_headroom_mib": 2048,
+  "gpu_admission_mib": 4096
+}

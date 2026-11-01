@@ -1,0 +1,11 @@
+{
+  "label": "resting",
+  "rollouts": {},
+  "meshes": {},
+  "self_scores": {},
+  "overrides": {},
+  "selection_margin": 0.0,
+  "margin_reason": "Choose on development episodes before validation",
+  "baseline_submission": null,
+  "single_change": "Initial resting baseline"
+}

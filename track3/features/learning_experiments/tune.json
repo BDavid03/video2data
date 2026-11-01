@@ -1,0 +1,6 @@
+{
+  "plan": null,
+  "dataset": null,
+  "continue_on_failure": true,
+  "minimum_prediction_fraction": 0.9
+}

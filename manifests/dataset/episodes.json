@@ -1,0 +1,487 @@
+{
+  "schema_version": 1,
+  "revision": "5f68335f3acc802033d1e80728c1633197521de8",
+  "episodes": [
+    {
+      "split": "public",
+      "episode_index": 0,
+      "videos": {
+        "ego_cam_a": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000000.mp4",
+        "ego_cam_b": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000000.mp4",
+        "ego_cam_c": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000000.mp4"
+      },
+      "trajectory": "track_3/public/data/chunk-000/episode_000000.parquet",
+      "issues": [],
+      "task": "Pot_with_lid"
+    },
+    {
+      "split": "public",
+      "episode_index": 2,
+      "videos": {
+        "ego_cam_a": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000002.mp4",
+        "ego_cam_b": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000002.mp4",
+        "ego_cam_c": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000002.mp4"
+      },
+      "trajectory": "track_3/public/data/chunk-000/episode_000002.parquet",
+      "issues": [],
+      "task": "Pot_with_lid"
+    },
+    {
+      "split": "public",
+      "episode_index": 11,
+      "videos": {
+        "ego_cam_a": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000011.mp4",
+        "ego_cam_b": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000011.mp4",
+        "ego_cam_c": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000011.mp4"
+      },
+      "trajectory": "track_3/public/data/chunk-000/episode_000011.parquet",
+      "issues": [],
+      "task": "Cup_Stack"
+    },
+    {
+      "split": "public",
+      "episode_index": 12,
+      "videos": {
+        "ego_cam_a": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000012.mp4",
+        "ego_cam_b": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000012.mp4",
+        "ego_cam_c": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000012.mp4"
+      },
+      "trajectory": "track_3/public/data/chunk-000/episode_000012.parquet",
+      "issues": [],
+      "task": "Cup_In_Dish_Rack"
+    },
+    {
+      "split": "public",
+      "episode_index": 13,
+      "videos": {
+        "ego_cam_a": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000013.mp4",
+        "ego_cam_b": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000013.mp4",
+        "ego_cam_c": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000013.mp4"
+      },
+      "trajectory": "track_3/public/data/chunk-000/episode_000013.parquet",
+      "issues": [],
+      "task": "Cup_In_Dish_Rack"
+    },
+    {
+      "split": "public",
+      "episode_index": 18,
+      "videos": {
+        "ego_cam_a": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000018.mp4",
+        "ego_cam_b": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000018.mp4",
+        "ego_cam_c": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000018.mp4"
+      },
+      "trajectory": "track_3/public/data/chunk-000/episode_000018.parquet",
+      "issues": [],
+      "task": "Dust_Brush"
+    },
+    {
+      "split": "public",
+      "episode_index": 21,
+      "videos": {
+        "ego_cam_a": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000021.mp4",
+        "ego_cam_b": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000021.mp4",
+        "ego_cam_c": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000021.mp4"
+      },
+      "trajectory": "track_3/public/data/chunk-000/episode_000021.parquet",
+      "issues": [],
+      "task": "Water_Can_Blue_Cup"
+    },
+    {
+      "split": "public",
+      "episode_index": 22,
+      "videos": {
+        "ego_cam_a": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000022.mp4",
+        "ego_cam_b": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000022.mp4",
+        "ego_cam_c": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000022.mp4"
+      },
+      "trajectory": "track_3/public/data/chunk-000/episode_000022.parquet",
+      "issues": [],
+      "task": "Water_Can_Blue_Cup"
+    },
+    {
+      "split": "public",
+      "episode_index": 23,
+      "videos": {
+        "ego_cam_a": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000023.mp4",
+        "ego_cam_b": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000023.mp4",
+        "ego_cam_c": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000023.mp4"
+      },
+      "trajectory": "track_3/public/data/chunk-000/episode_000023.parquet",
+      "issues": [],
+      "task": "Planter_Stand"
+    },
+    {
+      "split": "public",
+      "episode_index": 24,
+      "videos": {
+        "ego_cam_a": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000024.mp4",
+        "ego_cam_b": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000024.mp4",
+        "ego_cam_c": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000024.mp4"
+      },
+      "trajectory": "track_3/public/data/chunk-000/episode_000024.parquet",
+      "issues": [],
+      "task": "Planter_Stand"
+    },
+    {
+      "split": "public",
+      "episode_index": 26,
+      "videos": {
+        "ego_cam_a": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000026.mp4",
+        "ego_cam_b": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000026.mp4",
+        "ego_cam_c": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000026.mp4"
+      },
+      "trajectory": "track_3/public/data/chunk-000/episode_000026.parquet",
+      "issues": [],
+      "task": "Pan_In_Dishrack"
+    },
+    {
+      "split": "public",
+      "episode_index": 27,
+      "videos": {
+        "ego_cam_a": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000027.mp4",
+        "ego_cam_b": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000027.mp4",
+        "ego_cam_c": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000027.mp4"
+      },
+      "trajectory": "track_3/public/data/chunk-000/episode_000027.parquet",
+      "issues": [],
+      "task": "Pan_In_Dishrack"
+    },
+    {
+      "split": "public",
+      "episode_index": 31,
+      "videos": {
+        "ego_cam_a": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000031.mp4",
+        "ego_cam_b": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000031.mp4",
+        "ego_cam_c": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000031.mp4"
+      },
+      "trajectory": "track_3/public/data/chunk-000/episode_000031.parquet",
+      "issues": [],
+      "task": "Brush_Dishrack"
+    },
+    {
+      "split": "public",
+      "episode_index": 39,
+      "videos": {
+        "ego_cam_a": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000039.mp4",
+        "ego_cam_b": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000039.mp4",
+        "ego_cam_c": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000039.mp4"
+      },
+      "trajectory": "track_3/public/data/chunk-000/episode_000039.parquet",
+      "issues": [],
+      "task": "Dustpan_Solo"
+    },
+    {
+      "split": "public",
+      "episode_index": 40,
+      "videos": {
+        "ego_cam_a": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000040.mp4",
+        "ego_cam_b": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000040.mp4",
+        "ego_cam_c": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000040.mp4"
+      },
+      "trajectory": "track_3/public/data/chunk-000/episode_000040.parquet",
+      "issues": [],
+      "task": "Dustpan_Solo"
+    },
+    {
+      "split": "public",
+      "episode_index": 41,
+      "videos": {
+        "ego_cam_a": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000041.mp4",
+        "ego_cam_b": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000041.mp4",
+        "ego_cam_c": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000041.mp4"
+      },
+      "trajectory": "track_3/public/data/chunk-000/episode_000041.parquet",
+      "issues": [],
+      "task": "Pan_Solo"
+    },
+    {
+      "split": "public",
+      "episode_index": 42,
+      "videos": {
+        "ego_cam_a": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000042.mp4",
+        "ego_cam_b": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000042.mp4",
+        "ego_cam_c": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000042.mp4"
+      },
+      "trajectory": "track_3/public/data/chunk-000/episode_000042.parquet",
+      "issues": [],
+      "task": "Pan_Solo"
+    },
+    {
+      "split": "public",
+      "episode_index": 43,
+      "videos": {
+        "ego_cam_a": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000043.mp4",
+        "ego_cam_b": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000043.mp4",
+        "ego_cam_c": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000043.mp4"
+      },
+      "trajectory": "track_3/public/data/chunk-000/episode_000043.parquet",
+      "issues": [],
+      "task": "Pan_Solo"
+    },
+    {
+      "split": "public",
+      "episode_index": 44,
+      "videos": {
+        "ego_cam_a": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000044.mp4",
+        "ego_cam_b": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000044.mp4",
+        "ego_cam_c": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000044.mp4"
+      },
+      "trajectory": "track_3/public/data/chunk-000/episode_000044.parquet",
+      "issues": [],
+      "task": "Pan_Solo"
+    },
+    {
+      "split": "public",
+      "episode_index": 45,
+      "videos": {
+        "ego_cam_a": "track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000045.mp4",
+        "ego_cam_b": "track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000045.mp4",
+        "ego_cam_c": "track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000045.mp4"
+      },
+      "trajectory": "track_3/public/data/chunk-000/episode_000045.parquet",
+      "issues": [],
+      "task": "Pan_Solo"
+    },
+    {
+      "split": "evaluation",
+      "episode_index": 1,
+      "videos": {
+        "ego_cam_a": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000001.mp4",
+        "ego_cam_b": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000001.mp4",
+        "ego_cam_c": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000001.mp4"
+      },
+      "trajectory": null,
+      "issues": [],
+      "task": null
+    },
+    {
+      "split": "evaluation",
+      "episode_index": 3,
+      "videos": {
+        "ego_cam_a": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000003.mp4",
+        "ego_cam_b": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000003.mp4",
+        "ego_cam_c": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000003.mp4"
+      },
+      "trajectory": null,
+      "issues": [],
+      "task": null
+    },
+    {
+      "split": "evaluation",
+      "episode_index": 5,
+      "videos": {
+        "ego_cam_a": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000005.mp4",
+        "ego_cam_b": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000005.mp4",
+        "ego_cam_c": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000005.mp4"
+      },
+      "trajectory": null,
+      "issues": [],
+      "task": null
+    },
+    {
+      "split": "evaluation",
+      "episode_index": 6,
+      "videos": {
+        "ego_cam_a": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000006.mp4",
+        "ego_cam_b": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000006.mp4",
+        "ego_cam_c": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000006.mp4"
+      },
+      "trajectory": null,
+      "issues": [],
+      "task": null
+    },
+    {
+      "split": "evaluation",
+      "episode_index": 8,
+      "videos": {
+        "ego_cam_a": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000008.mp4",
+        "ego_cam_b": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000008.mp4",
+        "ego_cam_c": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000008.mp4"
+      },
+      "trajectory": null,
+      "issues": [],
+      "task": null
+    },
+    {
+      "split": "evaluation",
+      "episode_index": 10,
+      "videos": {
+        "ego_cam_a": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000010.mp4",
+        "ego_cam_b": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000010.mp4",
+        "ego_cam_c": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000010.mp4"
+      },
+      "trajectory": null,
+      "issues": [],
+      "task": null
+    },
+    {
+      "split": "evaluation",
+      "episode_index": 14,
+      "videos": {
+        "ego_cam_a": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000014.mp4",
+        "ego_cam_b": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000014.mp4",
+        "ego_cam_c": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000014.mp4"
+      },
+      "trajectory": null,
+      "issues": [],
+      "task": null
+    },
+    {
+      "split": "evaluation",
+      "episode_index": 15,
+      "videos": {
+        "ego_cam_a": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000015.mp4",
+        "ego_cam_b": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000015.mp4",
+        "ego_cam_c": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000015.mp4"
+      },
+      "trajectory": null,
+      "issues": [],
+      "task": null
+    },
+    {
+      "split": "evaluation",
+      "episode_index": 16,
+      "videos": {
+        "ego_cam_a": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000016.mp4",
+        "ego_cam_b": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000016.mp4",
+        "ego_cam_c": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000016.mp4"
+      },
+      "trajectory": null,
+      "issues": [],
+      "task": null
+    },
+    {
+      "split": "evaluation",
+      "episode_index": 19,
+      "videos": {
+        "ego_cam_a": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000019.mp4",
+        "ego_cam_b": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000019.mp4",
+        "ego_cam_c": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000019.mp4"
+      },
+      "trajectory": null,
+      "issues": [],
+      "task": null
+    },
+    {
+      "split": "evaluation",
+      "episode_index": 20,
+      "videos": {
+        "ego_cam_a": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000020.mp4",
+        "ego_cam_b": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000020.mp4",
+        "ego_cam_c": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000020.mp4"
+      },
+      "trajectory": null,
+      "issues": [],
+      "task": null
+    },
+    {
+      "split": "evaluation",
+      "episode_index": 25,
+      "videos": {
+        "ego_cam_a": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000025.mp4",
+        "ego_cam_b": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000025.mp4",
+        "ego_cam_c": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000025.mp4"
+      },
+      "trajectory": null,
+      "issues": [],
+      "task": null
+    },
+    {
+      "split": "evaluation",
+      "episode_index": 28,
+      "videos": {
+        "ego_cam_a": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000028.mp4",
+        "ego_cam_b": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000028.mp4",
+        "ego_cam_c": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000028.mp4"
+      },
+      "trajectory": null,
+      "issues": [],
+      "task": null
+    },
+    {
+      "split": "evaluation",
+      "episode_index": 30,
+      "videos": {
+        "ego_cam_a": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000030.mp4",
+        "ego_cam_b": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000030.mp4",
+        "ego_cam_c": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000030.mp4"
+      },
+      "trajectory": null,
+      "issues": [],
+      "task": null
+    },
+    {
+      "split": "evaluation",
+      "episode_index": 32,
+      "videos": {
+        "ego_cam_a": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000032.mp4",
+        "ego_cam_b": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000032.mp4",
+        "ego_cam_c": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000032.mp4"
+      },
+      "trajectory": null,
+      "issues": [],
+      "task": null
+    },
+    {
+      "split": "evaluation",
+      "episode_index": 33,
+      "videos": {
+        "ego_cam_a": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000033.mp4",
+        "ego_cam_b": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000033.mp4",
+        "ego_cam_c": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000033.mp4"
+      },
+      "trajectory": null,
+      "issues": [],
+      "task": null
+    },
+    {
+      "split": "evaluation",
+      "episode_index": 35,
+      "videos": {
+        "ego_cam_a": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000035.mp4",
+        "ego_cam_b": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000035.mp4",
+        "ego_cam_c": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000035.mp4"
+      },
+      "trajectory": null,
+      "issues": [],
+      "task": null
+    },
+    {
+      "split": "evaluation",
+      "episode_index": 36,
+      "videos": {
+        "ego_cam_a": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000036.mp4",
+        "ego_cam_b": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000036.mp4",
+        "ego_cam_c": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000036.mp4"
+      },
+      "trajectory": null,
+      "issues": [],
+      "task": null
+    },
+    {
+      "split": "evaluation",
+      "episode_index": 37,
+      "videos": {
+        "ego_cam_a": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000037.mp4",
+        "ego_cam_b": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000037.mp4",
+        "ego_cam_c": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000037.mp4"
+      },
+      "trajectory": null,
+      "issues": [],
+      "task": null
+    },
+    {
+      "split": "evaluation",
+      "episode_index": 38,
+      "videos": {
+        "ego_cam_a": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000038.mp4",
+        "ego_cam_b": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000038.mp4",
+        "ego_cam_c": "track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000038.mp4"
+      },
+      "trajectory": null,
+      "issues": [],
+      "task": null
+    }
+  ],
+  "discovery": "actual filenames plus explicit public episode metadata; no split-range expansion"
+}

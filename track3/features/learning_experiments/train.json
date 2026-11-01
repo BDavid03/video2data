@@ -1,0 +1,14 @@
+{
+  "dataset": null,
+  "technique": "cnn",
+  "model_parameters": {},
+  "epochs": 10,
+  "batch_size": 2,
+  "learning_rate": 0.001,
+  "weight_decay": 0.00001,
+  "seed": 31,
+  "bf16_autocast": false,
+  "train_episodes": [0, 11, 12, 18, 21, 23, 26, 31],
+  "tuning_episodes": [39, 42],
+  "holdout_episodes": [43, 44]
+}

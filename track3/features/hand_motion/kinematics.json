@@ -1,0 +1,8 @@
+{
+  "source_split": "public",
+  "episode_index": 39,
+  "estimate_run": null,
+  "masks_run": null,
+  "depth_run": null,
+  "batch_size": 16
+}

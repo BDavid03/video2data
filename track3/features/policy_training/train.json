@@ -1,0 +1,3 @@
+{"source_split": "public", "episode_index": 39, "compose_run": null,
+ "policy_kind": "resting", "budget": "zero_update", "seed": 31,
+ "headroom_mib": 1024, "admission_allowance_mib": 1024}

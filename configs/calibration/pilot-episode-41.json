@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "dataset_revision": "5f68335f3acc802033d1e80728c1633197521de8",
+  "source_split": "public",
+  "development_split": "track3-public-dev13-val7-v1",
+  "episode_index": 41,
+  "task": "Pan_Solo",
+  "status": "candidate_for_first_reconstruction_contact_sheet_reviewed_by_calibration_agent",
+  "selection": "Lowest Pan_Solo id for deterministic diagnostics; subsequent sparse visual review supports one-object pilot",
+  "frame_count_per_stream": 299,
+  "video_fps": 20,
+  "video_first_last_pts_seconds": [0.0, 14.9],
+  "parquet_first_last_timestamp_seconds": [0.0, 14.713047981262207],
+  "parquet_first_last_capture_time_seconds": [0.05836174637079239, 14.957676887512207],
+  "parquet_capture_time_delta_min_max_seconds": [0.013693809509277344, 0.09288597106933594],
+  "capture_time_caution": "Nonuniform single-row clock; not per-camera exposure timing, not proof of stream synchronization",
+  "objects": ["white_pot"],
+  "mesh_relative_path": "track_3/public/mesh/white_pot/white_pot.glb",
+  "urdf_relative_path": "track_3/public/urdf/white_pot_rigid.urdf",
+  "public_valid_object_pose_rows": 299,
+  "label_usage": "Public-label diagnostics only; no poses used in orientation/feature-matching checks",
+  "geometry_checked_frame_indices": [0, 149],
+  "rgb_review_frame_indices": [0, 99, 199, 298],
+  "rgb_review_sample_labels": ["start", "one_third", "two_thirds", "end"],
+  "rgb_review_sampling": "uniform frame spacing, not detected contact events",
+  "rgb_contact_sheet": "reports/calibration/episode_000041_rgb_review_contact_sheet.jpg",
+  "observations": [
+    "Upright decoded imagery, white handled pot on round table",
+    "One object with supplied mesh; both hands visible at sample start/end",
+    "Hands overlap/manipulate pot in middle samples; self-occlusion must be handled",
+    "Static floor, cage and support structures available for masked camera-motion estimation"
+  ],
+  "calibration_config": "configs/calibration/ego.json",
+  "limits": [
+    "Only two geometry samples; not universally validated calibration",
+    "Factory stereo median vertical residual about2px and RGB geometry residual about3-5 stereo-equivalent px",
+    "No camera-to-mocap-world transform; camera motion still required",
+    "No inferred contact-event frame labels or physical synchronization claim",
+    "No reconstruction, depth prediction, hand estimation or simulator rollout performed"
+  ]
+}

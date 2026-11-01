@@ -1,0 +1,4 @@
+{
+  "manifest": "outputs/offline_challengers/explicit-export.json",
+  "calibration_depth_run": "outputs/depth/explicit-calibration-run/run.json"
+}

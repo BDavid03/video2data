@@ -1,0 +1,7 @@
+{
+  "depth_run": "outputs/depth/explicit-calibration-run/run.json",
+  "source_split": "public",
+  "episode_index": 39,
+  "frame_indices": [0],
+  "maximum_decode_frames": 4096
+}

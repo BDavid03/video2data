@@ -1,0 +1,14 @@
+{
+  "source_split": "public",
+  "episode_index": 39,
+  "depth_run": null,
+  "stereo_run": null,
+  "anchor_run": null,
+  "masks_run": null,
+  "opening_frame_count": 20,
+  "slot0_point_camA_m": null,
+  "slot0_point_source": null,
+  "feature_budget": 4000,
+  "minimum_inliers": 12,
+  "mask_dilation": 7
+}

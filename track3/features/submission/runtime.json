@@ -1,0 +1,9 @@
+{
+  "execution": {
+    "plan_authorized": false,
+    "check_authorized": false,
+    "pack_poses_authorized": false,
+    "pack_meshes_authorized": false,
+    "upload_authorized": false
+  }
+}

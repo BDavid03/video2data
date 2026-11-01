@@ -1,0 +1,50 @@
+{
+  "inspection_date": "2026-09-24",
+  "windows": {
+    "version": "Windows-11-10.0.26200-SP0",
+    "ram_bytes": 66156478464,
+    "driver": "596.21",
+    "gpu_total_mib": 16303,
+    "c_free_bytes": 67011612672,
+    "z_free_bytes": 1630961803264,
+    "default_python": "3.14.5",
+    "default_torch": "2.12.1+cpu",
+    "installed_uv_pythons": ["3.14.5", "3.13.14", "3.12.13", "3.7.8"],
+    "reusable_cuda_environment": {
+      "python": "Z:/hugging-face/locals/.venv/Scripts/python.exe",
+      "python_version": "3.14.5",
+      "include_system_site_packages": true,
+      "torch": "2.12.1+cu132",
+      "cuda_build": "13.2",
+      "compiled_architectures": ["sm_75", "sm_80", "sm_86", "sm_90", "sm_100", "sm_120"],
+      "use": "read-only execution; not a reproducible project environment"
+    },
+    "isaac_distributions_found": []
+  },
+  "wsl": {
+    "distro": "Ubuntu",
+    "release": "26.04.1 LTS",
+    "kernel": "6.18.33.2-microsoft-standard-WSL2",
+    "python": "3.14.4",
+    "missing_python_modules": ["torch", "numpy", "pip", "isaacsim", "isaaclab"],
+    "missing_path_tools": ["uv", "gcc", "cmake", "nvcc"],
+    "gpu_visible": true,
+    "vhd_backing": "C:/Users/db009/AppData/Local/wsl/{f4275b67-27bf-4008-bbee-20a48a522456}/ext4.vhdx",
+    "linux_reported_root_free_gib": 914,
+    "docker": {
+      "server_version": "29.8.1",
+      "root": "/var/lib/docker",
+      "ordinary_user_access": "permission denied",
+      "root_read_access": true,
+      "images_gb": 2.738,
+      "build_cache_gb": 3.068,
+      "ml_or_simulation_images_found": [],
+      "images": ["kas_nginx:latest", "kas_backend_dev:latest", "kas_frontend:latest", "kas_postgres:latest", "redis:7-alpine", "hello-world:latest", "squidfunk/mkdocs-material:9.7.1", "axllent/mailpit:v1.21"]
+    },
+    "existing_venvs_found": [
+      {"path": "/home/ceolwolf/repos/KAS/src/.venv", "config_platform": "Windows", "python": "3.13"},
+      {"path": "/home/ceolwolf/repos/KAS/web/.localdb/probe-venv", "config_platform": "Windows", "python": "3.12"}
+    ]
+  },
+  "scope_limit": "Scoped inspection of known Windows runtime roots, default Python and neighboring ML venv, WSL /home /opt /root /usr/local/lib to depth 7 and Docker inventory. Not an exhaustive search of all disks."
+}

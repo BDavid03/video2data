@@ -1,0 +1,5 @@
+{
+  "execution": {"assemble_authorized": false, "refine_authorized": false, "prepare_refinement_authorized": false, "evaluation_authorized": false, "validation_authorized": false},
+  "refine_episode_indices": [],
+  "authorized_episode_indices": {"public": [], "evaluation": []}
+}

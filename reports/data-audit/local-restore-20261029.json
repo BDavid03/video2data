@@ -1,0 +1,745 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-29",
+  "reason": "Local checkout copy of immutable inputs was zero-filled; restored once from the Z: copy (inputs only, no artifacts)",
+  "restored_count": 183,
+  "restored_bytes": 1742236551,
+  "failed": [],
+  "still_zero_filled": [],
+  "wall_seconds": 92.99205303192139,
+  "finished_utc": "2026-10-29T01:37:29.925835+00:00",
+  "restored": [
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/trees/5f68335f3acc802033d1e80728c1633197521de8.json",
+      "bytes": 170200
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/README.md",
+      "bytes": 3381
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/v2d-challenge-track3.md",
+      "bytes": 2069
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/.gitignore",
+      "bytes": 49
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/urdf/mini_dust_pan_rigid.urdf",
+      "bytes": 901
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/urdf/plastic_dish_rack_rigid.urdf",
+      "bytes": 920
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/urdf/wooden_piece_1_rigid.urdf",
+      "bytes": 1029
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/urdf/wooden_piece_2_rigid.urdf",
+      "bytes": 1031
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/urdf/mini_sweeper_rigid.urdf",
+      "bytes": 1023
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/urdf/white_pot_rigid.urdf",
+      "bytes": 879
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/urdf/water_pitcher_rigid.urdf",
+      "bytes": 899
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/urdf/blue_cup_rigid.urdf",
+      "bytes": 874
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/urdf/beige_cup_rigid.urdf",
+      "bytes": 880
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/urdf/white_pot_lid_rigid.urdf",
+      "bytes": 900
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/meta/info.json",
+      "bytes": 4487
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/meta/episodes_metadata.jsonl",
+      "bytes": 1263
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/meta/camera_calibration.json",
+      "bytes": 16640
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/data/chunk-000/episode_000002.parquet",
+      "bytes": 38502
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/data/chunk-000/episode_000027.parquet",
+      "bytes": 28157
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/data/chunk-000/episode_000000.parquet",
+      "bytes": 41099
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/data/chunk-000/episode_000044.parquet",
+      "bytes": 19050
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/data/chunk-000/episode_000041.parquet",
+      "bytes": 22312
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/data/chunk-000/episode_000040.parquet",
+      "bytes": 19841
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/data/chunk-000/episode_000043.parquet",
+      "bytes": 23939
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/data/chunk-000/episode_000042.parquet",
+      "bytes": 19647
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/data/chunk-000/episode_000022.parquet",
+      "bytes": 23052
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/data/chunk-000/episode_000021.parquet",
+      "bytes": 22824
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/data/chunk-000/episode_000024.parquet",
+      "bytes": 31625
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/data/chunk-000/episode_000011.parquet",
+      "bytes": 17772
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/data/chunk-000/episode_000031.parquet",
+      "bytes": 33105
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/data/chunk-000/episode_000012.parquet",
+      "bytes": 21644
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/data/chunk-000/episode_000039.parquet",
+      "bytes": 23541
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/data/chunk-000/episode_000018.parquet",
+      "bytes": 39835
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/data/chunk-000/episode_000023.parquet",
+      "bytes": 37070
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/data/chunk-000/episode_000045.parquet",
+      "bytes": 21567
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/data/chunk-000/episode_000026.parquet",
+      "bytes": 19929
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/data/chunk-000/episode_000013.parquet",
+      "bytes": 23100
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh/wooden_piece_2/wooden_piece_2_collision.glb",
+      "bytes": 1763408
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh/wooden_piece_2/wooden_piece_2_visual.glb",
+      "bytes": 8230028
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh/water_pitcher/water_pitcher.glb",
+      "bytes": 8341496
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh/blue_cup/blue_cup.glb",
+      "bytes": 8175052
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh/white_pot/white_pot.glb",
+      "bytes": 8948208
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh/mini_dust_pan/mini_dust_pan.glb",
+      "bytes": 8492620
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh/white_pot_lid/white_pot_lid.glb",
+      "bytes": 8262028
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh/beige_cup/beige_cup.glb",
+      "bytes": 8238412
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh/wooden_piece_1/wooden_piece_1_collision.glb",
+      "bytes": 1763120
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh/wooden_piece_1/wooden_piece_1_visual.glb",
+      "bytes": 7762620
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh/mini_sweeper/mini_sweeper_collision.glb",
+      "bytes": 3455916
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh/mini_sweeper/mini_sweeper_visual.glb",
+      "bytes": 8378616
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh/plastic_dish_rack/plastic_dish_rack.glb",
+      "bytes": 11360704
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000042.mp4",
+      "bytes": 27339741
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000012.mp4",
+      "bytes": 20340612
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000011.mp4",
+      "bytes": 15759846
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000039.mp4",
+      "bytes": 33452686
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000031.mp4",
+      "bytes": 26875848
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000045.mp4",
+      "bytes": 31815852
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000021.mp4",
+      "bytes": 21050367
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000000.mp4",
+      "bytes": 44205378
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000018.mp4",
+      "bytes": 39446269
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000013.mp4",
+      "bytes": 20616589
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000040.mp4",
+      "bytes": 26370286
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000044.mp4",
+      "bytes": 26315404
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000022.mp4",
+      "bytes": 20002851
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000027.mp4",
+      "bytes": 21890081
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000043.mp4",
+      "bytes": 33796942
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000023.mp4",
+      "bytes": 35373524
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000024.mp4",
+      "bytes": 31443302
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000041.mp4",
+      "bytes": 32094361
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000002.mp4",
+      "bytes": 39538104
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000026.mp4",
+      "bytes": 15274598
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000042.mp4",
+      "bytes": 3337816
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000012.mp4",
+      "bytes": 2515591
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000011.mp4",
+      "bytes": 1903739
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000039.mp4",
+      "bytes": 3864358
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000031.mp4",
+      "bytes": 3319616
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000045.mp4",
+      "bytes": 4096018
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000021.mp4",
+      "bytes": 2706871
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000000.mp4",
+      "bytes": 5648231
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000018.mp4",
+      "bytes": 4491790
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000013.mp4",
+      "bytes": 2503538
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000040.mp4",
+      "bytes": 3004007
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000044.mp4",
+      "bytes": 3227182
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000022.mp4",
+      "bytes": 2583538
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000027.mp4",
+      "bytes": 2937523
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000043.mp4",
+      "bytes": 3998966
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000023.mp4",
+      "bytes": 4254732
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000024.mp4",
+      "bytes": 3957919
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000041.mp4",
+      "bytes": 4060928
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000002.mp4",
+      "bytes": 4919102
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000026.mp4",
+      "bytes": 2052424
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000042.mp4",
+      "bytes": 2681699
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000012.mp4",
+      "bytes": 1953823
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000011.mp4",
+      "bytes": 1467296
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000039.mp4",
+      "bytes": 3183641
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000031.mp4",
+      "bytes": 2479876
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000045.mp4",
+      "bytes": 3279760
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000021.mp4",
+      "bytes": 2175528
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000000.mp4",
+      "bytes": 4545702
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000018.mp4",
+      "bytes": 3594630
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000013.mp4",
+      "bytes": 1962101
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000040.mp4",
+      "bytes": 2469653
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000044.mp4",
+      "bytes": 2581261
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000022.mp4",
+      "bytes": 2043691
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000027.mp4",
+      "bytes": 2182735
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000043.mp4",
+      "bytes": 3172629
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000023.mp4",
+      "bytes": 3409388
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000024.mp4",
+      "bytes": 3170550
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000041.mp4",
+      "bytes": 3240282
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000002.mp4",
+      "bytes": 3937003
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000026.mp4",
+      "bytes": 1635457
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000005.mp4",
+      "bytes": 34361968
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000037.mp4",
+      "bytes": 15103512
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000010.mp4",
+      "bytes": 18722280
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000019.mp4",
+      "bytes": 28678755
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000028.mp4",
+      "bytes": 20599462
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000035.mp4",
+      "bytes": 45299161
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000001.mp4",
+      "bytes": 37903304
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000038.mp4",
+      "bytes": 26719276
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000014.mp4",
+      "bytes": 18090752
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000032.mp4",
+      "bytes": 28253380
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000003.mp4",
+      "bytes": 35191176
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000036.mp4",
+      "bytes": 43180371
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000015.mp4",
+      "bytes": 17304258
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000025.mp4",
+      "bytes": 38085818
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000030.mp4",
+      "bytes": 23692187
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000008.mp4",
+      "bytes": 24195085
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000016.mp4",
+      "bytes": 19803621
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000033.mp4",
+      "bytes": 37691681
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000006.mp4",
+      "bytes": 29092915
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000020.mp4",
+      "bytes": 21131083
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000005.mp4",
+      "bytes": 4607399
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000037.mp4",
+      "bytes": 1772258
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000010.mp4",
+      "bytes": 2118467
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000019.mp4",
+      "bytes": 3403661
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000028.mp4",
+      "bytes": 2923365
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000035.mp4",
+      "bytes": 5256205
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000001.mp4",
+      "bytes": 4769176
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000038.mp4",
+      "bytes": 2804943
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000014.mp4",
+      "bytes": 2420030
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000032.mp4",
+      "bytes": 3228621
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000003.mp4",
+      "bytes": 4478948
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000036.mp4",
+      "bytes": 5030775
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000015.mp4",
+      "bytes": 2366410
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000025.mp4",
+      "bytes": 4434760
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000030.mp4",
+      "bytes": 2883049
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000008.mp4",
+      "bytes": 3143446
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000016.mp4",
+      "bytes": 2640628
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000033.mp4",
+      "bytes": 4355787
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000006.mp4",
+      "bytes": 3746143
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_b/episode_000020.mp4",
+      "bytes": 2737641
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000005.mp4",
+      "bytes": 3835045
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000037.mp4",
+      "bytes": 1420936
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000010.mp4",
+      "bytes": 1630543
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000019.mp4",
+      "bytes": 2720188
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000028.mp4",
+      "bytes": 2173964
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000035.mp4",
+      "bytes": 4245211
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000001.mp4",
+      "bytes": 3866763
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000038.mp4",
+      "bytes": 2283995
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000014.mp4",
+      "bytes": 1902395
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000032.mp4",
+      "bytes": 2666804
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000003.mp4",
+      "bytes": 3688007
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000036.mp4",
+      "bytes": 4039277
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000015.mp4",
+      "bytes": 1896681
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000025.mp4",
+      "bytes": 3606520
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000030.mp4",
+      "bytes": 2192171
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000008.mp4",
+      "bytes": 2463697
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000016.mp4",
+      "bytes": 2098683
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000033.mp4",
+      "bytes": 3506708
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000006.mp4",
+      "bytes": 3092251
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_c/episode_000020.mp4",
+      "bytes": 2193239
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_2/tier_2_synthetic_noise/videos/chunk-000/observation.images.exo_camera/episode_000017.mp4",
+      "bytes": 14168280
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_2/tier_2_synthetic_noise/videos/chunk-000/observation.images.exo_camera/episode_000019.mp4",
+      "bytes": 25478983
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_2/tier_2_synthetic_noise/videos/chunk-000/observation.images.exo_camera/episode_000028.mp4",
+      "bytes": 28512527
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_2/tier_2_synthetic_noise/videos/chunk-000/observation.images.exo_camera/episode_000021.mp4",
+      "bytes": 20158142
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_2/tier_2_synthetic_noise/videos/chunk-000/observation.images.exo_camera/episode_000018.mp4",
+      "bytes": 25867689
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_2/tier_2_synthetic_noise/videos/chunk-000/observation.images.exo_camera/episode_000025.mp4",
+      "bytes": 23330721
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_2/tier_2_synthetic_noise/videos/chunk-000/observation.images.exo_camera/episode_000022.mp4",
+      "bytes": 20569801
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_2/tier_2_synthetic_noise/videos/chunk-000/observation.images.exo_camera/episode_000027.mp4",
+      "bytes": 17326556
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_2/tier_2_synthetic_noise/videos/chunk-000/observation.images.exo_camera/episode_000029.mp4",
+      "bytes": 12988779
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_2/tier_2_synthetic_noise/videos/chunk-000/observation.images.exo_camera/episode_000020.mp4",
+      "bytes": 16802229
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_2/tier_2_synthetic_noise/videos/chunk-000/observation.images.exo_camera/episode_000023.mp4",
+      "bytes": 28669144
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_2/tier_2_synthetic_noise/videos/chunk-000/observation.images.exo_camera/episode_000024.mp4",
+      "bytes": 20461923
+    },
+    {
+      "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_2/tier_2_synthetic_noise/videos/chunk-000/observation.images.exo_camera/episode_000026.mp4",
+      "bytes": 18696443
+    }
+  ]
+}

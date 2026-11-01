@@ -1,0 +1,123 @@
+{
+  "kind": "synthetic_torch_runtime_smoke",
+  "simulator_tested": false,
+  "device_requested": "cuda",
+  "python": "3.14.5 (tags/v3.14.5:5607950, May 10 2026, 10:43:50) [MSC v.1944 64 bit (AMD64)]",
+  "executable": "Z:\\hugging-face\\locals\\.venv\\Scripts\\python.exe",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "status": "passed",
+  "total_device_memory_samples": [
+    [
+      "0, NVIDIA GeForce RTX 5080, 16303, 2421"
+    ],
+    [
+      "0, NVIDIA GeForce RTX 5080, 16303, 2421"
+    ],
+    [
+      "0, NVIDIA GeForce RTX 5080, 16303, 2421"
+    ],
+    [
+      "0, NVIDIA GeForce RTX 5080, 16303, 2421"
+    ],
+    [
+      "0, NVIDIA GeForce RTX 5080, 16303, 2421"
+    ],
+    [
+      "0, NVIDIA GeForce RTX 5080, 16303, 2421"
+    ],
+    [
+      "0, NVIDIA GeForce RTX 5080, 16303, 2421"
+    ],
+    [
+      "0, NVIDIA GeForce RTX 5080, 16303, 2421"
+    ],
+    [
+      "0, NVIDIA GeForce RTX 5080, 16303, 2421"
+    ],
+    [
+      "0, NVIDIA GeForce RTX 5080, 16303, 2421"
+    ],
+    [
+      "0, NVIDIA GeForce RTX 5080, 16303, 2433"
+    ],
+    [
+      "0, NVIDIA GeForce RTX 5080, 16303, 2649"
+    ],
+    [
+      "0, NVIDIA GeForce RTX 5080, 16303, 2651"
+    ],
+    [
+      "0, NVIDIA GeForce RTX 5080, 16303, 2751"
+    ],
+    [
+      "0, NVIDIA GeForce RTX 5080, 16303, 2807"
+    ],
+    [
+      "0, NVIDIA GeForce RTX 5080, 16303, 2807"
+    ],
+    [
+      "0, NVIDIA GeForce RTX 5080, 16303, 2807"
+    ],
+    [
+      "0, NVIDIA GeForce RTX 5080, 16303, 2807"
+    ],
+    [
+      "0, NVIDIA GeForce RTX 5080, 16303, 2807"
+    ],
+    [
+      "0, NVIDIA GeForce RTX 5080, 16303, 2807"
+    ],
+    [
+      "0, NVIDIA GeForce RTX 5080, 16303, 2807"
+    ],
+    [
+      "0, NVIDIA GeForce RTX 5080, 16303, 2807"
+    ],
+    [
+      "0, NVIDIA GeForce RTX 5080, 16303, 2807"
+    ],
+    [
+      "0, NVIDIA GeForce RTX 5080, 16303, 2807"
+    ],
+    [
+      "0, NVIDIA GeForce RTX 5080, 16303, 2903"
+    ],
+    [
+      "0, NVIDIA GeForce RTX 5080, 16303, 2903"
+    ],
+    [
+      "0, NVIDIA GeForce RTX 5080, 16303, 2903"
+    ]
+  ],
+  "torch_version": "2.12.1+cu132",
+  "cuda_build": "13.2",
+  "device_name": "NVIDIA GeForce RTX 5080",
+  "device_capability": [
+    12,
+    0
+  ],
+  "torch_arch_list": [
+    "sm_75",
+    "sm_80",
+    "sm_86",
+    "sm_90",
+    "sm_100",
+    "sm_120"
+  ],
+  "cuda_free_before_bytes": 15712911360,
+  "cuda_total_bytes": 17094475776,
+  "peak_torch_allocated_bytes": 67155456,
+  "peak_torch_reserved_bytes": 69206016,
+  "inference_shape": [
+    32,
+    4
+  ],
+  "training_updates": 1,
+  "checkpoint_reload_identical": true,
+  "loss": 1.068016767501831,
+  "checkpoint": "reports\\runtime\\tiny-mlp.pt",
+  "checkpoint_sha256": "464baa564ba8113bfe237ae35a56460f9245d2c2886f1363ce80d95d7a4cc1b4",
+  "peak_sampled_total_device_used_mib": 2903,
+  "elapsed_seconds": 4.17833199998131,
+  "memory_measurement_limit": "nvidia-smi samples every 100ms plus command latency; short peaks may be missed. Includes other applications and display."
+}

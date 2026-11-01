@@ -1,0 +1,272 @@
+{
+  "cameras": {
+    "exo_cam_a": {
+      "resolution": [
+        2028,
+        1520
+      ],
+      "rotation_metadata_deg": 0,
+      "distortion_coefficient_count": 14,
+      "nonzero_tilt": true,
+      "extrinsic_rotation": {
+        "orthogonality_max_abs": 2.9847714366759703e-07,
+        "determinant": 0.9999998880607187
+      },
+      "translation_norm_m": 0.037631862155967415
+    },
+    "exo_cam_b": {
+      "resolution": [
+        1280,
+        800
+      ],
+      "rotation_metadata_deg": 0,
+      "distortion_coefficient_count": 14,
+      "nonzero_tilt": true
+    },
+    "exo_cam_c": {
+      "resolution": [
+        1280,
+        800
+      ],
+      "rotation_metadata_deg": 0,
+      "distortion_coefficient_count": 14,
+      "nonzero_tilt": true,
+      "extrinsic_rotation": {
+        "orthogonality_max_abs": 3.5770166328941144e-07,
+        "determinant": 0.9999999132133119
+      },
+      "translation_norm_m": 0.07516796703074402
+    },
+    "ego_cam_a": {
+      "resolution": [
+        2028,
+        1520
+      ],
+      "rotation_metadata_deg": 180,
+      "distortion_coefficient_count": 14,
+      "nonzero_tilt": true,
+      "extrinsic_rotation": {
+        "orthogonality_max_abs": 1.4583766871911763e-07,
+        "determinant": 1.0000000129420465
+      },
+      "translation_norm_m": 0.037409957559590964
+    },
+    "ego_cam_b": {
+      "resolution": [
+        1280,
+        800
+      ],
+      "rotation_metadata_deg": 180,
+      "distortion_coefficient_count": 14,
+      "nonzero_tilt": true
+    },
+    "ego_cam_c": {
+      "resolution": [
+        1280,
+        800
+      ],
+      "rotation_metadata_deg": 180,
+      "distortion_coefficient_count": 14,
+      "nonzero_tilt": true,
+      "extrinsic_rotation": {
+        "orthogonality_max_abs": 1.9854382216077937e-07,
+        "determinant": 0.9999999643544831
+      },
+      "translation_norm_m": 0.07547101782090004
+    }
+  },
+  "stereo_pairs": {
+    "exo": {
+      "left": "exo_cam_b",
+      "right": "exo_cam_c",
+      "nominal_baseline_m": 0.07499998569488525,
+      "extrinsic_translation_norm_m": 0.07516797096895456,
+      "baseline_difference_m": 0.0001679852740693044,
+      "rotation": {
+        "orthogonality_max_abs": 3.576539169269921e-07,
+        "determinant": 0.999999913213312
+      },
+      "left_rectification_rotation": {
+        "orthogonality_max_abs": 2.7849068384711018e-08,
+        "determinant": 0.9999999931599647
+      },
+      "right_rectification_rotation": {
+        "orthogonality_max_abs": 5.592944374299691e-08,
+        "determinant": 0.9999999932781829
+      },
+      "stored_rectification_relative_rotation_max_abs_from_identity": 0.0024710536786253204,
+      "stored_rectification_translation": [
+        -0.07514827926841368,
+        -0.0006910778647780584,
+        0.0015755252203518506
+      ]
+    },
+    "ego": {
+      "left": "ego_cam_c",
+      "right": "ego_cam_b",
+      "nominal_baseline_m": 0.07500000476837158,
+      "extrinsic_translation_norm_m": 0.07547102070195857,
+      "baseline_difference_m": 0.0004710159335869907,
+      "rotation": {
+        "orthogonality_max_abs": 1.9854386157369674e-07,
+        "determinant": 1.000000035645518
+      },
+      "left_rectification_rotation": {
+        "orthogonality_max_abs": 3.484770760842082e-08,
+        "determinant": 0.9999999995432133
+      },
+      "right_rectification_rotation": {
+        "orthogonality_max_abs": 5.0291113162792556e-08,
+        "determinant": 0.9999999430005921
+      },
+      "stored_rectification_relative_rotation_max_abs_from_identity": 0.03857606652876928,
+      "stored_rectification_translation": [
+        -0.07544048675834963,
+        -0.0017001026967427867,
+        0.0013105154384584596
+      ]
+    }
+  },
+  "source": {
+    "snapshot": "5f68335f3acc802033d1e80728c1633197521de8",
+    "calibration_sha256": "23e2d9c46369292cdda492a777e7a6083815369a25d1af4bb82560669fde5d52",
+    "readme_sha256": "85d09e9439d53f77a86f960af7d869865c8aa7765292f0eca4e14d4971d117f5"
+  },
+  "ego_transform_anchor_evidence": {
+    "interpretation": "extrinsics_to_stereo_left uses historical CAM_B anchor, not rotated pair's named left CAM_C",
+    "cam_c_extrinsic_vs_pair_left_to_right_max_abs": 1.985961893824495e-07,
+    "ego_cam_c_T_ego_cam_a": [
+      [
+        0.9998757042831413,
+        0.015564598473653338,
+        -0.002524044450948129,
+        0.03804624895530918
+      ],
+      [
+        -0.015478052282369061,
+        0.9993902557893987,
+        0.03129220617595797,
+        -0.0008669338346211468
+      ],
+      [
+        0.003009559496413413,
+        -0.031249246500812646,
+        0.9995072158616763,
+        -0.0006969690638135395
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "status": "direction inferred from matrix equality/schema and supported by sparse image checks; RGB residual remains material"
+  },
+  "sparse_image_check": {
+    "opencv_version": "4.13.0",
+    "episode_index": 41,
+    "selection": "lowest public Pan_Solo id; calibration diagnostic only",
+    "frame_counts_from_container": {
+      "ego_cam_a": 299,
+      "ego_cam_b": 299,
+      "ego_cam_c": 299
+    },
+    "decoder_autorotation": false,
+    "review_contact_sheet_frame_indices": [
+      0,
+      99,
+      199,
+      298
+    ],
+    "review_sampling": "uniformly spaced review samples, not detected contact/release events",
+    "method": "SIFT mutual Lowe-ratio 0.7 matches; no geometry-fitted inlier filter; full 14-coefficient iterative undistortion",
+    "pairs": [
+      {
+        "first": "ego_cam_c",
+        "second": "ego_cam_b",
+        "frame": 0,
+        "mutual_matches": 523,
+        "hypotheses": {
+          "decoded_pixels_as_calibrated": {
+            "sampson_stereo_pixel_equivalent_median": 1.7462308697399296,
+            "sampson_stereo_pixel_equivalent_p90": 3.4763984320675236,
+            "fraction_below_2px_equivalent": 0.6137667304015296,
+            "rectified_vertical_abs_px_median": 2.0806848660808726,
+            "rectified_vertical_abs_px_p90": 4.158020568125043,
+            "positive_disparity_fraction": 0.9751434034416826
+          },
+          "undo_180_in_pixels": {
+            "sampson_stereo_pixel_equivalent_median": 11.187569285301201,
+            "sampson_stereo_pixel_equivalent_p90": 19.568603026611463,
+            "fraction_below_2px_equivalent": 0.0057361376673040155,
+            "rectified_vertical_abs_px_median": 13.255814152767357,
+            "rectified_vertical_abs_px_p90": 23.30513392281452,
+            "positive_disparity_fraction": 0.45315487571701724
+          }
+        }
+      },
+      {
+        "first": "ego_cam_c",
+        "second": "ego_cam_b",
+        "frame": 149,
+        "mutual_matches": 555,
+        "hypotheses": {
+          "decoded_pixels_as_calibrated": {
+            "sampson_stereo_pixel_equivalent_median": 1.6041175027326402,
+            "sampson_stereo_pixel_equivalent_p90": 3.357064210169392,
+            "fraction_below_2px_equivalent": 0.6612612612612613,
+            "rectified_vertical_abs_px_median": 1.9157359173269697,
+            "rectified_vertical_abs_px_p90": 4.024040259173875,
+            "positive_disparity_fraction": 0.963963963963964
+          },
+          "undo_180_in_pixels": {
+            "sampson_stereo_pixel_equivalent_median": 10.468058164137846,
+            "sampson_stereo_pixel_equivalent_p90": 16.90690464278776,
+            "fraction_below_2px_equivalent": 0.0036036036036036037,
+            "rectified_vertical_abs_px_median": 12.402405371093664,
+            "rectified_vertical_abs_px_p90": 20.256459691850008,
+            "positive_disparity_fraction": 0.44504504504504505
+          }
+        }
+      },
+      {
+        "first": "ego_cam_a",
+        "second": "ego_cam_b",
+        "frame": 0,
+        "mutual_matches": 407,
+        "hypotheses": {
+          "decoded_pixels_as_calibrated": {
+            "sampson_stereo_pixel_equivalent_median": 4.571675043196919,
+            "sampson_stereo_pixel_equivalent_p90": 7.012546461537081,
+            "fraction_below_2px_equivalent": 0.09090909090909091
+          },
+          "undo_180_in_pixels": {
+            "sampson_stereo_pixel_equivalent_median": 15.461041128131749,
+            "sampson_stereo_pixel_equivalent_p90": 18.187940427976727,
+            "fraction_below_2px_equivalent": 0.004914004914004914
+          }
+        }
+      },
+      {
+        "first": "ego_cam_a",
+        "second": "ego_cam_b",
+        "frame": 149,
+        "mutual_matches": 370,
+        "hypotheses": {
+          "decoded_pixels_as_calibrated": {
+            "sampson_stereo_pixel_equivalent_median": 2.989686959631833,
+            "sampson_stereo_pixel_equivalent_p90": 4.175675594893124,
+            "fraction_below_2px_equivalent": 0.11891891891891893
+          },
+          "undo_180_in_pixels": {
+            "sampson_stereo_pixel_equivalent_median": 13.669087543129946,
+            "sampson_stereo_pixel_equivalent_p90": 15.136816757552214,
+            "fraction_below_2px_equivalent": 0.0
+          }
+        }
+      }
+    ]
+  },
+  "elapsed_seconds": 3.7395499999984168
+}

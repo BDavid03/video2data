@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "status": "runs_authorized_2026_10_29",
+  "python": {"windows": ".runtime/moge-python313/Scripts/python.exe", "linux": ".runtime/linux-cuda/bin/python"},
+  "execution": {
+    "loop_authorized": true,
+    "trial_authorized": true,
+    "consult_authorized": true,
+    "finalize_authorized": true,
+    "report_authorized": true
+  },
+  "advisor": {
+    "command": "codex",
+    "model": "gpt-6-astra",
+    "reasoning_effort": "high",
+    "sandbox": "read-only",
+    "timeout_seconds": 900
+  },
+  "note": "User authorized runs and a continuous Codex-consulted loop on 2026-10-29. Episode 41 stays excluded; holdout 43/44 is touched only by finalize after a frozen selection."
+}
