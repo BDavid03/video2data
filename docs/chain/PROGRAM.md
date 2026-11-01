@@ -295,8 +295,8 @@ figure for that" go back to the session that did the work rather than to a cold 
 **Briefs.** A new Codex session starts with no context, so the brief carries the goal, the
 measured facts, file paths and line ranges, what has been ruled out, the exact paths it may
 write, and a definition of done ("files written, run on real data, numbers and artifact paths
-reported"). In `gpu` mode nothing enforces paths, so the brief names them explicitly and says
-which runtime flags and episodes are in scope.
+reported"). Every build brief points Codex to section 9. In `gpu` mode nothing enforces paths,
+so the brief names them explicitly and says which runtime flags and episodes are in scope.
 
 **The loop for each item:**
 
@@ -308,8 +308,8 @@ which runtime flags and episodes are in scope.
    when CUDA is needed): Codex implements, runs on real data and reports.
 3. **Review** (you, plus a `read-only` Codex defect review of `git diff` in a fresh session for
    behaviour-changing code): read the diff, re-run or re-hash at least the headline number, and
-   check the research-integrity rules (section 4) yourself. Send defects back with
-   `CODEX_RESUME`.
+   check the research-integrity rules (section 4) and the build standard (section 9) yourself.
+   Send defects back with `CODEX_RESUME`.
 4. **Commit** by explicit path (section 6). Codex never commits.
 
 **Parallel work.** Up to three Codex jobs may run at once when their write paths are disjoint;
@@ -327,3 +327,37 @@ reviewer would attack first, is worth one call whenever either changes.
 per context, spent on build and run jobs first, and say the running count in your hand-off. If
 an answer is empty and the log shows a usage limit, do the work with Claude alone (sub-agents
 included) rather than stopping, record it under `### Codex`, and let the next context try again.
+
+## 9. How code is built
+
+The owner's standard (2026-11-02): let code do the heavy lifting, do not over-engineer, build
+clean, keep library code and implementation clearly apart, use vertical slices, and make it
+presentable. It binds Claude and Codex alike, and every review checks it. The detailed
+removal list is `docs/design/simplification-standard.md`; the slice layout is
+`docs/design/feature-template.md`.
+
+- **Let existing code do the heavy lifting.** Reach for NumPy, SciPy, OpenCV, torch, the
+  `track3/` primitives, the official kit and the pinned upstream tools before writing anything.
+  Hand-rolled maths, parsers, loaders or training loops that a library already provides are
+  defects. Write scripts that do repeatable work instead of repeating it by hand.
+- **Do not over-engineer.** Build the smallest thing that does the job and measure it. No
+  abstraction before its second real use, no option nobody sets, no registries, plugin systems,
+  base classes or wrapper layers, no defensive checks for cases the boundary already rules out.
+  Prefer deleting code to adding it.
+- **Library code versus implementation.**
+  - *Library code* computes: pure functions on arrays and plain values, with no file I/O, no
+    paths, no gates, no prints and no run records. It lives in `track3/` (shared, stable
+    primitives used by two or more slices) or in a slice's private modules (`_geometry.py`,
+    `_model.py`, `_losses.py`), and it can be imported and called on its own.
+  - *Implementation* orchestrates: the slice's handler parses the request, calls `authorize`
+    and `heavy_execution`, reads inputs, calls library functions, writes artifacts and
+    `run.json`. It holds no maths. `__main__.py` and `scripts/` are thin entry points.
+  - Move code into `track3/` only when a second slice needs it and its contract is stable.
+- **Vertical slices.** A feature owns its request, handler, library modules, runtime flags,
+  request drafts and README in `track3/features/<slice>/`. No horizontal service or repository
+  layers.
+- **Build clean and presentable.** Short functions with clear names and type hints, one
+  sentence of docstring, no dead or commented-out code, no history or policy prose in comments.
+  Each slice README says what it does, how to run it (one command), what it writes and its
+  latest result. Results reach readers as tidy Markdown tables and labelled figures, with
+  units and the pseudo-label caveat where it applies.

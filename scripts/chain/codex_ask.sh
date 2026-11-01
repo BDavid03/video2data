@@ -77,6 +77,12 @@ points to. Rules that always bind you:
   it has finished, instead of waiting.
 - Install nothing. Upload nothing. No test suites: verify with py_compile, a CPU import, an
   old-versus-new equivalence script, and real runs on real data.
+How to build (docs/chain/PROGRAM.md section 9): let existing code do the heavy lifting
+(NumPy/SciPy/OpenCV/torch, the track3/ primitives, the kit) instead of hand-rolling; do not
+over-engineer (smallest thing that works, no abstraction before its second use); keep library
+code (pure functions, no I/O, paths, gates or run records) apart from the slice handler that
+orchestrates them; keep each feature in its vertical slice track3/features/<slice>/; write clean,
+presentable code and a README that says how to run it and what it found.
 Be concrete: cite files with line numbers, give numbers, say what you checked and what you only
 believe. Disagree when the evidence says so. End with: files changed, commands run, results
 (numbers and artifact paths), and anything left undone.

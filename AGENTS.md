@@ -1,5 +1,11 @@
 # Current user instructions
 
+- Later on 2026-11-02 the user added: "also in instructions let \"code\" do the heavy lifting,
+  dont over-engineer, build clean, clear seperation between library code & implementation,
+  vertical slice, presentable format". This is `docs/chain/PROGRAM.md` section 9, repeated in the
+  preamble of every `scripts/chain/codex_ask.sh` call: existing libraries and primitives do the
+  heavy lifting, nothing is over-engineered, pure library code is kept apart from slice handlers,
+  features stay in vertical slices, and code, READMEs and results are presentable.
 - On 2026-11-02 the user asked, for `scripts/chain/session_chain.py`: "do large majority of
   work with codex". Each chain context now leads (chooses items, briefs, reviews diffs, re-checks
   headline numbers, commits, hands off) and Codex does most of the hands-on work: code, runs,
