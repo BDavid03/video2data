@@ -7,6 +7,7 @@ median geometric mean. The same object mesh is written for every scored (episode
 """
 
 from dataclasses import asdict, dataclass, field
+import math
 from pathlib import Path
 
 from track3.paths import output_path
@@ -15,7 +16,7 @@ from track3.runs import ROOT, artifact, dataset_revision, new_run_id, read_json,
 
 FEATURE = Path(__file__).parent
 ROSTER = "upstream/v2d_submission_kit/v2d_submission_kit/data/track_3_evaluation_objects.json"
-SHAPES = ("ellipsoid", "box")
+SHAPES = ("ellipsoid", "box", "vessel_rule")
 
 
 @dataclass(frozen=True)
@@ -25,6 +26,8 @@ class BuildRequest:
     shape_overrides: dict[str, str] = field(default_factory=dict)
     ellipsoid_subdivisions: int = 3
     require_every_pair: bool = True
+    aspect_threshold: float = 1.3
+    handle_height_fraction: float = 0.6
 
     @classmethod
     def from_file(cls, path):
@@ -35,6 +38,11 @@ class BuildRequest:
             raise ValueError(f"shape must be one of {SHAPES}")
         if not self.measure_runs:
             raise ValueError("Name at least one completed mesh_extents.measure run")
+        if "vessel_rule" in (self.shape, *self.shape_overrides.values()):
+            if not math.isfinite(self.aspect_threshold) or self.aspect_threshold < 1:
+                raise ValueError("aspect_threshold must be finite and at least 1")
+            if not math.isfinite(self.handle_height_fraction) or not 0 < self.handle_height_fraction <= 1:
+                raise ValueError("handle_height_fraction must be in (0, 1]")
 
 
 def _primitive(shape, dims, subdivisions, trimesh):
@@ -65,6 +73,9 @@ def build(request: BuildRequest):
         import numpy as np
         import trimesh
 
+        from . import _shapes
+        from ._rule_scores import CATEGORIES
+
         contributions = {}
         for path, parent in parents:
             extents = read_json(artifact((path, parent), "extents.json", record))
@@ -82,7 +93,16 @@ def build(request: BuildRequest):
             size = np.exp(np.log(dims).mean(axis=1))
             pooled = np.median(dims / size[:, None], axis=0) * np.median(size)
             shape = request.shape_overrides.get(name, request.shape)
-            mesh = _primitive(shape, pooled, request.ellipsoid_subdivisions, trimesh)
+            if shape == "vessel_rule" and name in CATEGORIES["round_vessel"]:
+                if pooled[0] / pooled[1] > request.aspect_threshold:
+                    shape = "vessel_with_handle"
+                    mesh = _shapes.vessel_with_handle(pooled, request.handle_height_fraction)
+                else:
+                    shape = "cylinder"
+                    mesh = _shapes.cylinder(pooled)
+            else:
+                shape = "box" if shape == "vessel_rule" else shape
+                mesh = _primitive(shape, pooled, request.ellipsoid_subdivisions, trimesh)
             if not mesh.is_watertight:
                 raise ValueError(f"{name}: primitive is not closed")
             target = directory / "objects" / f"{name}.ply"

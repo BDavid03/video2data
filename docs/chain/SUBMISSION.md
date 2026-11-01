@@ -5,12 +5,12 @@ Kept current by every chain context (see `PROGRAM.md` section 1). Freeze: 4 Nove
 
 | Id | Deliverable | State | Evidence | Blocked on |
 | --- | --- | --- | --- | --- |
-| D1 | Track 3 mesh Parquet (CD-O) | **v1 packed, preflight "Ready to submit"** (context 02; v1 = v0 plus the Codex-review fixes, same method): one box per object with proportions measured from video (`mesh_extents` slice), 36 pairs. Local CD-O vs the 10 scans: v1 per-object mean 1.008 cm (v0 1.009; cube 2.52, scan-PCA oracle box 1.17; v1 ellipsoid 1.038); pair-weighted over the 26 scanned pairs 1.257 cm (cube 2.77, oracle 1.34). Input-split ablation (same references): on the 9 objects both splits cover, boxes built from evaluation-episode measurements only score 1.024 cm, public-episode only 1.063 (eval-only over all 10: 0.99). The spoon (10 pairs) has no scan, so its mesh is unmeasured | `submissions/20261101T1500Z-d1-v1/track3_meshes_v1.parquet`; build run `outputs/mesh_extents/build/20261101T103838.400965Z-117fbcff`; `outputs/mesh_eval/d1-ctx02/` (scores, `d1-v1-cdo.png`) | owner: GitHub push, then repack with the real URL (NEEDS-YOU 1, 2) |
+| D1 | Track 3 mesh Parquet (CD-O) | **v2 packed, preflight "Ready to submit"** (context 03): adopted R2 vessel-handle rule, aspect threshold 1.3, handle height fraction 0.6; v1's exact video measure runs, 36 pairs. Cross-fitted per-object CD-O **0.92572 cm** vs v1 box 1.00764; cross-fitted pair-weighted **1.08742 cm** vs 1.25662; all three adoption gates pass. Fresh score of the final all-object fitted build: **0.9251 cm** (development estimate, public scans). The spoon keeps its v1 box and remains unmeasured | `submissions/20261101T1605Z-d1-v2/track3_meshes_v2.parquet`; build `outputs/mesh_extents/build/20261101T160402.316899Z-0c4f8b6f/run.json`; `outputs/mesh_eval/d1-ctx03/`; packed-file details below | owner: GitHub push, then repack with the real URL (NEEDS-YOU 1, 2) |
 | D2 | Track 3 pose CSV (five pose metrics) | runtime installed and smoke-tested; no task parquet, checkpoint or rollout yet | `scripts/linux/install-flashchord.sh`, `.runtime/flashchord/install-logs/device.log`, `.scratch/fc-replay.log` (worktree) | object 6-DoF tracks from video, a task parquet per episode, hand references (no hand model installed), per-episode training |
 | D3 | Extended abstract PDF | draft LaTeX from the depth line only: `outputs/auto_research/report/20261029T040958.830501Z-d8ea4610/main.tex` | depth results only | LaTeX engine install (approved 2026-11-01, not yet done) |
 | D4 | Code at a GitHub commit URL | local git; this context's work is on branch `worktree-chain-ctx01` | `git log` | owner: GitHub remote (NEEDS-YOU 1) |
-| D5 | One reproduction command per deliverable | depth line (`scripts/research_loop.py --finalize --report`); installs (`scripts/linux/install-flashchord.sh`, `install-kit-env.sh`); local CD-O (`scripts/track3/local_cdo.py`); D1 v0: the four commands under "D1 v0" below | this file | - |
-| D6 | Packed files, preflight clean, ready for the owner to upload | D1 v1 packed with a placeholder commit URL (not final); kit preflight `--track track_3 --skip-kaggle`: "Ready to submit" (warnings only: no pose results, Kaggle checks skipped) | `submissions/20261101T1500Z-d1-v1/` | GitHub remote for the real URL; upload is the owner's (NEEDS-YOU 1, 2) |
+| D5 | One reproduction command per deliverable | depth line (`scripts/research_loop.py --finalize --report`); installs (`scripts/linux/install-flashchord.sh`, `install-kit-env.sh`); local CD-O (`scripts/track3/local_cdo.py`); D1 v2: build, score, pack and preflight commands under "Packed files" below, with recorded build and pack manifests | this file | - |
+| D6 | Packed files, preflight clean, ready for the owner to upload | D1 v2 packed with a placeholder commit URL (not final); kit preflight `--track track_3 --skip-kaggle`: "Ready to submit" (warnings only: no pose results, Kaggle checks skipped) | `submissions/20261101T1605Z-d1-v2/` | GitHub remote for the real URL; upload is the owner's (NEEDS-YOU 1, 2) |
 
 ## Triage (context 01, 2026-11-01 03:30 UTC, 90 h before the freeze)
 
@@ -160,3 +160,47 @@ depth runs and update those paths (the run ids are timestamps).
 | --- | --- | --- | --- | --- | --- |
 | 2026-11-01 10:35 | `submissions/20261101T1035Z-d1-v0/track3_meshes_v0.parquet` (D1, 294,912 rows, 1.6 MB) | `f814da46bdaaa747012cc078d6ca29274070633ab4745bcbae5319fabc24b710` | `0f8619373f2953eada625e25aa53d98f0f06d11a` (branch `worktree-chain-ctx01`) in placeholder URL `https://github.com/OWNER-PLACEHOLDER-not-final/video2data/commit/...` | **no**: repack with the real URL after the push | - |
 | 2026-11-01 15:00 | `submissions/20261101T1500Z-d1-v1/track3_meshes_v1.parquet` (D1 v1, supersedes v0) | `a76143b933ba09453a02b8100f2fd15af39ab51ca1064b7dea274c0eff411a9b` | `93038d282478c8f7923425cdb2648ce8ef09d2c6` in the placeholder URL | **no**: repack with the real URL after the push | - |
+| 2026-11-01 16:05 | `submissions/20261101T1605Z-d1-v2/track3_meshes_v2.parquet` (D1 v2, supersedes v1; 294,912 rows, 1,568,410 bytes) | `43fa6ac02353520aac4d019f7d6d45e0aab923f1c8f43d6cf03e30c242ba95c2` | `874ff6793721faa0035a71788b8f5a22f9b4b2d3` in `https://github.com/OWNER-PLACEHOLDER-not-final/video2data/commit/...` | **no**: requested placeholder URL; repack with the real URL after the push | - |
+
+### D1 v2: adopted R2 vessel-handle rule
+
+Fixed protocol: `docs/chain/mesh-selection-protocol.md`. Three rules were evaluated; R2 was
+adopted after passing all three gates. These are development estimates against the ten public
+scans, used only for scoring. No scan geometry, dimension or template enters a candidate.
+
+| Rule | Threshold chosen on A → scored B | Threshold chosen on B → scored A | Cross-fitted per-object mean (cm) | In-sample mean (cm) | Cross-fitted pair-weighted mean (cm) | Worst held-out regression (cm) | Gain / object / pair gates |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| R2 vessel-handle | 1.3 | 1.05 | 0.92572 | 0.92506 | 1.08742 | +0.10599 | pass / pass / pass |
+
+The final build fixes the threshold at **1.3**, selected on all ten objects, and handle height
+fraction at **0.6**. Its fresh local score is **0.9251 cm** over seed episodes 1/3/5; this fitted
+score does not replace the cross-fitted adoption headline. `wooden_spoon` stays a box.
+
+Evidence and run records:
+
+- Build: `outputs/mesh_extents/build/20261101T160402.316899Z-0c4f8b6f/run.json` (v1's exact 23 measure runs).
+- Legacy equivalence: `outputs/mesh_eval/d1-ctx03/v2-equivalence.json`; old/new box and ellipsoid
+  builds have byte-identical vertex arrays, face arrays and PLY files for all 47 meshes each;
+  the box rebuild also matches all 47 historical v1 meshes.
+- Candidate equivalence: `outputs/mesh_eval/d1-ctx03/v2-mesh-equivalence.json`; all ten scanned
+  meshes match the loop's R2/1.3 candidates byte-for-byte; all 36 pair copies match their object
+  meshes; the spoon matches v1.
+- Fresh score: `outputs/mesh_eval/d1-ctx03/v2-cdo.json`; selection evidence:
+  `outputs/mesh_eval/rules/summary.md` and `ledger.jsonl`.
+- Pack run: `submissions/20261101T1605Z-d1-v2/run.json`; SHA-256, commands and row checks:
+  adjacent `manifest.json`; kit preflight: adjacent `preflight.log`, exit 0, **Ready to submit**.
+  Warnings: no pose results supplied and Kaggle checks skipped. Packed row count and row order
+  exactly match the kit mesh sample (294,912 rows); numeric values are finite and row ids unique.
+
+Reproduce using the existing measure runs:
+
+```bash
+PYTHONPATH=. .runtime/linux-cuda/bin/python -m track3.features.mesh_extents build --request scripts/track3/requests/d1/build-v2-r2.json
+.runtime/kit-env/bin/python scripts/track3/local_cdo.py --candidates outputs/mesh_extents/build/<new-run>/objects --out outputs/mesh_eval/<new-score>.json
+.runtime/kit-env/bin/python upstream/v2d_submission_kit/v2d_submission_kit/tools/pack_reconstruction.py track3-meshes \
+  --meshes outputs/mesh_extents/build/<new-run>/meshes \
+  --sample upstream/v2d_submission_kit/v2d_submission_kit/data/track_3_mesh_sample_submission.parquet \
+  --commit https://github.com/OWNER-PLACEHOLDER-not-final/video2data/commit/874ff6793721faa0035a71788b8f5a22f9b4b2d3 \
+  --out submissions/<new-stamp>-d1-v2/track3_meshes_v2.parquet
+.runtime/kit-env/bin/python upstream/v2d_submission_kit/v2d_submission_kit/tools/preflight.py --track track_3 --skip-kaggle
+```

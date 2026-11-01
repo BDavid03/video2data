@@ -3,6 +3,30 @@
 Video-measured object proportions, and the closed primitive (ellipsoid or box) built from them, for
 the Track 3 CD-O mesh file (D1).
 
+## Latest: D1 v2
+
+V2 uses the adopted **R2 vessel-handle** rule with `aspect_threshold=1.3` and
+`handle_height_fraction=0.6`, chosen on all ten objects after cross-fitted adoption. It reuses
+v1's exact 23 measure runs; vessel membership comes from `_rule_scores.CATEGORIES`, shared with
+the rule loop. The spoon and the other non-vessels retain their boxes.
+
+```bash
+PYTHONPATH=. .runtime/linux-cuda/bin/python -m track3.features.mesh_extents build --request scripts/track3/requests/d1/build-v2-r2.json
+```
+
+Build: `outputs/mesh_extents/build/20261101T160402.316899Z-0c4f8b6f/run.json`.
+Fresh local CD-O: **0.9251 cm** per object (`outputs/mesh_eval/d1-ctx03/v2-cdo.json`), the
+all-object fitted development score; the adoption headline remains **0.92572 cm cross-fitted**.
+All ten scanned meshes match the loop's R2/1.3 candidates byte-for-byte. Legacy box and ellipsoid
+builds retain identical vertex arrays, face arrays and PLY files over all 47 meshes each
+(`outputs/mesh_eval/d1-ctx03/v2-equivalence.json`).
+
+Packed: `submissions/20261101T1605Z-d1-v2/track3_meshes_v2.parquet`, **294,912 rows**, identical
+row order to the kit sample; preflight `--track track_3 --skip-kaggle`: **Ready to submit**
+(warnings: no pose results, Kaggle checks skipped). The commit URL is still the requested
+placeholder; SHA-256 and reproduction commands are in the adjacent `manifest.json` and
+`docs/chain/SUBMISSION.md`.
+
 ## Why this slice exists
 
 CD-O (kit `metric_code/track_3/CD-O.py`) scales each candidate by the ratio of surface RMS radii and
@@ -71,7 +95,8 @@ PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 
 The editable queue is `rules.json`. The handler reuses the v1 pooled video extents and exact
 box files from `outputs/mesh_extents/build/20261101T103838.400965Z-117fbcff/`, reproduces the
 baseline, then imports `scripts/track3/local_cdo.py` for the kit's mesh budget and CD-O scorer
-(seed episodes 1, 3, 5). The existing `build.py`, `_geometry.py` and `measure.py` are unchanged.
+(seed episodes 1, 3, 5). Rule evaluation preserves v1's box files; `_geometry.py` and `measure.py`
+remain unchanged.
 No scans enter the shape builders in `_shapes.py`.
 
 - **R1 vessel-cylinder:** round vessels become capped elliptical cylinders; other categories
