@@ -160,3 +160,20 @@ pre-registers one confirmation on fresh data instead:
   rests on one episode.
 - The report discloses the sequence: the fixed gates failed, the AUC saturation, this
   post-result amendment and its confirmation outcome.
+
+## Decision after the confirmation (2026-11-02, context 04, before any D2 v2 file exists)
+
+Amendment 2 outcome (`outputs/pose_insurance/placement/confirmation.md`): episode 27 cannot be
+measured (pot and rack are separate clusters in frame 0); on episode 2 K1a lowers RPE
+54.39 -> 21.79 cm and MPPE 28.29 -> 12.43 cm with AUC, SP-SR and MP-SR unchanged: **adopt,
+resting on one episode**. Physical check (`outputs/pose_insurance/v2/physical_checks.json`):
+scored episodes 1 and 28 pass (first-pose error 0.062 cm, drift 0.058 cm); episode 30 fails
+(first pose 1.47 cm, drift 17.0 cm: the stacked sweeper starts outside the rack footprint and falls).
+
+The protocol does not say what happens when the check fails on some affected episodes. The
+physical check is a validity filter on each scene; it reads no score. So K1a is used on scored
+episodes 1 and 28, and episode 30 keeps v1's default placement (its K1a scene is not physically
+valid). Codex's fail-closed reading (keep v1 everywhere) is recorded in the context-04 hand-off.
+The report states that the confirmation rests on one fresh episode, that K1a's train analogue for
+episode 28 (train 26) was part of the selection data, and that AUC and SP-SR cannot change at
+this placement error.
