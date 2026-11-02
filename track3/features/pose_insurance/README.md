@@ -362,3 +362,34 @@ clause (`docs/chain/pose-scale-protocol.md`, last section); D2 v3 applies it (se
 `SCALE_V3.md`). After S1 the train distance ratio is still 1.18-2.23 (3.58 on episode
 31), so part of the gain may come from shorter offsets hedging wrong directions rather
 than from a corrected scale.
+
+## Train pose length diagnostic
+
+The fixed `docs/chain/pose-length-diagnostic-protocol.md` measurement runs on CPU:
+
+```bash
+PYTHONPATH=. CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 .runtime/linux-cuda/bin/python -m track3.features.pose_insurance length_diagnostic --request track3/features/pose_insurance/length_request.json
+```
+
+`_length.py` contains pure array calculations; `length_diagnostic.py` reuses the
+placement/scale readers and admits existing frame-0 MoGe, stereo and S1 artifacts.
+The handler gates `length_diagnostic_authorized`, hashes inputs and sources,
+resumes completed episode identities through `length/ledger.jsonl`, and writes
+`outputs/pose_insurance/length/{summary.md,summary.json,lengths.png,run.json}`.
+Immutable episode/report runs remain in subdirectories; previous top-level
+reports are backed up under `.runtime/tmp/pose-length/` before replacement.
+
+On the fixed five episodes 11/12/18/21/23, direct stereo centroids reduce
+horizontal length MAE versus mocap origins from **11.754 cm to 0.581 cm**
+(**11.173 cm lower, 5/5 episodes improved**). Against transformed exact scan
+AABB centres the corresponding errors are **12.076 cm and 1.107 cm**. The
+footprint-centre alternative fails the fixed improvement test. S1 scene positions
+reproduce exactly (**0 m** maximum difference across all eight episodes).
+This warrants only a later, separately pre-registered candidate; v3 stays unchanged.
+Episode 12 uses its recorded border-cup mask for centroid measurements while S1
+and its footprint alternative retain the slot-0 default. Merged episodes 0/26/31
+have no independent centroid measurement and remain separate in the report.
+The along/cross-ray split is conditional on the kit's slot-0 body alignment:
+no camera-to-mocap yaw calibration exists, so the split is not an independently
+calibrated camera-world error. No GPU, scene construction, policy run or packing
+is performed, and episodes 41/43/44 are never read.

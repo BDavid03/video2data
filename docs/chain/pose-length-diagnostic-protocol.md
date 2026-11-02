@@ -48,3 +48,21 @@ centroids with V_hull footprint centres) has mean absolute length error against 
 lower than V_inc** over the five clean episodes (11, 12, 18, 21, 23) and is lower on at least four of
 them. Otherwise the length error is recorded as not explained by depth source or centroid choice, and
 the pose line stays at v3.
+
+## Amendment 1 (2026-11-03, after the train result, before any data on validation episodes exist)
+
+Train result (`outputs/pose_insurance/length/summary.md`): V_stereo clean-five mean absolute length error
+0.581 cm vs M_o (V_inc 11.754 cm), lower on 5/5, so the fixed test warrants a later candidate. Because
+the result is surprisingly good, it gets one independent check on fresh public episodes before it is
+believed: **validation 13, 22, 24** (two objects each, never used in any pose work). 2 and 27 are run if
+their frame-0 clusters separate the two objects; otherwise reported as merged and not counted.
+
+- Same code and definitions as above; new MoGe-2 frame-0 depth, mesh_extents clusters with identities
+  assigned from the RGB overlay before any mocap is read, and calibrated stereo for each episode.
+- V_inc is not defined there (no S1 scene); its stand-in is **V_s = V_moge x s**, s the episode stereo/MoGe
+  scale computed exactly as `scale_stereo.py` does.
+- **Confirmed** only if V_stereo mean absolute length error vs M_o over the counted episodes is below 3 cm
+  and at least 5 cm below V_s, and V_stereo is lower than V_s on every counted episode. Otherwise the
+  train result is recorded as not confirmed and no candidate follows.
+- A confirmed result still adopts nothing. The candidate (slot-1 offset from direct stereo centroids)
+  needs its own protocol with kinematic gates on the eight train episodes before any policy run or repack.
