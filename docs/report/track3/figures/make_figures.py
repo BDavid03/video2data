@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
-os.environ.setdefault("MPLCONFIGDIR", str(ROOT / ".runtime/tmp/ctx06/d3/matplotlib"))
+os.environ.setdefault("MPLCONFIGDIR", str(ROOT / "docs/report/track3/.matplotlib"))
 
 import matplotlib
 
@@ -49,13 +49,14 @@ def pose_offset_panel(episodes: list[int], offsets: dict[str, list[float]]) -> p
     x = np.arange(len(episodes))
     for shift, name, label, colour, hatch in (
         (-0.18, "incumbent", "v2 rule", BLUE, ""),
-        (0.18, "S1", "S1 stereo scale", "#D55E00", "//"),
+        (0.18, "S1", "S1 stereo shrink", "#D55E00", "//"),
     ):
         ax.bar(x + shift, offsets[name], width=0.34, label=label,
                color=colour, hatch=hatch, linewidth=0.4, edgecolor="white")
     ax.axhline(9, color="#333333", linestyle="--", linewidth=0.9)
-    ax.text(7.4, 10.5, "9 cm", ha="right", va="bottom", fontsize=9,
-            bbox={"facecolor": "white", "edgecolor": "none", "pad": 1})
+    ax.annotate("9 cm", xy=(1, 9), xycoords=("axes fraction", "data"),
+                xytext=(4, 0), textcoords="offset points", ha="left", va="center",
+                fontsize=9, annotation_clip=False)
     labels = [f"{episode}*" if episode in (0, 26) else str(episode) for episode in episodes]
     ax.set(xticks=x, xticklabels=labels, xlabel="Train episode (* stacked)",
            ylabel="Offset error (cm)", ylim=(0, 88), yticks=[0, 20, 40, 60, 80])
@@ -78,7 +79,7 @@ def pose_offset_chart(preview: Path | None, output_dir: Path = TARGET.parent) ->
     }
     fig = pose_offset_panel(episodes, values)
     target = output_dir / "d2-slot1-offset.pdf"
-    fig.savefig(target, metadata={"Title": "v2 and stereo-scaled frame-zero slot-1 offset errors",
+    fig.savefig(target, metadata={"Title": "v2 and stereo-derived shrinkage frame-zero slot-1 offset errors",
                                  "Author": "", "Creator": "", "CreationDate": None,
                                  "ModDate": None})
     if preview:
@@ -89,39 +90,39 @@ def pose_offset_chart(preview: Path | None, output_dir: Path = TARGET.parent) ->
 
 
 def pipeline_panel() -> plt.Figure:
-    """Draw the mesh and static-pose branches at column width with template-sized text."""
-    fig, ax = plt.subplots(figsize=(3.18, 1.40))
+    """Draw both submission branches and the stereo input with readable arrows."""
+    fig, ax = plt.subplots(figsize=(3.18, 1.75))
     fig.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99)
     ax.set(xlim=(0, 1), ylim=(0, 1))
     ax.set_axis_off()
     nodes = {
-        "depth": (0.5, 0.94, "Egocentric video → MoGe-2 depth"),
-        "extents": (0.23, 0.70, "Object extents"),
-        "placement": (0.74, 0.70, "Frame-0 placement"),
-        "shape": (0.23, 0.45, "R2: vessel + handle;\nelse box"),
-        "scene": (0.74, 0.45, "Static scene\nS1 offset shrink"),
-        "meshes": (0.23, 0.12, "D1 meshes"),
-        "kit": (0.74, 0.22, "evaluate_policy.py"),
-        "poses": (0.74, 0.05, "D2 trajectories"),
+        "depth": (0.5, 0.95, "Egocentric video → MoGe-2 depth"),
+        "extents": (0.23, 0.75, "Object extents"),
+        "placement": (0.75, 0.75, "Frame-0 placement"),
+        "shape": (0.23, 0.50, "R2: vessel + handle;\nelse box"),
+        "scene": (0.75, 0.50, "Static scene\nS1 shrink ($s$)"),
+        "meshes": (0.23, 0.25, "D1 meshes"),
+        "kit": (0.75, 0.25, "Kit simulation"),
+        "stereo": (0.23, 0.07, "C/B stereo → $s$"),
+        "poses": (0.75, 0.07, "D2 trajectories"),
     }
-    for source, dest in (("depth", "extents"),
-                         ("depth", "placement"), ("extents", "shape"),
-                         ("shape", "meshes"), ("placement", "scene"),
-                         ("scene", "kit"), ("kit", "poses")):
-        endpoint = nodes[dest][:2]
-        if source == "depth":
-            endpoint = (endpoint[0], endpoint[1] + 0.085)
-        ax.annotate("", xy=endpoint, xytext=nodes[source][:2],
-                    arrowprops={"arrowstyle": "->", "color": "#555555",
-                                "linewidth": 0.9,
-                                "shrinkA": 13 if source in ("shape", "scene") else 7,
-                                "shrinkB": 0 if source == "depth" else
-                                13 if dest in ("shape", "scene") else 7})
+    labels = {}
     for name, (x, y, label) in nodes.items():
-        ax.text(x, y, label, ha="center", va="center", fontsize=10,
-                color=BLUE if name == "meshes" else "#D55E00" if name == "poses" else "#222222",
-                bbox={"facecolor": "#F0F5F8" if name in ("shape", "scene") else "white",
-                      "edgecolor": "none", "pad": 2})
+        labels[name] = ax.text(
+            x, y, label, ha="center", va="center", fontsize=10,
+            color=BLUE if name == "meshes" else "#D55E00" if name == "poses" else "#222222",
+            bbox={"facecolor": "#F0F5F8" if name in ("shape", "scene") else "white",
+                  "edgecolor": "none", "pad": 1},
+        )
+    for source, dest in (("depth", "extents"), ("depth", "placement"),
+                         ("extents", "shape"), ("shape", "meshes"),
+                         ("placement", "scene"), ("scene", "kit"),
+                         ("kit", "poses"), ("stereo", "scene")):
+        ax.annotate("", xy=nodes[dest][:2], xytext=nodes[source][:2],
+                    arrowprops={"arrowstyle": "->", "color": "#555555",
+                                "linewidth": 1.0, "shrinkA": 2, "shrinkB": 2,
+                                "patchA": labels[source].get_bbox_patch(),
+                                "patchB": labels[dest].get_bbox_patch()})
     return fig
 
 
