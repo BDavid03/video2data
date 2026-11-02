@@ -34,52 +34,68 @@ The kit interpreter runs `scripts/track3/local_cdo.py` on the new object meshes
 preflight commands. Absolute command paths are rebased to the current checkout;
 mesh directory, output file and commit URL are substituted. CD-O uses public scans
 only as scoring references. The recorded fitted score is **0.9251 cm**; the
-cross-fitted adoption headline remains **0.92572 cm**. No score was rerun here.
+cross-fitted adoption headline remains **0.92572 cm**. The CPU reproduction below
+reran the fitted score and recovered **0.9251 cm**.
 
 A fresh `.runtime/tmp/reproduce-d1-<unique>/` holds `build.log`, `score.log`,
 `cdo.json`, `pack.log`, `preflight.log`, the Parquet and a new `manifest.json`
 with commands, hashes and the new build-record path. The source manifest and
 historical build are retained. D1 is CPU only, but its rebuild is still opt-in.
 
-## D2: frozen evaluation queue → official exports → pack → preflight
+## D2: version-aware campaign or composition → pack → preflight
+
+The newest timestamped `submissions/*-d2-v*/manifest.json` is the default.
+`--manifest` selects a particular recorded package. The script reads `version`
+when present, otherwise the packed filename's `_v1`/`_v2` suffix (the historical
+manifests have no explicit version key). Unsupported versions are refused.
+Execution requires an explicit commit URL; plans default to the recorded URL.
+Episodes 41/43/44 are refused.
+
+### v2: CPU composition
 
 ```bash
-bash scripts/reproduce/d2_poses.sh outputs/pose_insurance/results-v1 \
-  'https://github.com/<owner>/<repo>/commit/<sha>' --run
-# Optional: --manifest submissions/<recorded-d2>/manifest.json
+bash scripts/reproduce/d2_poses.sh \
+  'https://github.com/OWNER-PLACEHOLDER-not-final/video2data/commit/c7f90116f11b41970d0e910375713037faab126f' \
+  --manifest submissions/20261101T2315Z-d2-v2/manifest.json --run
 ```
 
-Both positional arguments default in plan mode to the newest timestamped
-`submissions/*-d2-v*/manifest.json`'s `results_dir` and `code_commit_url`.
-Execution requires an explicit commit URL. A later packed v2 manifest with the same
-schema is selected without editing this script.
+The script verifies every export's recorded `source` SHA-256 before copying any
+files. It checks the recorded composition: **18 unchanged v1 exports** from
+`outputs/pose_insurance/results-v1/` and **K1a episodes 1/28** from
+`outputs/pose_insurance/rebuilt-v2/`. Episode 30 remains on v1. It copies those
+20 sources into a new `.runtime/tmp/reproduce-d2-<unique>/results/`; the historical
+results directories remain untouched. CUDA is hidden from its child commands.
+It never imports or launches the GPU campaign for this branch.
 
-The script copies the slice queue into a fresh
-`.runtime/tmp/reproduce-d2-<unique>/queue.json`, setting its learned budget from
-the manifest and its evaluation episodes from the listed export filenames. For
-v1 these are **512 steps, one world, replay minimum 32**, on **20 evaluation
-episodes**. It runs only the loop's `tasks` and `evaluation` phases, in order.
-Budget selection and public tuning are not repeated. Episodes 41/43/44 are refused.
+The manifest's official pack and preflight commands then use that fresh results
+directory, explicit URL and fresh CSV path. `--skip-crosscheck` and `--skip-kaggle`
+are preserved. The work directory holds `sources.json`, `results/`, `pack.log`,
+`preflight.log`, `command_results.json`, the CSV and a new `manifest.json` recording
+source/copy hashes, commands, exit codes and version. Preflight must exit 0 and
+report `Ready to submit`. This reproduces the recorded composition from evaluated
+exports; it does not regenerate their GPU trajectories.
 
-The existing loop lacks a results-directory CLI option. The printed Python
-invocation binds its existing `loop.RESULTS` to the requested directory before
-calling `loop.main()`; no slice source is changed and no extra export copy is
-needed. Its canonical task registry, resume ledger, summaries and completion
-marker remain under `outputs/pose_insurance/v1/`; immutable producers remain
-under `build-v1/` and `run-v1/`. The script uses the current checked-out slice
-code and does not turn an older recipe into a newer one merely by changing a path.
+### v1: existing frozen loop campaign (GPU)
 
-**The evaluation phase can use the GPU.** Run `--run` only in an authorised GPU
-job when the chain's GPU schedule is free. It executes the resumable loop once,
-serially, through the slice handlers and their `track3/gpu.py` lease. It never
-touches the lock itself. No GPU stage was run for this job.
+```bash
+bash scripts/reproduce/d2_poses.sh .runtime/tmp/reproduce-d2-campaign/results \
+  'https://github.com/<owner>/<repo>/commit/<sha>' \
+  --manifest submissions/20261101T1703Z-d2-v1/manifest.json --run
+```
 
-Packing and preflight reuse the manifest's kit commands, substituting the results
-directory, commit URL and fresh CSV path. The original `--skip-crosscheck` and
-`--skip-kaggle` flags are preserved. The fresh temporary directory holds phase
-logs, pack/preflight logs, CSV and a new manifest recording its queue, exports and
-commands. Preflight must exit successfully and report `Ready to submit`.
-The historical manifest records **9,120 rows**; this job only re-hashed that file.
+Use a new, empty results directory. The original `RESULTS_DIR COMMIT_URL` interface,
+queue budget and `tasks` then `evaluation` commands are retained. The script copies
+the slice queue into its fresh work directory, taking the learned budget and
+export episode list from the manifest: **512 steps, one world, replay minimum 32**
+on **20 evaluation episodes**. Budget selection and tuning are not repeated.
+
+The existing loop lacks a results-directory CLI option. The Python invocation
+binds `loop.RESULTS` before `loop.main()`; its handlers, resume ledger, summaries,
+completion marker and GPU lease are unchanged. Run this branch only in an
+authorised GPU job when the GPU schedule is free. The current slice code is used;
+changing a path does not reconstruct historical code. The CPU comparison below
+checks all four printed v1 commands against the original script; it does not
+execute the v1 campaign. Packing/preflight and their logs retain the same behavior.
 
 ## D3: figures → PDF
 
@@ -106,7 +122,7 @@ only the documented microtype tracking error and rejects other TeX errors.
 | Deliverable | Recorded source |
 | --- | --- |
 | D1 | `submissions/20261101T1605Z-d1-v2/{manifest,run}.json`; the manifest's `build_run` and its request's measure producers |
-| D2 | `submissions/20261101T1703Z-d2-v1/{manifest,run}.json`; `outputs/pose_insurance/v1/{ledger.jsonl,evaluation_finished.json}`; selected producer `run.json` files |
+| D2 | v1: `submissions/20261101T1703Z-d2-v1/{manifest,run}.json`, loop ledger/completion; v2: `submissions/20261101T2315Z-d2-v2/{manifest,run}.json`, per-export `source`/SHA-256 and `composition`, `outputs/pose_insurance/v2/report.md` |
 | D3 | `docs/report/track3/README.md` provenance table; `docs/report/track3/main.log`; new command/output log when executed |
 
 `verify.sh <manifest.json>` is read-only and CPU only. It streams SHA-256 for the
@@ -124,82 +140,73 @@ claiming an exact historical reproduction.
 
 ## CPU evidence, 2026-11-02
 
-All four scripts passed `bash -n`. All three default plans exited 0. Their logs
-and the verifier transcripts are in
-`.runtime/tmp/d5-reproduction-j5wHti15/`:
-`syntax.log`, `plan-d1.log`, `plan-d2.log`, `plan-d3.log`,
-`verify-d1.log`, `verify-d2.log`.
+Both real-data `--run` paths completed with **exit 0**. D1 build, local CD-O,
+packing and preflight each exited 0; D2 v2 source verification/copy, packing and
+preflight completed, with both kit commands exiting 0. Both preflights reported
+`Ready to submit`. No GPU stage, install, upload or test suite was run.
 
-Commands run:
+Commands executed with the exact placeholder URLs recorded in the manifests:
 
 ```bash
-for script in scripts/reproduce/*.sh; do bash -n "$script" || exit; done
-bash scripts/reproduce/d1_meshes.sh
-bash scripts/reproduce/d2_poses.sh
-bash scripts/reproduce/d3_report.sh
+bash scripts/reproduce/d1_meshes.sh \
+  'https://github.com/OWNER-PLACEHOLDER-not-final/video2data/commit/874ff6793721faa0035a71788b8f5a22f9b4b2d3' --run
+bash scripts/reproduce/d2_poses.sh \
+  'https://github.com/OWNER-PLACEHOLDER-not-final/video2data/commit/c7f90116f11b41970d0e910375713037faab126f' \
+  --manifest submissions/20261101T2315Z-d2-v2/manifest.json --run
+bash -n scripts/reproduce/d1_meshes.sh
+bash -n scripts/reproduce/d2_poses.sh
+PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' .runtime/linux-cuda/bin/python -B \
+  .runtime/tmp/ctx05-d5-evidence/check_scripts.py
+PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' .runtime/kit-env/bin/python -B \
+  .runtime/tmp/ctx05-d5-evidence/compare_deliverables.py
 bash scripts/reproduce/verify.sh submissions/20261101T1605Z-d1-v2/manifest.json
-bash scripts/reproduce/verify.sh submissions/20261101T1703Z-d2-v1/manifest.json
+bash scripts/reproduce/verify.sh submissions/20261101T2315Z-d2-v2/manifest.json
 ```
 
-D1 verification exited **0**. D2 verification exited **1**: its packed CSV and all
-20 exports match, but two source files have changed since packing
-(`__main__.py`, `scene.py`). They were not altered by this job.
-Full verifier output:
+| Comparison | Recorded packed SHA-256 | Fresh SHA-256 | Result |
+| --- | --- | --- | --- |
+| D1 Parquet | `43fa6ac02353520aac4d019f7d6d45e0aab923f1c8f43d6cf03e30c242ba95c2` | `43fa6ac02353520aac4d019f7d6d45e0aab923f1c8f43d6cf03e30c242ba95c2` | Byte-identical; 294,912 rows |
+| D2 v2 CSV | `6ea6530b5408d2d24a4bf9a4f038b99aa6da659d6af3faf2020dea23a2923741` | `6ea6530b5408d2d24a4bf9a4f038b99aa6da659d6af3faf2020dea23a2923741` | Byte-identical; 9,120 rows |
 
-```text
-+ .runtime/linux-cuda/bin/python -B - submissions/20261101T1605Z-d1-v2/manifest.json
-OK submissions/20261101T1605Z-d1-v2/track3_meshes_v2.parquet
-SUMMARY 1 entries: 1 OK, 0 MISMATCH
-+ .runtime/linux-cuda/bin/python -B - submissions/20261101T1703Z-d2-v1/manifest.json
-OK submissions/20261101T1703Z-d2-v1/track3_poses_v1.csv
-OK outputs/pose_insurance/results-v1/episode_000001.parquet
-OK outputs/pose_insurance/results-v1/episode_000003.parquet
-OK outputs/pose_insurance/results-v1/episode_000005.parquet
-OK outputs/pose_insurance/results-v1/episode_000006.parquet
-OK outputs/pose_insurance/results-v1/episode_000008.parquet
-OK outputs/pose_insurance/results-v1/episode_000010.parquet
-OK outputs/pose_insurance/results-v1/episode_000014.parquet
-OK outputs/pose_insurance/results-v1/episode_000015.parquet
-OK outputs/pose_insurance/results-v1/episode_000016.parquet
-OK outputs/pose_insurance/results-v1/episode_000019.parquet
-OK outputs/pose_insurance/results-v1/episode_000020.parquet
-OK outputs/pose_insurance/results-v1/episode_000025.parquet
-OK outputs/pose_insurance/results-v1/episode_000028.parquet
-OK outputs/pose_insurance/results-v1/episode_000030.parquet
-OK outputs/pose_insurance/results-v1/episode_000032.parquet
-OK outputs/pose_insurance/results-v1/episode_000033.parquet
-OK outputs/pose_insurance/results-v1/episode_000035.parquet
-OK outputs/pose_insurance/results-v1/episode_000036.parquet
-OK outputs/pose_insurance/results-v1/episode_000037.parquet
-OK outputs/pose_insurance/results-v1/episode_000038.parquet
-OK track3/features/pose_insurance/__init__.py
-MISMATCH track3/features/pose_insurance/__main__.py
-  expected ad048be624d930e890204d5b99b11c24e43879333620a9e9e80af27b8f2b628a
-  actual   7271f31b3971b4b111863b2788e4eefc8ac85db3814ac23e335cd4111133f5a4
-OK track3/features/pose_insurance/_scene.py
-OK track3/features/pose_insurance/diagnostic.py
-OK track3/features/pose_insurance/handler.py
-OK track3/features/pose_insurance/loop.py
-OK track3/features/pose_insurance/pack.py
-OK track3/features/pose_insurance/request.py
-MISMATCH track3/features/pose_insurance/scene.py
-  expected 932d294b33cd6ba3976e3c30afdeec20e57f4e20ad30835a0b612202e09eee07
-  actual   f78f64519eb9f3d03ebba52a314b7d00ff2fd4990923b1ccecd2d8a29091f7c4
-OK track3/paths.py
-OK track3/gpu.py
-OK track3/provenance.py
-OK track3/runs.py
-OK configs/sources.lock.json
-SUMMARY 35 entries: 33 OK, 2 MISMATCH
-```
+D1's pandas comparison is exact, including row order; x/y/z float bits, Arrow
+schema metadata and Parquet metadata also match. All **47 PLY files** (11 object
+meshes plus 36 scored-pair copies) match the historical build bytes, so the geometry
+is identical. There are no row-order, float, metadata or timestamp differences in
+the packed file. The fresh build is
+`outputs/mesh_extents/build/20261102T000114.850697Z-1a4c354e/run.json`.
+The fitted local CD-O is **0.9251 cm**, matching the recorded **0.9251 cm** at the
+scorer's four-decimal precision (delta **0.0000 cm**), over **10 public-scan objects**
+and the kit seeds for episodes **1/3/5**. This is the fitted reconstruction score,
+not a new cross-fitted assessment or host score.
 
-No D1 rebuild, GPU operation, report build, pack or preflight was executed here.
-The `--run` branches are written but not exercised. No test suite was run.
-`docs/chain/SUBMISSION.md` was not edited.
+D2 verifies **20/20 recorded source hashes** and **20/20 copied export hashes**;
+pandas also confirms identical CSV values and row order. The v1 old-versus-new
+plan comparison recovers the same four commands (tasks, evaluation, pack,
+preflight). `bash -n` passed for both D1/D2 scripts; the edited D2 script's embedded
+Python passed `py_compile`. D1 needed no script change.
 
-Suggested replacement D5 row for the lead context:
+Evidence directories (paths relative to this checkout):
 
-```markdown
-| D5 | One reproduction command per deliverable | D1/D2/D3 plan-first entry points and manifest hash verifier; shell syntax and all default plans pass. D1 packed hash matches; D2 CSV and 20 exports match, with two historical source-hash mismatches documented | `scripts/reproduce/README.md` (commands, run-record pointers and verifier output) | Execute rebuilds only in an authorised run; D2 GPU phase remains guarded by --run |
-```
+| Evidence | Directory / files |
+| --- | --- |
+| D1 reproduction | `.runtime/tmp/reproduce-d1-wbr3u3xl/`: `console.log`, `build.log`, `score.log`, `cdo.json`, `pack.log`, `preflight.log`, `track3_meshes_v2.parquet`, `manifest.json`, `comparison.json` |
+| D2 reproduction | `.runtime/tmp/reproduce-d2-wi7g6bmn/`: `console.log`, `sources.json`, `results/`, `pack.log`, `preflight.log`, `command_results.json`, `track3_poses_v2.csv`, `manifest.json`, `comparison.json` |
+| Comparisons and syntax | `.runtime/tmp/ctx05-d5-evidence/`: `comparisons.log`, `syntax.log`, `script-checks.json`, `script-checks.log`, `v1-plan-{old,new}.log`, comparison/check scripts |
+| Source-manifest verification | `.runtime/tmp/ctx05-d5-evidence/verify-{d1,d2}-v2.log` |
 
+The read-only D1 source-manifest verifier exited **0** (1/1 hash matches). The D2
+source-manifest verifier exited **1** (**106/107 match**): its only mismatch is the
+pinned `docs/chain/pose-placement-protocol.md`, expected
+`baa3b86154a5eb9007586c5737702246a7b16af6a0b0bba6d26d6bf70c4022e5`, actual
+`bf724b9cb50dda0571f8de2c0b785eed54df38534f1a2cfc44935dcc6742a9c8`.
+The current committed protocol already differs from that package's recorded hash;
+this job did not edit it. The packed CSV, all exports, and the other recorded
+hash entries match. Package reproduction succeeds despite this separate historical
+provenance mismatch; a fully matching historical source tree is not established.
+
+Remaining gap: **D2 GPU regeneration was not executed**, including the physical
+K1a runs for episodes 1/28 and the v1 campaign. The CPU result proves reproduction
+from recorded evaluated exports, not retraining or numerical GPU reproducibility.
+**D3 reproduction is handled separately.** Placeholder URLs remain nonfinal;
+Kaggle authentication/checks were skipped and no upload was attempted. The D1
+preflight also retains the recorded `no --results given` warning.
