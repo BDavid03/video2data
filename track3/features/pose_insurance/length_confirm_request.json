@@ -1,0 +1,44 @@
+{
+  "episodes": [
+    2,
+    13,
+    22,
+    24,
+    27
+  ],
+  "source_split": "public",
+  "max_seconds": 7200,
+  "preparation": [
+    {
+      "episode": 2,
+      "depth_request": "track3/features/pose_insurance/requests/length_depth_2.json",
+      "measure_request": "track3/features/pose_insurance/requests/length_measure_2.json",
+      "template_episode": 0
+    },
+    {
+      "episode": 13,
+      "depth_request": "track3/features/pose_insurance/requests/length_depth_13.json",
+      "measure_request": "track3/features/pose_insurance/requests/length_measure_13.json",
+      "template_episode": 26
+    },
+    {
+      "episode": 22,
+      "depth_request": "track3/features/pose_insurance/requests/length_depth_22.json",
+      "measure_request": "track3/features/pose_insurance/requests/length_measure_22.json",
+      "template_episode": 26
+    },
+    {
+      "episode": 24,
+      "depth_request": "track3/features/pose_insurance/requests/length_depth_24.json",
+      "measure_request": "track3/features/pose_insurance/requests/length_measure_24.json",
+      "template_episode": 26
+    },
+    {
+      "episode": 27,
+      "depth_request": "track3/features/pose_insurance/requests/length_depth_27.json",
+      "measure_request": "track3/features/pose_insurance/requests/length_measure_27.json",
+      "template_episode": 26
+    }
+  ],
+  "assignments": "track3/features/pose_insurance/length_confirm_assignments.json"
+}

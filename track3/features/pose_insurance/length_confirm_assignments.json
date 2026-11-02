@@ -1,0 +1,123 @@
+{
+  "created_utc": "2026-11-02T16:35:51.262336+00:00",
+  "basis": "RGB overlays only; frozen before any confirmation mocap was loaded",
+  "frame_index": 0,
+  "episodes": {
+    "2": {
+      "names": [
+        "white_pot",
+        "white_pot_lid"
+      ],
+      "merged": true,
+      "objects": {},
+      "merged_cluster_ids": [
+        0
+      ],
+      "evidence": "Frame 0 RGB: seated lid and pot body/handle are one red border-touching cluster 0; no independent lid/body masks.",
+      "frame_index": 0,
+      "depth_run": "outputs/depth/public/episode_000002/20261101T225750.231700Z/run.json",
+      "measure_run": "outputs/mesh_extents/public/episode_000002/20261101T225804.589153Z-e6d3b35f/run.json",
+      "overlay": {
+        "path": "outputs/mesh_extents/public/episode_000002/20261101T225804.589153Z-e6d3b35f/overlay_000000.png",
+        "sha256": "704b76d44d835866b20b50f83b78b6bd4ea5a221015c85949dc7f06deda677ef"
+      },
+      "counted": false
+    },
+    "13": {
+      "names": [
+        "blue_cup",
+        "plastic_dish_rack"
+      ],
+      "merged": true,
+      "objects": {},
+      "merged_cluster_ids": [
+        0
+      ],
+      "evidence": "Frame 0 RGB: blue cup in front of the white dish rack; both covered by the same red cluster 0, continuous across their contact. No independent cup/rack clusters.",
+      "frame_index": 0,
+      "depth_run": "outputs/depth/public/episode_000013/20261102T163420.539542Z/run.json",
+      "measure_run": "outputs/mesh_extents/public/episode_000013/20261102T163435.368949Z-06794bce/run.json",
+      "overlay": {
+        "path": "outputs/mesh_extents/public/episode_000013/20261102T163435.368949Z-06794bce/overlay_000000.png",
+        "sha256": "d81aac438afb9e496ae179e9f287b2a74a39293c6190d0d5984eb0c1c3e1110f"
+      },
+      "counted": true
+    },
+    "22": {
+      "names": [
+        "blue_cup",
+        "water_pitcher"
+      ],
+      "merged": false,
+      "objects": {
+        "blue_cup": [
+          1
+        ],
+        "water_pitcher": [
+          0
+        ]
+      },
+      "merged_cluster_ids": null,
+      "evidence": "Frame 0 RGB: blue cup on left is orange cluster 1; tall white pitcher on right is green cluster 0. Distinct masks with visible table between.",
+      "frame_index": 0,
+      "depth_run": "outputs/depth/public/episode_000022/20261102T163436.427079Z/run.json",
+      "measure_run": "outputs/mesh_extents/public/episode_000022/20261102T163445.927917Z-d36d08b3/run.json",
+      "overlay": {
+        "path": "outputs/mesh_extents/public/episode_000022/20261102T163445.927917Z-d36d08b3/overlay_000000.png",
+        "sha256": "0de847b26f2f753ad96d934796e93102bbac6c214b0cdc9db95f32a0d4a93b27"
+      },
+      "counted": true
+    },
+    "24": {
+      "names": [
+        "wooden_piece_1",
+        "wooden_piece_2"
+      ],
+      "merged": false,
+      "objects": {
+        "wooden_piece_1": [
+          0
+        ],
+        "wooden_piece_2": [
+          1
+        ]
+      },
+      "merged_cluster_ids": null,
+      "evidence": "Frame 0 RGB: right board green cluster 0; left board orange cluster 1. Red cluster 2 is the hand and is excluded. Near-identical board names cannot be distinguished visually, so 1/2 identity is arbitrary; inter-object length is invariant to swapping.",
+      "frame_index": 0,
+      "depth_run": "outputs/depth/public/episode_000024/20261102T163447.053558Z/run.json",
+      "measure_run": "outputs/mesh_extents/public/episode_000024/20261102T163458.120337Z-abdb6d9b/run.json",
+      "overlay": {
+        "path": "outputs/mesh_extents/public/episode_000024/20261102T163458.120337Z-abdb6d9b/overlay_000000.png",
+        "sha256": "6df73b45330268f47e6aee5faeddbd0ba62049a44bc3f183cd445af8d5907f80"
+      },
+      "counted": true
+    },
+    "27": {
+      "names": [
+        "plastic_dish_rack",
+        "white_pot"
+      ],
+      "merged": false,
+      "objects": {
+        "plastic_dish_rack": [
+          1
+        ],
+        "white_pot": [
+          0,
+          2
+        ]
+      },
+      "merged_cluster_ids": null,
+      "evidence": "Frame 0 RGB: rack behind pot is orange cluster 1; pot body green cluster 0 and its rightward handle purple cluster 2. They form two independent object unions.",
+      "frame_index": 0,
+      "depth_run": "outputs/depth/public/episode_000027/20261101T225805.331133Z/run.json",
+      "measure_run": "outputs/mesh_extents/public/episode_000027/20261101T225816.131017Z-ebd30c8f/run.json",
+      "overlay": {
+        "path": "outputs/mesh_extents/public/episode_000027/20261101T225816.131017Z-ebd30c8f/overlay_000000.png",
+        "sha256": "a375dd67656e4122d6816065058f89bc03967d59add9dc022f9b7470b59fda9f"
+      },
+      "counted": true
+    }
+  }
+}

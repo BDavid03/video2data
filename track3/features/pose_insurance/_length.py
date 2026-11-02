@@ -44,7 +44,7 @@ def hull_offset(geometry: dict, clusters: list, normal: np.ndarray, factor: floa
     return (positions[1] - positions[0]) * factor
 
 
-def measurements(vectors: dict) -> dict:
+def measurements(vectors: dict, video: tuple = VIDEO) -> dict:
     """Convert horizontal displacements to centimetres and ratios to the origin reference."""
     lengths = {k: float(np.linalg.norm(v[:2]) * 100) if v is not None else None
                for k, v in vectors.items()}
@@ -55,7 +55,7 @@ def measurements(vectors: dict) -> dict:
                          total=lengths[name] - lengths['M_o'],
                          absolute_origin=abs(lengths['M_c'] - lengths['M_o']),
                          absolute_video_vs_centre=abs(lengths[name] - lengths['M_c']))
-                    for name in VIDEO},
+                    for name in video},
                 ratios_to_M_o={k: v / lengths['M_o'] if v is not None and lengths['M_o'] else None
                                for k, v in lengths.items()})
 
@@ -108,3 +108,36 @@ def summarize(rows: list) -> dict:
     verdict = ('A later, separately pre-registered candidate is warranted; nothing is adopted and v3 stays unchanged.'
                if warranted else 'The fixed test does not warrant a later candidate: length error is not explained by depth source or centroid choice under this protocol, and the pose line stays at v3.')
     return dict(means=means, authorization=dict(checks=checks, warranted=warranted, verdict=verdict))
+
+
+def summarize_confirmation(rows: list) -> dict:
+    """Keep mandatory episodes in the denominator and apply exactly Amendment 1's three checks."""
+    counted = [r for r in rows if r['counted']]
+    complete = all(r['lengths_cm']['V_stereo'] is not None and r['lengths_cm']['V_s'] is not None
+                   for r in counted)
+    means = {}
+    for name in ('V_moge', 'V_s', 'V_stereo'):
+        present = [r for r in counted if r['lengths_cm'][name] is not None]
+        means[name] = dict(count=len(present), expected_count=len(counted),
+                           episodes=[r['episode'] for r in present])
+        for ref in ('M_o', 'M_c'):
+            errors = [abs(r['lengths_cm'][name] - r['lengths_cm'][ref]) for r in present]
+            value = float(np.mean(errors)) if errors else None
+            means[name][f'available_subset_mae_vs_{ref}_cm'] = value
+            means[name][f'counted_mae_vs_{ref}_cm'] = value if len(present) == len(counted) else None
+    stereo = means['V_stereo']['counted_mae_vs_M_o_cm']
+    scaled = means['V_s']['counted_mae_vs_M_o_cm']
+    gain = scaled - stereo if complete else None
+    lower = [r['episode'] for r in counted if r['lengths_cm']['V_stereo'] is not None
+             and r['lengths_cm']['V_s'] is not None
+             and abs(r['lengths_cm']['V_stereo']-r['lengths_cm']['M_o']) <
+                 abs(r['lengths_cm']['V_s']-r['lengths_cm']['M_o'])]
+    checks = dict(stereo_mae_below_3_cm=stereo is not None and stereo < 3,
+                  improvement_at_least_5_cm=gain is not None and gain >= 5,
+                  lower_on_every_counted_episode=complete and len(lower) == len(counted))
+    confirmed = complete and all(checks.values())
+    verdict = ('Confirmed under Amendment 1; nothing is adopted and a separate candidate protocol is still required.'
+               if confirmed else 'Not confirmed under Amendment 1; no candidate follows and v3 remains unchanged.')
+    return dict(counted_episodes=[r['episode'] for r in counted], complete=complete, means=means,
+                measured_episodes=[r['episode'] for r in counted if r['lengths_cm']['V_stereo'] is not None],
+                gain_cm=gain, lower_episodes=lower, checks=checks, confirmed=confirmed, verdict=verdict)

@@ -31,10 +31,14 @@ class LengthRequest:
     episodes: tuple = tuple(ROSTER)
     source_split: str = 'public'
     max_seconds: int = 600
+    preparation: tuple = ()
+    assignments: str | None = None
 
     def __post_init__(self):
-        if tuple(self.episodes) != tuple(ROSTER) or self.source_split != 'public':
-            raise PermissionError('Length protocol requires exactly train episodes 0/11/12/18/21/23/26/31')
+        if tuple(self.episodes) not in (tuple(ROSTER), (2, 13, 22, 24, 27)) or self.source_split != 'public':
+            raise PermissionError('Length protocol requires the fixed train or Amendment 1 confirmation roster')
+        if tuple(self.episodes) == (2, 13, 22, 24, 27) and self.assignments != 'track3/features/pose_insurance/length_confirm_assignments.json':
+            raise ValueError('Confirmation requires its frozen RGB assignments')
         if not 1 <= self.max_seconds <= 7200:
             raise ValueError('Length diagnostic requires a bounded CPU time budget')
 
@@ -77,7 +81,7 @@ def clusters_for(episode: int, entries: dict, assignments: dict, labels: np.ndar
     return incumbent, observed, ids, defaults, merged
 
 
-def load_stereo(episode: int, scale: dict, depth: tuple, record: dict) -> dict:
+def load_stereo(episode: int, scale: dict, depth: tuple, record: dict, request=None) -> dict:
     """Read the existing calibrated stereo points on the exact monocular colour grid."""
     for path in scale['anchor_runs']:
         anchor = producer(path, 'stereo_depth.anchor')
@@ -87,7 +91,7 @@ def load_stereo(episode: int, scale: dict, depth: tuple, record: dict) -> dict:
         raise FileNotFoundError('No recorded frame-zero stereo anchor')
     if anchor[1]['request']['depth_run'] != scale['depth_run']:
         raise ValueError('Stereo anchor uses a different depth run')
-    stereo = producer(anchor[1]['request']['stereo_run'], 'stereo_depth.generate', PlacementRequest(episode))
+    stereo = producer(anchor[1]['request']['stereo_run'], 'stereo_depth.generate', request or PlacementRequest(episode))
     admit(anchor, record)
     admit(stereo, record)
     if stereo[1]['grid'] != depth[1]['preprocessing_artifact_sha256']:
@@ -274,8 +278,10 @@ def episode_trial(episode: int, base: dict, placements: dict, assignments: dict,
     return result, path, False
 
 
-def diagnose(request: LengthRequest, request_path: str):
+def diagnose(request: LengthRequest, request_path: str, publish: bool = True):
     """Run the bounded fixed episode loop and write the descriptive report and provenance."""
+    if tuple(request.episodes) == (2, 13, 22, 24, 27):
+        return diagnose_confirmation(request, request_path)
     runtime = runtime_flag(FEATURE, 'length_diagnostic_authorized', 'Pose length diagnostic')
     for episode in request.episodes:
         authorize_episode(runtime, PlacementRequest(episode), 'length diagnostic')
@@ -292,7 +298,8 @@ def diagnose(request: LengthRequest, request_path: str):
     placements = read_json(FEATURE/'placements_train.json')['episodes']
     assignments = read_json(FEATURE.parent/'mesh_extents/assignments.json')['episodes']
     selected = read_json('outputs/pose_insurance/scale/finished.json')['selected']
-    directory = output_path(ROOT, OUTPUT)
+    destination = OUTPUT if publish else f'{OUTPUT}/reruns/{new_run_id()}'
+    directory = output_path(ROOT, destination)
     directory.mkdir(parents=True, exist_ok=True)
     existing = [directory/name for name in ('run.json', 'summary.json', 'summary.md', 'lengths.png') if (directory/name).exists()]
     if existing:
@@ -338,3 +345,137 @@ NOTES = [
     '- The earlier 14.713 cm S1 result used 3D relative lengths on six changed episodes. This protocol uses horizontal lengths and also reports that same six-episode subset for comparison.',
     '- This is one descriptive CPU measurement, with a resumable per-episode ledger. No scene, policy, package, model, or selection is changed; no excluded episode is read.',
 ]
+
+
+def confirmation_row(episode: int, entry: dict, state: dict, record: dict) -> dict:
+    """Measure the frozen RGB object unions with the same readers and pure length functions."""
+    from types import SimpleNamespace
+    request = SimpleNamespace(episode_index=episode, source_split='public')
+    measure = producer(entry['measure_run'], 'mesh_extents.measure', request)
+    depth = producer(entry['depth_run'], 'depth.generate', request)
+    for parent in (measure, depth):
+        admit(parent, record)
+    with np.load(artifact(measure, 'labels_000000.npz', record)) as arrays:
+        labels = arrays['label'].copy()
+    arrays = frame_arrays(depth, record)
+    with np.load(artifact(depth, 'preprocessing.npz', record, depth[1]['preprocessing_artifact_sha256'])) as grid:
+        k = grid['input_intrinsics_pixels'].copy()
+    points = camera_points(arrays['depth_m'].astype(float), k)
+    normal = np.asarray(measure[1]['frames'][0]['plane']['normal'])
+    masks = [None if entry['merged'] else np.isin(labels, np.array(entry['objects'][name])+1) for name in entry['names']]
+    clusters = [None if m is None else points[m] for m in masks]
+    scale, stereo_clusters, counts = None, [None, None], [0, 0]
+    if 'scale' in state:
+        parent = producer(state['scale'], 'pose_insurance.length_confirmation_scale')
+        admit(parent, record)
+        scale = read_json(artifact(parent, 'scale.json', record))
+        stereo = load_stereo(episode, scale, depth, record, request)
+        if stereo['rgb_depth_m'].shape != labels.shape or not np.allclose(stereo['rgb_intrinsics_pixels'], k, atol=1e-5):
+            raise ValueError('Confirmation stereo and label grids differ')
+        valid = stereo['rgb_valid'] & np.isfinite(stereo['rgb_depth_m']) & (stereo['rgb_depth_m'] > 0)
+        stereo_points = camera_points(stereo['rgb_depth_m'].astype(float), stereo['rgb_intrinsics_pixels'])
+        counts = [0 if m is None else int((m & valid).sum()) for m in masks]
+        stereo_clusters = [stereo_points[m & valid] if m is not None and n >= 300 else None for m,n in zip(masks,counts)]
+    names, poses = baseline_module().load_reference(episode)
+    poses = poses[0, 0, [names.index(n) for n in entry['names']]]
+    refs = reference_offsets(poses, scan_centres(entry['names'], record))
+    moge = offset(footprint_centres(clusters, normal))
+    scaled = moge * scale['s'] if moge is not None and scale and scale['valid'] else None
+    vectors = dict(refs, V_inc=None, V_moge=moge, V_s=scaled,
+                   V_stereo=offset(footprint_centres(stereo_clusters, normal)))
+    return dict(episode=episode, names=entry['names'], counted=entry['counted'], merged_cluster=entry['merged'],
+                **measurements(vectors, ('V_inc','V_moge','V_s','V_stereo')),
+                cluster_pixels=[int(np.isin(labels, np.array(entry['merged_cluster_ids'])+1).sum())]*2
+                               if entry['merged'] else [int(m.sum()) for m in masks],
+                stereo_valid_pixels=counts, scale=None if scale is None else scale['s'],
+                scale_valid=None if scale is None else scale['valid'],
+                missing_reason='No independent clusters; no split or fallback authorized' if entry['merged'] else
+                               'Stereo needs at least 300 valid pixels per object' if min(counts)<300 else None,
+                vectors_m={k: None if v is None else v.tolist() for k,v in vectors.items()})
+
+
+def confirmation_markdown(report: dict) -> str:
+    """Render the fixed counted set, missing measurements and all three checks."""
+    def fmt(value):
+        return 'missing' if value is None else f'{value:.3f}'
+    lines = ['# Pose length confirmation — Amendment 1', '', report['verdict'], '',
+             f"Counted episodes: {report['counted_episodes']}; measured offsets: {report['measured_episodes']}.",
+             'Mandatory episode 13 stays counted even though its clusters merge. Optional merged episode 2 is excluded.', '',
+             '| Episode | Counted | Merged | M_o cm | M_c cm | V_moge cm | V_s cm | V_stereo cm | Cluster pixels 0/1 | Stereo valid 0/1 | s |',
+             '|---|---|---|---:|---:|---:|---:|---:|---|---|---:|']
+    for row in report['episodes']:
+        values = [fmt(row['lengths_cm'][k]) for k in ('M_o','M_c','V_moge','V_s','V_stereo')]
+        lines.append(f"| {row['episode']} | {row['counted']} | {row['merged_cluster']} | " + ' | '.join(values) +
+                     f" | {row['cluster_pixels']} | {row['stereo_valid_pixels']} | {fmt(row['scale'])} |")
+    lines += ['', '| Construction | Available / counted | Counted MAE vs M_o cm | Available-subset MAE vs M_o cm | Available-subset MAE vs M_c cm |',
+              '|---|---:|---:|---:|---:|']
+    for name,r in report['means'].items():
+        lines.append(f"| {name} | {r['count']}/{r['expected_count']} | {fmt(r['counted_mae_vs_M_o_cm'])} | {fmt(r['available_subset_mae_vs_M_o_cm'])} | {fmt(r['available_subset_mae_vs_M_c_cm'])} |")
+    lines += ['', '| Amendment 1 check | Pass |', '|---|---|']
+    lines += [f'| {key} | {value} |' for key,value in report['checks'].items()]
+    lines += ['', 'The counted-set MAEs and gain are missing when a mandatory measurement is missing; available-subset means do not satisfy the registered test.',
+              '', 'V_inc and incumbent V_hull are undefined here: no S1 scene exists. V_s is the raw MoGe centroid distance times the exact existing episode-scale estimator; invalid scale is never replaced.',
+              'Every measured stereo cluster needs >=300 valid pixels. Identities/unions were frozen from frame-0 RGB overlays before any confirmation mocap was loaded.',
+              'M_c uses exact scan AABB centres transformed by mocap poses; all scalar lengths use the same horizontal definitions as the train diagnostic.',
+              'There is no incumbent body anchor for a kit-aligned ray-error split; no camera-to-mocap yaw calibration is inferred.',
+              '', '![Confirmation lengths and scalar errors](lengths.png)', '', 'Reproduce:', '', '```bash',
+              report['reproduce'], '```', '']
+    return '\n'.join(lines)
+
+
+def confirmation_figure(rows: list, path) -> None:
+    """Plot validation horizontal lengths and scalar errors without filling missing values."""
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 1, figsize=(11, 7), constrained_layout=True)
+    x = np.arange(len(rows))
+    for index, name in enumerate(('M_o','M_c','V_moge','V_s','V_stereo')):
+        values = [r['lengths_cm'][name] if r['lengths_cm'][name] is not None else np.nan for r in rows]
+        axes[0].bar(x+(index-2)*.15, values, .15, label=name)
+    for index,name in enumerate(('V_moge','V_s','V_stereo')):
+        values = [abs(r['lengths_cm'][name]-r['lengths_cm']['M_o']) if r['lengths_cm'][name] is not None else np.nan for r in rows]
+        axes[1].bar(x+(index-1)*.2, values, .2, label=name, color=f'C{index+2}')
+    for ax,title in zip(axes, ('Frame-0 horizontal lengths; absent video bars = merged cluster', 'Absolute horizontal length error vs mocap origins')):
+        ax.set(title=title, ylabel='cm', xlabel='Public validation episode', xticks=x,
+               xticklabels=[str(r['episode'])+(' (excluded)' if not r['counted'] else '') for r in rows])
+        ax.legend(ncol=5);ax.grid(axis='y',alpha=.2)
+    fig.savefig(path,dpi=160);plt.close(fig)
+
+
+def diagnose_confirmation(request: LengthRequest, request_path: str):
+    """Record the fixed confirmation after RGB-only assignments and video preparation are complete."""
+    from ._length import summarize_confirmation
+    from ..stereo_depth._common import StereoDepthRequest
+    runtime = runtime_flag(FEATURE, 'length_diagnostic_authorized', 'Length confirmation')
+    for episode in request.episodes:
+        authorize_episode(runtime, StereoDepthRequest(episode_index=episode), 'length confirmation')
+    os.environ['CUDA_VISIBLE_DEVICES']=''
+    sys.dont_write_bytecode=True
+    heavy_execution(dict(runtime,python=runtime['diagnostic_python']))
+    assignments=read_json(request.assignments)
+    if sorted(map(int,assignments['episodes'])) != list(request.episodes):
+        raise ValueError('Confirmation assignments do not match the fixed roster')
+    state_path='.runtime/tmp/pose-length/confirmation_preparation.json'
+    state=read_json(state_path)
+    record=run_fields(ROOT,'pose_insurance','length_confirmation',asdict(request),
+                      inputs=[PROTOCOL,request_path,request.assignments,state_path,FEATURE/'runtime.json',
+                              ROOT/'scripts/track3/static_pose_baseline.py', *[p for ep in request.episodes for p in label_paths(ep)]],
+                      provenance='public_label_diagnostic')
+    directory=output_path(ROOT,f'outputs/pose_insurance/length-confirm/{new_run_id()}')
+    with recorded(directory,record):
+        rows=[]
+        for ep in request.episodes:
+            entry=assignments['episodes'][str(ep)]
+            if entry['counted'] != (ep in (13,22,24) or not entry['merged']):
+                raise ValueError('Amendment 1 counted-set rule changed')
+            row=confirmation_row(ep,entry,state[str(ep)],record)
+            rows.append(row)
+            print(json.dumps(dict(episode=ep,counted=row['counted'],lengths_cm=row['lengths_cm'])),flush=True)
+        report=dict(**summarize_confirmation(rows),episodes=rows,
+                    reproduce=REPRODUCE.replace('length_request.json','length_confirm_request.json'))
+        write_json(directory/'summary.json',report)
+        (directory/'summary.md').write_text(confirmation_markdown(report))
+        confirmation_figure(rows,directory/'lengths.png')
+    print(report['verdict'],flush=True)
+    return directory/'run.json'

@@ -1,0 +1,28 @@
+{
+  "source_split": "public",
+  "episode_index": 24,
+  "depth_run": null,
+  "frames": [
+    0,
+    5,
+    10,
+    15
+  ],
+  "objects": {},
+  "assignment_note": "Left out: Pot rests on the rack: one merged cluster.",
+  "reference_pixels": {},
+  "reference_tolerance": 0.15,
+  "minimum_height_m": 0.008,
+  "maximum_height_m": 0.5,
+  "neighbour_distance_m": 0.02,
+  "minimum_cluster_pixels": 300,
+  "overhang_m": 0.15,
+  "table_band_m": 0.015,
+  "ring_pixels": 40,
+  "track_dilation_pixels": 15,
+  "pixel_ratio_range": [
+    0.8,
+    1.25
+  ],
+  "seed": 31
+}

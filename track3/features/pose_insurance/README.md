@@ -393,3 +393,39 @@ The along/cross-ray split is conditional on the kit's slot-0 body alignment:
 no camera-to-mocap yaw calibration exists, so the split is not an independently
 calibrated camera-world error. No GPU, scene construction, policy run or packing
 is performed, and episodes 41/43/44 are never read.
+
+### Amendment 1 validation confirmation
+
+```bash
+PYTHONPATH=. CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 .runtime/linux-cuda/bin/python -m track3.features.pose_insurance length_diagnostic --request track3/features/pose_insurance/length_confirm_request.json
+```
+
+The preparation loop `.runtime/tmp/pose-length/confirm_prepare.py prepare` runs
+GPU depth and CPU clustering through the existing handlers; its `stereo` stage
+runs the unchanged stereo handlers and the exact existing `estimate_scale`
+aggregation. The editable queue is `length_confirm_request.json`; completed
+requests resume, stages append a ledger, and the script records the admitted
+producer paths in `.runtime/tmp/pose-length/confirmation_preparation.json`.
+Depth/measurement requests copy train templates 0 (episode 2) and 26 (the rest),
+changing only episode and the dependent depth-run pointer. The inherited
+measurement notes describe those templates, not fresh assignment evidence.
+`length_confirm_assignments.json` records the fresh RGB-only identities and
+unions, frozen before confirmation mocap was read. Episode 24 excludes hand
+cluster 2; episode 27 unites pot body 0 and handle 2, versus rack 1.
+
+The fixed counted set is **13/22/24/27**; optional 2 is merged and excluded.
+Mandatory 13 also merges cup/rack into one cluster and remains counted with a
+missing offset. Thus Amendment 1 is **not confirmed**, and no candidate follows.
+For the available three only, V_stereo MAE is **1.138 cm** versus mocap origins,
+V_s is **7.214 cm**, and stereo is lower on all three; these subset numbers do
+not satisfy the four-episode test. All three measured stereo unions exceed the
+300-pixel requirement. V_inc is undefined; V_s uses the raw centroid offset
+multiplied by the existing valid episode scale, without any fallback.
+
+New immutable report runs, scale records and the figure live under
+`outputs/pose_insurance/length-confirm/`; each report has `summary.md`,
+`summary.json`, `lengths.png`, and hashed `run.json`. No old output is replaced.
+The train rerun uses `diagnose(..., publish=False)` with the original request;
+its full report content excluding execution counters is byte-identical to the
+saved pre-amendment report, and all eight S1 scenes still reproduce exactly.
+Evidence is `.runtime/tmp/pose-length/train_rerun.json`.

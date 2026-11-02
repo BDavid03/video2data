@@ -7,7 +7,7 @@
     "report_authorized": false,
     "correspondences_authorized": false,
     "evaluation_authorized": true,
-    "validation_authorized": false
+    "validation_authorized": true
   },
   "authorized_episode_indices": {
     "public": [
@@ -20,7 +20,12 @@
       26,
       31,
       39,
-      42
+      42,
+      2,
+      13,
+      22,
+      24,
+      27
     ],
     "evaluation": [
       1,

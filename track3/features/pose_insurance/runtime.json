@@ -47,7 +47,10 @@
       27,
       31,
       39,
-      42
+      42,
+      13,
+      22,
+      24
     ]
   },
   "diagnostic_python": ".runtime/linux-cuda/bin/python",

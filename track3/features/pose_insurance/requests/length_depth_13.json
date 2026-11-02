@@ -1,0 +1,13 @@
+{
+  "episode_index": 13,
+  "source_split": "public",
+  "start_frame": 0,
+  "stop_frame": null,
+  "max_image_side": 768,
+  "num_tokens": 1200,
+  "use_fp16": true,
+  "save_normals": false,
+  "gpu_headroom_mib": 2048,
+  "gpu_admission_allowance_mib": 4096,
+  "frame_stride": 5
+}
