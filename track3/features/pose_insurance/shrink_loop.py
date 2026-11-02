@@ -3,7 +3,9 @@ import argparse
 from dataclasses import asdict
 import hashlib
 import json
+from pathlib import Path
 import shutil
+import sys
 import time
 from track3.provenance import input_file, read_run, sha256_file, write_json
 from track3.runs import ROOT, read_json, source_hashes, artifact, authorize_episode, new_run_id, checked_entry
@@ -63,6 +65,36 @@ def h_construction(plan: dict, scores: dict, queue: dict) -> dict:
                 composition='Acts once on v2 planar offset, replacing S1; no mocap input')
 
 
+def load_ledger(path: Path) -> tuple[list[dict], bool]:
+    """Read complete rows, reporting only an invalid unterminated final line as torn."""
+    if not path.exists():
+        return [], False
+    lines = path.read_text().splitlines(keepends=True)
+    unterminated = bool(lines and not lines[-1].endswith('\n'))
+    rows = []
+    for index, line in enumerate(lines):
+        try:
+            rows.append(json.loads(line))
+        except json.JSONDecodeError:
+            if index != len(lines) - 1 or not unterminated:
+                raise
+            print(f'Ignored incomplete final ledger line: {path}:{index + 1}; '
+                  'bytes preserved; new rows use a continuation ledger', file=sys.stderr, flush=True)
+    return rows, unterminated
+
+
+def resume_ledger(directory: Path) -> tuple[list[dict], Path]:
+    """Resume across append-only segments without modifying a torn ledger tail."""
+    paths = [directory / 'ledger.jsonl', *sorted(directory.glob('ledger-continuation-*.jsonl'))]
+    rows, unterminated = [], False
+    for path in paths:
+        values, unterminated = load_ledger(path)
+        rows.extend(values)
+    active = (directory / f'ledger-continuation-{new_run_id()}.jsonl'
+              if unterminated else paths[-1])
+    return rows, active
+
+
 def run_queue(queue_path: str) -> None:
     """Run all pending candidates, oracle grids and the mechanically triggered H stage."""
     runtime = cpu_environment()
@@ -76,11 +108,14 @@ def run_queue(queue_path: str) -> None:
     directory.mkdir(parents=True, exist_ok=True)
     previous = [directory / n for n in ('summary.json', 'summary.md', 'finished.json', 'length_assignments.npz')
                 if (directory / n).exists()]
+    previous_summary = None
     if previous:
-        backup = ROOT / '.runtime/tmp/backup' / new_run_id()
+        backup = directory / 'previous' / new_run_id()
         backup.mkdir(parents=True)
         for path in previous:
             shutil.copy2(path, backup / path.name)
+        if (backup / 'summary.json').exists():
+            previous_summary = backup / 'summary.json'
     stereo = {ep: read_json(f'outputs/pose_insurance/scale/stereo_{ep:06d}.json')
               for ep in (*EPISODES, *CONTROLS)}
     # Re-admit every recorded anchor before taking its estimate as a fixed input.
@@ -90,9 +125,8 @@ def run_queue(queue_path: str) -> None:
         for path in row['anchor_runs']:
             read_run(ROOT, path, kind='stereo_depth.anchor')
     plan = assignments(stereo)
-    ledger = directory / 'ledger.jsonl'
+    rows, ledger = resume_ledger(directory)
     record_plan(directory / 'assignments.json', plan, ledger, 'assignments')
-    rows = [json.loads(line) for line in ledger.read_text().splitlines()]
     state = dict(executed=0, resumed=0, selected=[], failures=[])
     started = time.perf_counter()
 
@@ -159,7 +193,7 @@ def run_queue(queue_path: str) -> None:
     else:
         report['H'] = dict(status='not built: verdict 2 did not trigger')
     report.update(executed=state['executed'], resumed=state['resumed'], failures=state['failures'])
-    summarize(report, results, oracles, plan, directory)
+    summarize(report, results, oracles, plan, directory, previous_summary)
     write_json(directory / 'finished.json', dict(status='completed', queue_sha256=sha256_file(ROOT / queue_path),
                                                selected=state['selected'], verdicts=report['verdicts'], H=report['H']))
     print(directory / 'summary.md', flush=True)

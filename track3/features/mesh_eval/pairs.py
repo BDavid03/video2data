@@ -16,7 +16,7 @@ from track3.provenance import input_file, run_fields, write_json
 from track3.runs import ROOT, runtime_flag
 
 FEATURE = Path(__file__).parent
-SCRATCH = ".runtime/tmp/ctx06/cdo"
+SCRATCH = ".cache/mesh_eval"
 
 
 @dataclass(frozen=True)
@@ -24,6 +24,7 @@ class PairRequest:
     files: dict[str, str]
     roster: str
     output: str
+    comparison: tuple[str, str]
     max_trials: int = 52
     time_budget_seconds: int = 7000
 
@@ -32,8 +33,12 @@ class PairRequest:
         return cls(**json.loads(path.read_text()))
 
     def __post_init__(self):
-        if set(self.files) != {"v1", "v2"} or self.output != "outputs/mesh_eval/pairs":
-            raise ValueError("This entry compares v1/v2 in outputs/mesh_eval/pairs")
+        if (len(self.comparison) != 2 or len(set(self.comparison)) != 2
+                or not set(self.comparison) <= self.files.keys()):
+            raise ValueError("comparison must name two distinct labels from files (before, after)")
+        directory = output_path(ROOT, self.output)
+        if not directory.is_relative_to(ROOT / "outputs/mesh_eval") or directory == ROOT / "outputs/mesh_eval":
+            raise ValueError("Each run needs its own directory under outputs/mesh_eval/")
         if self.max_trials <= 0 or not 0 < self.time_budget_seconds <= 7000:
             raise ValueError("Use a positive trial budget and at most 7000 seconds")
 
@@ -82,7 +87,7 @@ def prepare(request: PairRequest, request_path: Path, runtime: dict) -> tuple:
             pairs.append({"episode": int(episode), "slot": slot, "object": name,
                           "seed": local_cdo.CDO._object_seed(int(episode), slot),
                           "status": "covered" if name in references else "no_public_scan"})
-    inputs = [request_path, request.roster, FEATURE / "runtime.json", "docs/chain/SUBMISSION.md",
+    inputs = [request_path, request.roster, FEATURE / "runtime.json",
               *request.files.values(), *[s["path"] for s in scans.values() if s]]
     record = run_fields(ROOT, "mesh_eval", "pairs", asdict(request), inputs=inputs,
                         provenance="public_asset_diagnostic")
@@ -155,10 +160,12 @@ def score_pair(label: str, pair: dict, solution, submission, cdo, trial_id: str,
 
 
 def write_summary(directory: Path, record: dict, rows: list[dict]) -> None:
-    """Publish both pair scores, object means, historical deltas, and equivalence."""
+    """Publish pair scores, object means, requested label differences and equivalence."""
     from ._metrics import aggregate
 
-    summary = aggregate(rows, record["pairs"])
+    before, after = record["request"]["comparison"]
+    labels = sorted(record["request"]["files"])
+    summary = aggregate(rows, record["pairs"], (before, after))
     summary.update(run_identity=record["identity"], wall_seconds=record["wall_seconds"],
                    trial_wall_seconds=sum(r["wall_seconds"] for r in rows),
                    equivalence=[{"file": r["file"], "episode": r["episode"], "slot": r["slot"],
@@ -166,22 +173,24 @@ def write_summary(directory: Path, record: dict, rows: list[dict]) -> None:
                    caveat="Public scans, not host references; wooden_spoon has no public scan and is unscored.")
     write_json(directory / "summary.json", summary)
     lines = ["# Exact packed D1 CD-O on public scans", "", summary["caveat"], "",
-             f"Coverage: {summary['covered_pairs']}/{summary['total_pairs']} pairs over {len(summary['objects'])} objects; 10 spoon pairs unscored.",
+             f"Coverage: {summary['covered_pairs']}/{summary['total_pairs']} pairs over {len(summary['objects'])} objects; {len(summary['unscored'])} pairs unscored.",
              f"CPU wall time: {record['wall_seconds']:.3f} s; {len(rows)} identity-hashed trials. Lower CD-O is better.", "",
              "| File | Exact pair-weighted mean (cm) | Equal-object mean (cm) |", "| --- | ---: | ---: |"]
     for label, means in sorted(summary["means"].items(), key=lambda item: item[1]["pair_weighted_cm"]):
         lines.append(f"| {label} | {means['pair_weighted_cm']:.8f} | {means['per_object_cm']:.8f} |")
     lines += ["", "## Per pair", "", "Slot order is the kit roster order; each seed is `_object_seed(episode, slot)`.", "",
-              "| Episode | Slot | Object | Seed | v1 (cm) | v2 (cm) | v2 − v1 (cm) |", "| ---: | ---: | --- | ---: | ---: | ---: | ---: |"]
+              "| Episode | Slot | Object | Seed | " + " | ".join(f"{label} (cm)" for label in labels)
+              + f" | {after} − {before} (cm) |", "| ---: | ---: | --- | ---: | " + " ---: |" * (len(labels) + 1)]
     for p in summary["pairs"]:
-        lines.append(f"| {p['episode']} | {p['slot']} | {p['object']} | {p['seed']} | {p['v1']:.8f} | {p['v2']:.8f} | {p['v2_minus_v1_cm']:+.8f} |")
-    lines += ["", "## Per object", "", "| Object | Covered pairs | v1 mean (cm) | v2 mean (cm) |", "| --- | ---: | ---: | ---: |"]
+        values = " | ".join(f"{p[label]:.8f}" for label in labels)
+        lines.append(f"| {p['episode']} | {p['slot']} | {p['object']} | {p['seed']} | {values} | {p['difference_cm']:+.8f} |")
+    lines += ["", "## Per object", "", "| Object | Covered pairs | "
+              + " | ".join(f"{label} mean (cm)" for label in labels) + " |",
+              "| --- | ---: |" + " ---: |" * len(labels)]
     for o in summary["objects"]:
-        lines.append(f"| {o['object']} | {o['pairs']} | {o['v1']:.8f} | {o['v2']:.8f} |")
-    lines += ["", "## Comparison with previous reports", ""]
-    lines += [f"- {key}: {value:+.8f} cm." for key, value in summary["differences"].items()]
-    lines += ["", "Previous values (cm): " + json.dumps(summary["previous"], sort_keys=True) + ".",
-              "The earlier values reused each object's mean over seeds for episodes 1/3/5, slot 0. These scores use the actual episode/slot seed for every packed pair. The v2 cross-fitted result also used fold-selected thresholds (1.3/1.05); the packed fitted v2 fixes 1.3. These changes prevent attributing every difference to seeds alone.", "",
+        values = " | ".join(f"{o[label]:.8f}" for label in labels)
+        lines.append(f"| {o['object']} | {o['pairs']} | {values} |")
+    lines += ["",
               f"Largest absolute pair difference: {json.dumps(summary['largest_absolute_pair_difference'], sort_keys=True)}.",
               f"Improved/unchanged/worsened pairs: {summary['improved_pairs']}/{summary['unchanged_pairs']}/{summary['worsened_pairs']}.", "",
               "## Host entry-point equivalence", "",
@@ -249,6 +258,6 @@ def run_queue(request: PairRequest, record: dict, references: dict, cdo, ledger:
             row = score_pair(label, pair, solution, submission, cdo, trial_id, record["identity"])
             append_ledger(ledger, row)
             rows.append(row)
-            print(f"{len(rows)}/{len(covered) * 2} {label} ep={pair['episode']} slot={pair['slot']} "
+            print(f"{len(rows)}/{len(covered) * len(request.files)} {label} ep={pair['episode']} slot={pair['slot']} "
                   f"{pair['object']}: {row['cd_o_cm']:.8f} cm ({row['wall_seconds']:.2f}s)", flush=True)
     return rows

@@ -1,4 +1,5 @@
 """Present the registered shrink means, controls, verdicts and conditional H gates."""
+import json
 import numpy as np
 from track3.provenance import write_json
 from track3.runs import ROOT, read_json
@@ -77,9 +78,27 @@ def h_gates(results: dict, report: dict) -> dict:
     return gates
 
 
-def summarize(report: dict, results: dict, oracles: dict, plan: dict, directory) -> None:
+def summary_changes(current: dict, previous_path) -> dict:
+    """Compare scientific results with the backed-up summary, excluding invocation bookkeeping."""
+    if previous_path is None:
+        return dict(previous_summary=None, changed_sections=[], note='First summary; no previous results.')
+    previous = read_json(previous_path)
+    ignored = {'executed', 'resumed', 'failures', 'changes_since_previous'}
+    sections = sorted((current.keys() | previous.keys()) - ignored)
+    changed = [key for key in sections if current.get(key) != previous.get(key)]
+    return dict(previous_summary=str(previous_path.relative_to(ROOT)), changed_sections=changed,
+                note=('Scientific results changed: ' + ', '.join(changed) + '.' if changed
+                      else 'All metrics, verdicts, gates, assignments, scenes and oracle readings are unchanged.'),
+                previous_invocation={key: previous.get(key) for key in ('executed', 'resumed', 'failures')},
+                current_invocation={key: current.get(key) for key in ('executed', 'resumed', 'failures')})
+
+
+def summarize(report: dict, results: dict, oracles: dict, plan: dict, directory, previous_path=None) -> None:
     """Write a compact ranked summary and full numerical evidence beside it."""
-    write_json(directory / 'summary.json', dict(report, assignments=plan, episodes=results, oracle_runs=oracles))
+    summary = json.loads(json.dumps(dict(report, assignments=plan, episodes=results, oracle_runs=oracles)))
+    changes = summary_changes(summary, previous_path)
+    summary['changes_since_previous'] = changes
+    write_json(directory / 'summary.json', summary)
     lines = ['# Pose shrink control', '',
              'Static kinematic diagnostic against public mocap: official kit, one world, nearest-visible fill, '
              '1,000 scan samples/object, seed 0. No physical evaluator, scored H stage or D2 change.', '',
@@ -87,6 +106,8 @@ def summarize(report: dict, results: dict, oracles: dict, plan: dict, directory)
              f"Global factor: **{plan['s_bar']:.15f}** (registered 0.856952, tolerance 1e-6).",
              f"Invocation: {report['executed']} executed, {report['resumed']} resumed. "
              'Assignments and H construction were fsynced before their scoring.', '',
+             '## What changed since the last summary', '', changes['note'], '',
+             f"Previous summary: `{changes['previous_summary']}`.", '',
              '## Equal-episode means', '',
              '| Candidate | N | AUC | SP-SR | MP-SR | RPE cm | MPPE cm | Eligible |',
              '|---|---:|---:|---:|---:|---:|---:|:---:|']

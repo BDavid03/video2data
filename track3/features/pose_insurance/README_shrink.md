@@ -13,7 +13,12 @@ PYTHONPATH=. CUDA_VISIBLE_DEVICES='' .runtime/linux-cuda/bin/python -B -m track3
 The queue is resumable: a trial identity hashes settings, protocol, assignments, stereo
 records and anchor producers, scoring inputs, scene parents and computation sources.
 Only a completed matching run with admitted inputs and an intact metrics artifact is
-reused. The ledger is appended and fsynced. Assignment and conditional H construction
+reused. The ledger is appended and fsynced. An invalid final line without a newline is
+reported and ignored; interior corruption and newline-terminated malformed rows
+remain fatal. The damaged bytes are preserved: subsequent appends go to a
+`ledger-continuation-<UTC stamp>-<id>.jsonl` segment, and resume reads all segments.
+A valid final record without a newline is also retained and followed by a fresh
+segment. Assignment and conditional H construction
 rows are recorded before their trials. Budget exhaustion leaves completed trials ready
 for the same command. All 156 possible trials fit the default budget (140 candidates,
 six oracle grids, ten H trials if triggered). A failed comparator is reported with the
@@ -24,7 +29,11 @@ admission and recorded trials; `shrink_loop.py` owns orchestration and resume;
 `shrink_report.py` writes `outputs/pose_insurance/shrink/summary.{json,md}`. The existing
 `scale_diagnostic_authorized` flag and `diagnostic_python` interpreter apply. Shared
 `heavy_execution` uses its default project cache and temporary directories, exactly as
-the scale diagnostic does. Summary backups go to `.runtime/tmp/backup/<UTC stamp>/`.
+the scale diagnostic does. Summary backups go to
+`outputs/pose_insurance/shrink/previous/<UTC stamp>-<id>/`. Each new summary
+compares its scientific results with the backed-up `summary.json` and includes
+“What changed since the last summary”; invocation counts/failures are recorded
+separately in `changes_since_previous`.
 Existing source files and runtime flags stay pinned.
 
 Reproduction compares I and S1 against the full-precision scale summary for all ten
@@ -68,3 +77,14 @@ first invalid value and its cause remain unknown.
 The final independent arithmetic/oracle/clearance recheck is `verification.json`;
 `commands.md` records exact commands, and `changed_files.txt` lists every generated
 file, including scratch and cache files. No test suite was run.
+
+## Critic fixes (2026-11-02)
+
+The corrected queue reran all 156 trials after source identities changed. Every
+metric, scene, assignment, oracle value, eligibility decision and verdict remains
+bitwise identical to the pre-fix summary; only invocation bookkeeping and the new
+change-comparison section can differ. The previous summary is preserved under
+`previous/` and linked from the new summary. Canonical results remain
+`outputs/pose_insurance/shrink/summary.{md,json}`; the rerun's equality and immutable
+file checks are in `critic-fixes-verification.json` alongside them. Pinned pose,
+stereo and reproduction files and all pre-existing trial records stay untouched.
