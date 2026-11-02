@@ -7,10 +7,11 @@
 
 \begin{abstract}
 \textbf{Abstract:}
+We build meshes only from video-measured extents and video-read part structure.
 Packaged v4 meshes achieve object Chamfer distance (CD-O) of 0.6534\,cm
 versus 0.7711 for the v3 meshes they replace (1.0091 for boxes).
 Pair means are 0.6629 versus 0.8115\,cm (boxes: 1.2547), with matching kit seeds
-on ten reused public scans. Third-round cross-fitted selection gives 0.653\,cm;
+on ten reused public scans. Third-round fixed-rule, in-sample selection gives 0.653\,cm;
 adaptive scan reuse prevents an independent test claim.
 We use MoGe-2 depth predictions rather than measured depth.
 On eight public training episodes, stereo shrinkage reduces mean point error
@@ -27,20 +28,24 @@ neither a calibration benefit nor manipulation.
 \section{From video to primitive meshes}
 Track 3 scores meshes (D1) and policy-rollout poses (D2) separately~\cite{challenge}.
 CD-O removes scale and placement under the kit's triangle budget.
-Public scans were used only to score development choices; earlier rule design
-and video-attribute reading followed exposure to scan renders. No scan geometry
-or dimension enters a mesh. The challenge permits pretrained models and external
+Public scans supplied development scores and visual context; mesh constructors
+use only video-derived extents and attributes. The challenge permits pretrained models and external
 data and asks for our own reconstructed meshes~\cite{faq}.
 
 \noindent\begin{minipage}{\columnwidth}
 \centering
 \includegraphics[width=\columnwidth]{figures/d1-v4-qualitative.pdf}
 \captionof{figure}{Illustrative v3/v4 meshes and public scans at normalised scale
-and matched views (display-only rotations). Labels give packed per-object CD-O
-(cm, $\downarrow$). Video frames supplied attributes. The pot is unchanged;
-the pan's grip hole remains omitted.}
+and matched views (display-only rotations). Rack/pan labels give packed CD-O
+(cm, $\downarrow$). The unscanned spoon changes from a box to a bowl and handle;
+its leaderboard effect is unknown. Video frames supplied attributes.}
 \label{fig:qualitative}
 \end{minipage}\par
+
+\begin{samepage}
+Over three seeds, mean per-object sampling SD is 0.0069\,cm for v3 and 0.0053
+for v4 (maximum 0.0214): sampling variability, not uncertainty on new objects.
+\par\end{samepage}
 
 \begin{samepage}
 MoGe-2~\cite{moge2} supplies above-table point clusters. We label objects manually
@@ -64,24 +69,24 @@ and lowers its two rows of six pegs to their observed height.
 R8 uses video-measured heads and grips for all three thin tools: a tapered
 scoop with low walls and a filled ring grip for the pan, a solid brush
 envelope for the sweeper, and a shallow bowl with a narrow handle for the spoon.
-R9 combines R7 and R8, with frozen video attributes and no free parameters.
+R9 combines R7 and R8, with frozen video attributes; no parameters are tuned
+in round 3.
 \par\end{samepage}
 
 \subsection{Selection on reused scans}
 \begin{samepage}
-Two five-object folds select parameters on one fold and score on the other,
-then swap. Round 2 selected wall fraction $f=0.10$, the largest tested;
-thicker walls remain untried. Round 3 was registered before scoring, against
+Rounds 1--2 cross-fit parameters across two five-object folds.
+Round 2 selected wall fraction $f=0.10$, the largest tested; thicker walls remain
+untried. Round 3 was registered before scoring, against
 v3's three-seed mean of 0.77315\,cm. Its gate requires mean $<0.74315$\,cm,
 no object regression $>0.15$\,cm and no pair-mean regression.
 \par\end{samepage}
 
 \begin{samepage}
-Parameter-free rules use all ten objects as their cross-fitted score.
+Round 3 selects among fixed rules on all ten scans, in-sample.
 R7, R8 and R9 score 0.72009, 0.70576 and 0.65270\,cm, with no regressions.
-R8 independently passes before R9 is eligible. R9 wins; its packaged meshes
-also pass the frozen comparison with v3, without retuning. Three sampling
-seeds measure sampling variability, not uncertainty on new objects.
+R8 independently passes before R9 is eligible; R9 wins and its packaged meshes
+pass the frozen v3 comparison without retuning.
 \par\end{samepage}
 
 \noindent\begin{minipage}{\columnwidth}
@@ -101,39 +106,53 @@ Peg-rack rule (v3) & 0.7711 & 0.8115 \\
 \multicolumn{3}{l}{Selection: three-seed object scores} \\
 Round 1 (cross-fitted) & 0.926 & 1.087 \\
 Round 2 (cross-fitted) & 0.773 & 0.817 \\
-Round 3 (cross-fitted) & 0.653 & 0.663 \\
+Round 3 (fixed, in-sample) & 0.653 & 0.663 \\
 \bottomrule
 \end{tabular}
 \captionof{table}{CD-O (cm, $\downarrow$) on ten reused public scans.
-Pair means weight 26 episode--object entries equally; object means average
-within object, then over ten objects. Selection pair means reuse object scores.
-V4 versus v3 improves nine pairs, leaves 17 unchanged and worsens none.}
+Pair means average 26 entries; object means average within each object,
+then over ten objects. Selection pair means reuse object scores.
+V4 improves nine pairs, with 17 ties and none worse. Remaining CD-O:
+pitcher 1.487 (spout missing), pot 0.858, rack 0.865\,cm.}
 \label{tab:cdo}
 \end{minipage}\par
 
 \begin{samepage}
-\textbf{Disclosure.} Cross-fitting cannot undo prior scan exposure during rule
-design, attribute reading or episode 39's threshold setting. A third adaptive
-round on the same ten scans raises selection optimism by an unknown amount;
-these are development estimates. The rack rule changes one scanned object,
-the tool rule two, close to our own stricter protocol's ban on per-object shape
-choice; this is not a challenge rule. The spoon now changes from a box to the
-shared tool profile without a scan: its effect on ten of 36 leaderboard pairs
-is unknown, and those pairs are excluded from the means.
+\textbf{Disclosure.} Prior scan exposure informed rule design, attribute reading
+and episode 39's thresholds. Round 3 rebuilt objects among the worst-scoring on
+these scans. R8 is a second attempt on the same two scanned tools after round 1 failed. The rack compartment was already visible in viewed scan renders.
+A third adaptive round increases selection optimism by an unknown amount.
+Rack/tool rules change one/two scanned objects, nearing our own per-object
+shape-choice ban; that ban is not a challenge rule. These are development estimates.
+\par\end{samepage}
+
+\begin{samepage}
+\textbf{Spoon risk.} The spoon (ten of 36 leaderboard pairs) changes from a box
+to a bowl and handle without any scan, using medium-confidence depth ratios.
+CD-O between its new mesh and old box is 1.32--1.39\,cm. An average spoon
+regression of 0.39\,cm would cancel the measured gain over all 36 pairs
+($26(0.8115-0.6629)/10$). Its leaderboard effect is unknown; spoon pairs are
+excluded from the reported means.
 \par\end{samepage}
 
 \section{Static-object poses}
 \begin{samepage}
-FlashCHORD~\cite{flashchord} uses static video-sized boxes and parked hands
-for D2, separately from D1 meshes. Scoring aligns the first object's initial
-achieved pose, including rotation, to its initial motion-capture (mocap)
-reference. The second object's offset is scored in the first object's body
-frame. Mocap is only for scoring; camera-to-mocap heading is unknown.
+FlashCHORD~\cite{flashchord} holds video-sized boxes and parks the hands for
+D2. Scoring aligns the first object's initial pose to motion capture (mocap),
+including rotation; second-object offsets are scored in that body's frame.
+Camera-to-mocap heading is unknown.
 \par\end{samepage}
 
 \begin{samepage}
 Video centroids or defaults place the boxes; shared-cluster objects stack.
 Stacking was confirmed on one public episode (2).
+\par\end{samepage}
+
+\begin{samepage}
+Placing both objects at mocap start poses scores AUC 0.532, MPPE 7.40\,cm.
+Evaluation assumes public calibration; episode 5 keeps prior poses after invalid
+training numbers (cause unknown). Scan samples approximate official vertices;
+no official pose gain is established.
 \par\end{samepage}
 
 \noindent\begin{minipage}{\columnwidth}
@@ -158,21 +177,17 @@ RPE: relative-position error; MPPE: six attached points' mean error.}
 \end{minipage}\par
 
 \begin{samepage}
-\textbf{Stereo shrinkage.} Cameras \texttt{ego\_cam\_c} (left) and
-\texttt{ego\_cam\_b} (right) give stereo/MoGe-2 depth ratios. Medians over
-jointly valid pixels, then frames ($s=0.819$--0.923), multiply the second
-object's table-plane offset from the first; heights, rotations and sizes stay
-fixed. Training mocap distances motivated this unvalidated scale estimate.
+\textbf{Stereo shrinkage.} Pixel/frame medians of stereo/MoGe-2 ratios
+(C left, B right; $s=0.819$--0.923) scale only the second object's table-plane
+offset. Training mocap distances motivated this unvalidated estimate.
 \par\end{samepage}
 
 \begin{samepage}
-Candidate placements were scored on eight public training episodes
-(Table~\ref{tab:pose}). Tuning episodes 39 and 42 each have one object, so cannot
-test a second-object correction. The pre-written rule rejected all candidates
-if any changed a single-object score; another candidate changed one by
-floating-point roundoff. After seeing results, we instead adopted stereo
-shrinkage because its single-object scores were unchanged. This selection is
-exploratory.
+Eight public training episodes scored placements. Single-object tuning
+episodes 39/42 cannot test a second-object correction. The pre-written rule
+rejected all candidates if any changed a single-object score. After results,
+we adopted stereo shrinkage because its single-object scores were unchanged,
+despite another candidate's roundoff change. Selection is exploratory.
 \par\end{samepage}
 
 \noindent\begin{minipage}{\columnwidth}
@@ -185,25 +200,14 @@ not tracking or success. Asterisks mark stacked initial placements.}
 \end{minipage}\par
 
 \begin{samepage}
-Against uniform shrinkage ($c=0.857$), stereo's 0.04\,cm MPPE gap is below
-the 0.25\,cm practical margin, demonstrating neither calibration benefit nor
-equivalence. Zero offset gives 14.13\,cm but overlaps boxes; shrinking wrongly
-directed offsets can help. A clearance-limited follow-up gives 17.02\,cm but fails its adoption gates.
+Stereo's 0.04\,cm MPPE gap from uniform ($c=0.857$) is below the 0.25\,cm
+margin; neither calibration benefit nor equivalence is established.
+Wrongly directed offsets can favour shrinkage and overlap; a clearance-limited
+follow-up failed its gates.
 \par\end{samepage}
 
-\begin{samepage}
-Placing both objects at their motion-capture start poses scores AUC 0.532,
-MPPE 7.40\,cm. Evaluation lacks calibration; we assume public calibration applies.
-Episode 5 keeps earlier poses because training produced invalid numbers;
-the cause is unknown. Scan samples approximate official evaluation vertices;
-no official pose-score gain is established.
-\par\end{samepage}
-
-\begin{samepage}
-Rack and tool profiles improve development scores; remaining CD-O is
-1.487\,cm for the pitcher (spout missing), 0.858 for the pot and 0.865 for the rack.
-Static poses establish neither calibration benefit nor manipulation success.
-\par\end{samepage}
+\section{Conclusion}
+\noindent Part structure read from video cut packed CD-O from 0.7711 to 0.6534\,cm on reused scans; the unscanned spoon remains a risk. Static poses show no manipulation success.
 
 \typeout{TRACK3-MAIN-TEXT-END-PAGE: \thepage}
 \typeout{TRACK3-TABLE-PAGE: \getpagerefnumber{tab:cdo}}

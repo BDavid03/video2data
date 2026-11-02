@@ -26,17 +26,16 @@ SCANS = ROOT / ("datasets--nvidia--video_to_data_challenge/snapshots/"
 TARGET = Path(__file__).with_name("d1-v4-qualitative.pdf")
 # Fixed display-only rotations: upright, handle/long horizontal axis towards +x.
 SCAN_ROTATIONS = {
-    "white_pot": np.array([[0, 0, 1], [0, -1, 0], [1, 0, 0]]),
     "mini_dust_pan": np.array([[0, 0, 1], [0, -1, 0], [1, 0, 0]]),
     "plastic_dish_rack": np.array([[0, 0, 1], [0, -1, 0], [1, 0, 0]]),
 }
-PANEL_OBJECTS = ("plastic_dish_rack", "mini_dust_pan", "white_pot")
+PANEL_OBJECTS = ("plastic_dish_rack", "mini_dust_pan", "wooden_spoon")
 BLUE = "#0072B2"
 LABELS = {
     "beige_cup": "Beige cup", "blue_cup": "Blue cup",
     "mini_dust_pan": "Dust pan", "mini_sweeper": "Sweeper",
     "plastic_dish_rack": "Dish rack", "water_pitcher": "Pitcher",
-    "white_pot": "Pot", "white_pot_lid": "Lid",
+    "white_pot": "Pot", "white_pot_lid": "Lid", "wooden_spoon": "Spoon",
     "wooden_piece_1": "Wood 1", "wooden_piece_2": "Wood 2",
 }
 
@@ -154,11 +153,18 @@ def qualitative_panel(rows):
                  rotation=90, ha="center", va="center", fontsize=8, weight="bold")
         for j, key, colour in ((0, "previous", "#669BBC"),
                                (1, "candidate", BLUE), (2, "scan", "#B5B5B5")):
+            if key == "scan" and row[key] is None:
+                ax = fig.add_subplot(grid[i, j])
+                ax.set_axis_off()
+                ax.text(0.5, 0.5, "No public scan\nUnscored", ha="center", va="center",
+                        fontsize=8, color="#444444")
+                continue
             ax = fig.add_subplot(grid[i, j], projection="3d")
             draw_mesh(ax, *row[key], colour)
             if key != "scan":
                 score = row["previous_score"] if key == "previous" else row["score"]
-                ax.text2D(0.5, -0.02, f"{score:.3f} cm", ha="center", va="top",
+                label = "Unscored" if score is None else f"{score:.3f} cm"
+                ax.text2D(0.5, -0.02, label, ha="center", va="top",
                           transform=ax.transAxes, fontsize=8)
     return fig
 
@@ -186,13 +192,19 @@ def main():
     for name in PANEL_OBJECTS:
         old = trimesh.load(PREVIOUS_BUILD / previous[name]["file"], force="mesh")
         candidate = trimesh.load(BUILD / objects[name]["file"], force="mesh")
-        scan = trimesh.load(SCANS / name / f"{name}.glb", force="mesh")
+        scan_data = None
+        score = previous_score = None
+        if name != "wooden_spoon":
+            scan = trimesh.load(SCANS / name / f"{name}.glb", force="mesh")
+            scan_data = (normalised_vertices(scan.vertices, SCAN_ROTATIONS[name]), scan.faces)
+            score, previous_score = scores[name]["candidate"], scores[name]["v3"]
+            print(f"{name}: v3 {previous_score:.4f} cm; v4 {score:.4f} cm")
+        else:
+            print("wooden_spoon: v3 box -> v4 bowl and handle; no public scan, unscored")
         rows.append({"name": name,
                      "previous": (normalised_vertices(old.vertices, np.eye(3)), old.faces),
                      "candidate": (normalised_vertices(candidate.vertices, np.eye(3)), candidate.faces),
-                     "scan": (normalised_vertices(scan.vertices, SCAN_ROTATIONS[name]), scan.faces),
-                     "score": scores[name]["candidate"], "previous_score": scores[name]["v3"]})
-        print(f"{name}: v3 {scores[name]['v3']:.4f} cm; v4 {scores[name]['candidate']:.4f} cm")
+                     "scan": scan_data, "score": score, "previous_score": previous_score})
     fig = qualitative_panel(rows)
     target = args.output_dir / TARGET.name
     fig.savefig(target, dpi=300, metadata={"Title": "Previous and revised meshes beside public scans; exact packed means",
