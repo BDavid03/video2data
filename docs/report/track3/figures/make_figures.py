@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
-os.environ.setdefault("MPLCONFIGDIR", str(ROOT / ".runtime/tmp/d3-plain/matplotlib"))
+os.environ.setdefault("MPLCONFIGDIR", str(ROOT / ".runtime/tmp/d3-v3/matplotlib"))
 
 import matplotlib
 
@@ -18,14 +18,12 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 SUMMARY = ROOT / "outputs/mesh_eval/rules/summary.json"
 POSE_SCALE = ROOT / "outputs/pose_insurance/scale/summary.json"
-BUILD = ROOT / "outputs/mesh_extents/build/20261101T160402.316899Z-0c4f8b6f"
-# These saved-score filenames each identify one recorded evaluation.
-SCORES, = (ROOT / "outputs/mesh_eval").glob("*/v2-cdo.json")
-BOX_SCORES, = (ROOT / "outputs/mesh_eval").glob("*/v1-box.json")
+BUILD = ROOT / "outputs/mesh_extents/build/20261102T031152.089350Z-ea88a295"
+SCORES = ROOT / "outputs/mesh_eval/pairs/mesh-round2-v2-v3/summary.json"
 ASSIGNMENTS = ROOT / "track3/features/mesh_extents/assignments.json"
 SCANS = ROOT / ("datasets--nvidia--video_to_data_challenge/snapshots/"
                 "5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh")
-TARGET = Path(__file__).with_name("d1-v2-qualitative.pdf")
+TARGET = Path(__file__).with_name("d1-v3-qualitative.pdf")
 # Fixed display-only rotations: upright, handle/long horizontal axis towards +x.
 SCAN_ROTATIONS = {
     "white_pot": np.array([[0, 0, 1], [0, -1, 0], [1, 0, 0]]),
@@ -96,10 +94,10 @@ def pipeline_panel() -> plt.Figure:
     ax.set_axis_off()
     nodes = {
         "depth": (0.5, 0.94, "Egocentric video → MoGe-2 depth"),
-        "naming": (0.5, 0.77, "Manual object naming"),
+        "naming": (0.5, 0.77, "Manual names + attributes"),
         "extents": (0.23, 0.59, "Measured dimensions"),
         "placement": (0.76, 0.59, "Initial placement"),
-        "meshes": (0.23, 0.37, "Primitive meshes (D1)"),
+        "meshes": (0.23, 0.37, "Shells + peg rack (D1)"),
         "scene": (0.76, 0.36, "Stereo shrinkage\n+ static simulation"),
         "stereo": (0.23, 0.12, "Stereo scale\n(cameras C left, B right)"),
         "poses": (0.76, 0.10, "Static pose\ntrajectories (D2)"),
@@ -206,7 +204,7 @@ def qualitative_panel(rows):
                            wspace=0.05, hspace=0.36)
     for x, title in zip((0.17, 0.50, 0.83),
                         ("Video frame\n(assigned cluster)",
-                         "Submitted mesh",
+                         "Submitted mesh\n(v3)",
                          "Public scan\n(scoring only)")):
         fig.text(x, 0.96, title, ha="center", va="top", fontsize=6.5, weight="bold")
     for i, row in enumerate(rows):
@@ -225,8 +223,8 @@ def qualitative_panel(rows):
             draw_mesh(mesh_ax, *row[key], colour)
             if key == "candidate":
                 mesh_ax.text2D(0.5, -0.02,
-                               f"ours {row['score']:.3f} / box {row['box_score']:.3f} cm",
-                               ha="center", va="top", transform=mesh_ax.transAxes, fontsize=5.8)
+                               f"v3 {row['score']:.3f} / v2 {row['previous_score']:.3f} cm",
+                               ha="center", va="top", transform=mesh_ax.transAxes, fontsize=6.0)
     fig.text(0.5, 0.014, "Meshes shown at normalised scale · lower CD-O is better",
              ha="center", va="bottom", fontsize=6.2)
     return fig
@@ -253,9 +251,9 @@ def main():
         score_chart(args.output_dir)
         return
     build = json.loads((BUILD / "run.json").read_text())
+    objects = json.loads((BUILD / "objects.json").read_text())["objects"]
     assignments = json.loads(ASSIGNMENTS.read_text())["episodes"]
     scores = {r["object"]: r for r in json.loads(SCORES.read_text())["objects"]}
-    boxes = {r["object"]: r["cd_o_cm"] for r in json.loads(BOX_SCORES.read_text())["objects"]}
     rows = []
     for name, episode in PANEL_ROWS:
         measure = next(ROOT / p for p in build["request"]["measure_runs"]
@@ -267,17 +265,17 @@ def main():
             labels = saved["label"]
         # The recorded overlay's left half is the unmodified, remapped RGB frame.
         rgb = plt.imread(measure.with_name("overlay_000000.png"))[:, :labels.shape[1], :3]
-        candidate = trimesh.load(ROOT / scores[name]["candidate"], force="mesh")
+        candidate = trimesh.load(BUILD / objects[name]["file"], force="mesh")
         scan = trimesh.load(SCANS / name / f"{name}.glb", force="mesh")
         rows.append({"name": name, "episode": episode, "crop": cluster_crop(rgb, labels, ids),
                      "candidate": (normalised_vertices(candidate.vertices, np.eye(3)), candidate.faces),
                      "scan": (normalised_vertices(scan.vertices, SCAN_ROTATIONS[name]), scan.faces),
-                     "score": scores[name]["cd_o_cm"], "box_score": boxes[name]})
-        print(f"{name}: ours {scores[name]['cd_o_cm']:.4f} cm; box {boxes[name]:.4f} cm; "
+                     "score": scores[name]["v3"], "previous_score": scores[name]["v2"]})
+        print(f"{name}: v3 {scores[name]['v3']:.4f} cm; v2 {scores[name]['v2']:.4f} cm; "
               f"public ep. {episode}, clusters {ids}; {measure.relative_to(ROOT)}")
     fig = qualitative_panel(rows)
     target = args.output_dir / TARGET.name
-    fig.savefig(target, dpi=300, metadata={"Title": "Video clusters, submitted meshes and scoring references",
+    fig.savefig(target, dpi=300, metadata={"Title": "Video clusters, submitted v3 meshes and exact packed means",
                                          "Author": "", "Creator": ""})
     if args.preview:
         fig.savefig(args.preview, dpi=300)
