@@ -9,7 +9,9 @@ for arg in "$@"; do printf ' %q' "$arg"; done
 printf '\n'
 .runtime/linux-cuda/bin/python -B - "$@" <<'PY'
 import argparse
+import csv
 import hashlib
+from itertools import zip_longest
 import json
 import os
 from pathlib import Path
@@ -22,15 +24,18 @@ p = argparse.ArgumentParser(description="D2 v1: GPU campaign; D2 v2/v3: CPU expo
 p.add_argument("results_dir", nargs="?")
 p.add_argument("commit_url", nargs="?")
 p.add_argument("--manifest", type=Path)
+p.add_argument("--version", choices=("v1", "v2", "v3"), help="select the recorded version (default: latest)")
 p.add_argument("--run", action="store_true", help="execute (v1 requires an authorised GPU job; v2/v3 are CPU only)")
 a = p.parse_args()
 root = Path.cwd()
-manifest = a.manifest or sorted(root.glob("submissions/*-d2-v*/manifest.json"))[-1]
+manifest = a.manifest or sorted(root.glob(f"submissions/*-d2-{a.version or 'v*'}/manifest.json"))[-1]
 m = json.loads(manifest.read_text())
 # Older manifests encode their version in the packed filename, not a version key.
 version = m.get("version", Path(m["file"]).stem.rsplit("_", 1)[-1])
 if version not in ("v1", "v2", "v3"):
     p.error(f"Unsupported manifest version: {version}")
+if a.version is not None and version != a.version:
+    p.error(f"Manifest version {version} differs from --version {a.version}")
 # v2 needs only a URL; retain the original RESULTS_DIR URL interface for v1.
 if a.results_dir is not None and a.results_dir.startswith("https://") and a.commit_url is None:
     a.commit_url, a.results_dir = a.results_dir, None
@@ -46,7 +51,7 @@ results = (root / (a.results_dir or Path(m["results_dir"]))).resolve()
 results.relative_to(root)
 if version == "v1" and a.run and results.exists() and any(results.iterdir()):
     p.error(f"{results} already holds exports; pass a new, empty RESULTS_DIR so recorded exports stay intact")
-prefix = "ctx05-scored-reproduce-d2-" if version == "v3" else "reproduce-d2-"
+prefix = "reproduce-d2-"
 work = Path(tempfile.mkdtemp(prefix=prefix, dir=root / ".runtime/tmp")) if a.run else Path(f".runtime/tmp/{prefix}<new>")
 if version in ("v2", "v3"):
     os.environ["CUDA_VISIBLE_DEVICES"] = ""
@@ -58,6 +63,41 @@ command_results = []
 def digest(path):
     with path.open("rb") as stream:
         return hashlib.file_digest(stream, "sha256").hexdigest()
+
+
+def check_csv_identity(candidate, reference, expected_url, recorded_url, recorded_sha256):
+    """Require identical CSV fields and row order except for the explicitly supplied URL."""
+    if digest(reference) != recorded_sha256:
+        raise ValueError(f"CSV identity: recorded packed SHA-256 mismatch: {reference}")
+    with reference.open(newline="") as old_stream, candidate.open(newline="") as new_stream:
+        old_rows, new_rows = csv.reader(old_stream, strict=True), csv.reader(new_stream, strict=True)
+        header = next(old_rows, None)
+        if not header or header.count("code_commit_url") != 1 or len(set(header)) != len(header):
+            raise ValueError("CSV identity: recorded header is missing or ambiguous")
+        if next(new_rows, None) != header:
+            raise ValueError("CSV identity: column names/order differ")
+        url_index = header.index("code_commit_url")
+        rows = 0
+        for rows, (old, new) in enumerate(zip_longest(old_rows, new_rows), start=1):
+            if old is None or new is None:
+                raise ValueError(f"CSV identity: row count differs at data row {rows}")
+            if len(old) != len(header) or len(new) != len(header):
+                raise ValueError(f"CSV identity: column count differs at data row {rows}")
+            if old[url_index] != recorded_url or new[url_index] != expected_url:
+                raise ValueError(f"CSV identity: code_commit_url mismatch at data row {rows}")
+            for index, name in enumerate(header):
+                if index != url_index and old[index] != new[index]:
+                    raise ValueError(f"CSV identity: data row {rows}, column {name} differs")
+        if not rows:
+            raise ValueError("CSV identity: no data rows")
+    same_url = expected_url == recorded_url
+    if same_url and digest(candidate) != recorded_sha256:
+        raise ValueError("CSV identity: unchanged URL requires the recorded whole-file SHA-256")
+    return {"status": "passed", "reference": str(reference), "reference_sha256": recorded_sha256,
+            "rows": rows, "columns": header, "except_column": "code_commit_url",
+            "url_all_rows": expected_url,
+            "whole_file_hash_check": "passed" if same_url else "not required: URL changed"}
+
 
 def command(argv, log):
     argv = list(map(str, argv))
@@ -135,12 +175,16 @@ if a.run:
                 "sha256": digest(results / Path(e["path"]).name)} for e in m["exports"]]
     if version in ("v2", "v3") and [e["sha256"] for e in exports] != [e["sha256"] for e in m["exports"]]:
         raise ValueError("Copied exports differ from the recorded source hashes")
-    if version == "v3" and digest(packed) != m["sha256"]:
-        raise ValueError("Reproduced v3 CSV differs from the recorded packed hash")
+    identity_checks = {}
+    if version == "v3":
+        identity_checks["csv"] = check_csv_identity(packed, root / m["file"], url, m["code_commit_url"], m["sha256"])
+        print(f"OK CSV identity: {identity_checks['csv']['rows']} rows; only code_commit_url may differ", flush=True)
     result = {"file": str(packed.relative_to(root)), "sha256": digest(packed), "results_dir": str(results.relative_to(root)),
               "exports": exports, "budget": m["budget"], "source_manifest": str(manifest), "code_commit_url": url,
               "version": version, "commands": commands[loop_count:], "loop_commands": commands[:loop_count],
               "inputs": inputs, "command_results": command_results,
+              "identity_checks": identity_checks,
+              "reproduction_script": {"path": "scripts/reproduce/d2_poses.sh", "sha256": digest(Path("scripts/reproduce/d2_poses.sh"))},
               "preflight_verdict": "Ready to submit", "status": "completed"}
     (work / "manifest.json").write_text(json.dumps(result, indent=2) + "\n")
     print(work / "manifest.json")
