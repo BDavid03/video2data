@@ -1,5 +1,15 @@
 # Current user instructions
 
+- On 2026-11-03 the user wrote "all owner requirements approved", then: "i said id do the kaggle
+  manually just get creative with the model and data / data manipulation". So:
+  - The user pushes to GitHub and uploads to Kaggle personally. The chain never pushes or uploads; it
+    keeps the packed files and the exact commands in `docs/chain/NEEDS-YOU.md` current. The real-URL
+    D1 v4 / D2 v3 files were packed at commit `15060c1` (with an Apache-2.0 `LICENSE`).
+  - The chain's work is now creative improvement of the models and of the data and its manipulation
+    (new representations, using more of each clip, fusing existing depth and masks, augmenting or
+    re-deriving data), within `docs/chain/PROGRAM.md` sections 3, 4 and 9: protocol before scoring,
+    choices on tuning data, episodes 41/43/44 excluded, no tuning against the leaderboard. A better
+    method found this way may be packed as a new version for the user to upload.
 - On 2026-11-02 (chain context 04) the user replied "approved" right after the context listed
   its new proposal to install poppler-utils for PDF page rendering (`docs/chain/NEEDS-YOU.md`
   item 7). Read as approval of that install. `sudo` needs a password, so the context installed
