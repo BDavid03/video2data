@@ -1,4 +1,4 @@
-"""Draw recorded mesh examples, pose offsets, the pipeline, or legacy mesh bars."""
+"""Draw recorded mesh examples, initial pose offsets, or legacy mesh bars."""
 
 import argparse
 import json
@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
-os.environ.setdefault("MPLCONFIGDIR", str(ROOT / ".runtime/tmp/d3-fix/matplotlib"))
+os.environ.setdefault("MPLCONFIGDIR", str(ROOT / ".runtime/tmp/d3fix/matplotlib"))
 
 import matplotlib
 
@@ -17,20 +17,20 @@ import trimesh
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 SUMMARY = ROOT / "outputs/mesh_eval/rules/summary.json"
-POSE_SCALE = ROOT / "outputs/pose_insurance/scale/summary.json"
+POSE_SHRINK = ROOT / "outputs/pose_insurance/shrink/summary.json"
 BUILD = ROOT / "outputs/mesh_extents/build/20261102T031152.089350Z-ea88a295"
 SCORES = ROOT / "outputs/mesh_eval/pairs/mesh-round2-v2-v3/summary.json"
-ASSIGNMENTS = ROOT / "track3/features/mesh_extents/assignments.json"
+PREVIOUS_BUILD = ROOT / "outputs/mesh_extents/build/20261101T160402.316899Z-0c4f8b6f"
 SCANS = ROOT / ("datasets--nvidia--video_to_data_challenge/snapshots/"
                 "5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh")
 TARGET = Path(__file__).with_name("d1-v3-qualitative.pdf")
 # Fixed display-only rotations: upright, handle/long horizontal axis towards +x.
 SCAN_ROTATIONS = {
     "white_pot": np.array([[0, 0, 1], [0, -1, 0], [1, 0, 0]]),
-    "water_pitcher": np.array([[0, 1, 0], [-1, 0, 0], [0, 0, 1]]),
+    "blue_cup": np.diag([1, -1, -1]),
     "plastic_dish_rack": np.array([[0, 0, 1], [0, -1, 0], [1, 0, 0]]),
 }
-PANEL_ROWS = (("white_pot", 42), ("water_pitcher", 21), ("plastic_dish_rack", 12))
+PANEL_OBJECTS = ("white_pot", "plastic_dish_rack", "blue_cup")
 BLUE = "#0072B2"
 LABELS = {
     "beige_cup": "Beige cup", "blue_cup": "Blue cup",
@@ -44,94 +44,46 @@ LABELS = {
 def pose_offset_panel(episodes: list[int], offsets: dict[str, list[float]]) -> plt.Figure:
     """Compare recorded frame-zero errors of the second object's relative position."""
     plt.rcParams.update({"font.size": 9, "pdf.fonttype": 42})
-    fig, ax = plt.subplots(figsize=(3.18, 2.15), layout="constrained")
+    fig, ax = plt.subplots(figsize=(3.18, 2.10), layout="constrained")
     x = np.arange(len(episodes))
     for shift, name, label, colour, hatch in (
-        (-0.18, "incumbent", "earlier rule", BLUE, ""),
-        (0.18, "S1", "stereo shrinkage", "#D55E00", "//"),
+        (-0.25, "I", "Earlier rule", BLUE, ""),
+        (0.0, "S1", "Stereo shrinkage", "#D55E00", "//"),
+        (0.25, "G", "Uniform shrinkage", "#009E73", ".."),
     ):
-        ax.bar(x + shift, offsets[name], width=0.34, label=label,
+        ax.bar(x + shift, offsets[name], width=0.24, label=label,
                color=colour, hatch=hatch, linewidth=0.4, edgecolor="white")
     labels = [f"{episode}*" if episode in (0, 26) else str(episode) for episode in episodes]
     ax.set(xticks=x, xticklabels=labels, xlabel="Train episode (* stacked)",
            ylabel="Frame-0 offset error of\nsecond object (cm)",
-           ylim=(0, 88), yticks=[0, 20, 40, 60, 80])
+           ylim=(0, 100), yticks=[0, 20, 40, 60, 80])
     ax.yaxis.label.set_fontsize(8)
     ax.grid(axis="y", color="#dddddd", linewidth=0.5)
     ax.set_axisbelow(True)
     ax.spines[["top", "right"]].set_visible(False)
     ax.tick_params(axis="x", pad=2)
-    ax.legend(frameon=False, ncol=2, loc="upper left", fontsize=8,
+    ax.legend(frameon=False, ncol=1, loc="upper left", fontsize=8,
               handlelength=1.1, columnspacing=0.8, handletextpad=0.4)
     return fig
 
 
 def pose_offset_chart(preview: Path | None, output_dir: Path = TARGET.parent) -> None:
-    """Read episode and candidate keys from the saved scale summary, without rescoring."""
+    """Read the same frame-zero metric for all three recorded shrink-control candidates."""
     episodes = [0, 11, 12, 18, 21, 23, 26, 31]
-    summary = json.loads(POSE_SCALE.read_text())
+    summary = json.loads(POSE_SHRINK.read_text())
     values = {
         name: [summary["episodes"][name][str(e)]["frame0"]["offset_error_cm"] for e in episodes]
-        for name in ("incumbent", "S1")
+        for name in ("I", "S1", "G")
     }
     fig = pose_offset_panel(episodes, values)
     target = output_dir / "d2-slot1-offset.pdf"
-    fig.savefig(target, metadata={"Title": "Second-object frame-zero offset errors before and after stereo shrinkage",
+    fig.savefig(target, metadata={"Title": "Initial placement errors: earlier rule, stereo and uniform shrinkage",
                                  "Author": "", "Creator": "", "CreationDate": None,
                                  "ModDate": None})
     if preview:
         fig.savefig(preview, dpi=300)
     plt.close(fig)
     print(json.dumps({"episodes": episodes, "offset_error_cm": values}, indent=2))
-    print(target.relative_to(ROOT))
-
-
-def pipeline_panel() -> plt.Figure:
-    """Draw both submission branches and the stereo input with readable arrows."""
-    fig, ax = plt.subplots(figsize=(3.18, 1.65))
-    fig.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99)
-    ax.set(xlim=(0, 1), ylim=(0, 1))
-    ax.set_axis_off()
-    nodes = {
-        "depth": (0.5, 0.94, "Egocentric video → MoGe-2 depth"),
-        "naming": (0.5, 0.77, "Manual names + attributes"),
-        "extents": (0.23, 0.59, "Measured dimensions"),
-        "placement": (0.76, 0.59, "Initial placement"),
-        "meshes": (0.23, 0.37, "Shells + peg rack (D1)"),
-        "scene": (0.76, 0.36, "Stereo shrinkage\n+ static simulation"),
-        "stereo": (0.23, 0.12, "Stereo scale\n(cameras C left, B right)"),
-        "poses": (0.76, 0.10, "Static pose\ntrajectories (D2)"),
-    }
-    labels = {}
-    for name, (x, y, label) in nodes.items():
-        labels[name] = ax.text(
-            x, y, label, ha="center", va="center", fontsize=8.4,
-            color=BLUE if name == "meshes" else "#D55E00" if name == "poses" else "#222222",
-            bbox={"facecolor": "#F0F5F8" if name in ("naming", "scene") else "white",
-                  "edgecolor": "#DDE5EA", "pad": 2},
-        )
-    for source, dest in (("depth", "naming"), ("naming", "extents"),
-                         ("naming", "placement"), ("extents", "meshes"),
-                         ("placement", "scene"), ("scene", "poses"),
-                         ("stereo", "scene")):
-        ax.annotate("", xy=nodes[dest][:2], xytext=nodes[source][:2],
-                    arrowprops={"arrowstyle": "->", "color": "#555555",
-                                "linewidth": 1.0, "shrinkA": 2, "shrinkB": 2,
-                                "patchA": labels[source].get_bbox_patch(),
-                                "patchB": labels[dest].get_bbox_patch()})
-    return fig
-
-
-def pipeline_chart(preview: Path | None, output_dir: Path = TARGET.parent) -> None:
-    """Save the schematic without loading data or running either submission branch."""
-    fig = pipeline_panel()
-    target = output_dir / "pipeline.pdf"
-    fig.savefig(target, metadata={"Title": "Track 3 mesh and static-pose pipeline",
-                                 "Author": "", "Creator": "", "CreationDate": None,
-                                 "ModDate": None})
-    if preview:
-        fig.savefig(preview, dpi=300)
-    plt.close(fig)
     print(target.relative_to(ROOT))
 
 
@@ -168,16 +120,6 @@ def score_chart(output_dir: Path = TARGET.parent) -> None:
     print(target.relative_to(ROOT))
 
 
-def cluster_crop(rgb, labels, cluster_ids):
-    """Crop around the union of assigned clusters, retaining a small RGB margin."""
-    mask = np.isin(labels, np.asarray(cluster_ids) + 1)  # Stored labels are one-based.
-    ys, xs = np.nonzero(mask)
-    margin = int(0.10 * max(np.ptp(xs), np.ptp(ys)))
-    x0, x1 = max(0, xs.min() - margin), min(mask.shape[1], xs.max() + margin + 1)
-    y0, y1 = max(0, ys.min() - margin), min(mask.shape[0], ys.max() + margin + 1)
-    return rgb[y0:y1, x0:x1], mask[y0:y1, x0:x1]
-
-
 def normalised_vertices(vertices, rotation):
     """Rigidly orient, centre the bounding box, and uniformly scale its longest side to one."""
     points = np.asarray(vertices) @ rotation.T
@@ -192,90 +134,68 @@ def draw_mesh(ax, vertices, faces, colour):
     ax.set(xlim=(-0.55, 0.55), ylim=(-0.55, 0.55), zlim=(-0.55, 0.55))
     ax.set_box_aspect((1, 1, 1), zoom=1.65)
     ax.set_proj_type("ortho")
-    ax.view_init(elev=25, azim=-65)
+    ax.view_init(elev=40, azim=-65)
     ax.set_axis_off()
 
 
 def qualitative_panel(rows):
-    """Plot the supplied RGB masks, mesh arrays and saved scores without reading files."""
-    plt.rcParams.update({"font.size": 7, "pdf.fonttype": 42})
-    fig = plt.figure(figsize=(3.18, 2.65))
-    grid = fig.add_gridspec(3, 3, left=0.01, right=0.99, bottom=0.12, top=0.82,
-                           wspace=0.05, hspace=0.36)
-    for x, title in zip((0.17, 0.50, 0.83),
-                        ("Video frame\n(assigned cluster)",
-                         "Submitted mesh\n(v3)",
-                         "Public scan\n(scoring only)")):
-        fig.text(x, 0.96, title, ha="center", va="top", fontsize=6.5, weight="bold")
+    """Compare previous/revised geometry and scans with matched views and readable scores."""
+    plt.rcParams.update({"font.size": 8, "pdf.fonttype": 42})
+    fig = plt.figure(figsize=(3.18, 3.10))
+    grid = fig.add_gridspec(len(rows), 3, left=0.10, right=0.99, bottom=0.07, top=0.89,
+                           wspace=0.02, hspace=0.54)
+    for j, title in enumerate(("v2 mesh", "v3 mesh", "Public scan")):
+        bounds = grid[0, j].get_position(fig)
+        fig.text((bounds.x0 + bounds.x1) / 2, 0.98, title,
+                 ha="center", va="top", fontsize=8.5, weight="bold")
     for i, row in enumerate(rows):
-        ax = fig.add_subplot(grid[i, 0])
-        rgb, mask = row["crop"]
-        ax.imshow(rgb)
-        overlay = np.zeros((*mask.shape, 4))
-        overlay[mask] = (*matplotlib.colors.to_rgb(BLUE), 0.30)
-        ax.imshow(overlay)
-        ax.contour(mask, levels=[0.5], colors=[BLUE], linewidths=0.65)
-        ax.set_axis_off()
-        ax.set_title(f"{LABELS[row['name']]} · ep. {row['episode']}",
-                     fontsize=6.8, pad=3, weight="bold")
-        for j, key, colour in ((1, "candidate", BLUE), (2, "scan", "#B5B5B5")):
-            mesh_ax = fig.add_subplot(grid[i, j], projection="3d")
-            draw_mesh(mesh_ax, *row[key], colour)
-            if key == "candidate":
-                mesh_ax.text2D(0.5, -0.02,
-                               f"v3 {row['score']:.3f} / v2 {row['previous_score']:.3f} cm",
-                               ha="center", va="top", transform=mesh_ax.transAxes, fontsize=6.0)
-    fig.text(0.5, 0.014, "Meshes shown at normalised scale · lower CD-O is better",
-             ha="center", va="bottom", fontsize=6.2)
+        bounds = grid[i, 0].get_position(fig)
+        fig.text(0.035, (bounds.y0 + bounds.y1) / 2, LABELS[row["name"]],
+                 rotation=90, ha="center", va="center", fontsize=8, weight="bold")
+        for j, key, colour in ((0, "previous", "#669BBC"),
+                               (1, "candidate", BLUE), (2, "scan", "#B5B5B5")):
+            ax = fig.add_subplot(grid[i, j], projection="3d")
+            draw_mesh(ax, *row[key], colour)
+            if key != "scan":
+                score = row["previous_score"] if key == "previous" else row["score"]
+                ax.text2D(0.5, -0.02, f"{score:.3f} cm", ha="center", va="top",
+                          transform=ax.transAxes, fontsize=8)
     return fig
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--bars", action="store_true", help="regenerate the legacy score chart")
-    parser.add_argument("--pose-offsets", action="store_true", help="draw recorded earlier-rule and stereo-shrinkage pose offsets")
-    parser.add_argument("--pipeline", action="store_true", help="draw the mesh and pose pipeline")
+    parser.add_argument("--pose-offsets", action="store_true", help="draw recorded earlier-rule, stereo and uniform pose offsets")
     parser.add_argument("--preview", type=Path, help="also save the panel as a 300 dpi PNG")
     parser.add_argument("--output-dir", type=Path, default=TARGET.parent,
                         help="write figure PDFs here instead of beside this script")
     args = parser.parse_args()
     args.output_dir = args.output_dir.resolve()
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    if args.pipeline:
-        pipeline_chart(args.preview, args.output_dir)
-        return
     if args.pose_offsets:
         pose_offset_chart(args.preview, args.output_dir)
         return
     if args.bars:
         score_chart(args.output_dir)
         return
-    build = json.loads((BUILD / "run.json").read_text())
     objects = json.loads((BUILD / "objects.json").read_text())["objects"]
-    assignments = json.loads(ASSIGNMENTS.read_text())["episodes"]
+    previous = json.loads((PREVIOUS_BUILD / "objects.json").read_text())["objects"]
     scores = {r["object"]: r for r in json.loads(SCORES.read_text())["objects"]}
     rows = []
-    for name, episode in PANEL_ROWS:
-        measure = next(ROOT / p for p in build["request"]["measure_runs"]
-                       if f"/public/episode_{episode:06d}/" in p)
-        record = json.loads(measure.read_text())
-        ids = record["request"]["objects"][name]
-        assert ids == assignments[f"public:{episode}"]["objects"][name]
-        with np.load(measure.with_name("labels_000000.npz")) as saved:
-            labels = saved["label"]
-        # The recorded overlay's left half is the unmodified, remapped RGB frame.
-        rgb = plt.imread(measure.with_name("overlay_000000.png"))[:, :labels.shape[1], :3]
+    for name in PANEL_OBJECTS:
+        old = trimesh.load(PREVIOUS_BUILD / previous[name]["file"], force="mesh")
         candidate = trimesh.load(BUILD / objects[name]["file"], force="mesh")
         scan = trimesh.load(SCANS / name / f"{name}.glb", force="mesh")
-        rows.append({"name": name, "episode": episode, "crop": cluster_crop(rgb, labels, ids),
+        rows.append({"name": name,
+                     "previous": (normalised_vertices(old.vertices, np.eye(3)), old.faces),
                      "candidate": (normalised_vertices(candidate.vertices, np.eye(3)), candidate.faces),
                      "scan": (normalised_vertices(scan.vertices, SCAN_ROTATIONS[name]), scan.faces),
                      "score": scores[name]["v3"], "previous_score": scores[name]["v2"]})
-        print(f"{name}: v3 {scores[name]['v3']:.4f} cm; v2 {scores[name]['v2']:.4f} cm; "
-              f"public ep. {episode}, clusters {ids}; {measure.relative_to(ROOT)}")
+        print(f"{name}: v2 {scores[name]['v2']:.4f} cm; v3 {scores[name]['v3']:.4f} cm")
     fig = qualitative_panel(rows)
     target = args.output_dir / TARGET.name
-    fig.savefig(target, dpi=300, metadata={"Title": "Video clusters, submitted v3 meshes and exact packed means",
+    fig.savefig(target, dpi=300, metadata={"Title": "Previous and revised meshes beside public scans; exact packed means",
                                          "Author": "", "Creator": ""})
     if args.preview:
         fig.savefig(args.preview, dpi=300)
