@@ -79,6 +79,12 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
    `outputs/pose_insurance`, `outputs/depth/public/episode_000002`, `outputs/depth/public/episode_000027`,
    `outputs/mesh_extents/public/episode_000002`, `outputs/mesh_extents/public/episode_000027`, and
    `submissions/20261101T2315Z-d2-v2`. `.runtime/tools/poppler` already lives in main's `.runtime`.
+   *Update, context 05:* main again equalled the branch at start (`e24414f`) and the guard still
+   refused edits, so context 05 worked on `worktree-chain-ctx01` (commits after `e24414f`). To
+   continue: in main, `git merge worktree-chain-ctx01`; copy back with `cp -al`
+   `outputs/pose_insurance` (new `scale/`, `v3/`, `results-v3/` and run dirs), `outputs/stereo_depth`,
+   `outputs/mesh_extents/build/20261102T000114.850697Z-1a4c354e` and
+   `submissions/20261102T0032Z-d2-v3`.
    *Notifications (2026-11-02, at the owner's request):* the branch's `scripts/chain/session_chain.py`
    now logs `STRANDED` with the merge command when a newer hand-off exists only in a worktree, and
    rings the terminal bell on that and on every finish (STALLED, LIMIT, COMPLETE). Set

@@ -357,3 +357,8 @@ single-object episode-39 MPPE changes by 7.1054e-15 cm under rigid alignment;
 `numerical_control.json` traces this to a 2.7756e-17 m position difference, consistent
 with floating-point cancellation. No equality tolerance was introduced after scores.
 The numerical tie-break favours S1; physical follow-up remains the lead's decision.
+The lead then adopted S1 by a post-result, per-candidate reading of the invariance
+clause (`docs/chain/pose-scale-protocol.md`, last section); D2 v3 applies it (see
+`SCALE_V3.md`). After S1 the train distance ratio is still 1.18-2.23 (3.58 on episode
+31), so part of the gain may come from shorter offsets hedging wrong directions rather
+than from a corrected scale.
