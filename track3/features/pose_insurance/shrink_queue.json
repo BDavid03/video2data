@@ -1,0 +1,11 @@
+{
+  "episodes": [0, 11, 12, 18, 21, 23, 26, 31],
+  "controls": [39, 42],
+  "candidates": ["I", "S1", "G", "P1", "P2", "P3", "P4", "P5", "P6", "P7", "C0", "C25", "C50", "C75"],
+  "max_trials": 156,
+  "max_seconds": 7000,
+  "tuning_builds": {
+    "39": "outputs/pose_insurance/build-v1/20261101T170225.751821Z-94e57a9b/episode_000039/run.json",
+    "42": "outputs/pose_insurance/build-v1/20261101T170257.010692Z-02e462b3/episode_000042/run.json"
+  }
+}
