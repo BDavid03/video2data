@@ -14,6 +14,13 @@ CATEGORIES = {
 NAMES = tuple(sorted(name for fold in FOLDS.values() for name in fold))
 
 
+def pool_extents(dimensions):
+    """Pool per-episode proportions while restoring the median geometric-mean size."""
+    dims = np.asarray(dimensions, dtype=np.float64)
+    size = np.exp(np.log(dims).mean(axis=1))
+    return np.median(dims / size[:, None], axis=0) * np.median(size)
+
+
 def shape_for(rule: dict, name: str, extents, parameter, attributes: dict | None = None) -> str:
     """Apply a category rule before any reference scan is read."""
     category = next(key for key, names in CATEGORIES.items() if name in names)

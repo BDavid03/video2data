@@ -41,20 +41,20 @@ The scoring loop produced 70 parameter/object records, 23 unique scores and 47 i
 score reuses. A repeat resumed all 70 records with zero new scores or ledger rows. Ranked table,
 per-object figure, seed spreads and full-precision independent gate recomputation live under
 `outputs/mesh_eval/rules-round2/`; exact pair results are in
-`outputs/mesh_eval/pairs/mesh-round2-v2-v3/`.
+`outputs/mesh_eval/pairs/shipped-v3/` (the shipped Parquet; every pair equals the original veto).
 
 ```bash
-PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 CUDA_VISIBLE_DEVICES='' .runtime/kit-env/bin/python -B .runtime/tmp/mesh-round2/score_round2.py --queue track3/features/mesh_extents/rules-round2.json
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 CUDA_VISIBLE_DEVICES='' .runtime/kit-env/bin/python -B -m track3.features.mesh_extents.rules --queue track3/features/mesh_extents/rules-round2.json
 PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 .runtime/linux-cuda/bin/python -B -m track3.features.mesh_extents build --request scripts/track3/requests/d1/build-v3.json
 bash scripts/reproduce/d1_meshes.sh --version v3
 ```
 
-The scratch launcher redirects caches into this job's permitted scratch path and calls the
-unmodified loop. The ordinary module entry point remains available with the same queue.
+The committed handler keeps runtime caches and temporary files under its output directory.
+Use `--output <directory>` with a cache copy for an isolated rerun; the frozen queue stays unchanged.
 The reproduction command prints a CPU plan; add an explicit commit URL and `--run` to execute.
 Default v2 reproduction has a byte-identical plan and all 47 fresh v2 mesh hashes remain identical.
-For v3, the script uses a submitted v3 manifest if present, otherwise this job's local pack manifest;
-`--manifest <path>` selects an explicit recorded manifest.
+V3 uses the latest `submissions/*-d1-v3/manifest.json`; `--manifest <path>` selects an explicit
+recorded manifest. Absolute paths in older manifests are rebased before inputs are read.
 
 V3 build: `outputs/mesh_extents/build/20261102T030138.153550Z-118eeb04/run.json`.
 All 11 objects and 36 pair copies were built. All ten scored meshes match selected loop candidates
@@ -64,6 +64,30 @@ byte-for-byte; the spoon matches v2. Local placeholder pack:
 are no policy results and skipped Kaggle checks. No `submissions/` files were written; final
 packing and release remain the lead's. See `outputs/mesh_eval/rules-round2/job-b.md` for commands
 and full-precision gate numbers.
+
+## Portability and critic checks (2026-11-02)
+
+D1 reproduction reads only submitted v2/v3 manifests by default and rebases legacy absolute
+build/command paths before reading inputs. The shipped v3 manifest and production-build index
+now use repository-relative paths. Its reproduction evidence is archived under
+`outputs/mesh_eval/d1-v3-reproduction/`; the original temporary directory was retained.
+The shipped Parquet is unchanged: SHA-256
+`a61f02b12078a05c940037034e37ec4201e3e919a55e4bea9e0058dfa2f45f40`.
+
+`BuildRequest.rule_queue` supplies the rule queue path; its default preserves existing requests.
+The queue is admitted once against its committed SHA-256, rather than duplicated rule tuples.
+`_rule_scores.pool_extents` contains pure pooling; the handler reads records and writes meshes.
+The round-1 historical baseline is a `baseline_check` queue input. Runtime caches, temporary
+files and summary backups stay under the chosen output directory.
+
+Fresh v2 and v3 builds each match **47/47 PLY files**; pure pooling matches all 11 objects exactly.
+Both rule queues were rerun into copies under `outputs/mesh_eval/mesh-fix/`: every scientific
+summary value is identical, with **0 new scores**, 80 cached score reuses for round 1 and 70 for
+round 2. Historical summaries were not overwritten. Current-checkout v2/v3 plans and relocated
+v2/v3/legacy-absolute-v3 plans pass. The shipped-file pair run scores 26 pairs for each file and
+matches the earlier veto **exactly for all 52 values**: v3 0.8114951342417491 pair-weighted /
+0.7710770332786878 per object, v2 1.085023637656605 / 0.9257250385709256 cm.
+Evidence: `outputs/mesh_eval/mesh-fix/`, `outputs/mesh_eval/pairs/shipped-v3/`.
 
 ## Round 2 geometry preparation (Job A)
 

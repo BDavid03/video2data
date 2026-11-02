@@ -10,6 +10,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 
 from track3.paths import output_path, project_path
@@ -24,35 +25,22 @@ BUILD = Path("outputs/mesh_extents/build/20261101T103838.400965Z-117fbcff")
 PROTOCOL = Path("docs/chain/mesh-selection-protocol.md")
 OUTPUT = Path("outputs/mesh_eval/rules")
 SEEDS = [1, 3, 5]
+ROUND2_QUEUE_SHA256 = "3b21c00b7e215c5af027ffe2e09f28d7674fc1e48d48926c5751f9698fea05aa"
 
 
 def identity(value: dict) -> str:
     return hashlib.sha256(json.dumps(value, sort_keys=True, allow_nan=False).encode()).hexdigest()
 
 
-def read_queue(path: Path) -> list[dict]:
-    """Admit only the three predeclared rule families with one parameter apiece."""
-    queue = json.loads(path.read_text())
+def read_queue(path: Path) -> dict:
+    """Read one admitted queue, checking the committed round-2 bytes exactly."""
+    data = path.read_bytes()
+    queue = json.loads(data)
     rules = queue["rules"]
     if queue.get("round") == 2:
-        expected = [("R4 rim-handle", None, [None]),
-                    ("R5 hollow-vessels", "wall_radius_fraction", [0.02, 0.05, 0.10]),
-                    ("R6 peg-rack", "wall_radius_fraction", [0.02, 0.05, 0.10])]
-        if len(rules) != 3:
-            raise ValueError("Round 2 permits exactly R4/R5/R6")
-        for rule, (name, parameter, grid) in zip(rules, expected):
-            if ((rule["name"], rule["parameter"], rule["grid"]) != (name, parameter, grid)
-                    or rule.get("aspect_threshold") != 1.3 or rule.get("handle_height_fraction") != 0.6
-                    or rule["shapes"] != dict(zip(CATEGORIES, ("vessel_with_handle", "box", "box")))):
-                raise ValueError(f"Changed frozen round-2 family: {name}")
-        incumbent = queue["incumbent"]
-        if (incumbent["rule"], incumbent["parameter"]) != ("R2 vessel-handle", 1.3):
-            raise ValueError("Round-2 incumbent must be fixed-threshold R2/1.3")
-        if queue["gates"] != {"minimum_gain_cm": 0.03, "maximum_regression_cm": 0.15}:
-            raise ValueError("Round-2 gates differ from the amendment")
-        if queue["budget"]["max_object_trials"] < 70 or queue["budget"]["max_seconds"] <= 0:
-            raise ValueError("Queue needs a budget for all 70 object trials")
-        return rules
+        if hashlib.sha256(data).hexdigest() != ROUND2_QUEUE_SHA256:
+            raise ValueError("Round-2 queue differs from its committed frozen hash")
+        return queue
     expected = [
         ("R1 vessel-cylinder", None, ("cylinder", "box", "box")),
         ("R2 vessel-handle", "aspect_threshold", ("vessel_with_handle", "box", "box")),
@@ -74,7 +62,7 @@ def read_queue(path: Path) -> list[dict]:
                 raise ValueError(f"Invalid grid for {parameter}")
         if name.startswith("R2") and rule.get("handle_height_fraction") != 0.6:
             raise ValueError("The R2 handle height fraction is fixed at 0.6")
-    return rules
+    return queue
 
 
 def append_ledger(path: Path, row: dict) -> None:
@@ -377,18 +365,19 @@ def build_dry_trial(trial: dict, attributes: dict, output: Path) -> dict:
     return result
 
 
-def dry_build(queue_path: Path) -> Path:
+def dry_build(queue_path: Path, output_override: Path | None = None) -> Path:
     """Resume all candidate builds and render changed meshes without scan access."""
     runtime_flag(FEATURE, "build_authorized", "Mesh rule dry build")
     queue_path = project_path(ROOT, queue_path)
-    rules = read_queue(queue_path)
-    queue = json.loads(queue_path.read_text())
+    queue = read_queue(queue_path)
+    rules = queue["rules"]
     if queue.get("round") != 2:
         raise ValueError("Dry build requires the round-2 queue")
-    output = output_path(ROOT, Path(queue["output"]) / "dry")
+    output = output_path(ROOT, Path(output_override or queue["output"]) / "dry")
     for folder in ("meshes", "renders", "trials", "runs"):
         (output / folder).mkdir(parents=True, exist_ok=True)
-    os.environ.update(MPLCONFIGDIR=str(output), TMPDIR=str(ROOT / ".runtime/tmp/mesh-round2"))
+    os.environ.update(MPLCONFIGDIR=str(output), TMPDIR=str(output))
+    tempfile.tempdir = str(output)
     attributes, hashes, extra_inputs = round2_inputs_for(queue)
     build = Path(queue["build"])
     parent = read_run(ROOT, build / "run.json", kind="mesh_extents.build", allowed=("video_only",))
@@ -466,26 +455,29 @@ def dry_build(queue_path: Path) -> Path:
     return directory / "run.json"
 
 
-def run(queue_path: Path) -> Path:
+def run(queue_path: Path, output_override: Path | None = None) -> Path:
     """Run the editable queue, recording every object trial before fold selection."""
     runtime_flag(FEATURE, "build_authorized", "Mesh rule build and evaluation")
     queue_path = project_path(ROOT, queue_path)
-    rules = read_queue(queue_path)
-    queue = json.loads(queue_path.read_text())
+    queue = read_queue(queue_path)
+    rules = queue["rules"]
     build = Path(queue.get("build", BUILD))
-    output = output_path(ROOT, queue.get("output", OUTPUT))
+    output = output_path(ROOT, output_override or queue.get("output", OUTPUT))
     attributes, round2_inputs, extra_inputs = round2_inputs_for(queue)
     baseline_label = queue.get("incumbent", {}).get("label", "Box v1")
     for name in ("cache", "scores", "meshes", "trials"):
         (output / name).mkdir(parents=True, exist_ok=True)
-    os.environ.update(MPLCONFIGDIR=str(output_path(ROOT, ".cache/matplotlib")),
-                      XDG_CACHE_HOME=str(output_path(ROOT, ".cache/xdg")),
-                      TMPDIR=str(output_path(ROOT, ".runtime/tmp")), PYTHONDONTWRITEBYTECODE="1")
+    scratch = output / "runtime"
+    scratch.mkdir(exist_ok=True)
+    os.environ.update(MPLCONFIGDIR=str(scratch), XDG_CACHE_HOME=str(scratch),
+                      TMPDIR=str(scratch), PYTHONDONTWRITEBYTECODE="1")
+    tempfile.tempdir = str(scratch)
     from scripts.track3 import local_cdo
     import numpy as np
 
     record = run_fields(ROOT, "mesh_extents", "rules", {"queue": queue_path.relative_to(ROOT).as_posix()},
-                        inputs=[queue_path, PROTOCOL, *extra_inputs], parents=[build / "run.json"], provenance="public_asset_diagnostic")
+                        inputs=[queue_path, PROTOCOL, *extra_inputs, *([queue["baseline_check"]] if "baseline_check" in queue else [])],
+                        parents=[build / "run.json"], provenance="public_asset_diagnostic")
     parent = read_run(ROOT, build / "run.json", kind="mesh_extents.build", allowed=("video_only",))
     pooled = json.loads(artifact((ROOT / build / "run.json", parent), "objects.json", record).read_text())
     objects = pooled["objects"]
@@ -534,7 +526,7 @@ def run(queue_path: Path) -> Path:
                              "shapes": dict.fromkeys(CATEGORIES, "box")}
             baseline_rows = [evaluate_object(baseline_rule, None, name, context) for name in NAMES]
             baseline = {r["object"]: r["cd_o_cm"] for r in baseline_rows}
-            historical = json.loads((ROOT / "outputs/mesh_eval/d1-ctx02/v1-box.json").read_text())
+            historical = json.loads(project_path(ROOT, queue["baseline_check"]).read_text())
             if any(abs(baseline[r["object"]] - r["cd_o_cm"]) > 0.000051 for r in historical["objects"]):
                 raise ValueError("Recomputed box differs from the fixed v1 baseline beyond JSON rounding")
         ranking = []
@@ -559,7 +551,7 @@ def run(queue_path: Path) -> Path:
                    "winner_pending_exact_veto": next((r["rule"] for r in ranking if r["adopt"]), None),
                    "baseline_seed_spread_cm": {r["object"]: r["seed_std_cm"] for r in baseline_rows}}
         write_report(summary, directory)
-    backup = ROOT / ".runtime/tmp/mesh-round2/backup" / new_run_id("mesh-rules")
+    backup = output / "backups" / new_run_id("mesh-rules")
     for name in ("summary.json", "summary.md", "rules-cdo.png"):
         target = output / name
         if target.exists():
@@ -574,12 +566,13 @@ def run(queue_path: Path) -> Path:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--queue", type=Path, required=True)
+    parser.add_argument("--output", type=Path, help="Write an isolated run and cache copy here")
     parser.add_argument("--dry-build", action="store_true", help="Build/check/render candidates without importing scoring code")
     args = parser.parse_args()
     if args.dry_build:
-        dry_build(args.queue)
+        dry_build(args.queue, args.output)
     else:
-        run(args.queue)
+        run(args.queue, args.output)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,14 @@
+{
+  "files": {
+    "v2": "submissions/20261101T1605Z-d1-v2/track3_meshes_v2.parquet",
+    "v3": "submissions/20261102T0313Z-d1-v3/track3_meshes_v3.parquet"
+  },
+  "roster": "upstream/v2d_submission_kit/v2d_submission_kit/data/track_3_evaluation_objects.json",
+  "output": "outputs/mesh_eval/pairs/shipped-v3",
+  "comparison": [
+    "v2",
+    "v3"
+  ],
+  "max_trials": 52,
+  "time_budget_seconds": 7000
+}

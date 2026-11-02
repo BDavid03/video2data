@@ -10,7 +10,7 @@ from dataclasses import asdict, dataclass, field
 import math
 from pathlib import Path
 
-from track3.paths import output_path
+from track3.paths import output_path, project_path
 from track3.provenance import read_run, run_fields, sha256_file, write_json
 from track3.runs import ROOT, artifact, dataset_revision, new_run_id, read_json, recorded, runtime_flag, same_revision
 
@@ -31,6 +31,7 @@ class BuildRequest:
     rule: str | None = None
     rule_parameter: float | None = None
     attributes_file: str | None = None
+    rule_queue: str = "track3/features/mesh_extents/rules-round2.json"
 
     @classmethod
     def from_file(cls, path):
@@ -39,9 +40,6 @@ class BuildRequest:
     def __post_init__(self):
         if self.rule is None and (self.rule_parameter is not None or self.attributes_file is not None):
             raise ValueError("A rule parameter or attributes file requires a named rule")
-        if self.rule is not None and (self.shape != "vessel_rule" or self.shape_overrides
-                                      or self.aspect_threshold != 1.3 or self.handle_height_fraction != 0.6):
-            raise ValueError("Round-2 rules require the fixed R2 base configuration without overrides")
         if self.shape not in SHAPES or any(value not in SHAPES for value in self.shape_overrides.values()):
             raise ValueError(f"shape must be one of {SHAPES}")
         if not self.measure_runs:
@@ -65,8 +63,10 @@ def _rule_inputs(request: BuildRequest):
     """Read the named frozen rule and its video-only attributes for a production build."""
     if request.rule is None:
         return None, {}, []
-    queue_path = FEATURE / "rules-round2.json"
-    queue = read_json(queue_path)
+    from .rules import read_queue
+
+    queue_path = project_path(ROOT, request.rule_queue)
+    queue = read_queue(queue_path)
     rule = next((row for row in queue["rules"] if row["name"] == request.rule), None)
     if rule is None or request.rule_parameter not in rule["grid"]:
         raise ValueError("Name a frozen round-2 rule and one of its recorded parameters")
@@ -92,6 +92,8 @@ def build(request: BuildRequest):
         parents.append((path, record))
     revision = same_revision(parents, dataset_revision())
     snapshot = asdict(request)
+    if request.rule_queue == BuildRequest.rule_queue:
+        snapshot.pop("rule_queue")
     if request.rule is None:
         for key in ("rule", "rule_parameter", "attributes_file"):
             snapshot.pop(key)
@@ -104,7 +106,7 @@ def build(request: BuildRequest):
         import trimesh
 
         from . import _shapes
-        from ._rule_scores import CATEGORIES, mesh_for, shape_for
+        from ._rule_scores import CATEGORIES, mesh_for, pool_extents, shape_for
 
         contributions = {}
         for path, parent in parents:
@@ -119,9 +121,7 @@ def build(request: BuildRequest):
         objects = {}
         (directory / "objects").mkdir()
         for name, rows in sorted(contributions.items()):
-            dims = np.array([row["median_m"] for row in rows])
-            size = np.exp(np.log(dims).mean(axis=1))
-            pooled = np.median(dims / size[:, None], axis=0) * np.median(size)
+            pooled = pool_extents([row["median_m"] for row in rows])
             shape = request.shape_overrides.get(name, request.shape)
             if rule is not None:
                 from .rules import check_mesh

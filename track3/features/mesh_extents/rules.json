@@ -1,4 +1,5 @@
 {
+  "baseline_check": "outputs/mesh_eval/d1-ctx02/v1-box.json",
   "rules": [
     {
       "name": "R1 vessel-cylinder",
