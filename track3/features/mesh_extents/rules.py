@@ -10,13 +10,14 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import time
 
 from track3.paths import output_path, project_path
 from track3.provenance import input_file, read_run, run_fields, sha256_file, write_json
 from track3.runs import ROOT, artifact, new_run_id, recorded, runtime_flag
 
 from . import _shapes
-from ._rule_scores import CATEGORIES, FOLDS, NAMES, select, shape_for
+from ._rule_scores import CATEGORIES, FOLDS, NAMES, mesh_for, select, shape_for
 
 FEATURE = Path(__file__).parent
 BUILD = Path("outputs/mesh_extents/build/20261101T103838.400965Z-117fbcff")
@@ -31,7 +32,27 @@ def identity(value: dict) -> str:
 
 def read_queue(path: Path) -> list[dict]:
     """Admit only the three predeclared rule families with one parameter apiece."""
-    rules = json.loads(path.read_text())["rules"]
+    queue = json.loads(path.read_text())
+    rules = queue["rules"]
+    if queue.get("round") == 2:
+        expected = [("R4 rim-handle", None, [None]),
+                    ("R5 hollow-vessels", "wall_radius_fraction", [0.02, 0.05, 0.10]),
+                    ("R6 peg-rack", "wall_radius_fraction", [0.02, 0.05, 0.10])]
+        if len(rules) != 3:
+            raise ValueError("Round 2 permits exactly R4/R5/R6")
+        for rule, (name, parameter, grid) in zip(rules, expected):
+            if ((rule["name"], rule["parameter"], rule["grid"]) != (name, parameter, grid)
+                    or rule.get("aspect_threshold") != 1.3 or rule.get("handle_height_fraction") != 0.6
+                    or rule["shapes"] != dict(zip(CATEGORIES, ("vessel_with_handle", "box", "box")))):
+                raise ValueError(f"Changed frozen round-2 family: {name}")
+        incumbent = queue["incumbent"]
+        if (incumbent["rule"], incumbent["parameter"]) != ("R2 vessel-handle", 1.3):
+            raise ValueError("Round-2 incumbent must be fixed-threshold R2/1.3")
+        if queue["gates"] != {"minimum_gain_cm": 0.03, "maximum_regression_cm": 0.15}:
+            raise ValueError("Round-2 gates differ from the amendment")
+        if queue["budget"]["max_object_trials"] < 70 or queue["budget"]["max_seconds"] <= 0:
+            raise ValueError("Queue needs a budget for all 70 object trials")
+        return rules
     expected = [
         ("R1 vessel-cylinder", None, ("cylinder", "box", "box")),
         ("R2 vessel-handle", "aspect_threshold", ("vessel_with_handle", "box", "box")),
@@ -68,25 +89,37 @@ def append_ledger(path: Path, row: dict) -> None:
         os.fsync(stream.fileno())
 
 
-def build_candidate(rule: dict, parameter, name: str, dims, original: Path, directory: Path) -> tuple:
+def check_mesh(mesh, dims) -> dict:
+    """Check component closure, positive volumes, budget and video extents."""
+    import numpy as np
+
+    parts = mesh.split(only_watertight=False)
+    if not parts or not all(part.is_watertight and part.is_volume for part in parts):
+        raise ValueError("Each mesh component must be watertight and a positive volume")
+    if len(mesh.vertices) >= 4096 or len(mesh.faces) >= 4096:
+        raise ValueError("Candidate reaches the kit simplification budget")
+    if not np.allclose(mesh.extents, dims, rtol=1e-6, atol=0):
+        raise ValueError(f"Candidate extents {mesh.extents} differ from video extents {dims}")
+    return {"watertight": bool(mesh.is_watertight), "volume": bool(mesh.is_volume),
+            "vertices": len(mesh.vertices), "faces_before_budget": len(mesh.faces),
+            "closed_components": len(parts), "components_watertight_volume": True,
+            "extents": mesh.extents.tolist(),
+            "max_relative_extent_error": float(np.max(np.abs(mesh.extents / np.asarray(dims) - 1)))}
+
+
+def build_candidate(rule: dict, parameter, name: str, dims, original: Path, directory: Path,
+                    attributes: dict | None = None) -> tuple:
     """Build solely from video extents, keeping existing box files byte-for-byte."""
-    shape = shape_for(rule, name, dims, parameter)
+    shape = shape_for(rule, name, dims, parameter, attributes)
     if shape == "box":
         return shape, original, None
-    if shape == "cylinder":
-        mesh = _shapes.cylinder(dims)
-    elif shape == "vessel_with_handle":
-        mesh = _shapes.vessel_with_handle(dims, rule["handle_height_fraction"])
-    else:
-        mesh = _shapes.head_and_handle(dims, parameter)
-    if not mesh.is_watertight or not mesh.is_volume:
-        raise ValueError(f"{name}: shape must have closed, consistently oriented components")
+    mesh = mesh_for(shape, rule, name, dims, parameter, attributes or {})
+    geometry = check_mesh(mesh, dims)
     data = mesh.export(file_type="ply")
     target = directory / (hashlib.sha256(data).hexdigest() + ".ply")
     if not target.exists():
         target.write_bytes(data)
-    return shape, target, {"watertight": bool(mesh.is_watertight), "faces_before_budget": len(mesh.faces),
-                           "closed_components": len(mesh.split()), "extents": mesh.extents.tolist()}
+    return shape, target, geometry
 
 
 def evaluate_object(rule: dict, parameter, name: str, context: dict) -> dict:
@@ -96,13 +129,16 @@ def evaluate_object(rule: dict, parameter, name: str, context: dict) -> dict:
     output = context["output"]
     row = context["objects"][name]
     shape, candidate, geometry = build_candidate(rule, parameter, name, row["extents_m"],
-                                                ROOT / BUILD / row["file"], output / "meshes")
+                                                ROOT / context["build"] / row["file"], output / "meshes",
+                                                context.get("attributes"))
     score_inputs = {"candidate_sha256": sha256_file(candidate), "reference": context["references"][name],
                     "scoring": context["scoring"]}
     score_id = identity(score_inputs)
     request = {"rule": {key: value for key, value in rule.items() if key != "grid"},
                "parameter": parameter, "object": name, "extents_m": row["extents_m"], "shape": shape,
                "score_id": score_id, "sources": context["sources"], "protocol": context["protocol"]}
+    if context.get("round2_inputs"):
+        request["round2_inputs"] = context["round2_inputs"]
     trial_id = identity(request)
     cached = output / "cache" / f"{trial_id}.json"
     if cached.exists():
@@ -113,8 +149,11 @@ def evaluate_object(rule: dict, parameter, name: str, context: dict) -> dict:
         context["resumed"] += 1
         return result
     record = run_fields(ROOT, "mesh_extents", "rules", request,
-                        inputs=[context["queue"], PROTOCOL, candidate, local_cdo.scan_path(name)],
-                        parents=[BUILD / "run.json"], provenance="public_asset_diagnostic")
+                        inputs=[context["queue"], PROTOCOL, candidate, local_cdo.scan_path(name),
+                                *context.get("extra_inputs", [])],
+                        parents=[context["build"] / "run.json"], provenance="public_asset_diagnostic")
+    if time.monotonic() > context["deadline"]:
+        raise TimeoutError("Queue time budget exhausted; resume the same command")
     directory = output / "trials" / trial_id / new_run_id()
     score_cache = output / "scores" / f"{score_id}.json"
     with recorded(directory, record):
@@ -161,7 +200,8 @@ def ranked_table(summary: dict) -> str:
                     f"{row['cross_fitted_mean_cm']:.5f} | {row['in_sample_mean_cm']:.5f} | "
                     f"{row['pair_weighted_mean_cm']:.5f} | {row['worst_held_out_regression_cm']:+.5f} | "
                     f"{gates} | {'yes' if row['adopt'] else 'no'} |")
-    return "\n".join(rows).replace("| None |", "| — |")
+    table = "\n".join(rows).replace("| None |", "| — |")
+    return table.replace("| Adopt |", "| Development eligible (veto pending) |") if summary.get("round") == 2 else table
 
 
 def plot(summary_path: str, target: str) -> None:
@@ -175,7 +215,7 @@ def plot(summary_path: str, target: str) -> None:
     summary = json.loads(Path(summary_path).read_text())
     x = np.arange(len(NAMES))
     fig, ax = plt.subplots(figsize=(14, 6), constrained_layout=True)
-    series = [("Box v1", summary["baseline_per_object_cm"])]
+    series = [(summary.get("baseline_label", "Box v1"), summary["baseline_per_object_cm"])]
     series += [(row["rule"], row["per_object_cm"]) for row in summary["ranking"]]
     for i, (label, values) in enumerate(series):
         ax.bar(x + (i - 1.5) * 0.2, [values[n] for n in NAMES], 0.2, label=label)
@@ -195,23 +235,35 @@ def write_report(summary: dict, directory: Path) -> None:
     write_json(directory / "summary.json", summary)
     baseline = summary["baseline_mean_cm"]
     text = ["# Mesh shape rules", "", "Development estimates against the 10 public scans; scans are measurement-only.",
-            f"Box v1: **{baseline:.5f} cm** per object; **{summary['baseline_pair_mean_cm']:.5f} cm** "
+            f"{summary.get('baseline_label', 'Box v1')}: **{baseline:.5f} cm** per object; **{summary['baseline_pair_mean_cm']:.5f} cm** "
             "over the 26 scanned pairs. Kit seed episodes: 1, 3, 5.", "", ranked_table(summary), "",
             "Parameters are selected on the named fold and scored on the opposite fold. In-sample means "
             "select a single parameter on all 10 objects (optimistic). Ties use the original queue order. "
             "Pair weighting uses each object's count in the v1 roster, with its cross-fitted score.", "",
-            "R2 tunes only the aspect threshold; handle height is fixed at 0.6, width at 0.15 of the short "
+            ("R2 tunes only the aspect threshold; handle height is fixed at 0.6, width at 0.15 of the short "
             "extent. This tests when the measured long-axis excess should become a handle. "
-            "R3 uses a box head and handle width 0.2 of the short extent; the height remains measured.", "",
-            "| Object | Fold | Pairs | Box v1 (cm) | " + " | ".join(r["rule"] + " (cm)" for r in summary["ranking"]) + " |",
+            "R3 uses a box head and handle width 0.2 of the short extent; the height remains measured."
+            if summary.get("round") != 2 else
+            "R4 moves only video-confirmed rim-flat handles. R5 adds open vessel shells, and R6 adds "
+            "video-counted rack pegs. R5/R6 tune wall/radius over [0.02, 0.05, 0.10]; threshold stays 1.3."), "",
+            "| Object | Fold | Pairs | " + summary.get("baseline_label", "Box v1") + " (cm) | " + " | ".join(r["rule"] + " (cm)" for r in summary["ranking"]) + " |",
             "| --- | --- | ---: | ---: | " + " | ".join("---:" for _ in summary["ranking"]) + " |"]
     for name in NAMES:
         fold = next(f for f, names in FOLDS.items() if name in names)
         values = [summary["baseline_per_object_cm"][name], *(r["per_object_cm"][name] for r in summary["ranking"])]
         text.append(f"| {name} | {fold} | {summary['pair_counts'][name]} | " +
                     " | ".join(f"{value:.5f}" for value in values) + " |")
+    text += ["", "Seed spread: population standard deviation across kit seeds 1/3/5, per object (cm).",
+             "| Rule | Mean seed SD (cm) | Maximum seed SD (cm) |", "| --- | ---: | ---: |"]
+    for row in summary["ranking"]:
+        spread = row["seed_spread_cm"]
+        text.append(f"| {row['rule']} | {spread['mean']:.8f} | {spread['max']:.8f} |")
+    if summary.get("round") == 2:
+        text += ["", "Choosing among three nested results on ten reused scans is optimistic. "
+                 "Development eligibility is provisional: production build/pack and the exact packed-v2 veto "
+                 "must pass before adoption; no retuning or rule switching after the veto."]
     text += ["", "![Per-object CD-O](rules-cdo.png)", "",
-             "Figure: box v1 versus each rule's cross-fitted per-object CD-O (cm). "
+             f"Figure: {summary.get('baseline_label', 'Box v1')} versus each rule's cross-fitted per-object CD-O (cm). "
              "These are development estimates against the public scans, not an independent final assessment.", "",
              "Concatenated components remain individually closed; overlaps leave internal faces. "
              "The real run checks the kit's 4096-row budget and finite area-weighted sampling, "
@@ -226,12 +278,204 @@ def write_report(summary: dict, directory: Path) -> None:
                     str(directory / "summary.json"), str(directory / "rules-cdo.png")], check=True, cwd=ROOT)
 
 
+def incumbent_scores(queue: dict) -> tuple[dict, list]:
+    """Read the exact fixed-threshold incumbent from its completed ledger rows."""
+    incumbent = queue["incumbent"]
+    rows = {}
+    path = project_path(ROOT, incumbent["ledger"])
+    for line in path.read_text().splitlines():
+        row = json.loads(line)
+        if row["rule"] == incumbent["rule"] and row["parameter"] == incumbent["parameter"]:
+            if row["object"] in rows and rows[row["object"]] != row:
+                raise ValueError("Conflicting incumbent ledger entries")
+            rows[row["object"]] = row
+    if set(rows) != set(NAMES):
+        raise ValueError("Incumbent must cover exactly ten scanned objects")
+    if any(row["inputs"]["scoring"]["seed_episodes"] != SEEDS for row in rows.values()):
+        raise ValueError("Incumbent seeds must be 1/3/5")
+    return {name: row["cd_o_cm"] for name, row in rows.items()}, list(rows.values())
+
+
+def round2_inputs_for(queue: dict) -> tuple[dict, dict, list]:
+    """Read frozen video attributes and hash the incumbent and attribute inputs."""
+    if queue.get("round") != 2:
+        return {}, {}, []
+    path = project_path(ROOT, queue["attributes"])
+    attributes = json.loads(path.read_text())
+    if attributes["provenance"] != "video_only":
+        raise ValueError("Attributes must have video-only provenance")
+    for row in attributes["objects"].values():
+        for evidence in row["evidence"]:
+            if evidence["episode"] in (41, 43, 44):
+                raise ValueError("Excluded episode in video attributes")
+    baseline, _ = incumbent_scores(queue)
+    inputs = [path, project_path(ROOT, queue["incumbent"]["ledger"])]
+    hashes = {"attributes": input_file(ROOT, path), "incumbent": queue["incumbent"],
+              "incumbent_scores": baseline, "incumbent_ledger": input_file(ROOT, inputs[1])}
+    return attributes["objects"], hashes, inputs
+
+
+def render_candidate(mesh, target: Path, label: str) -> None:
+    """Render candidate geometry alone in three views with equal axis scale."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import numpy as np
+    from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+
+    fig = plt.figure(figsize=(14, 4.8), constrained_layout=True)
+    center = mesh.bounds.mean(axis=0)
+    radius = mesh.extents.max() * 0.55
+    for index, (elevation, azimuth) in enumerate(((25, -60), (90, -90), (0, -90)), 1):
+        ax = fig.add_subplot(1, 3, index, projection="3d")
+        collection = Poly3DCollection(mesh.triangles, facecolor="#80b9cd", edgecolor="#305060", linewidth=0.15)
+        ax.add_collection3d(collection)
+        ax.set(xlim=center[0] + np.array([-radius, radius]), ylim=center[1] + np.array([-radius, radius]),
+               zlim=center[2] + np.array([-radius, radius]), xlabel="Long axis (video units)",
+               ylabel="Short axis", zlabel="Height")
+        ax.set_box_aspect((1, 1, 1))
+        from matplotlib.ticker import MaxNLocator
+
+        for axis in (ax.xaxis, ax.yaxis, ax.zaxis):
+            axis.set_major_locator(MaxNLocator(3))
+        ax.set_proj_type("ortho")
+        if elevation == 90:
+            ax.set_zticks([])
+            ax.set_zlabel("")
+        elif elevation == 0:
+            ax.set_yticks([])
+            ax.set_ylabel("")
+        ax.set_title(("Perspective", "Top", "Side")[index - 1])
+        ax.view_init(elev=elevation, azim=azimuth)
+    fig.suptitle(label + " — candidate only")
+    fig.savefig(target, dpi=140)
+    plt.close(fig)
+
+
+def build_dry_trial(trial: dict, attributes: dict, output: Path) -> dict:
+    """Build, check and persist one video-only candidate and its three-view render."""
+    rule, parameter, name, dims = (trial[k] for k in ("rule", "parameter", "object", "extents_m"))
+    shape = shape_for(rule, name, dims, parameter, attributes)
+    mesh = mesh_for(shape, rule, name, dims, parameter, attributes)
+    geometry = check_mesh(mesh, dims)
+    data = mesh.export(file_type="ply")
+    mesh_hash = hashlib.sha256(data).hexdigest()
+    target = output / "meshes" / (mesh_hash + ".ply")
+    if not target.exists():
+        target.write_bytes(data)
+    changed = mesh_hash != trial["incumbent_mesh_sha256"]
+    render_id = identity({"mesh": mesh_hash, "renderer": trial["sources"]["rules.py"]})
+    render = output / "renders" / (render_id + ".png")
+    if changed and not render.exists():
+        render_candidate(mesh, render, f"{name} / {shape}" + (f" / wall-radius {parameter}" if shape == "vessel_shell" else ""))
+    result = {"identity": identity(trial), "rule": rule["name"], "parameter": parameter, "object": name,
+              "shape": shape, **geometry, "changed_from_R2": changed,
+              "mesh": target.relative_to(ROOT).as_posix(), "mesh_sha256": mesh_hash,
+              "render": render.relative_to(ROOT).as_posix() if changed else None,
+              "inputs": trial, "provenance": "video_only", "scoring": False}
+    return result
+
+
+def dry_build(queue_path: Path) -> Path:
+    """Resume all candidate builds and render changed meshes without scan access."""
+    runtime_flag(FEATURE, "build_authorized", "Mesh rule dry build")
+    queue_path = project_path(ROOT, queue_path)
+    rules = read_queue(queue_path)
+    queue = json.loads(queue_path.read_text())
+    if queue.get("round") != 2:
+        raise ValueError("Dry build requires the round-2 queue")
+    output = output_path(ROOT, Path(queue["output"]) / "dry")
+    for folder in ("meshes", "renders", "trials", "runs"):
+        (output / folder).mkdir(parents=True, exist_ok=True)
+    os.environ.update(MPLCONFIGDIR=str(output), TMPDIR=str(ROOT / ".runtime/tmp/mesh-round2"))
+    attributes, hashes, extra_inputs = round2_inputs_for(queue)
+    build = Path(queue["build"])
+    parent = read_run(ROOT, build / "run.json", kind="mesh_extents.build", allowed=("video_only",))
+    request = {"queue": input_file(ROOT, queue_path), "round2_inputs": hashes, "dry_build": True}
+    record = run_fields(ROOT, "mesh_extents", "rules_dry", request,
+                        inputs=[queue_path, PROTOCOL, *extra_inputs], parents=[build / "run.json"])
+    pooled = json.loads(artifact((ROOT / build / "run.json", parent), "objects.json", record).read_text())
+    objects = pooled["objects"]
+    if set(objects) != set(NAMES) | {"wooden_spoon"}:
+        raise ValueError("Dry build must cover all eleven production objects")
+    total = sum(len(rule["grid"]) for rule in rules) * len(objects)
+    if total > queue["budget"]["max_candidate_builds"]:
+        raise ValueError("Dry-build candidate count exceeds queue budget")
+    if any(ep["episode_index"] in (41, 43, 44) for row in objects.values() for ep in row["episodes"]):
+        raise ValueError("Excluded episode in video measurements")
+    sources = {p.name: sha256_file(p) for p in (Path(__file__), FEATURE / "_shapes.py", FEATURE / "_rule_scores.py")}
+    deadline = time.monotonic() + queue["budget"]["max_seconds"]
+    results, resumed = [], 0
+    ledger = output / "ledger.jsonl"
+    logged = set()
+    if ledger.exists():
+        for line in ledger.read_text().splitlines():
+            try:
+                logged.add(json.loads(line)["identity"])
+            except (json.JSONDecodeError, KeyError):
+                pass
+    directory = output / "runs" / new_run_id()
+    with recorded(directory, record):
+        for rule in rules:
+            for parameter in rule["grid"]:
+                for name, row in objects.items():
+                    import numpy as np
+
+                    dims = np.asarray(row["extents_m"])
+                    if dims.shape != (3,) or not np.isfinite(dims).all() or np.any(dims <= 0) or dims[0] < dims[1]:
+                        raise ValueError(f"Invalid video extents: {name}")
+                    trial = {"rule": rule, "parameter": parameter, "object": name, "extents_m": dims.tolist(),
+                             "inputs": request, "sources": sources, "protocol": input_file(ROOT, PROTOCOL),
+                             "incumbent_mesh_sha256": row["sha256"]}
+                    trial_id = identity(trial)
+                    cached = output / "trials" / f"{trial_id}.json"
+                    if cached.exists():
+                        result = json.loads(cached.read_text())
+                        if not all((ROOT / result[key]).exists() for key in ("mesh", "render") if result.get(key)):
+                            raise ValueError("Dry-build cache has missing artifacts")
+                        resumed += 1
+                    else:
+                        if time.monotonic() > deadline:
+                            raise TimeoutError("Dry-build time budget exhausted; resume the same command")
+                        result = build_dry_trial(trial, attributes, output)
+                        write_json(cached, result)
+                    if trial_id not in logged:
+                        append_ledger(ledger, result)
+                        logged.add(trial_id)
+                    results.append(result)
+        summary = {"scoring": False, "scan_access": False, "inputs": request, "results": results,
+                   "candidate_count": len(results), "resumed": resumed, "new_builds": len(results) - resumed,
+                   "unique_meshes": len({r["mesh_sha256"] for r in results}),
+                   "unique_renders": len({r["render"] for r in results if r["render"]})}
+        write_json(directory / "summary.json", summary)
+        lines = ["# Round-2 candidate-only dry build", "", "No scan files or scoring code accessed.",
+                 f"{len(results)} candidates; {resumed} resumed; {summary['unique_meshes']} distinct meshes; "
+                 f"{summary['unique_renders']} three-view renders. Seed spread: not measured (no scoring).", "",
+                 "| Rule | Parameter | Object | Shape | Vertices | Faces | Watertight / volume | Components | Max extent relative error | Render |",
+                 "| --- | --- | --- | --- | ---: | ---: | --- | ---: | ---: | --- |"]
+        for r in results:
+            render = f"[three views]({Path(r['render']).relative_to(Path(queue['output']) / 'dry')})" if r["render"] else "unchanged"
+            lines.append(f"| {r['rule']} | {r['parameter']} | {r['object']} | {r['shape']} | {r['vertices']} | "
+                         f"{r['faces_before_budget']} | {r['watertight']} / {r['volume']} | {r['closed_components']} | "
+                         f"{r['max_relative_extent_error']:.3g} | {render} |")
+        (directory / "summary.md").write_text("\n".join(lines) + "\n")
+    for name in ("summary.json", "summary.md"):
+        shutil.copy2(directory / name, output / name)
+    print(f"Dry build: {len(results)} candidates, {resumed} resumed; {output / 'summary.md'}", flush=True)
+    return directory / "run.json"
+
+
 def run(queue_path: Path) -> Path:
     """Run the editable queue, recording every object trial before fold selection."""
     runtime_flag(FEATURE, "build_authorized", "Mesh rule build and evaluation")
     queue_path = project_path(ROOT, queue_path)
     rules = read_queue(queue_path)
-    output = output_path(ROOT, OUTPUT)
+    queue = json.loads(queue_path.read_text())
+    build = Path(queue.get("build", BUILD))
+    output = output_path(ROOT, queue.get("output", OUTPUT))
+    attributes, round2_inputs, extra_inputs = round2_inputs_for(queue)
+    baseline_label = queue.get("incumbent", {}).get("label", "Box v1")
     for name in ("cache", "scores", "meshes", "trials"):
         (output / name).mkdir(parents=True, exist_ok=True)
     os.environ.update(MPLCONFIGDIR=str(output_path(ROOT, ".cache/matplotlib")),
@@ -241,9 +485,9 @@ def run(queue_path: Path) -> Path:
     import numpy as np
 
     record = run_fields(ROOT, "mesh_extents", "rules", {"queue": queue_path.relative_to(ROOT).as_posix()},
-                        inputs=[queue_path, PROTOCOL], parents=[BUILD / "run.json"], provenance="public_asset_diagnostic")
-    parent = read_run(ROOT, BUILD / "run.json", kind="mesh_extents.build", allowed=("video_only",))
-    pooled = json.loads(artifact((ROOT / BUILD / "run.json", parent), "objects.json", record).read_text())
+                        inputs=[queue_path, PROTOCOL, *extra_inputs], parents=[build / "run.json"], provenance="public_asset_diagnostic")
+    parent = read_run(ROOT, build / "run.json", kind="mesh_extents.build", allowed=("video_only",))
+    pooled = json.loads(artifact((ROOT / build / "run.json", parent), "objects.json", record).read_text())
     objects = pooled["objects"]
     for name in NAMES:
         row = objects[name]
@@ -252,7 +496,7 @@ def run(queue_path: Path) -> Path:
         dims = np.asarray(row["extents_m"])
         if dims.shape != (3,) or not np.isfinite(dims).all() or np.any(dims <= 0) or dims[0] < dims[1]:
             raise ValueError(f"Invalid video extents: {name}")
-        artifact((ROOT / BUILD / "run.json", parent), row["file"], record)
+        artifact((ROOT / build / "run.json", parent), row["file"], record)
     pairs = [pair.split(":") for pair in pooled["pairs_written"]]
     if any(int(episode) in (41, 43, 44) for episode, _ in pairs):
         raise ValueError("Excluded episode in v1 roster")
@@ -276,32 +520,46 @@ def run(queue_path: Path) -> Path:
     context = {"output": output, "objects": objects, "queue": queue_path, "sources": sources,
                "protocol": input_file(ROOT, PROTOCOL), "scoring": scoring, "logged": logged,
                "references": {n: input_file(ROOT, local_cdo.scan_path(n)) for n in NAMES},
-               "reference_arrays": {}, "new_scores": 0, "reused_scores": 0, "resumed": 0}
+               "reference_arrays": {}, "new_scores": 0, "reused_scores": 0, "resumed": 0, "build": build, "attributes": attributes,
+               "round2_inputs": round2_inputs, "extra_inputs": extra_inputs,
+               "deadline": time.monotonic() + queue.get("budget", {}).get("max_seconds", 7200)}
     record.update(rule_sources=sources, scoring=scoring, references=context["references"],
-                  protocol=context["protocol"], categories=CATEGORIES, folds=FOLDS)
+                  protocol=context["protocol"], categories=CATEGORIES, folds=FOLDS, round2_inputs=round2_inputs)
     directory = output / "runs" / new_run_id()
     with recorded(directory, record):
-        baseline_rule = {"name": "box-v1 baseline", "parameter": None, "grid": [None],
-                         "shapes": dict.fromkeys(CATEGORIES, "box")}
-        baseline_rows = [evaluate_object(baseline_rule, None, name, context) for name in NAMES]
-        baseline = {r["object"]: r["cd_o_cm"] for r in baseline_rows}
-        historical = json.loads((ROOT / "outputs/mesh_eval/d1-ctx02/v1-box.json").read_text())
-        if any(abs(baseline[r["object"]] - r["cd_o_cm"]) > 0.000051 for r in historical["objects"]):
-            raise ValueError("Recomputed box differs from the fixed v1 baseline beyond JSON rounding")
+        if queue.get("round") == 2:
+            baseline, baseline_rows = incumbent_scores(queue)
+        else:
+            baseline_rule = {"name": "box-v1 baseline", "parameter": None, "grid": [None],
+                             "shapes": dict.fromkeys(CATEGORIES, "box")}
+            baseline_rows = [evaluate_object(baseline_rule, None, name, context) for name in NAMES]
+            baseline = {r["object"]: r["cd_o_cm"] for r in baseline_rows}
+            historical = json.loads((ROOT / "outputs/mesh_eval/d1-ctx02/v1-box.json").read_text())
+            if any(abs(baseline[r["object"]] - r["cd_o_cm"]) > 0.000051 for r in historical["objects"]):
+                raise ValueError("Recomputed box differs from the fixed v1 baseline beyond JSON rounding")
         ranking = []
         for rule in rules:
             trials = [{"parameter": p, "objects": [evaluate_object(rule, p, name, context) for name in NAMES]}
                       for p in rule["grid"]]
-            ranking.append(select(rule, trials, baseline, counts))
+            result = select(rule, trials, baseline, counts, queue.get("gates"))
+            spreads = {row["object"]: row["seed_std_cm"] for trial in trials for row in trial["objects"]
+                       if trial["parameter"] == result["chosen_on_fold"]["B" if row["object"] in FOLDS["A"] else "A"]}
+            result["seed_spread_cm"] = {"per_object": spreads, "mean": float(np.mean(list(spreads.values()))),
+                                         "max": max(spreads.values())}
+            ranking.append(result)
         ranking.sort(key=lambda row: row["cross_fitted_mean_cm"])
         summary = {"ranking": ranking, "baseline_per_object_cm": baseline,
                    "baseline_mean_cm": float(np.mean(list(baseline.values()))),
                    "baseline_pair_mean_cm": float(np.average([baseline[n] for n in NAMES], weights=[counts[n] for n in NAMES])),
                    "pair_counts": dict(counts), "protocol": context["protocol"], "queue": input_file(ROOT, queue_path),
                    "new_scores": context["new_scores"], "reused_scores": context["reused_scores"],
-                   "resumed": context["resumed"], "baseline_matches_v1_rounding": True}
+                   "resumed": context["resumed"], "baseline_matches_v1_rounding": queue.get("round") != 2,
+                   "baseline_label": baseline_label, "round": queue.get("round", 1),
+                   "round2_inputs": round2_inputs,
+                   "winner_pending_exact_veto": next((r["rule"] for r in ranking if r["adopt"]), None),
+                   "baseline_seed_spread_cm": {r["object"]: r["seed_std_cm"] for r in baseline_rows}}
         write_report(summary, directory)
-    backup = ROOT / ".runtime/tmp/backup" / new_run_id("mesh-rules")
+    backup = ROOT / ".runtime/tmp/mesh-round2/backup" / new_run_id("mesh-rules")
     for name in ("summary.json", "summary.md", "rules-cdo.png"):
         target = output / name
         if target.exists():
@@ -316,8 +574,12 @@ def run(queue_path: Path) -> Path:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--queue", type=Path, required=True)
+    parser.add_argument("--dry-build", action="store_true", help="Build/check/render candidates without importing scoring code")
     args = parser.parse_args()
-    run(args.queue)
+    if args.dry_build:
+        dry_build(args.queue)
+    else:
+        run(args.queue)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,72 @@
+{
+  "round": 2,
+  "output": "outputs/mesh_eval/rules-round2",
+  "build": "outputs/mesh_extents/build/20261101T160402.316899Z-0c4f8b6f",
+  "attributes": "track3/features/mesh_extents/attributes.json",
+  "incumbent": {
+    "label": "R2 at threshold 1.3 (three seeds)",
+    "ledger": "outputs/mesh_eval/rules/ledger.jsonl",
+    "rule": "R2 vessel-handle",
+    "parameter": 1.3,
+    "build": "outputs/mesh_extents/build/20261101T160402.316899Z-0c4f8b6f",
+    "packed_pair_weighted_mean_cm": 1.08502364,
+    "packed_per_object_mean_cm": 0.92572504
+  },
+  "gates": {
+    "minimum_gain_cm": 0.03,
+    "maximum_regression_cm": 0.15
+  },
+  "budget": {
+    "max_object_trials": 70,
+    "max_seconds": 7200,
+    "max_candidate_builds": 77
+  },
+  "rules": [
+    {
+      "name": "R4 rim-handle",
+      "parameter": null,
+      "grid": [
+        null
+      ],
+      "aspect_threshold": 1.3,
+      "handle_height_fraction": 0.6,
+      "shapes": {
+        "round_vessel": "vessel_with_handle",
+        "flat_or_blocky": "box",
+        "thin_tool": "box"
+      }
+    },
+    {
+      "name": "R5 hollow-vessels",
+      "parameter": "wall_radius_fraction",
+      "grid": [
+        0.02,
+        0.05,
+        0.1
+      ],
+      "aspect_threshold": 1.3,
+      "handle_height_fraction": 0.6,
+      "shapes": {
+        "round_vessel": "vessel_with_handle",
+        "flat_or_blocky": "box",
+        "thin_tool": "box"
+      }
+    },
+    {
+      "name": "R6 peg-rack",
+      "parameter": "wall_radius_fraction",
+      "grid": [
+        0.02,
+        0.05,
+        0.1
+      ],
+      "aspect_threshold": 1.3,
+      "handle_height_fraction": 0.6,
+      "shapes": {
+        "round_vessel": "vessel_with_handle",
+        "flat_or_blocky": "box",
+        "thin_tool": "box"
+      }
+    }
+  ]
+}

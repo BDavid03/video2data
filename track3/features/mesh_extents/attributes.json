@@ -1,0 +1,265 @@
+{
+  "fixed_date": "2026-11-02",
+  "provenance": "video_only",
+  "unknown_policy": "Unknown or uncertain required attribute preserves the complete R2 shape. Only high-confidence evidence enables a change.",
+  "objects": {
+    "beige_cup": {
+      "handle": "none",
+      "open_top": true,
+      "evidence": [
+        {
+          "attribute": "open_top",
+          "split": "public",
+          "episode": 11,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/public/episode_000011/20261101T103701.928174Z-f63cc238/overlay_000000.png",
+          "sha256": "5148c72bdb92ea7673a17ebbfa224a1cc15d0bc32f3d9743887719e479262b55",
+          "observation": "Uncapped mouth and interior plainly visible; small external tracking markers are not handles.",
+          "confidence": "high"
+        },
+        {
+          "attribute": "handle",
+          "split": "public",
+          "episode": 11,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/public/episode_000011/20261101T103701.928174Z-f63cc238/overlay_000000.png",
+          "sha256": "5148c72bdb92ea7673a17ebbfa224a1cc15d0bc32f3d9743887719e479262b55",
+          "observation": "No vessel handle visible; measured aspect is below 1.3, so no handle is added.",
+          "confidence": "high"
+        }
+      ]
+    },
+    "blue_cup": {
+      "handle": "none",
+      "open_top": true,
+      "evidence": [
+        {
+          "attribute": "open_top",
+          "split": "public",
+          "episode": 11,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/public/episode_000011/20261101T103701.928174Z-f63cc238/overlay_000000.png",
+          "sha256": "5148c72bdb92ea7673a17ebbfa224a1cc15d0bc32f3d9743887719e479262b55",
+          "observation": "Uncapped mouth and interior plainly visible; small external tracking markers are not handles.",
+          "confidence": "high"
+        },
+        {
+          "attribute": "handle",
+          "split": "public",
+          "episode": 11,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/public/episode_000011/20261101T103701.928174Z-f63cc238/overlay_000000.png",
+          "sha256": "5148c72bdb92ea7673a17ebbfa224a1cc15d0bc32f3d9743887719e479262b55",
+          "observation": "No vessel handle visible; measured aspect is below 1.3, so no handle is added.",
+          "confidence": "high"
+        }
+      ]
+    },
+    "white_pot": {
+      "handle": "rim_flat",
+      "open_top": true,
+      "evidence": [
+        {
+          "attribute": "handle",
+          "split": "evaluation",
+          "episode": 5,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/evaluation/episode_000005/20261101T103721.877826Z-55c95204/overlay_000000.png",
+          "sha256": "798efc0ca3a7cde621b7fd9053cb134cad2f7f5f1799a7b57afae62b0e4457c5",
+          "observation": "Single long flat horizontal saucepan handle joins the body at rim height.",
+          "confidence": "high"
+        },
+        {
+          "attribute": "open_top",
+          "split": "public",
+          "episode": 42,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/public/episode_000042/20261101T103715.090424Z-d410dfac/overlay_000000.png",
+          "sha256": "cc3fc9a96228b1719db6e521e250d17d59dba6f46b07a07cfdf526ffdb003a37",
+          "observation": "Uncovered circular mouth and interior floor visible in opening frame.",
+          "confidence": "high"
+        },
+        {
+          "attribute": "open_top",
+          "split": "evaluation",
+          "episode": 1,
+          "camera": "ego_cam_a",
+          "frame_index": 110,
+          "path": "outputs/mesh_extents/evaluation/episode_000001/20261101T103716.335071Z-0993ba31/overlay_000110.png",
+          "sha256": "95f65cf04d98bccfe92f8d6174f064500ef0b3385406c26fbec159c363d964ea",
+          "observation": "Lid is separate on table; open pot interior visible. This later frame corroborates opening-frame evidence.",
+          "confidence": "high"
+        }
+      ],
+      "note": "Opening frames 5 and public 42 show the pot open. Usually lid-on is not supported by these reviewed views."
+    },
+    "water_pitcher": {
+      "handle": "loop",
+      "open_top": true,
+      "evidence": [
+        {
+          "attribute": "handle",
+          "split": "public",
+          "episode": 21,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/public/episode_000021/20261101T103707.151959Z-05bf6bac/overlay_000000.png",
+          "sha256": "6ae58605abe7b404d261190d464e2688fe9850509bd1d2673540d4b871ba0484",
+          "observation": "Handle descends vertically beside body, with a large opening under the upper attachment; loop category preserves the R2 bar.",
+          "confidence": "high"
+        },
+        {
+          "attribute": "open_top",
+          "split": "public",
+          "episode": 21,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/public/episode_000021/20261101T103707.151959Z-05bf6bac/overlay_000000.png",
+          "sha256": "6ae58605abe7b404d261190d464e2688fe9850509bd1d2673540d4b871ba0484",
+          "observation": "Uncapped pitcher mouth and interior visible; tall pouring lip is not a lid.",
+          "confidence": "high"
+        }
+      ]
+    },
+    "white_pot_lid": {
+      "handle": "none",
+      "open_top": false,
+      "evidence": [
+        {
+          "attribute": "open_top",
+          "split": "evaluation",
+          "episode": 1,
+          "camera": "ego_cam_a",
+          "frame_index": 110,
+          "path": "outputs/mesh_extents/evaluation/episode_000001/20261101T103716.335071Z-0993ba31/overlay_000110.png",
+          "sha256": "95f65cf04d98bccfe92f8d6174f064500ef0b3385406c26fbec159c363d964ea",
+          "observation": "Separate solid lid with top grip; not an open-topped vessel.",
+          "confidence": "high"
+        }
+      ]
+    },
+    "plastic_dish_rack": {
+      "pegs": {
+        "rows": 2,
+        "count_per_row": 6
+      },
+      "evidence": [
+        {
+          "attribute": "pegs",
+          "split": "public",
+          "episode": 12,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/public/episode_000012/20261101T103703.949004Z-546c56c2/overlay_000000.png",
+          "sha256": "6cb883d2830be9607ca90ad58558e7fc400b30b37700a959109e2e7c29aa0d6b",
+          "observation": "Two parallel rows of upright tines on a base; cup partly occludes near-right tine.",
+          "confidence": "high"
+        },
+        {
+          "attribute": "pegs",
+          "split": "evaluation",
+          "episode": 15,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/evaluation/episode_000015/20261101T103736.789367Z-86a79be7/overlay_000000.png",
+          "sha256": "49950b9f3bb6e99e9385d43e85c44a2f0c7b5bf763a55ee79c1393fb88b23a89",
+          "observation": "Unobstructed opening view: six back-row tines and six front-row tines, two rows total.",
+          "confidence": "high"
+        },
+        {
+          "attribute": "pegs",
+          "split": "evaluation",
+          "episode": 16,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/evaluation/episode_000016/20261101T103740.185103Z-0f0a559d/overlay_000000.png",
+          "sha256": "555b3f80969d651e7ae921e70827c77904e3e7eabc1ca9933d86c62a69524c95",
+          "observation": "Second unobstructed opening view corroborates two rows of six upright tines.",
+          "confidence": "high"
+        }
+      ],
+      "note": "Fixed rule approximates base and pegs only; tall utensil compartment and tray rim are visible but not separately reconstructed."
+    },
+    "wooden_piece_1": {
+      "evidence": [
+        {
+          "attribute": "unchanged",
+          "split": "public",
+          "episode": 23,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/public/episode_000023/20261101T103708.924989Z-52ed3be1/overlay_000000.png",
+          "sha256": "30deed82128cc24db8f43e83e41ef57ca7df325f04b9567c49de36b120f55917",
+          "observation": "Flat wooden board; identity of the two boards remains arbitrary.",
+          "confidence": "high"
+        }
+      ]
+    },
+    "wooden_piece_2": {
+      "evidence": [
+        {
+          "attribute": "unchanged",
+          "split": "public",
+          "episode": 23,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/public/episode_000023/20261101T103708.924989Z-52ed3be1/overlay_000000.png",
+          "sha256": "30deed82128cc24db8f43e83e41ef57ca7df325f04b9567c49de36b120f55917",
+          "observation": "Flat wooden board; identity of the two boards remains arbitrary.",
+          "confidence": "high"
+        }
+      ]
+    },
+    "mini_dust_pan": {
+      "evidence": [
+        {
+          "attribute": "unchanged",
+          "split": "public",
+          "episode": 18,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/public/episode_000018/20261101T103706.195611Z-8e4c4ca5/overlay_000000.png",
+          "sha256": "c1c11fec0b053a6884e4d407d412bdf11109d6e994c8e22d9a58a9d0f75eadf0",
+          "observation": "Thin tool; unchanged by R4/R5/R6 eligibility.",
+          "confidence": "high"
+        }
+      ]
+    },
+    "mini_sweeper": {
+      "evidence": [
+        {
+          "attribute": "unchanged",
+          "split": "public",
+          "episode": 18,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/public/episode_000018/20261101T103706.195611Z-8e4c4ca5/overlay_000000.png",
+          "sha256": "c1c11fec0b053a6884e4d407d412bdf11109d6e994c8e22d9a58a9d0f75eadf0",
+          "observation": "Thin tool; unchanged by R4/R5/R6 eligibility.",
+          "confidence": "high"
+        }
+      ]
+    },
+    "wooden_spoon": {
+      "evidence": [
+        {
+          "attribute": "unchanged",
+          "split": "evaluation",
+          "episode": 5,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/evaluation/episode_000005/20261101T103721.877826Z-55c95204/overlay_000000.png",
+          "sha256": "798efc0ca3a7cde621b7fd9053cb134cad2f7f5f1799a7b57afae62b0e4457c5",
+          "observation": "Thin tool; unchanged by R4/R5/R6 eligibility.",
+          "confidence": "high"
+        }
+      ]
+    }
+  }
+}

@@ -3,6 +3,87 @@
 Video-measured object proportions, and the closed primitive (ellipsoid or box) built from them, for
 the Track 3 CD-O mesh file (D1).
 
+## Round 2: frozen video rules, geometry only (2026-11-02)
+
+Job A appends Amendment 1 to `docs/chain/mesh-selection-protocol.md`, freezes `attributes.json`
+and `rules-round2.json`, and adds R4 rim handles, R5 vessel shells and R6 rack pegs. No new CD-O
+was computed and no scan file was opened, loaded or rendered. `build.py` and the round-1 queue
+are unchanged. The lead must commit the amendment and attributes before job B scores anything.
+
+```bash
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/linux-cuda/bin/python -B -m track3.features.mesh_extents.rules --queue track3/features/mesh_extents/rules-round2.json --dry-build
+```
+
+The dry loop reads all 11 video-measured extents from the recorded v2 build, constructs every
+candidate, checks every connected component for watertightness and positive volume, checks both
+budgets (<4096) and extents (relative tolerance 1e-6), and writes content-addressed PLY files and
+candidate-only three-view PNGs. No scorer is imported. Identities include code, protocol, attributes,
+incumbent ledger/scores, queue and extents. Completed trials resume; records append to
+`outputs/mesh_eval/rules-round2/dry/ledger.jsonl`, with the active 77 results in
+`dry/summary.json` and `dry/summary.md`. Earlier code revisions remain in the append-only ledger.
+Queue budgets are 70 scored object trials (job B), 77 dry builds, and 7200 seconds.
+
+| Object | Frozen attributes | Frame evidence (ego_cam_a) | Confidence |
+| --- | --- | --- | --- |
+| beige_cup | handle="none", open_top=true | public 11, frame 0 ([overlay](../../../outputs/mesh_extents/public/episode_000011/20261101T103701.928174Z-f63cc238/overlay_000000.png)); public 11, frame 0 ([overlay](../../../outputs/mesh_extents/public/episode_000011/20261101T103701.928174Z-f63cc238/overlay_000000.png)) | high |
+| blue_cup | handle="none", open_top=true | public 11, frame 0 ([overlay](../../../outputs/mesh_extents/public/episode_000011/20261101T103701.928174Z-f63cc238/overlay_000000.png)); public 11, frame 0 ([overlay](../../../outputs/mesh_extents/public/episode_000011/20261101T103701.928174Z-f63cc238/overlay_000000.png)) | high |
+| white_pot | handle="rim_flat", open_top=true | evaluation 5, frame 0 ([overlay](../../../outputs/mesh_extents/evaluation/episode_000005/20261101T103721.877826Z-55c95204/overlay_000000.png)); public 42, frame 0 ([overlay](../../../outputs/mesh_extents/public/episode_000042/20261101T103715.090424Z-d410dfac/overlay_000000.png)); evaluation 1, frame 110 ([overlay](../../../outputs/mesh_extents/evaluation/episode_000001/20261101T103716.335071Z-0993ba31/overlay_000110.png)) | high |
+| water_pitcher | handle="loop", open_top=true | public 21, frame 0 ([overlay](../../../outputs/mesh_extents/public/episode_000021/20261101T103707.151959Z-05bf6bac/overlay_000000.png)); public 21, frame 0 ([overlay](../../../outputs/mesh_extents/public/episode_000021/20261101T103707.151959Z-05bf6bac/overlay_000000.png)) | high |
+| white_pot_lid | handle="none", open_top=false | evaluation 1, frame 110 ([overlay](../../../outputs/mesh_extents/evaluation/episode_000001/20261101T103716.335071Z-0993ba31/overlay_000110.png)) | high |
+| plastic_dish_rack | pegs={"rows": 2, "count_per_row": 6} | public 12, frame 0 ([overlay](../../../outputs/mesh_extents/public/episode_000012/20261101T103703.949004Z-546c56c2/overlay_000000.png)); evaluation 15, frame 0 ([overlay](../../../outputs/mesh_extents/evaluation/episode_000015/20261101T103736.789367Z-86a79be7/overlay_000000.png)); evaluation 16, frame 0 ([overlay](../../../outputs/mesh_extents/evaluation/episode_000016/20261101T103740.185103Z-0f0a559d/overlay_000000.png)) | high |
+| wooden_piece_1 | unchanged R2 | public 23, frame 0 ([overlay](../../../outputs/mesh_extents/public/episode_000023/20261101T103708.924989Z-52ed3be1/overlay_000000.png)) | high |
+| wooden_piece_2 | unchanged R2 | public 23, frame 0 ([overlay](../../../outputs/mesh_extents/public/episode_000023/20261101T103708.924989Z-52ed3be1/overlay_000000.png)) | high |
+| mini_dust_pan | unchanged R2 | public 18, frame 0 ([overlay](../../../outputs/mesh_extents/public/episode_000018/20261101T103706.195611Z-8e4c4ca5/overlay_000000.png)) | high |
+| mini_sweeper | unchanged R2 | public 18, frame 0 ([overlay](../../../outputs/mesh_extents/public/episode_000018/20261101T103706.195611Z-8e4c4ca5/overlay_000000.png)) | high |
+| wooden_spoon | unchanged R2 | evaluation 5, frame 0 ([overlay](../../../outputs/mesh_extents/evaluation/episode_000005/20261101T103721.877826Z-55c95204/overlay_000000.png)) | high |
+
+The observations and exact overlay SHA-256 values live beside each attribute in `attributes.json`.
+The pot is visibly open in evaluation 5 and public 42 opening frames; usual lid-on frequency is
+not established. The lid is solid. Both cups remain without handles because aspect is below 1.3.
+The pitcher handle is vertical and retains its R2 bar. Public 12 partially occludes one rack tine;
+unobstructed evaluation 15 and 16 each show two rows of six. Board identity remains arbitrary.
+Wall/floor thickness, undersides and internal construction were not measured from video. The
+rack rule deliberately omits its visible utensil compartment and rim. Unknown or uncertain
+required attributes preserve the entire R2 shape, rather than applying part of a nested rule.
+
+Geometry conventions are frozen in the amendment: 64-section shells, wall/floor thickness equal
+fraction x short-body radius with grid `[0.02, 0.05, 0.10]`; rim handle height 0.15 x vessel height;
+rack base height 0.25 x height, pegs 0.5 x long-axis spacing by 0.3 x total short extent, two rows
+with half-peg-width end margins, overlapping the base by 0.01 x height. Vessel shell bodies are
+single connected surfaces. Handles and rack parts are overlapping closed components, with internal
+faces; the check does not claim a Boolean union or simulation validity. `_shapes.py` and
+`_rule_scores.py` contain pure construction/selection, while `rules.py` handles files and records.
+
+Incumbent R2/1.3 recomputed from the existing three-seed ledger: **0.9250628448 cm per object**,
+**1.0876784204 cm pair-weighted**. Development gates require cross-fitted mean **<0.8950628448**,
+no object regression >0.15 cm and no pair-weighted regression. All three nested rules are candidates;
+the lowest qualifying cross-fitted mean wins. Choosing among them on ten reused scans is optimistic.
+One final all-object parameter is fixed before the production build/pack; the exact packed-v2 veto
+requires both means no worse than **1.08502364 cm pair-weighted / 0.92572504 cm per object**.
+No retuning or rule switching follows that veto. Production changes and scoring remain job B.
+
+Checks completed on CPU (no test suites):
+
+- `py_compile` and CPU imports passed for all three edited Python modules.
+- All three round-1 `select` outputs match the saved implementation exactly on the 80-row ledger,
+  including thresholds, gates, per-object scores and aggregates; all 33 legacy constructor PLY
+  comparisons are byte-identical. Evidence: `.runtime/tmp/mesh-round2/round1-equivalence.json`.
+- Fresh unchanged production build `outputs/mesh_extents/build/20261102T024758.526008Z-486c5f5d/`
+  matches **all 47 PLY SHA-256 values** (11 objects plus 36 pair copies). Evidence:
+  `.runtime/tmp/mesh-round2/v2-build-equivalence.json`.
+- Dry build: **77/77 candidates**, **24 distinct meshes**, **14 distinct three-view renders**;
+  every component watertight and positive volume, largest mesh **266 vertices / 524 faces**.
+  Maximum construction extent relative error **2.22e-16**; after PLY serialization/reload **5.30e-8**.
+  Repeating the final loop resumes **77/77**, adds **0** trials and produces identical results.
+  A Python audit hook rejects scan opens and scoring imports: **0 scan-open attempts**, scorer absent.
+  Evidence: `.runtime/tmp/mesh-round2/dry-audit.json`; active per-object table and render links:
+  `outputs/mesh_eval/rules-round2/dry/summary.md`.
+- Seed spread for round 2 is unmeasured, as no scoring ran. Future score reports name the incumbent
+  and report the cross-fitted per-object seed SD, its mean and maximum; ties use frozen grid order.
+
+Full handoff, amendment text, commands and file inventory: `outputs/mesh_eval/rules-round2/job-a.md`
+and `job-a-files.txt`. The plain scoring command without `--dry-build` is reserved for job B.
+
 ## Latest: D1 v2
 
 V2 uses the adopted **R2 vessel-handle** rule with `aspect_threshold=1.3` and
