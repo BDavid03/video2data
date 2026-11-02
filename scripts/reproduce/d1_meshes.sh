@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Rebuild the recorded D1 v2 request; default is a read-only CPU plan.
+# Rebuild a recorded D1 mesh request; default is a read-only v2 CPU plan.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
@@ -16,15 +16,20 @@ import shlex
 import subprocess
 import tempfile
 
-p = argparse.ArgumentParser(description="D1 v2 build, local CD-O, kit pack and preflight; CPU only")
+p = argparse.ArgumentParser(description="D1 v2/v3 build, local CD-O, kit pack and preflight; CPU only")
 p.add_argument("commit_url", nargs="?", help="defaults to the recorded (currently placeholder) URL")
 p.add_argument("--manifest", type=Path)
+p.add_argument("--version", choices=("v2", "v3"), default="v2")
 p.add_argument("--run", action="store_true", help="execute; otherwise print the plan")
 a = p.parse_args()
 root = Path.cwd()
-manifest = a.manifest or sorted(root.glob("submissions/*-d1-v2/manifest.json"))[-1]
+if a.version == "v2":
+    manifest = a.manifest or sorted(root.glob("submissions/*-d1-v2/manifest.json"))[-1]
+else:
+    candidates = sorted(root.glob("submissions/*-d1-v3/manifest.json"))
+    manifest = a.manifest or (candidates[-1] if candidates else root / ".runtime/tmp/mesh-round2/pack/manifest.json")
 m = json.loads(manifest.read_text())
-request = Path("scripts/track3/requests/d1/build-v2-r2.json")
+request = Path("scripts/track3/requests/d1") / ("build-v2-r2.json" if a.version == "v2" else "build-v3.json")
 record = json.loads((root / m["build_run"]).read_text())
 if json.loads(request.read_text()) != record["request"]:
     raise ValueError("Committed request differs from the manifest's build request")

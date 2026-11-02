@@ -3,12 +3,74 @@
 Video-measured object proportions, and the closed primitive (ellipsoid or box) built from them, for
 the Track 3 CD-O mesh file (D1).
 
-## Round 2: frozen video rules, geometry only (2026-11-02)
+## Latest result (2026-11-02): R6/0.10 passes the exact veto
+
+**Adopt R6 peg-rack with wall/radius fraction 0.10.** The frozen round-2 loop selects 0.10 on
+both folds and on all ten scanned objects. It passes every development gate and the exact packed
+v2 veto. The amendment, attributes, grids and constructors remain identical to commit `c7e2b56`.
+No retuning followed the veto. These are development estimates on ten reused public scans;
+choosing among three nested rules is optimistic. The spoon has no public scan and is unchanged.
+
+| Rule | Chosen on A → scored B | Chosen on B → scored A | Cross-fitted mean (cm) | In-sample mean (cm) | Pair-weighted mean (cm) | Worst regression (cm) | Gain / object / pair gates | Development eligible (veto pending) |
+| --- | --- | --- | ---: | ---: | ---: | ---: | --- | --- |
+| R6 peg-rack | 0.1 | 0.1 | 0.77315 | 0.77315 | 0.81675 | +0.00000 | pass / pass / pass | yes |
+| R5 hollow-vessels | 0.1 | 0.1 | 0.84555 | 0.84555 | 0.95600 | +0.00000 | pass / pass / pass | yes |
+| R4 rim-handle | — | None | 0.92061 | 0.92061 | 1.07740 | +0.00000 | fail / pass / pass | no |
+
+R4 has no free parameter (`—` / `None` in the unedited loop table). Seed SD is the population
+standard deviation over kit episode seeds 1/3/5 for each held-out object; this is not a confidence
+interval for independent performance.
+
+| Rule | Mean object seed SD (cm) | Maximum object seed SD (cm) |
+| --- | ---: | ---: |
+| R6 peg-rack | 0.006887335425561346 | 0.02136714096735155 |
+| R5 hollow-vessels | 0.008641243641626373 | 0.03585776336634344 |
+| R4 rim-handle | 0.009542621334146224 | 0.03585776336634344 |
+
+| Packed file | Pair-weighted CD-O (cm) | Equal-object CD-O (cm) |
+| --- | ---: | ---: |
+| v2 | 1.085023637656605 | 0.9257250385709256 |
+| v3 | 0.8114951342417491 | 0.7710770332786878 |
+
+Exact evaluation covers 26/36 pairs: **19 improve, 7 are unchanged, 0 worsen**. Each pair uses its
+own kit episode/slot seed through the unmodified `mesh_eval.pairs` handler and scorer. The ten
+spoon pairs remain unscored. Both veto means are better than packed v2; entry-point/direct
+episode-1 equivalence error is 0.0 cm.
+
+The scoring loop produced 70 parameter/object records, 23 unique scores and 47 identical-mesh
+score reuses. A repeat resumed all 70 records with zero new scores or ledger rows. Ranked table,
+per-object figure, seed spreads and full-precision independent gate recomputation live under
+`outputs/mesh_eval/rules-round2/`; exact pair results are in
+`outputs/mesh_eval/pairs/mesh-round2-v2-v3/`.
+
+```bash
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 CUDA_VISIBLE_DEVICES='' .runtime/kit-env/bin/python -B .runtime/tmp/mesh-round2/score_round2.py --queue track3/features/mesh_extents/rules-round2.json
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 .runtime/linux-cuda/bin/python -B -m track3.features.mesh_extents build --request scripts/track3/requests/d1/build-v3.json
+bash scripts/reproduce/d1_meshes.sh --version v3
+```
+
+The scratch launcher redirects caches into this job's permitted scratch path and calls the
+unmodified loop. The ordinary module entry point remains available with the same queue.
+The reproduction command prints a CPU plan; add an explicit commit URL and `--run` to execute.
+Default v2 reproduction has a byte-identical plan and all 47 fresh v2 mesh hashes remain identical.
+For v3, the script uses a submitted v3 manifest if present, otherwise this job's local pack manifest;
+`--manifest <path>` selects an explicit recorded manifest.
+
+V3 build: `outputs/mesh_extents/build/20261102T030138.153550Z-118eeb04/run.json`.
+All 11 objects and 36 pair copies were built. All ten scored meshes match selected loop candidates
+byte-for-byte; the spoon matches v2. Local placeholder pack:
+`.runtime/tmp/mesh-round2/pack/track3_meshes_v3.parquet`, **294,912 rows**, SHA-256
+`2ea5bb2da753dc4c324c1a327ed49b0f29348e9948fea485461720be8e8bf7b6`. Kit preflight `--track track_3 --skip-kaggle`: **Ready to submit**; warnings
+are no policy results and skipped Kaggle checks. No `submissions/` files were written; final
+packing and release remain the lead's. See `outputs/mesh_eval/rules-round2/job-b.md` for commands
+and full-precision gate numbers.
+
+## Round 2 geometry preparation (Job A)
 
 Job A appends Amendment 1 to `docs/chain/mesh-selection-protocol.md`, freezes `attributes.json`
 and `rules-round2.json`, and adds R4 rim handles, R5 vessel shells and R6 rack pegs. No new CD-O
 was computed and no scan file was opened, loaded or rendered. `build.py` and the round-1 queue
-are unchanged. The lead must commit the amendment and attributes before job B scores anything.
+were unchanged in Job A. The lead committed the amendment and attributes as `c7e2b56` before Job B scoring.
 
 ```bash
 PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/linux-cuda/bin/python -B -m track3.features.mesh_extents.rules --queue track3/features/mesh_extents/rules-round2.json --dry-build
@@ -78,13 +140,13 @@ Checks completed on CPU (no test suites):
   A Python audit hook rejects scan opens and scoring imports: **0 scan-open attempts**, scorer absent.
   Evidence: `.runtime/tmp/mesh-round2/dry-audit.json`; active per-object table and render links:
   `outputs/mesh_eval/rules-round2/dry/summary.md`.
-- Seed spread for round 2 is unmeasured, as no scoring ran. Future score reports name the incumbent
+- At the end of Job A, seed spread was unmeasured. Job B results above now name the incumbent
   and report the cross-fitted per-object seed SD, its mean and maximum; ties use frozen grid order.
 
 Full handoff, amendment text, commands and file inventory: `outputs/mesh_eval/rules-round2/job-a.md`
-and `job-a-files.txt`. The plain scoring command without `--dry-build` is reserved for job B.
+and `job-a-files.txt`. Job B scoring results and commands are recorded above.
 
-## Latest: D1 v2
+## D1 v2 (reproduction baseline)
 
 V2 uses the adopted **R2 vessel-handle** rule with `aspect_threshold=1.3` and
 `handle_height_fraction=0.6`, chosen on all ten objects after cross-fitted adoption. It reuses
@@ -156,7 +218,7 @@ median by its geometric mean, takes the per-axis median over episodes and restor
 
 ## Known limits
 
-- Undersides are never seen; height is the visible top above the table, so hollow objects become solid.
+- Undersides and wall/floor thickness are not measured. V3 shells use the frozen thickness fraction; visible geometry remains approximate.
 - The first-frame assignment is a recorded visual judgement by the chain context (see
   `assignments.json`), not a detector.
 - Scale is MoGe2's, not metric. Simulation (D2) needs a metric rescale before these meshes are used.

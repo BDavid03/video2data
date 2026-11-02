@@ -28,12 +28,20 @@ class BuildRequest:
     require_every_pair: bool = True
     aspect_threshold: float = 1.3
     handle_height_fraction: float = 0.6
+    rule: str | None = None
+    rule_parameter: float | None = None
+    attributes_file: str | None = None
 
     @classmethod
     def from_file(cls, path):
         return cls(**read_json(path))
 
     def __post_init__(self):
+        if self.rule is None and (self.rule_parameter is not None or self.attributes_file is not None):
+            raise ValueError("A rule parameter or attributes file requires a named rule")
+        if self.rule is not None and (self.shape != "vessel_rule" or self.shape_overrides
+                                      or self.aspect_threshold != 1.3 or self.handle_height_fraction != 0.6):
+            raise ValueError("Round-2 rules require the fixed R2 base configuration without overrides")
         if self.shape not in SHAPES or any(value not in SHAPES for value in self.shape_overrides.values()):
             raise ValueError(f"shape must be one of {SHAPES}")
         if not self.measure_runs:
@@ -53,8 +61,26 @@ def _primitive(shape, dims, subdivisions, trimesh):
     return mesh
 
 
+def _rule_inputs(request: BuildRequest):
+    """Read the named frozen rule and its video-only attributes for a production build."""
+    if request.rule is None:
+        return None, {}, []
+    queue_path = FEATURE / "rules-round2.json"
+    queue = read_json(queue_path)
+    rule = next((row for row in queue["rules"] if row["name"] == request.rule), None)
+    if rule is None or request.rule_parameter not in rule["grid"]:
+        raise ValueError("Name a frozen round-2 rule and one of its recorded parameters")
+    if request.attributes_file != queue["attributes"]:
+        raise ValueError("Use the frozen round-2 attributes file")
+    attributes = read_json(request.attributes_file)
+    if attributes["provenance"] != "video_only":
+        raise ValueError("Production attributes require video-only provenance")
+    return rule, attributes["objects"], [queue_path, request.attributes_file]
+
+
 def build(request: BuildRequest):
     runtime_flag(FEATURE, "build_authorized", "Mesh extents build")
+    rule, attributes, rule_inputs = _rule_inputs(request)
     parents, episodes = [], set()
     for value in request.measure_runs:
         path = ROOT / value
@@ -65,8 +91,12 @@ def build(request: BuildRequest):
         episodes.add(key)
         parents.append((path, record))
     revision = same_revision(parents, dataset_revision())
-    record = run_fields(ROOT, "mesh_extents", "build", asdict(request), parents=[path for path, _ in parents],
-                        inputs=[ROSTER, FEATURE / "runtime.json"], allowed=("video_only",))
+    snapshot = asdict(request)
+    if request.rule is None:
+        for key in ("rule", "rule_parameter", "attributes_file"):
+            snapshot.pop(key)
+    record = run_fields(ROOT, "mesh_extents", "build", snapshot, parents=[path for path, _ in parents],
+                        inputs=[ROSTER, FEATURE / "runtime.json", *rule_inputs], allowed=("video_only",))
     run_id = new_run_id()
     record.update(run_id=run_id, dataset_revision=revision, artifacts={})
     with recorded(output_path(ROOT, f"outputs/mesh_extents/build/{run_id}"), record) as (directory, record):
@@ -74,7 +104,7 @@ def build(request: BuildRequest):
         import trimesh
 
         from . import _shapes
-        from ._rule_scores import CATEGORIES
+        from ._rule_scores import CATEGORIES, mesh_for, shape_for
 
         contributions = {}
         for path, parent in parents:
@@ -93,7 +123,13 @@ def build(request: BuildRequest):
             size = np.exp(np.log(dims).mean(axis=1))
             pooled = np.median(dims / size[:, None], axis=0) * np.median(size)
             shape = request.shape_overrides.get(name, request.shape)
-            if shape == "vessel_rule" and name in CATEGORIES["round_vessel"]:
+            if rule is not None:
+                from .rules import check_mesh
+
+                shape = shape_for(rule, name, pooled, request.rule_parameter, attributes)
+                mesh = mesh_for(shape, rule, name, pooled, request.rule_parameter, attributes)
+                check_mesh(mesh, pooled)
+            elif shape == "vessel_rule" and name in CATEGORIES["round_vessel"]:
                 if pooled[0] / pooled[1] > request.aspect_threshold:
                     shape = "vessel_with_handle"
                     mesh = _shapes.vessel_with_handle(pooled, request.handle_height_fraction)
