@@ -1,12 +1,15 @@
 """Array-only placement, silhouette projection and descriptive rank concordance."""
 
 from collections import defaultdict
+from json import JSONDecodeError
+import json
+import re
 
 import cv2
 import numpy as np
 
 
-def placement(points, normal, offset):
+def placement(points: np.ndarray, normal: np.ndarray, offset: float) -> dict:
     """Recover the measured footprint axes and bounds centre on a support plane."""
     normal = np.asarray(normal, dtype=float)
     first = np.array([1., 0., 0.]) - normal[0] * normal
@@ -27,10 +30,14 @@ def placement(points, normal, offset):
             "footprint_extents": high - low}
 
 
-def prepare_view(z, valid, intrinsics, input_valid, labels, cluster_ids, plane, settings):
+def prepare_view(z: np.ndarray, valid: np.ndarray, intrinsics: np.ndarray, input_valid: np.ndarray,
+                 labels: np.ndarray, cluster_ids: list[int], plane: dict, settings: dict,
+                 depth_valid: np.ndarray) -> dict:
     """Reconstruct target, table-relative placement and serializable geometry from cached arrays."""
     from ._geometry import _local_plane, camera_points, table_component
 
+    z, input_valid = z.astype(np.float64), input_valid.astype(bool)
+    valid = valid & depth_valid & input_valid
     target = np.isin(labels, [i + 1 for i in cluster_ids]) & input_valid
     if not target.any():
         raise ValueError("Empty frozen target")
@@ -43,10 +50,10 @@ def prepare_view(z, valid, intrinsics, input_valid, labels, cluster_ids, plane, 
     values = {key: value.tolist() if hasattr(value, "tolist") else value for key, value in pose.items()}
     values.update(normal=normal.tolist(), offset_m=float(offset), local_plane=local)
     return {"target": target, "input_valid": input_valid, "intrinsics": intrinsics,
-            "pose": pose, "placement": values}
+            "pose": pose, "placement": values, "mask_area_pixels": int(target.sum())}
 
 
-def place_vertices(vertices, pose, reverse=False):
+def place_vertices(vertices: np.ndarray, pose: dict, reverse: bool = False) -> np.ndarray:
     """Preserve shape proportions, match long extent and rest the base on the plane."""
     low, high = vertices.min(0), vertices.max(0)
     local = vertices - np.array([(low[0] + high[0]) / 2, (low[1] + high[1]) / 2, low[2]])
@@ -56,7 +63,7 @@ def place_vertices(vertices, pose, reverse=False):
     return local @ pose["axes"] + pose["centre"]
 
 
-def silhouette(vertices_camera, faces, intrinsics, input_valid):
+def silhouette(vertices_camera: np.ndarray, faces: np.ndarray, intrinsics: np.ndarray, input_valid: np.ndarray) -> np.ndarray:
     """Rasterize the opaque union of projected triangles on the rectified depth grid."""
     if not np.isfinite(vertices_camera).all() or np.any(vertices_camera[:, 2] <= 0):
         raise ValueError("Projection needs finite vertices strictly in front of the camera")
@@ -70,7 +77,8 @@ def silhouette(vertices_camera, faces, intrinsics, input_valid):
     return rendered.astype(bool) & input_valid
 
 
-def compare(vertices, faces, pose, intrinsics, input_valid, target):
+def compare(vertices: np.ndarray, faces: np.ndarray, pose: dict, intrinsics: np.ndarray,
+            input_valid: np.ndarray, target: np.ndarray) -> tuple[dict, np.ndarray]:
     """Return both yaw measurements and the first maximum-IoU silhouette."""
     masks = [silhouette(place_vertices(vertices, pose, reverse), faces, intrinsics, input_valid)
              for reverse in (False, True)]
@@ -86,7 +94,7 @@ def compare(vertices, faces, pose, intrinsics, input_valid, target):
             "mask_area_pixels": int(target.sum()), "yaws": rows}, masks[best]
 
 
-def average_candidates(candidates, results, expected_views):
+def average_candidates(candidates: list[dict], results: list[dict], expected_views: dict[str, int]) -> dict:
     """Average complete per-object view sets equally; retain unavailable candidates as null."""
     by_candidate = defaultdict(list)
     for row in results:
@@ -102,7 +110,8 @@ def average_candidates(candidates, results, expected_views):
     return objects
 
 
-def average_spoon(candidates, views, results, expected_views):
+def average_spoon(candidates: list[dict], views: list[dict], results: list[dict],
+                  expected_views: int) -> tuple[list[dict], float | None, str | None]:
     """Compare both spoon meshes per view and average only a complete view set."""
     indexed = {(r["sha256"], r["view"]): r for r in results if r["object"] == "wooden_spoon"}
     spoon = []
@@ -119,7 +128,7 @@ def average_spoon(candidates, views, results, expected_views):
     return spoon, mean, None if complete else "No complete frozen spoon view set"
 
 
-def rank_panel(objects, gates):
+def rank_panel(objects: dict[str, list[dict]], gates: dict[str, float]) -> dict:
     """Summarize within-object concordance without treating pairs as independent samples."""
     from scipy.stats import kendalltau, spearmanr
 
@@ -173,3 +182,124 @@ def rank_panel(objects, gates):
             "qualifying_passing": passing, "qualifying_objects": len(qualifying),
             "gates": checks, "validated": len(rows) == 10 and all(checks.values()),
             "tool_r8_vs_box_report_only": tool_transfers}
+
+
+def summarize(data: dict, results: list[dict], missing: list[dict]) -> dict:
+    """Assemble complete or reasoned unavailable concordance and spoon results."""
+    expected = {row["object"]: row["views"] for row in data["panel"]}
+    summary = rank_panel(average_candidates(data["candidates"], results, expected), data["gates"])
+    spoon, mean, reason = average_spoon(data["spoon"], data["views"], results, expected["wooden_spoon"])
+    complete = not (missing or data["missing_views"]) and len(results) == sum(row["trials"] for row in data["panel"])
+    summary["gates"]["complete_inputs"] = complete
+    if not complete:
+        summary["validated"] = False
+    summary.update(spoon=spoon, spoon_mean_difference=mean, spoon_undefined_reason=reason,
+                   gate_thresholds=data["gates"],
+                   spoon_history_reference_only=data["spoon_history"], panel=data["panel"], trials=results,
+                   missing_views=data["missing_views"], missing_inputs=list(missing),
+                   verdict="PANEL CONCORDANCE PASSED" if summary["validated"] else "PROXY NOT VALIDATED FOR SPOON CD-O INFERENCE",
+                   interpretation="No spoon CD-O gain or regression is established; packed D1 v4 is unchanged.",
+                   incomplete_panel_reason=None if complete else "Missing frozen inputs, views or completed trials",
+                   limitations="Reused development objects and construction views; small n, silhouette ties, "
+                               "MoGe depth/mask distortion and placement error; gates are descriptive.")
+    return summary
+
+
+def _format(value: float | None) -> str:
+    """Render an optional scalar with three decimal places."""
+    return "null" if value is None else f"{value:.3f}"
+
+
+def summary_markdown(summary: dict) -> str:
+    """Format concordance, gate outcomes and limitations as compact Markdown tables."""
+    gates, thresholds = summary["gates"], summary["gate_thresholds"]
+    tools = [r for r in summary["objects"] if r["object"] in ("mini_dust_pan", "mini_sweeper")]
+    passing_tools = sum(r["rho"] is not None and r["rho"] >= thresholds["rho"] for r in tools)
+    gate_rows = [
+        ("Mean tau-b", _format(summary["mean_tau_b"]), f">={_format(thresholds['mean_tau_b'])}", gates["mean_tau_b"]),
+        ("Qualifying median rho", _format(summary["qualifying_median_rho"]), f">={_format(thresholds['rho'])}", gates["median_rho"]),
+        ("Qualifying objects passing rho", f"{summary['qualifying_passing']}/{summary['qualifying_objects']}",
+         f">={thresholds['passing_objects']}", gates["qualifying_count"]),
+        ("Both scanned tools", f"{passing_tools}/{len(tools)}", "all", gates["both_tools"]),
+        ("Required correlations defined", "all" if gates["all_required_correlations_defined"] else "incomplete",
+         "all", gates["all_required_correlations_defined"]),
+        ("Inputs complete", "yes" if gates["complete_inputs"] else "no", "yes", gates["complete_inputs"])]
+    gate_rows += [(r["object"] + " rho", _format(r["rho"]), f">={_format(thresholds['rho'])}",
+                   r["rho"] is not None and r["rho"] >= thresholds["rho"]) for r in tools]
+    lines = ["# Spoon proxy diagnostic", "", summary["verdict"], "", summary["interpretation"], "",
+             "## Pre-registered gates", "", "| Gate | Value | Requirement | Result |", "| --- | ---: | ---: | --- |"]
+    lines += [f"| {name} | {value} | {requirement} | {'pass' if passed else 'fail'} |"
+              for name, value, requirement, passed in gate_rows]
+    lines += ["", "## Per-object concordance", "",
+              "| Object | Candidates | Rho | Tau-b | Proxy ties | Undefined reason |", "| --- | ---: | ---: | ---: | ---: | --- |"]
+    for row in summary["objects"]:
+        lines.append(f"| {row['object']} | {row['candidates']} | {_format(row['rho'])} | "
+                     f"{_format(row['tau_b'])} | {row['proxy_ties']} | {row['undefined_reason'] or ''} |")
+    lines += ["", "## R8 versus box (report only)", "",
+              "| Object | R8 minus box IoU | R8 above box | Tie | Undefined reason |", "| --- | ---: | --- | --- | --- |"]
+    for row in summary["tool_r8_vs_box_report_only"]:
+        above = "null" if row["r8_ranked_above_box"] is None else ("yes" if row["r8_ranked_above_box"] else "no")
+        tie = "null" if row["tie"] is None else ("yes" if row["tie"] else "no")
+        lines.append(f"| {row['object']} | {_format(row['r8_minus_box_iou'])} | {above} | {tie} | {row['undefined_reason'] or ''} |")
+    lines += ["", "## Spoon silhouettes", "", "| Spoon view | v3 IoU | v4 IoU | Difference |", "| --- | ---: | ---: | ---: |"]
+    for row in summary["spoon"]:
+        lines.append(f"| {row['view']} | {_format(row['v3_box']['iou'])} | {_format(row['v4_bowl']['iou'])} | "
+                     f"{_format(row['v4_minus_v3_iou'])} |")
+    lines += ["", f"Spoon equal-view mean difference: {_format(summary['spoon_mean_difference'])}", "",
+              "Full precision, both yaws, areas, placements, rankings and overlay paths are in summary.json.", "",
+              "## Post-result reporting (not pre-registered)", ""]
+    post = summary["post_result_reporting"]
+    lines += [f"Pre-registered mean tau-b: {_format(summary['mean_tau_b'])}. Mean over the {post['objects']} objects "
+              f"with at least four variants: {_format(post['mean_tau_b_ge_four_variants'])}; this adds no gate."]
+    two_variant = [r for r in summary["objects"] if r["candidates"] == 2]
+    lines += ["Two-variant objects: " + ", ".join(f"{r['object']} tau-b {_format(r['tau_b'])}" for r in two_variant) +
+              ". With two untied variants, tau-b can only be +1 or -1."]
+    pan = next((r for r in tools if r["object"] == "mini_dust_pan"), None)
+    if pan is not None and pan["rho"] == thresholds["rho"]:
+        lines += [f"Dust pan passes at exactly rho = {_format(pan['rho'])}, the frozen threshold."]
+    lines += ["Hypothesis: " + post["hypothesis"], "", summary["limitations"]]
+    reasons = [r["reason"] for r in [*summary["missing_views"], *summary["missing_inputs"]]]
+    reasons += [r for r in [*summary["undefined_reasons"].values(), summary["spoon_undefined_reason"]] if r]
+    if reasons:
+        lines += ["", "## Unavailable inputs or values", "", *("- " + reason for reason in reasons)]
+    if not summary["validated"]:
+        lines += ["", "Proxy not validated for spoon CD-O inference; proxy says nothing about spoon CD-O; v4 unchanged."]
+    return "\n".join(lines) + "\n"
+
+
+def truncated_tail(text: str, error: JSONDecodeError) -> bool:
+    """Recognize incomplete final JSON objects without accepting malformed content."""
+    text = text.rstrip()
+    suffix = text[error.pos:]
+    literal = error.msg == "Expecting value" and any(t.startswith(suffix) for t in ("true", "false", "null"))
+    number = error.msg == "Expecting ',' delimiter" and re.search(
+        r"(?:^|[:\[,]\s*)-?(?:0|[1-9]\d*)(?:\.\d*)?(?:[eE][+-]?)?$", text)
+    return text.startswith("{") and bool(error.pos >= len(text) or error.msg.startswith("Unterminated string") or literal or number)
+
+
+def overlay_image(image: np.ndarray, target: np.ndarray, projected: np.ndarray | None) -> np.ndarray:
+    """Tint the target green and outline the selected silhouette in magenta."""
+    image = image[:, :target.shape[1]].copy()
+    image[target] = (image[target] * 0.5 + (0, 127, 0)).astype("uint8")
+    if projected is not None:
+        contours, _ = cv2.findContours(projected.astype("uint8"), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        cv2.drawContours(image, contours, -1, (255, 0, 255), 1)
+    return image
+
+
+def valid_extents(extents: np.ndarray) -> bool:
+    """Check finite positive extents under the x-long/y-short construction convention."""
+    x, y, z = extents
+    return bool(np.isfinite(extents).all() and min(x, y, z) > 0 and x >= y * (1 - 1e-6))
+
+
+def dry_summary(data: dict, masks: list[dict], frozen_id: str) -> tuple[dict, str]:
+    """Describe target-only preparation without candidate projections or scores."""
+    summary = {"frozen_identity": frozen_id, "panel": data["panel"], "views": masks,
+               "missing_views": data["missing_views"],
+               "candidate_projections": 0, "proxy_values_computed": False, "correlations_computed": False}
+    text = ["# Spoon proxy target-only dry run", "", "No candidate projected; no IoU or correlation computed.", "",
+            "| View | Frame | Target pixels |", "| --- | ---: | ---: |"]
+    text += [f"| {row['view']} | {row['frame']} | {row['mask_area_pixels']} |" for row in masks]
+    text += ["", "Missing views: " + json.dumps(data["missing_views"])]
+    return summary, "\n".join(text) + "\n"

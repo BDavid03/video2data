@@ -62,7 +62,7 @@ The panel has 52 scanned candidates, 26 scanned views/143 trials, plus two spoon
 three views/six trials: 149 trials total. Primitive-era spoon box/ellipsoid are references only.
 
 `_shapes.py` and `_rule_scores.py` own construction/selection; `_geometry.py` owns shared pure
-table selection. `_proxy.py` owns array preparation, projection, averaging and correlations;
+table selection. `_proxy.py` owns array preparation, projection, averaging, correlations and report formatting;
 `proxy.py` owns files and records. `measure.py` is unchanged. No scan or scorer is opened by proxy.
 The frozen request pins input/source hashes and package versions. Its baseline pointers are
 request data; baseline run/input hashes authenticate the saved original request without Git.
@@ -72,8 +72,9 @@ under `outputs/mesh_extents/spoon-proxy-dry/summary.{json,md}` and `overlays/` w
 The 149-trial/7200-second budget is per invocation. Resume filters by frozen identity and
 preserves older records. Only a truncated final ledger append is quarantined; other malformed
 rows raise. Missing inputs produce NOT VALIDATED; unavailable values are null with reasons.
-E admission checks path/status/seeds and the recorded build SHA; A/B/C require seeds 1/3/5.
-E's legacy score JSON has no SHA itself. Matching object/SHA aliases merge only for equal scores.
+Re-freezing refreshes source hashes only; the authenticated baseline fixes the admitted panel.
+Its E scores were admitted by path/status/seeds/build SHA and A/B/C by seeds 1/3/5; E's legacy
+score JSON has no SHA itself. Matching object/SHA aliases were merged only for equal scores.
 
 ## Latest results
 
