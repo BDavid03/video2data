@@ -7,69 +7,56 @@
 
 \begin{abstract}
 \textbf{Abstract:}
-Video-derived proportions and name categories determine primitive meshes; two-fold
-leave-objects-out cross-fitting selects rule parameters. The adopted vessel-and-handle
-rule scores local CD-O of 0.926\,cm per object versus 1.008\,cm for boxes and
-2.523\,cm for cubes (pair-weighted: 1.087\,cm; all-object fitted: 0.9251\,cm).
-These estimates reuse ten public scans. A two-object diagnostic exposes pose-frame
-errors and saturated success metrics; a physically filtered static FlashCHORD entry
-provides complete exports.
+Video-measured primitives use two-fold leave-objects-out rule selection.
+Object Chamfer distance (CD-O) is 0.926\,cm versus 1.008\,cm for boxes and
+2.523\,cm for cubes (pair-weighted: 1.087\,cm; all-object fit: 0.9251\,cm).
+These estimates reuse ten public scans. Depth uses MoGe-2 pseudo-labels, not
+measured depth. Pose diagnostics expose frame errors and saturated success metrics;
+a physically filtered static policy entry provides complete exports.
 \end{abstract}
 
+\setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
 \begin{document}
 \maketitle
 
 \section{A fixed rule-selection protocol}
-Track 3 separately scores meshes and policy-rollout poses~\cite{challenge}.
-Before scoring new rules, we fix three name categories: round vessels, flat/blocky
-objects, and thin tools. Video measurements determine shape, without scan-specific
-shape picking. Two fixed five-object folds cover all categories. Parameters are
-chosen on one fold and scored on the other, then roles reverse; the headline
-averages these held-out object scores.
+Track 3 scores meshes and policy-rollout poses separately~\cite{challenge}.
+We fix three name categories (vessels, blocks, tools) and two five-object folds.
+Video determines shape; parameters selected on one fold are scored on the other,
+then roles reverse. Adoption requires mean gain over boxes $>0.03$\,cm,
+worst held-out regression $\leq0.15$\,cm, and no pair-mean regression.
+R1 uses vessel cylinders; R2 adds handles; R3 adds tool heads.
+R1/R2 pass; R2 has the lowest cross-fitted mean. R3 fails the gain gate.
 
-Adoption requires mean gain over boxes $>0.03$\,cm, worst held-out regression
-$\leq0.15$\,cm, and no pair-mean regression. R1 uses vessel cylinders; R2 adds a
-handle for long-axis excess; R3 gives thin tools a head/handle. R1/R2 pass;
-R2 has the lowest cross-fitted mean. R3 fails the gain gate.
-
-CD-O normalizes surface RMS radius and rigidly registers meshes before symmetric
-Chamfer distance~\cite{challenge}; absolute scale and placement are removed.
-The kit decimates/pads to a fixed mesh budget. Public scans are scoring references
-only: no scan geometry, dimension, or template enters a submitted mesh~\cite{faq}.
+Object Chamfer distance (CD-O) normalizes root-mean-square surface radius and
+rigidly registers meshes before symmetric surface distance~\cite{challenge}; scale
+and placement are removed. Both meshes use the kit's fixed triangle budget.
+Public scans are scoring references only; no scan geometry, dimension, or template
+enters a submitted mesh~\cite{faq}.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{figures/d1-v2-qualitative.pdf}
-\caption{Video clusters and final R2 meshes versus public scans, shown only as
-scoring references. Meshes are shown at normalised scale with one canonical camera;
-scan rotations are for display, not CD-O registration. Scores are local final-mesh
-R2 / v1 box CD-O in cm ($\downarrow$), not cross-fitted estimates. The rack retains
-its box; vessel interiors and rack tines are absent from our primitives.}
+\caption{Video clusters, final R2 meshes and public scoring scans at normalised
+scale. Scan rotations are display-only. Labels: fitted R2 / v1 box CD-O (cm,
+$\downarrow$), not cross-fitted scores. Vessel interiors and rack tines are absent.}
 \label{fig:qualitative}
 \end{figure}
 
 \section{Video measurements and shape rules}
-MoGe-2 depth~\cite{moge2} supplies frames 0--19, except evaluation episode 1
-(frames 110--230). After fitting the floor, the sharpest height peak identifies
-the table; points above a locally refitted plane are clustered. Manual visual
-assignments map first-frame clusters to names in \texttt{assignments.json}; merged
-or clipped objects are omitted. In-plane PCA extents span the 2nd--98th percentiles;
-height is the 98th percentile above the support plane. Later masks must retain
-$0.8$--$1.25\times$ the reference area.
-
-Dividing extents by their geometric mean removes common depth scale, but not
-shape distortion. Per-axis medians pool frames then 1--9 public/evaluation episodes
-per object (one for the lid), yielding one shape per identity. R2 uses elliptical
-vessel cylinders; above a long/short aspect threshold (grid: 1.05, 1.15, 1.30), a
-circular body plus handle represents the excess. Other categories retain
-boxes. Handle height/width are 60\% of height/15\% of short extent. Components
-overlap with internal faces; they are not Boolean unions.
+MoGe-2 depth~\cite{moge2} supplies frames 0--19 (evaluation episode 1: 110--230).
+A height peak above the floor identifies the table. Above-table points are
+clustered and manually named; merged/clipped objects are omitted.
+Principal-component extents use 2nd--98th percentiles; height uses the 98th.
+Later masks retain $0.8$--$1.25\times$ reference area.
+Geometric-mean normalization removes common depth scale, not distortion.
+Medians pool frames then episodes per identity. R2 represents long-axis excess
+with a handle above an aspect threshold (1.05, 1.15 or 1.30); other categories
+retain boxes. Components overlap with internal faces, without Boolean union.
 
 \section{Development results and disclosure}
-We use the kit CD-O code and mesh budget on both candidates and references, averaging
-three kit-derived sampling seeds. Table~\ref{tab:cdo} distinguishes cross-fitted R2
-from the final fitted mesh. Pair means weight object scores by their occurrence among
-26 scanned evaluation pairs; they do not rerun every pair's exact kit seed.
+Table~\ref{tab:cdo} averages three kit sampling seeds. Pair means weight by
+occurrence among 26 scanned pairs, without rerunning each pair's exact seed.
 
 \begin{table}[t]
 \centering
@@ -100,64 +87,97 @@ scans; fit: final threshold chosen on all ten. Wood 1/2 denote
 \label{tab:cdo}
 \end{table}
 
-R1/R3 score 0.956/0.990\,cm. R2's largest held-out regression is 0.106\,cm
-(pitcher). Fold A/B select thresholds 1.30/1.05; fitting all ten selects 1.30,
-scoring 0.9251\,cm (pair-weighted 1.088\,cm). Cross-fitted scores estimate parameter
-selection, not this final mesh. Figure~\ref{fig:qualitative} shows the pot gain,
-pitcher regression, and highest-error object, the rack.
+R1/R3 score 0.956/0.990\,cm. R2's worst regression is 0.106\,cm (pitcher).
+Fold A/B thresholds are 1.30/1.05; the final all-ten fit chooses 1.30.
+Cross-fitting estimates parameter selection, not the final mesh (Fig.~\ref{fig:qualitative}).
+Mean gain is 0.082\,cm (sample standard deviation 0.180; standard error 0.057;
+ten objects). The pot supplies 60\%/67\% of net object/pair gain.
+Threshold means span about 0.002\,cm: selection is chiefly R2 over R1 on these
+scans, without removing selection bias.
 
-Paired gains are $+0.239/+0.222$\,cm (cups), $+0.490$ (pot), $-0.106$ (pitcher),
-$-0.027$ (lid), otherwise zero. Mean gain is 0.082\,cm (object-level sample SD
-0.180, SE 0.057; ten objects, about 1.4 SE). The pot supplies 60\%/67\% of net
-object/pair-weighted gain. Threshold means span only about 0.002\,cm; effective
-selection is R2 over R1 on these same scans. These summaries do not remove selection bias.
-
-\textbf{Disclosure.} The earlier box-versus-ellipsoid choice used the public scan
-scores, and measurement thresholds were set while inspecting episode 39's scan score.
-The rules were designed after observing the pot box lose to a cube.
-The subsequent rule families, folds, and adoption gates were fixed before the new scoring,
-but selection among rules still uses these same ten public scans: cross-fitting is
-not an untouched test. The unscanned wooden spoon retains its box and accounts for
-10 of 36 scored pairs, excluded from both means. Sampling seeds do not measure
-uncertainty over new objects.
+\textbf{Disclosure.} Public scan scores informed the earlier box/ellipsoid choice
+and episode 39's measurement thresholds; rule design followed the pot box losing
+to a cube. Families, folds and gates were then fixed before new scoring, but
+rule selection reuses these ten scans: cross-fitting is not an untouched test.
+The unscanned spoon keeps its box (10 of 36 scored pairs, excluded from both means).
+Sampling seeds do not measure uncertainty over new objects.
 
 \section{Pose placement and physical filtering}
-FlashCHORD~\cite{flashchord} simulates our video boxes at MoGe-2 metric size,
-with hands parked; FlashSAC uses 512 steps in one world. The kit aligns slot 0's
-full initial pose, including rotation: slot 1 is scored in slot 0's body frame.
-Anchor-frame errors therefore rotate the entire inter-object offset.
+FlashCHORD, the kit's robotic reference-tracking system~\cite{flashchord},
+simulates metric video boxes with hands parked. Its JAX reinforcement-learning
+trainer, FlashSAC, runs 512 steps in one world. Slots 0/1 index the first/second
+objects in the kit's \texttt{track\_3\_evaluation\_objects.json}. Aligning slot 0's
+first pose, including rotation, puts slot 1 in slot 0's body frame; anchor
+orientation errors rotate the inter-object offset.
 
-On eight public train two-object episodes, kinematic static-placement diagnostics
-using kit metrics give v1 AUC 0.2688 versus oracle-static 0.5319. Across candidates,
-slot-1 frame-zero offsets err by 10--74\,cm, beyond the largest AUC threshold
-(9\,cm); slot 1 earns no AUC credit and AUC/SP-SR remain tied.
-On clean episodes 11/18/21/23, video/mocap distance ratios are 1.37--1.80,
-including centroid-versus-origin offsets. Leave-one-episode-out body-up calibration
-from public mocap (K2) gives no aggregate gain and is not adopted. Heading remains
-unobservable without a released camera-to-mocap transform.
+Table~\ref{tab:pose} compares static placements against public training
+motion-capture (mocap) poses, not hidden scored episodes. v1 uses video-cluster
+centroids, with defaults for missing clusters.
+K1a (merged-cluster placement) stacks the object without its own frame-zero
+depth cluster on the other at their merged centroid. Oracle static holds reference
+first poses fixed; it is diagnostic only.
+Slot 1 earns no AUC credit (Fig.~\ref{fig:offset}); v1/K1a tie on success metrics.
+K2, body-up calibration from public mocap leaving one episode out, gives no
+aggregate gain and is not adopted. Heading lacks a camera-to-mocap transform.
 
-All candidates fail the fixed adoption gates. K1a, stacking merged-cluster objects
-at their video centroid, lowers mean RPE 47.51 $\to$ 36.80\,cm and MPPE
-26.66 $\to$ 21.63\,cm. A \emph{post-result amendment} registers fresh public
-2/27 confirmation: episode 2 yields RPE 54.39 $\to$ 21.79\,cm and MPPE
-28.29 $\to$ 12.43\,cm, with AUC/SP-SR/MP-SR unchanged. Episode 27 has separate
-clusters and is unmeasurable for this rule. Confirmation thus rests on one episode;
-train 26, scored episode 28's analogue, was selection data.
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lrrrr}
+\toprule
+Placement & AUC $\uparrow$ & SP-SR $\uparrow$ & RPE & MPPE \\
+\midrule
+\multicolumn{5}{l}{Eight train episodes (equal-episode means)} \\
+v1 & 0.2688 & 0 & 47.51 & 26.66 \\
+K1a & 0.2688 & 0 & 36.80 & 21.63 \\
+Oracle static & 0.5319 & 0.625 & 15.11 & 7.40 \\
+\midrule
+\multicolumn{5}{l}{Fresh public episode 2 (confirmation)} \\
+v1 & 0.3343 & 0 & 54.39 & 28.29 \\
+K1a & 0.3343 & 0 & 21.79 & 12.43 \\
+\bottomrule
+\end{tabular}
+\caption{Public mocap diagnostics. AUC: surface-point accuracy-curve area;
+SP-SR: success at mean position/orientation error $\leq$10\,cm/0.5\,rad.
+RPE: relative-position error; MPPE: mean error of six object-attached points
+(cm, $\downarrow$). MP-SR (all-object success at $<$3\,cm/30$^\circ$) is always
+zero; episode 27 is unmeasurable.}
+\label{tab:pose}
+\end{table}
 
-A second post-result amendment then applied the physical validity check per scene. Scored episodes 1/28 pass
-(maximum deviation from intended first pose 0.062\,cm, drift 0.058\,cm); episode 30's sweeper
-falls 17\,cm and retains v1's default placement. D2 v2 uses K1a only on 1/28,
-keeping the other eighteen v1 exports: 20 episodes, 9,120 rows, kit preflight
-\emph{Ready to submit}. No host-score gain is claimed; diagnostics use scan surface
-samples to approximate host vertices. Static rollouts do not demonstrate manipulation.
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/d2-slot1-offset.pdf}
+\caption{Frame-zero slot-1 offset in slot 0's body frame; oracle static is zero.
+Dashed: largest surface-point AUC threshold, 9\,cm (kit \texttt{AUC.py},
+\texttt{\_ADD\_THRESHOLDS\_M}~\cite{challenge}). This is not a trajectory success bound.}
+\label{fig:offset}
+\end{figure}
 
-Primitives omit vessel/rack concavities; overlapping components are not verified
-simulation geometry. Manual identities, uncalibrated metric size, body-frame ambiguity,
-and the unmeasured spoon limit generality.
+All candidates fail the original adoption gates. \emph{Post-result Amendment 2}
+registered fresh public 2/27 confirmation after the eight-episode results.
+Episode 2 lowers RPE/MPPE (Table~\ref{tab:pose}) with AUC/SP-SR/MP-SR unchanged;
+27 has separate clusters, so confirmation rests on one episode.
+Train 26, scored episode 28's analogue, was selection data.
+\emph{Post-result Amendment 3}, written after physical checks, relaxes the
+requirement that every affected scene pass to a per-scene validity filter.
+Scored 1/28 pass (maximum deviation from intended first pose 0.062\,cm,
+drift 0.058\,cm); episode 30's sweeper falls 17\,cm and keeps v1's default.
+The second pose export uses K1a only on 1/28, retaining eighteen v1 exports:
+20 episodes, 9,120 rows, kit preflight \emph{Ready to submit}.
+No host-score gain is claimed; diagnostics approximate host vertices with scan
+surface samples. Static rollouts do not demonstrate manipulation.
+
+Vessel/rack concavities are absent; overlapping parts remain unverified simulation
+geometry. Manual identities, uncertain metric size, body-frame ambiguity and the
+unmeasured spoon limit generality.
 
 \typeout{TRACK3-MAIN-TEXT-END-PAGE: \thepage}
 \typeout{TRACK3-TABLE-PAGE: \getpagerefnumber{tab:cdo}}
 \typeout{TRACK3-FIGURE-PAGE: \getpagerefnumber{fig:qualitative}}
+\typeout{TRACK3-POSE-TABLE-PAGE: \getpagerefnumber{tab:pose}}
+\typeout{TRACK3-OFFSET-FIGURE-PAGE: \getpagerefnumber{fig:offset}}
 \bibliographystyle{plainnat}
 \bibliography{references}
 \end{document}

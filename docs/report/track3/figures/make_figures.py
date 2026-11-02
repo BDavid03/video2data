@@ -1,8 +1,12 @@
-"""Draw the qualitative panel (default), or regenerate the legacy chart with --bars."""
+"""Draw the mesh panel (default), pose offsets (--pose-offsets), or legacy bars (--bars)."""
 
 import argparse
 import json
+import os
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[4]
+os.environ.setdefault("MPLCONFIGDIR", str(ROOT / ".runtime/tmp/ctx05-matplotlib"))
 
 import matplotlib
 
@@ -12,8 +16,8 @@ import numpy as np
 import trimesh
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
-ROOT = Path(__file__).resolve().parents[4]
 SUMMARY = ROOT / "outputs/mesh_eval/rules/summary.json"
+PLACEMENT = ROOT / "outputs/pose_insurance/placement"
 BUILD = ROOT / "outputs/mesh_extents/build/20261101T160402.316899Z-0c4f8b6f"
 SCORES = ROOT / "outputs/mesh_eval/d1-ctx03/v2-cdo.json"
 BOX_SCORES = ROOT / "outputs/mesh_eval/d1-ctx02/v1-box.json"
@@ -36,6 +40,50 @@ LABELS = {
     "white_pot": "Pot", "white_pot_lid": "Lid",
     "wooden_piece_1": "Wood 1", "wooden_piece_2": "Wood 2",
 }
+
+
+def pose_offset_panel(episodes: list[int], offsets: dict[str, list[float]]) -> plt.Figure:
+    """Plot recorded frame-zero translation errors against the kit's 9 cm threshold."""
+    plt.rcParams.update({"font.size": 7, "pdf.fonttype": 42})
+    fig, ax = plt.subplots(figsize=(3.18, 1.65), layout="constrained")
+    x = np.arange(len(episodes))
+    for shift, name, colour, hatch in ((-0.18, "v1", BLUE, ""),
+                                      (0.18, "K1a", "#D55E00", "//")):
+        ax.bar(x + shift, offsets[name], width=0.34, label=name,
+               color=colour, hatch=hatch, linewidth=0.4, edgecolor="white")
+    ax.axhline(9, color="#333333", linestyle="--", linewidth=0.9)
+    ax.text(0.99, 9.8, "9 cm: largest AUC threshold", ha="right", va="bottom",
+            transform=ax.get_yaxis_transform(), fontsize=6.5,
+            bbox={"facecolor": "white", "edgecolor": "none", "pad": 1})
+    ax.set(xticks=x, xticklabels=episodes, xlabel="Public train episode",
+           ylabel="Slot-1 offset error (cm)", ylim=(0, 90), yticks=[0, 20, 40, 60, 80])
+    ax.grid(axis="y", color="#dddddd", linewidth=0.5)
+    ax.set_axisbelow(True)
+    ax.spines[["top", "right"]].set_visible(False)
+    ax.legend(frameon=False, ncol=2, loc="upper left", fontsize=6.5)
+    return fig
+
+
+def pose_offset_chart(preview: Path | None) -> None:
+    """Follow ledger run pointers to saved decompositions, without executing metrics."""
+    episodes = [0, 11, 12, 18, 21, 23, 26, 31]
+    offsets = {name: {} for name in ("v1", "K1a")}
+    for line in (PLACEMENT / "ledger.jsonl").read_text().splitlines():
+        row = json.loads(line)
+        if row["candidate"] in offsets and row["status"] == "completed":
+            saved = json.loads((ROOT / row["run"]).with_name("metrics.json").read_text())
+            offsets[row["candidate"]][row["episode"]] = saved["frame0"]["offset_error_cm"]
+    values = {name: [by_episode[e] for e in episodes] for name, by_episode in offsets.items()}
+    fig = pose_offset_panel(episodes, values)
+    target = Path(__file__).with_name("d2-slot1-offset.pdf")
+    fig.savefig(target, metadata={"Title": "Recorded frame-zero slot-1 offset errors",
+                                 "Author": "", "Creator": "", "CreationDate": None,
+                                 "ModDate": None})
+    if preview:
+        fig.savefig(preview, dpi=300)
+    plt.close(fig)
+    print(json.dumps({"episodes": episodes, "offset_error_cm": values}, indent=2))
+    print(target.relative_to(ROOT))
 
 
 def score_chart() -> None:
@@ -135,8 +183,12 @@ def qualitative_panel(rows):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--bars", action="store_true", help="regenerate the legacy score chart")
+    parser.add_argument("--pose-offsets", action="store_true", help="draw recorded pose offsets")
     parser.add_argument("--preview", type=Path, help="also save the panel as a 300 dpi PNG")
     args = parser.parse_args()
+    if args.pose_offsets:
+        pose_offset_chart(args.preview)
+        return
     if args.bars:
         score_chart()
         return
