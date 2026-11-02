@@ -5,6 +5,84 @@ the Track 3 CD-O mesh file (D1).
 
 ## Spoon proxy diagnostic (Amendment 3, reported only)
 
+**Result: NOT VALIDATED.** All 149 candidate/view trials completed on CPU. The proxy passes the
+two aggregate correlation gates, but only five of eight qualifying objects pass and the sweeper
+fails. The wooden blocks have two variants each and do not enter the qualifying Spearman count.
+
+| Descriptive gate | Recorded value | Requirement | Result |
+| --- | ---: | ---: | --- |
+| Equal-object mean tau-b | 0.5442627407313806 | >=0.4 | pass |
+| Qualifying median rho | 0.6546496828075954 | >=0.6 | pass |
+| Qualifying objects with rho >=0.6 | 5/8 | >=6/8 | fail |
+| Dust pan rho | 0.6 | >=0.6 | pass |
+| Sweeper rho | -0.08571428571428573 | >=0.6 | fail |
+| Correlations defined / inputs complete | all / all | all / all | pass |
+
+| Object | Candidates | Rho | Tau-b | IoU ties |
+| --- | ---: | ---: | ---: | ---: |
+| beige_cup | 7 | 0.709299366 | 0.619779787 | 3 |
+| blue_cup | 6 | 0.845154255 | 0.774596669 | 3 |
+| mini_dust_pan | 6 | 0.600000000 | 0.466666667 | 0 |
+| mini_sweeper | 6 | -0.085714286 | -0.200000000 | 0 |
+| plastic_dish_rack | 4 | 1.000000000 | 1.000000000 | 0 |
+| water_pitcher | 7 | -0.059108280 | 0.056343617 | 3 |
+| white_pot | 8 | 0.862488692 | 0.725240668 | 3 |
+| white_pot_lid | 4 | -0.200000000 | 0.000000000 | 0 |
+| wooden_piece_1 | 2 | 1.000000000 | 1.000000000 | 0 |
+| wooden_piece_2 | 2 | 1.000000000 | 1.000000000 | 0 |
+
+IoU ties count variants beyond the number of distinct values; recorded CD-O values have no ties.
+The report-only R8-versus-box comparison favours R8 for both tools: dust pan **+0.1427749573 IoU**,
+sweeper **+0.1864114403 IoU**. These comparisons add no gate.
+
+| Spoon view (evaluation, frame 0) | v3 box IoU | v4 bowl IoU | v4 minus v3 |
+| --- | ---: | ---: | ---: |
+| 5 | 0.3648516465601565 | 0.7244720496894410 | 0.3596204031292845 |
+| 15 | 0.5559074635086753 | 0.7024841809233654 | 0.14657671741469014 |
+| 16 | 0.5418221287565294 | 0.7248242164223573 | 0.18300208766582793 |
+| Equal-view mean difference | | | **0.22973306940326751** |
+
+**Proxy not validated for spoon CD-O inference; proxy says nothing about spoon CD-O; v4 unchanged.**
+The spoon values describe silhouette agreement on reused construction views and establish no
+CD-O gain or regression. Both yaws, projected/mask areas, placements and overlay paths remain in
+`outputs/mesh_extents/spoon-proxy/summary.json`; the ledger retains every identity's trials.
+
+Run or resume the frozen diagnostic:
+
+```bash
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/linux-cuda/bin/python -B -m track3.features.mesh_extents proxy --request track3/features/mesh_extents/proxy-spoon.json
+```
+
+### Post-result engineering fixes
+
+After the first result, missing frozen inputs were made to produce a reasoned NOT VALIDATED
+report; unavailable candidate means, tool comparisons and spoon differences are null with a
+reason. Hash mismatches and incorrect score metadata remain admission errors. E's recorded
+path/status/seeds must match its frozen build; its PLY hash is checked against that build's
+`objects.json` (the legacy E score file contains no SHA itself). Any supplied score SHA is also
+checked. A/B/C require seeds 1/3/5. Duplicate object/SHA scores merge aliases only when equal.
+
+The shared pure `table_component` helper now serves measurement and proxy preparation; all
+candidate/spoon averaging lives in `_proxy.py`. Old/new geometry outputs are exactly equal on
+**92 recorded frames / 18 measure runs**, including labels, clusters, planes, scene arrays and
+30 assigned first-frame object extents. The recomputation matches **149/149 original IoUs**,
+both yaws, areas, placements, PNG bytes, every rho/tau-b/gate and all spoon differences exactly.
+**The result is unchanged.** Original trial/run/cache artifacts and the original ledger prefix
+are retained; engineering reruns append a new identity to the same ledger.
+The recomputation took **6.844 recorded wall seconds**; its second invocation took **1.568
+seconds** and created **zero new trials or ledger rows**. The ledger now contains 149 original
+and 149 engineering rows; all 602 captured historical artifacts remain byte-identical.
+
+The refrozen request explicitly records post-result engineering against commit `5c4d41f` and
+its completed first run. This permits the authorized uncommitted engineering rerun while
+requiring identical inputs, candidate/view definitions, gates, thresholds and package versions;
+source changes are limited to `_proxy.py`, `proxy.py` and `_geometry.py`. Normal pre-result
+requests retain the commit guard. Evidence scripts are under
+`.runtime/tmp/spoon-proxy-engineering/`; durable comparison evidence is
+`outputs/mesh_extents/spoon-proxy/engineering/result-comparison.json`.
+
+### Frozen implementation and phase-1 preparation
+
 `proxy` compares frozen mesh silhouettes with above-table depth-cluster masks from each assigned
 measure run's first frame: frame 0 except the lid at frame 110. This rule was fixed after the
 phase-1 inventory and before any candidate projection.
@@ -12,8 +90,9 @@ It uses cached camera-a depth, local table-plane refitting, in-plane PCA, base-o
 one uniform long-extent scale and the better of yaw 0/pi. Every view records both IoUs, projected
 areas, target area and placement; candidate rankings use equal-view means. `_proxy.py` contains
 array-only computation; `proxy.py` owns admission, persistence and the resumable queue.
-`_geometry.py` and `measure.py` are unchanged; the existing `_local_plane` and `camera_points`
-helpers are reused. Cached NPZ loading is inline because `measure.py` exposes no loading helper.
+`measure.py` is unchanged; `_geometry.py` exposes the shared pure table-component selection.
+The existing `_local_plane` and `camera_points` helpers are reused by pure proxy preparation.
+Cached NPZ loading is inline because `measure.py` exposes no loading helper.
 
 The frozen request is `proxy-spoon.json`: 52 distinct scanned-object candidates across ten
 objects, 143 candidate-view trials across 26 scanned views, plus v3 box/v4 bowl on three spoon
@@ -26,7 +105,7 @@ Existing primitive-era spoon box/ellipsoid artifacts are recorded as historical 
 not additional scored trials. The box is byte-identical to v3. The v4 reference is the packed
 production build `20261102T051416.149421Z-f377e0a1`.
 
-`runtime.json` sets `proxy_authorized: true` by default. The full operation additionally refuses
+`runtime.json` sets `proxy_authorized: true` by default. The normal pre-result operation refuses
 to compute scores until the request, protocol and frozen sources match HEAD. Input hashes and
 package versions must match, and episodes 41/43/44 are refused. Existing CD-O scalars are read
 from frozen ledgers; no scorer or scan is opened. Amendment 3 defines descriptive gates and

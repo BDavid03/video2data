@@ -1,6 +1,6 @@
 """Frozen, resumable video-only silhouette diagnostic; dry mode never projects candidates."""
 
-from collections import Counter, defaultdict
+from collections import Counter
 from dataclasses import dataclass
 import hashlib
 import importlib.metadata
@@ -23,6 +23,8 @@ LEDGERS = ("outputs/mesh_eval/rules/ledger.jsonl", "outputs/mesh_eval/rules-roun
 ELLIPSOID_SCORES = "outputs/mesh_eval/d1-ctx02/v1-ellipsoid.json"
 SPOON_BUILDS = {"v3_box": "outputs/mesh_extents/build/20261102T031152.089350Z-ea88a295",
                 "v4_bowl": "outputs/mesh_extents/build/20261102T051416.149421Z-f377e0a1"}
+BASELINE_COMMIT = "5c4d41f"
+BASELINE_RUN = "outputs/mesh_extents/spoon-proxy/runs/20261102T105102.658719Z-8f4821cf/run.json"
 
 
 def _input(path, inputs, expected=None):
@@ -55,6 +57,8 @@ def _freeze_panel(inputs):
         _input(ledger, inputs)
         for line, row in enumerate((ROOT / ledger).read_text().splitlines(), 1):
             row = json.loads(row)
+            if row["inputs"]["scoring"]["seed_episodes"] != [1, 3, 5]:
+                raise ValueError(f"Recorded score seeds differ from 1/3/5: {ledger}:{line}")
             key = (row["object"], row["inputs"]["candidate_sha256"])
             digest = _input(row["candidate"], inputs, key[1])
             candidate = candidates.setdefault(key, {"object": key[0], "sha256": digest,
@@ -64,10 +68,22 @@ def _freeze_panel(inputs):
             candidate["aliases"].append({"ledger": ledger, "line": line,
                                          "rule": row["rule"], "parameter": row["parameter"]})
     _input(ELLIPSOID_SCORES, inputs)
-    for row in read_json(ELLIPSOID_SCORES)["objects"]:
+    ellipsoids = read_json(ELLIPSOID_SCORES)
+    if ellipsoids["episodes_for_seeds"] != [1, 3, 5] or ellipsoids["oracle_proportions"] is not False:
+        raise ValueError("Ellipsoid scores require non-oracle seed episodes 1/3/5")
+    for row in ellipsoids["objects"]:
         candidate = _build_candidate(ELLIPSOIDS, row["object"], inputs)
-        candidates[(row["object"], candidate["sha256"])] = {**candidate, "object": row["object"],
-            "cd_o_cm": row["cd_o_cm"], "aliases": [{"ledger": ELLIPSOID_SCORES, "rule": "v1 ellipsoid", "parameter": None}]}
+        if row["status"] != "scored" or row["candidate"] != candidate["candidate"]:
+            raise ValueError(f"Ellipsoid score does not name the scored frozen mesh: {row['object']}")
+        _input(row["candidate"], inputs, candidate["sha256"])
+        for key in ("candidate_sha256", "sha256"):
+            if key in row and row[key] != candidate["sha256"]:
+                raise ValueError(f"Ellipsoid recorded SHA differs from its build: {row['object']}")
+        merged = candidates.setdefault((row["object"], candidate["sha256"]), {**candidate,
+            "object": row["object"], "cd_o_cm": row["cd_o_cm"], "aliases": []})
+        if merged["cd_o_cm"] != row["cd_o_cm"]:
+            raise ValueError("Identical ellipsoid and ledger mesh have inconsistent recorded CD-O")
+        merged["aliases"].append({"ledger": ELLIPSOID_SCORES, "rule": "v1 ellipsoid", "parameter": None})
     return list(candidates.values())
 
 
@@ -128,7 +144,7 @@ def load_candidate(candidate):
     return mesh
 
 
-def freeze_request(path):
+def freeze_request(path, *, post_result=False):
     """Expand the pre-registered panel and hash its inputs, without projecting or scoring."""
     inputs = {}
     candidates = _freeze_panel(inputs)
@@ -154,6 +170,8 @@ def freeze_request(path):
         "panel": [{"object": n, "candidates": count, "views": view_counts[n], "trials": count * view_counts[n],
                    "missing_views": sum(v["object"] == n for v in missing_views)}
                   for n, count in sorted({**counts, "wooden_spoon": 2}.items())]}
+    if post_result:
+        request["post_result_engineering"] = {"baseline_commit": BASELINE_COMMIT, "baseline_run": BASELINE_RUN}
     write_json(output_path(ROOT, path), request)
     return request
 
@@ -169,38 +187,65 @@ class ProxyRequest:
         return cls(path, read_json(path))
 
 
+def _post_result_scope(request):
+    """Permit engineering reruns only against an already completed, committed scientific definition."""
+    amendment = request.data["post_result_engineering"]
+    if amendment != {"baseline_commit": BASELINE_COMMIT, "baseline_run": BASELINE_RUN}:
+        raise PermissionError("Unknown post-result baseline")
+    committed = subprocess.check_output(["git", "show", f"{BASELINE_COMMIT}:track3/features/mesh_extents/proxy-spoon.json"], cwd=ROOT)
+    baseline = json.loads(committed)
+    completed = read_run(ROOT, BASELINE_RUN, kind="mesh_extents.proxy")
+    entry = next(r for r in completed["inputs"] if r["path"] == "track3/features/mesh_extents/proxy-spoon.json")
+    if entry["sha256"] != hashlib.sha256(committed).hexdigest():
+        raise PermissionError("Completed baseline did not use the committed request")
+    for key in ("inputs", "packages", "candidates", "spoon", "spoon_history", "views", "missing_views",
+                "gates", "budget", "panel", "axis_convention"):
+        if request.data[key] != baseline[key]:
+            raise PermissionError(f"Post-result engineering changed the scientific definition: {key}")
+    allowed = {f"track3/features/mesh_extents/{name}.py" for name in ("_proxy", "proxy", "_geometry")}
+    if set(request.data["sources"]) != set(baseline["sources"]) or any(
+            digest != baseline["sources"][path] for path, digest in request.data["sources"].items() if path not in allowed):
+        raise PermissionError("Post-result source changes exceed the authorized scope")
+
+
 def _admit(request, dry_run):
     """Check frozen bytes and episode permissions, and enforce the pre-score commit."""
     runtime = runtime_flag(FEATURE, "proxy_authorized", "Spoon proxy diagnostic")
     data = request.data
+    missing = []
     for path, digest in {**data["inputs"], **data["sources"]}.items():
-        _input(path, {}, digest)
+        try:
+            _input(path, {}, digest)
+        except FileNotFoundError:
+            missing.append({"path": path, "reason": "Frozen input file is missing; diagnostic not executed"})
     for package, version in data["packages"].items():
         if importlib.metadata.version(package) != version:
             raise ValueError(f"Frozen package version differs: {package}")
     for view in data["views"]:
         if view["episode"] in (41, 43, 44) or view["camera"] != "ego_cam_a":
             raise PermissionError("View outside the frozen diagnostic")
+        from .measure import MeasureRequest
+
+        authorize_episode(runtime, MeasureRequest(source_split=view["split"], episode_index=view["episode"]), "proxy")
+        if any(row["path"] == view["measure_run"] for row in missing):
+            continue
         measure = read_run(ROOT, view["measure_run"], kind="mesh_extents.measure", allowed=("video_only",))
         if view["frame"] != measure["frames"][0]["frame_index"]:
             raise PermissionError("Proxy view must use the first frame of its assigned measure run")
-        from .measure import MeasureRequest
-
-        authorize_episode(runtime, MeasureRequest(**measure["request"]), "proxy")
-    if not dry_run:
+    if data.get("post_result_engineering"):
+        _post_result_scope(request)
+    elif not dry_run and not missing:
         for path in [request.path, *data["sources"]]:
             committed = subprocess.check_output(["git", "show", f"HEAD:{path}"], cwd=ROOT)
             if hashlib.sha256(committed).hexdigest() != sha256_file(ROOT / path):
                 raise PermissionError(f"Commit frozen request/protocol/code before scoring: {path}")
-    return identity({"request": data, "request_sha256": sha256_file(ROOT / request.path)})
+    return identity({"request": data, "request_sha256": sha256_file(ROOT / request.path)}), missing
 
 
 def load_view(view):
     """Read frozen depth/mask inputs and reuse the measure slice's support-plane refit."""
-    import cv2
     import numpy as np
-    from ._geometry import _local_plane, camera_points
-    from ._proxy import placement
+    from ._proxy import prepare_view
 
     measure = read_json(view["measure_run"])
     with np.load(ROOT / view["preprocessing"], allow_pickle=False) as arrays:
@@ -209,24 +254,8 @@ def load_view(view):
         z = arrays["depth_m"].astype(np.float64)
         valid = arrays["valid"] & arrays["input_valid"] & input_valid
     with np.load(ROOT / view["labels"], allow_pickle=False) as arrays:
-        target = np.isin(arrays["label"], [i + 1 for i in view["cluster_ids"]]) & input_valid
-    if not target.any():
-        raise ValueError(f"Empty frozen target: {view['id']}")
-    points = camera_points(z, k)
-    ok = valid & np.isfinite(points).all(-1) & (z > 0)
-    plane = view["global_plane"]
-    normal, offset = np.asarray(plane["normal"]), plane["offset_m"]
-    table = ok & (np.abs(points @ normal + offset) < measure["request"]["table_band_m"])
-    count, labels = cv2.connectedComponents(table.astype(np.uint8), connectivity=4)
-    sizes = np.bincount(labels[table], minlength=count)
-    sizes[0] = 0
-    table = labels == sizes.argmax()
-    _, normal, offset, local = _local_plane(points, table, target, normal, offset, measure["request"]["ring_pixels"])
-    pose = placement(points[target], normal, offset)
-    pose_record = {key: value.tolist() if hasattr(value, "tolist") else value for key, value in pose.items()}
-    pose_record.update(normal=normal.tolist(), offset_m=float(offset), local_plane=local)
-    return {"target": target, "input_valid": input_valid, "intrinsics": k, "pose": pose,
-            "placement": pose_record}
+        labels = arrays["label"].copy()
+    return prepare_view(z, valid, k, input_valid, labels, view["cluster_ids"], view["global_plane"], measure["request"])
 
 
 def _overlay(view, loaded, path, projected=None):
@@ -288,33 +317,22 @@ def _trial(candidate, view, loaded, request, frozen_id, directory):
     return result
 
 
-def _summary(data, results):
-    from ._proxy import rank_panel
-    import numpy as np
+def _summary(data, results, missing=()):
+    from ._proxy import average_candidates, average_spoon, rank_panel
 
-    by_candidate = defaultdict(list)
-    for row in results:
-        by_candidate[(row["object"], row["sha256"])].append(row)
-    objects = defaultdict(list)
-    for candidate in data["candidates"]:
-        rows = by_candidate[(candidate["object"], candidate["sha256"])]
-        objects[candidate["object"]].append({**candidate,
-            "mean_iou": float(np.mean([r["iou"] for r in rows])) if rows else None})
-    summary = rank_panel(objects, data["gates"])
-    spoon = []
-    for view in (v for v in data["views"] if v["object"] == "wooden_spoon"):
-        values = {c["label"]: next(r for r in by_candidate[("wooden_spoon", c["sha256"])] if r["view"] == view["id"])
-                  for c in data["spoon"]}
-        spoon.append({"view": view["id"], "v3_box": values["v3_box"], "v4_bowl": values["v4_bowl"],
-                      "v4_minus_v3_iou": values["v4_bowl"]["iou"] - values["v3_box"]["iou"]})
-    summary["gates"]["complete_inputs"] = not data["missing_views"]
-    if data["missing_views"]:
+    expected = {row["object"]: row["views"] for row in data["panel"]}
+    summary = rank_panel(average_candidates(data["candidates"], results, expected), data["gates"])
+    spoon, mean, reason = average_spoon(data["spoon"], data["views"], results, expected["wooden_spoon"])
+    complete = not (missing or data["missing_views"]) and len(results) == sum(row["trials"] for row in data["panel"])
+    summary["gates"]["complete_inputs"] = complete
+    if not complete:
         summary["validated"] = False
-    summary.update(spoon=spoon, spoon_mean_difference=float(np.mean([r["v4_minus_v3_iou"] for r in spoon])),
+    summary.update(spoon=spoon, spoon_mean_difference=mean, spoon_undefined_reason=reason,
                    spoon_history_reference_only=data["spoon_history"], panel=data["panel"], trials=results,
-                   missing_views=data["missing_views"],
+                   missing_views=data["missing_views"], missing_inputs=list(missing),
                    verdict="PANEL CONCORDANCE PASSED" if summary["validated"] else "PROXY NOT VALIDATED FOR SPOON CD-O INFERENCE",
                    interpretation="No spoon CD-O gain or regression is established; packed D1 v4 is unchanged.",
+                   incomplete_panel_reason=None if complete else "Missing frozen inputs, views or completed trials",
                    limitations="Reused development objects and construction views; small n, silhouette ties, "
                                "MoGe depth/mask distortion and placement error; gates are descriptive.")
     return summary
@@ -323,25 +341,31 @@ def _summary(data, results):
 def _write_summary(summary, directory):
     write_json(directory / "summary.json", summary)
     lines = ["# Spoon proxy diagnostic", "", summary["verdict"], "", summary["interpretation"], "",
-             summary["limitations"], "", f"Mean tau-b: {summary['mean_tau_b']}; median qualifying rho: "
-             f"{summary['qualifying_median_rho']}; passing: {summary['qualifying_passing']}/8.", "",
-             "| Object | Candidates | Rho | Tau-b | Proxy ties |", "| --- | ---: | ---: | ---: | ---: |"]
+             summary["limitations"], "", f"Mean tau-b: {json.dumps(summary['mean_tau_b'])}; median qualifying rho: "
+             f"{json.dumps(summary['qualifying_median_rho'])}; passing: {summary['qualifying_passing']}/8.", "",
+             "| Object | Candidates | Rho | Tau-b | Proxy ties | Undefined reason |", "| --- | ---: | ---: | ---: | ---: | --- |"]
     for row in summary["objects"]:
-        lines.append(f"| {row['object']} | {row['candidates']} | {row['rho']} | {row['tau_b']} | {row['proxy_ties']} |")
+        lines.append(f"| {row['object']} | {row['candidates']} | {json.dumps(row['rho'])} | "
+                     f"{json.dumps(row['tau_b'])} | {row['proxy_ties']} | {row['undefined_reason'] or ''} |")
     lines += ["", "Descriptive gates: " + json.dumps(summary["gates"]), "", "R8 versus box, report only:"]
     lines += ["- " + json.dumps(row) for row in summary["tool_r8_vs_box_report_only"]]
     lines += ["", "| Spoon view | v3 IoU | v4 IoU | Difference |", "| --- | ---: | ---: | ---: |"]
     for row in summary["spoon"]:
-        lines.append(f"| {row['view']} | {row['v3_box']['iou']} | {row['v4_bowl']['iou']} | {row['v4_minus_v3_iou']} |")
-    lines += ["", f"Spoon equal-view mean difference: {summary['spoon_mean_difference']}", "",
+        lines.append(f"| {row['view']} | {json.dumps(row['v3_box']['iou'])} | {json.dumps(row['v4_bowl']['iou'])} | "
+                     f"{json.dumps(row['v4_minus_v3_iou'])} |")
+    lines += ["", f"Spoon equal-view mean difference: {json.dumps(summary['spoon_mean_difference'])}", "",
               "Both yaws, target/projected areas, placements, rankings and overlay paths are in summary.json.",
               "Missing views: " + json.dumps(summary["missing_views"])]
+    lines += ["", "Missing inputs: " + json.dumps(summary["missing_inputs"]),
+              "Undefined values: " + json.dumps({**summary["undefined_reasons"], "spoon": summary["spoon_undefined_reason"]})]
+    if not summary["validated"]:
+        lines += ["", "Proxy not validated for spoon CD-O inference; proxy says nothing about spoon CD-O; v4 unchanged."]
     (directory / "summary.md").write_text("\n".join(lines) + "\n")
 
 
 def proxy(request, *, dry_run=False):
     """Run either target-only preparation or the committed, frozen scoring queue."""
-    frozen_id = _admit(request, dry_run)
+    frozen_id, missing = _admit(request, dry_run)
     data = request.data
     directory = output_path(ROOT, data["dry_output"] if dry_run else data["output"])
     directory.mkdir(parents=True, exist_ok=True)
@@ -353,17 +377,21 @@ def proxy(request, *, dry_run=False):
                 row = json.loads(line)
             except json.JSONDecodeError:
                 continue  # An interrupted append is retained, never rewritten.
-            if row["frozen_identity"] != frozen_id:
-                raise ValueError("Output belongs to another frozen diagnostic")
-            logged[row["identity"]] = row
+            if row["frozen_identity"] == frozen_id:
+                logged[row["identity"]] = row
     record = run_fields(ROOT, "mesh_extents", "proxy_dry" if dry_run else "proxy", {"manifest": request.path,
-                        "frozen_identity": frozen_id}, inputs=[request.path, *data["inputs"]],
+                        "frozen_identity": frozen_id}, inputs=[request.path, *(p for p in data["inputs"]
+                        if not any(row["path"] == p for row in missing))],
                         provenance="public_asset_diagnostic")
     run_directory = directory / "runs" / new_run_id()
     started, results, masks = time.monotonic(), [], []
     with recorded(run_directory, record):
-        for view in data["views"]:
-            loaded = load_view(view)
+        for view in ([] if missing else data["views"]):
+            try:
+                loaded = load_view(view)
+            except FileNotFoundError as error:
+                missing.append({"view": view["id"], "reason": f"Frozen view input became unavailable: {error}"})
+                continue
             if dry_run:
                 path = directory / "overlays" / f"{view['id']}.png"
                 _overlay(view, loaded, path)
@@ -381,10 +409,15 @@ def proxy(request, *, dry_run=False):
                     if row["identity"] != key:
                         raise ValueError("Ledger trial identity differs from request")
                 else:
-                    row = {"frozen_identity": frozen_id, **_trial(candidate, view, loaded, request, frozen_id, directory)}
+                    try:
+                        row = {"frozen_identity": frozen_id, **_trial(candidate, view, loaded, request, frozen_id, directory)}
+                    except FileNotFoundError as error:
+                        missing.append({"view": view["id"], "candidate": candidate["sha256"],
+                                        "reason": f"Frozen candidate input became unavailable: {error}"})
+                        continue
                     append_ledger(ledger_path, row)
                 results.append(row)
-        if dry_run:
+        if dry_run and not missing:
             summary = {"frozen_identity": frozen_id, "panel": data["panel"], "views": masks,
                        "missing_views": data["missing_views"],
                        "candidate_projections": 0, "proxy_values_computed": False, "correlations_computed": False}
@@ -396,10 +429,7 @@ def proxy(request, *, dry_run=False):
             text += ["", "Missing views: " + json.dumps(data["missing_views"])]
             (directory / "summary.md").write_text("\n".join(text) + "\n")
         else:
-            expected = sum(row["trials"] for row in data["panel"])
-            if len(results) != expected:
-                raise ValueError("Incomplete frozen panel; no concordance summary permitted")
-            summary = _summary(data, results)
+            summary = _summary(data, results, missing)
             _write_summary(summary, run_directory)
             _write_summary(summary, directory)
     return run_directory / "run.json"

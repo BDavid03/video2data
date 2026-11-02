@@ -79,17 +79,22 @@ def extents(points, height, normal):
             "height_max_m": float(height.max())}
 
 
+def table_component(height, ok, band):
+    """Select the largest four-connected component within the table-height band."""
+    table = ok & (np.abs(height) < band)
+    count, labels = cv2.connectedComponents(table.astype(np.uint8), connectivity=4)
+    sizes = np.bincount(labels[table], minlength=count)
+    sizes[0] = 0
+    return labels == sizes.argmax()
+
+
 def frame_clusters(z, valid, k, request, rng):
     """Label image (0 = none, i + 1 = cluster i, largest first) and one summary row per cluster."""
     pts = camera_points(z, k)
     ok = valid & np.isfinite(pts).all(-1) & (z > 0)
     normal, offset, table_height = support_plane(pts, ok, rng)
     height = pts @ normal + offset
-    table = ok & (np.abs(height) < request.table_band_m)
-    count, labels = cv2.connectedComponents(table.astype(np.uint8), connectivity=4)
-    sizes = np.bincount(labels[table], minlength=count)
-    sizes[0] = 0
-    table = labels == sizes.argmax()
+    table = table_component(height, ok, request.table_band_m)
     flat = lambda p: p - np.outer(p @ normal + offset, normal)  # noqa: E731
     table_points = flat(pts[table])
     centre = table_points.mean(0)
