@@ -38,9 +38,18 @@ unchanged. On the K1a-stacked episodes 0 and 26, `d = 0` and every candidate equ
 C0 places slot 1 at slot 0's table-plane position. It is physically implausible (interpenetrating
 boxes) and is scored kinematically only, as a bound.
 
-**Oracle diagnostic (reads mocap; never a candidate):** per episode, the factor `c*` in
-0.00, 0.01, ..., 1.50 that minimises that episode's MPPE, and the length ratio
-`mocap distance / incumbent distance` at frame 0.
+**Oracle diagnostic (reads mocap; never a candidate):** per changed episode (11, 12, 18, 21, 23,
+31), the factor `c*` in 0.00, 0.01, ..., 1.50 that minimises that episode's MPPE (ties to the
+larger factor), and the length ratio `mocap distance / incumbent distance` at frame 0, where a
+distance is the full 3D distance between the two object centres. (Full-distance ratios are not
+exact optima for a planar-only factor.)
+
+**Direction-free length diagnostic (reads mocap; never a candidate).** Per changed episode, the
+frame-0 length error `| ||[c * d_xy, d_z]|| - D_mocap |` in cm, where `D_mocap` is the full 3D
+mocap centre distance. Report the 6-episode mean for I, S1 and G, and S1's rank among all 8!
+assignments of the 8 train `s` values to the 8 train episodes (the mean over the 6 changed
+episodes; the stacked 0 and 26 make no difference). This tests whether per-episode `s` carries
+metric-length information without rewarding the collapse of a wrongly directed offset.
 
 ## Integrity controls (numeric tolerance and scope fixed now)
 
@@ -51,7 +60,12 @@ boxes) and is scored kinematically only, as a bound.
   equal the incumbent's within 1e-9 (cm for RPE/MPPE). A failure disqualifies **only that
   candidate** from the verdicts and from H; it is reported, not repaired.
 - **Shift sanity.** G's `s_bar` and each shift's assignment are written into the ledger before
-  scoring.
+  scoring. `Pk(e_i) = s[(i + k) mod 8]` in the episode order above; on controls 39/42, `Pk` uses
+  `s[k]` and S1 uses that control's own `s`.
+- **Precision and missing values.** Reproduction compares full-precision recorded JSON metrics
+  (`outputs/pose_insurance/scale/summary.json` or the per-trial `metrics.json`). A missing,
+  non-finite or disqualified comparator blocks the verdicts that depend on it and H; the
+  denominator is never reduced. MPPE ties mean absolute differences <= 1e-9 cm.
 
 ## Verdicts (tolerances fixed now; means over the 8 train episodes)
 
@@ -60,16 +74,26 @@ Let `M(x)` and `R(x)` be candidate x's mean MPPE and mean RPE in cm.
 1. **Per-episode calibration.**
    - *Calibration adds information* when `M(G) - M(S1) >= 0.25` and `R(G) - R(S1) >= 0.50`
      and `M(S1) <= M(Pk)` for at least 6 of the 7 shifts.
-   - *Not separable from a global shrink* when `|M(G) - M(S1)| < 0.25` (whatever R does).
+   - *Difference below the registered practical margin* when `|M(G) - M(S1)| < 0.25` (whatever
+     R does); this does not establish equivalence.
    - *Global shrink is better* when `M(S1) - M(G) >= 0.25`.
    - Anything else is reported as *mixed*, with the numbers.
-2. **Hedge.** Let `c_best` be the factor among {0, 0.25, 0.50, 0.75, s_bar, 1} with the lowest
-   mean MPPE (ties to the larger factor).
-   - *Hedge-dominated* when `c_best <= 0.50` and `M(S1) - M(C_best) >= 1.0`: shrinking well below
-     any calibrated scale keeps lowering the error, so S1's gain is mostly a hedge.
-   - *Consistent with scale* when `c_best >= 0.75` or `M(S1) - M(C_best) < 1.0`.
+2. **Further shrinkage.** Let `c_best` be the factor among {0, 0.25, 0.50, 0.75, s_bar, 1} with
+   the lowest mean MPPE (ties to the larger factor), and `C_best` the candidate with that factor.
+   - *Further shrinkage helps* when `c_best <= 0.50` and `M(S1) - M(C_best) >= 1.0`: shrinking
+     well below any calibrated scale keeps improving this diagnostic. This does not identify how
+     much of S1's gain came from calibration.
+   - *Registered shrinkage criterion not met* otherwise.
 3. **Oracle reading** (descriptive, no verdict): median and range of `c*` over the 6 changed
-   episodes beside `s_e`, and the Spearman correlation of `s_e` with the length ratio.
+   episodes beside `s_e`, and the Spearman correlation of `s_e` with the length ratio over the
+   same 6 episodes (reported as undefined if either input is constant).
+4. **Length reading** (descriptive): the direction-free length diagnostic above. S1 is said to
+   carry length information when its 6-episode mean length error is below G's by at least
+   0.5 cm and its rank is within the best 5 % of the 8! assignments; otherwise not shown.
+
+The seven shifts are descriptive controls, not independent replications. Wrong stereo
+calibration, direction errors and the static-rollout mismatch can all favour stronger shrinkage,
+so no verdict alone says why the error falls.
 
 Every verdict is reported as it comes out, with the 6 changed-episode means beside the 8-episode
 means. No verdict changes D2 v3. The abstract states the verdict in one sentence.
@@ -78,14 +102,18 @@ means. No verdict changes D2 v3. The abstract states the verdict in one sentence
 
 H exists because the leaderboard ranks RPE and MPPE as two of the six Track 3 metrics, and
 when slot 1's direction is unobservable a shorter offset is the lower-expected-error choice. H
-is run only when verdict 2 is *hedge-dominated*.
+is run only when verdict 2 is *further shrinkage helps*.
 
 - **Construction.** `c_H` is the factor among {0.25, 0.50, 0.75} (0 is excluded as physically
   implausible) with the lowest train mean MPPE, ties to the larger. Per episode with `d != 0`,
   the applied factor is `max(c_H, c_sep)`, where `c_sep` is the smallest factor at which the two
   D1 boxes' table-plane footprints (oriented rectangles from the scene's dimensions and yaw) are
-  at least 1 cm apart, found by bisection to 1e-4 with a separating-axis test. Episodes with
-  `d = 0` are unchanged. `c_H` and every `c_sep` are recorded before scoring.
+  at least 1 cm apart. All factors act once on the v2 planar offset, replacing S1 rather than
+  multiplying it. Clearance means a projected gap >= 0.01 m on at least one of the rectangles'
+  unit edge-normal separating axes. Bisect `c` in [0, 1] to a factor width of 1e-4 and return
+  the feasible upper endpoint. If no feasible endpoint exists, the episode keeps S1 on train
+  and v3 on scored episodes, and that fallback enters the means. Episodes with `d = 0` are
+  unchanged. `c_H` and every `c_sep` are recorded before scoring.
 - **Train gates, against S1** (the shipped rule): mean RPE falls by at least 2 cm and mean MPPE
   by at least 1 cm; mean AUC, SP-SR and MP-SR do not fall (1e-12); no episode loses more than
   0.02 AUC or gains more than 0.5 cm MPPE; the single-object invariance control above passes
@@ -101,4 +129,13 @@ is run only when verdict 2 is *hedge-dominated*.
 - **Disclosure.** The report says H is a deliberate shrink chosen on train episodes because
   slot 1's direction is unobservable, gives `c_H`, and lists changed and fallback episodes.
 
-If verdict 2 is not *hedge-dominated*, H is not built and D2 v3 stays.
+If verdict 2 is not *further shrinkage helps*, H is not built and D2 v3 stays.
+
+## Amendment record
+
+Amended 2026-11-02 in context 06 after a read-only Codex route review
+(`outputs/chain/codex/20261102T005923Z-route-shrink-06.answer.md`), before any candidate,
+oracle or length diagnostic was computed: verdict labels reworded so they do not claim
+equivalence or a cause, precision/missing-value/tie rules, the shift definition on controls,
+the oracle's episodes and distance, the direction-free length diagnostic, and H's clearance
+and composition wording. The original text is commit 54f6872.
