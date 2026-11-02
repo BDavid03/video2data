@@ -109,6 +109,10 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
    edits, so context 07 worked on `worktree-chain-ctx01` (commits after `be0aab8`). In main,
    `git merge worktree-chain-ctx01`; copy back with `cp -al` `outputs/mesh_eval`,
    `outputs/mesh_extents/build` and `submissions/20261102T0313Z-d1-v3` (the new D1 v3 pack).
+   *Update, context 10:* main equalled the branch at start (`f85c130`); the guard still refused edits, so
+   context 10 worked on `worktree-chain-ctx01` (commits `247fb35`..the hand-off). In main,
+   `git merge --ff-only worktree-chain-ctx01`; copy back with `cp -al` `outputs/mesh_extents/spoon-proxy`
+   and `outputs/mesh_extents/proxy-insights`. No packed file changed.
    *Notifications (2026-11-02, at the owner's request):* the branch's `scripts/chain/session_chain.py`
    now logs `STRANDED` with the merge command when a newer hand-off exists only in a worktree, and
    rings the terminal bell on that and on every finish (STALLED, LIMIT, COMPLETE). Set
