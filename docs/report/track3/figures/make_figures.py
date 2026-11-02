@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
-os.environ.setdefault("MPLCONFIGDIR", str(ROOT / ".runtime/tmp/d3-v3/matplotlib"))
+os.environ.setdefault("MPLCONFIGDIR", str(ROOT / ".runtime/tmp/d3-fix/matplotlib"))
 
 import matplotlib
 
@@ -88,7 +88,7 @@ def pose_offset_chart(preview: Path | None, output_dir: Path = TARGET.parent) ->
 
 def pipeline_panel() -> plt.Figure:
     """Draw both submission branches and the stereo input with readable arrows."""
-    fig, ax = plt.subplots(figsize=(3.18, 2.00))
+    fig, ax = plt.subplots(figsize=(3.18, 1.65))
     fig.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99)
     ax.set(xlim=(0, 1), ylim=(0, 1))
     ax.set_axis_off()
@@ -199,7 +199,7 @@ def draw_mesh(ax, vertices, faces, colour):
 def qualitative_panel(rows):
     """Plot the supplied RGB masks, mesh arrays and saved scores without reading files."""
     plt.rcParams.update({"font.size": 7, "pdf.fonttype": 42})
-    fig = plt.figure(figsize=(3.18, 3.05))
+    fig = plt.figure(figsize=(3.18, 2.65))
     grid = fig.add_gridspec(3, 3, left=0.01, right=0.99, bottom=0.12, top=0.82,
                            wspace=0.05, hspace=0.36)
     for x, title in zip((0.17, 0.50, 0.83),
