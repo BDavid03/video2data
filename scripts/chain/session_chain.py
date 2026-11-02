@@ -101,8 +101,8 @@ class Chain:
         self.launched = []  # job ids this run started
 
     # ---- output -------------------------------------------------------------------------------------------
-    def say(self, text, **event):
-        print(f"[{stamp()}] {text}", flush=True)
+    def say(self, message, /, **event):
+        print(f"[{stamp()}] {message}", flush=True)
         if event:
             event["at"] = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
             with open(self.log_path, "a", encoding="utf-8") as f:
