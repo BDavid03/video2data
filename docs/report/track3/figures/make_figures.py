@@ -90,28 +90,27 @@ def pose_offset_chart(preview: Path | None, output_dir: Path = TARGET.parent) ->
 
 def pipeline_panel() -> plt.Figure:
     """Draw the mesh and static-pose branches at column width with template-sized text."""
-    fig, ax = plt.subplots(figsize=(3.18, 1.95))
+    fig, ax = plt.subplots(figsize=(3.18, 1.40))
     fig.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99)
     ax.set(xlim=(0, 1), ylim=(0, 1))
     ax.set_axis_off()
     nodes = {
-        "video": (0.5, 0.94, "Egocentric video"),
-        "depth": (0.5, 0.77, "MoGe-2 depth + stereo scale"),
-        "extents": (0.23, 0.59, "Object extents"),
-        "placement": (0.74, 0.59, "Frame-0 placement"),
-        "shape": (0.23, 0.39, "R2: vessel + handle;\nelse box"),
-        "scene": (0.74, 0.39, "Static scene\nS1 offset scale"),
+        "depth": (0.5, 0.94, "Egocentric video → MoGe-2 depth"),
+        "extents": (0.23, 0.70, "Object extents"),
+        "placement": (0.74, 0.70, "Frame-0 placement"),
+        "shape": (0.23, 0.45, "R2: vessel + handle;\nelse box"),
+        "scene": (0.74, 0.45, "Static scene\nS1 offset shrink"),
         "meshes": (0.23, 0.12, "D1 meshes"),
-        "kit": (0.74, 0.20, "evaluate_policy.py"),
-        "poses": (0.74, 0.055, "D2 trajectories"),
+        "kit": (0.74, 0.22, "evaluate_policy.py"),
+        "poses": (0.74, 0.05, "D2 trajectories"),
     }
-    for source, dest in (("video", "depth"), ("depth", "extents"),
+    for source, dest in (("depth", "extents"),
                          ("depth", "placement"), ("extents", "shape"),
                          ("shape", "meshes"), ("placement", "scene"),
                          ("scene", "kit"), ("kit", "poses")):
         endpoint = nodes[dest][:2]
         if source == "depth":
-            endpoint = (endpoint[0], endpoint[1] + 0.065)
+            endpoint = (endpoint[0], endpoint[1] + 0.085)
         ax.annotate("", xy=endpoint, xytext=nodes[source][:2],
                     arrowprops={"arrowstyle": "->", "color": "#555555",
                                 "linewidth": 0.9,

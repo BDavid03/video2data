@@ -1,13 +1,18 @@
-Anonymous Track 3 abstract with two pages of main text, covering the fixed mesh-rule protocol and the D2 v3 static-object pose entry with stereo-anchored offset scale. Build from the worktree root with `bash scripts/report/build_pdf.sh docs/report/track3/main.tex`; the pinned Tectonic writes `main.pdf`, `main.log`, and `main.blg` beside the source. The unchanged template classes use the anonymous option to suppress names and the logo. Three column-width figures (qualitative meshes, shipped-rule/S1 frame-zero pose offsets, and the D1/D2 pipeline) complement the mesh and pose tables; the legacy bar chart remains available with `make_figures.py --bars` but is not included. Panel scores describe the final fitted meshes, not the cross-fitted headline. Below, `S` = `outputs/mesh_eval/rules/summary.json`, `R2` = `S:ranking[rule="R2 vessel-handle"]`, `V` = `outputs/mesh_eval/d1-ctx03/v2-cdo.json`, `B` = `outputs/mesh_extents/build/20261101T160402.316899Z-0c4f8b6f/`, `V1` = `outputs/mesh_eval/d1-ctx02/v1-box.json`, `P` = `outputs/pose_insurance/`, and `M` = `outputs/mesh_extents/public/episode_000011/20261101T103701.928174Z-f63cc238/run.json`. Name selectors mean lookup by value, not array position; displayed values use decimal half-up rounding. The current mesh table shows aggregate scores; historical per-object mesh-table provenance is retained below. The table uses full-precision rule trials, avoiding a second rounding of the fresh v2 score file; the text rounds that fresh fitted score to the same three decimals: **0.925 cm** throughout. Raw source precision is retained in this README, not mixed into the prose. Cross-fitting applies to rule parameters on the same public references, not an untouched test, and the D2 placement diagnostic uses eight public train two-object episodes plus one fresh measurable confirmation. These kinematic results do not establish a host-score gain or manipulation performance.
+Anonymous Track 3 abstract with two pages of main text, covering the fixed mesh-rule protocol and the D2 v3 static-object pose entry with stereo-derived offset shrinkage. Registered controls show no measurable per-episode calibration benefit over global shrinkage; the shipped v3 entry is unchanged. Build from the worktree root with `bash scripts/report/build_pdf.sh docs/report/track3/main.tex`; the pinned Tectonic writes `main.pdf`, `main.log`, and `main.blg` beside the source. The unchanged template classes use the anonymous option to suppress names and the logo. Three column-width figures (qualitative meshes, shipped-rule/S1 frame-zero pose offsets, and the D1/D2 pipeline) complement the mesh and pose tables; the legacy bar chart remains available with `make_figures.py --bars` but is not included. Panel scores describe the final fitted meshes, not the cross-fitted headline. Below, `S` = `outputs/mesh_eval/rules/summary.json`, `R2` = `S:ranking[rule="R2 vessel-handle"]`, `V` = `outputs/mesh_eval/d1-ctx03/v2-cdo.json`, `B` = `outputs/mesh_extents/build/20261101T160402.316899Z-0c4f8b6f/`, `V1` = `outputs/mesh_eval/d1-ctx02/v1-box.json`, `P` = `outputs/pose_insurance/`, and `M` = `outputs/mesh_extents/public/episode_000011/20261101T103701.928174Z-f63cc238/run.json`. Name selectors mean lookup by value, not array position; displayed values use decimal half-up rounding. The current mesh table shows aggregate scores; historical per-object mesh-table provenance is retained below. Table 1 now distinguishes exact packed scores (four decimals, each pair's own kit seed) from the three-seed cross-fitted and cube estimates (three decimals). The cross-fitted headline remains **0.926 cm**; the packed fitted v2 is **0.9257 cm per object / 1.0850 cm per pair**. The earlier three-seed all-ten fit **0.925 cm** is historical, not an alternate rounding of the packed result. Raw precision and all superseded values are retained below. Cross-fitting applies to rule parameters on the same public references, not an untouched test, and the D2 placement diagnostic uses eight public train two-object episodes plus one fresh measurable confirmation. These kinematic results do not establish a host-score gain or manipulation performance.
 
 | Claim in text or table | Recorded source and key / derivation |
 | --- | --- |
+| Exact packed rows in Table 1: v1 1.0091 / 1.2547 cm; v2 0.9257 / 1.0850 cm (object / pair) | `outputs/mesh_eval/pairs/summary.json:means[v1/v2].{per_object_cm,pair_weighted_cm}`. v1 raw: **1.0091025260092832 / 1.254731056017533**; v2: **0.9257250385709256 / 1.085023637656605**. `pairs` keyed by `(episode,slot,object)` independently gives the pair mean; group by `object`, average within object, then equally over ten objects for the object mean. All 26/36 covered pairs use their own `_object_seed(episode,slot)` and the unmodified kit `score`; ten spoon pairs are unscored. Four-decimal half-up rounding is used for these rows only. These are public-scan scores, not host-reference results. |
+| Table 2 new G/C0 rows, eight train episode means | `outputs/pose_insurance/shrink/summary.json:means8[G/C0]`, checked by averaging `episodes[candidate][str(episode)].metrics` over train `[0,11,12,18,21,23,26,31]`. G `(AUC,SP-SR,RPE,MPPE)` raw **(0.2690123323497656,0,35.27602887377869,20.801243810949728)** → **(0.2690,0,35.28,20.80)**; C0 **(0.27477472005330295,0,19.542964153582133,14.133047790824333)** → **(0.2748,0,19.54,14.13)**. All train MP-SR and SP-SR remain zero. C0 is a physically implausible kinematic bound: the boxes overlap. The I/S1 rows reproduce the previous scale diagnostic. |
+| Global shrink factor 0.857 and no demonstrated per-episode calibration benefit | `shrink/summary.json:assignments.s_bar=0.8569522079777245`; `verdicts["1"]`: G−S1 MPPE **−0.04232083401356945 cm**, RPE **−0.05955376964047332 cm**; S1 no worse than **3/7** cyclic shifts. Registered practical margins are **0.25 cm MPPE / 0.50 cm RPE**, plus at least **6/7** shifts. `verdicts["4"]` gives direction-free length errors I/S1/G **20.532477704 / 14.713075833 / 14.554395566 cm**, rank **26,559/40,320**, **2 exact ties**, rank fraction **0.6587053571428572**, outside the best **5%**. This is absence of demonstrated benefit under the registered controls, not proof of equivalence or a causal identification of why shrinkage helps. |
+| Shrink-curve and oracle details retained outside main text | `shrink/summary.json:means8[C25/C50/C75].MPPE_cm` = **14.383019469 / 16.423429348 / 19.370744796 cm**, rounded **14.38 / 16.42 / 19.37**. `verdicts["2"]` selects C0, giving **6.710516854138964 cm** gain over S1. `verdicts["3"]` gives oracle median factor **0.025**, range **0–0.50**; its episode-name-keyed `length_ratio` values span **0.22877120215218755–0.7300511945769261**, or **0.23–0.73** mocap/video. Oracle factors use reference poses and are diagnostic only. Seven shifts are descriptive controls, not independent replications. |
+| Clearance-limited follow-up: 17.02 cm MPPE, rejected; v3 unchanged | `shrink/summary.json:means8.H.MPPE_cm=17.020548795924775`; `H.construction.c_H=0.25`, with a registered **1 cm** footprint-clearance floor (applied factors are `max(0.25,c_sep)`, not an added shrink on S1). `H.gates.guarded_changes.AUC=−0.00018028846153844702` → **−0.00018**; `episodes.H["31"].metrics.MPPE_cm - episodes.S1["31"].metrics.MPPE_cm = 0.6933918802549996` → **+0.69 cm**, exceeding the **0.5 cm** cap. `H.gates.checks` fails `guarded_means` and `episode_safety`; `passed=false`. H was not evaluated on scored episodes or packed. S1 remains because it passed its own previously fixed gates under the disclosed post-result candidate-specific interpretation. |
 | R2 headline 0.926 cm per object; 1.087 cm pair-weighted | `R2.cross_fitted_mean_cm=0.9257219019644454`; `R2.pair_weighted_mean_cm=1.0874159144755273`. Recomputed as the unweighted and `S.pair_counts`-weighted means of `R2.per_object_cm`. |
-| Box v1 1.008 cm per object; 1.257 cm pair-weighted | `S.baseline_mean_cm=1.0076407576458337`; `S.baseline_pair_mean_cm=1.2566198957481125`. The table uses `S.baseline_per_object_cm`. These are full-precision rescored v1 boxes, consistent with the older four-decimal file at its rounding precision. |
+| Three-seed box baseline 1.008 cm in the abstract; historical reused pair estimate 1.257 cm | `S.baseline_mean_cm=1.0076407576458337`; `S.baseline_pair_mean_cm=1.2566198957481125`. The abstract's comparison uses `S.baseline_per_object_cm`; the packed table row now uses the exact-pair source below. These are full-precision rescored v1 boxes, consistent with the older four-decimal file at its rounding precision. |
 | Cube 2.523 cm per object; 2.772 cm pair-weighted; all ten cube table entries | `outputs/mesh_eval/baseline-cube.json:mean_cd_o_cm=2.523` and `objects[status="scored"].{object,cd_o_cm}`; weighted mean recorded in `outputs/mesh_eval/d1-ctx02/d1-v1-cdo.json:['Cube (floor)'].pair_weighted_mean_cm=2.772`. |
 | Every R2 CF table value | `R2.per_object_cm[object_name]`: beige cup 0.3656637065258667, blue cup 0.4418701070499999, dust pan 1.0612569261637064, sweeper 0.723585214852021, dish rack 2.1147920862043694, pitcher 1.6828523600348537, pot 1.327688027232037, lid 0.6955886791970488, wood 1 0.44443347270991, wood 2 0.39948843967464204. |
-| R2 fit table values; fitted object mean 0.925 cm and pair mean 1.088 cm | `R2.trials[parameter=1.3].objects[].{object,cd_o_cm}`; object mean `R2.in_sample_mean_cm=0.9250628448040409`; pair mean `sum(score*S.pair_counts[name])/26=1.087678420439796`. Fit differs from CF for beige cup (0.3790794332009006) and lid (0.6755823809179679); all other values agree. |
-| Fresh final-mesh fitted score: 0.925 cm in text (raw saved value 0.9251 cm) | `V.mean_cd_o_cm=0.9251`. `V.source` points to `B/objects`. This fresh score records object scores to four decimal places; it is not the cross-fitted adoption score. `outputs/mesh_eval/d1-ctx03/v2-mesh-equivalence.json` records equivalence with the loop's R2/1.3 candidates. |
+| Historical three-seed R2 all-ten fit: object mean 0.925 cm and reused pair mean 1.088 cm | `R2.trials[parameter=1.3].objects[].{object,cd_o_cm}`; object mean `R2.in_sample_mean_cm=0.9250628448040409`; pair mean `sum(score*S.pair_counts[name])/26=1.087678420439796`. Fit differs from CF for beige cup (0.3790794332009006) and lid (0.6755823809179679); all other values agree. |
+| Historical fresh three-seed fitted score: 0.925 cm (raw saved value 0.9251 cm) | `V.mean_cd_o_cm=0.9251`. `V.source` points to `B/objects`. This fresh score records object scores to four decimal places; it is not the cross-fitted adoption score. `outputs/mesh_eval/d1-ctx03/v2-mesh-equivalence.json` records equivalence with the loop's R2/1.3 candidates. |
 | Qualitative panel: final R2 / v1 box CD-O (cm) | `V.objects[object=name].cd_o_cm` / `V1.objects[object=name].cd_o_cm`: `white_pot` = 1.3277 / 1.8182 → **1.328 / 1.818**; `water_pitcher` = 1.6829 / 1.5769 → **1.683 / 1.577**; `plastic_dish_rack` = 2.1148 / 2.1148 → **2.115 / 2.115**. These are the saved final-build scores, averaged over sampling seeds derived from episodes 1/3/5, with no new scoring. The pot improves, pitcher regresses, and rack has the largest final score among all ten `V.objects` entries. The reference scan has no separate candidate score; both numbers label the submitted-mesh row. |
 | R1 0.956 cm; R3 0.990 cm, R3 fails gain gate | `S.ranking[rule="R1 vessel-cylinder"].cross_fitted_mean_cm=0.9564430821692316`; `S.ranking[rule="R3 thin-tool-head"].cross_fitted_mean_cm=0.9902723134347186`, `.gates.gain_gt_0.03_cm=false`, `.adopt=false`. Both R1 and R2 have all gate booleans true; R2 ranks first. |
 | Per-object paired gains and object-level uncertainty | Recomputed directly from the 80 unique rows in `outputs/mesh_eval/rules/ledger.jsonl`, using `rule`, `parameter`, `object`, `cd_o_cm` and the protocol folds. Select the lowest training-fold mean in fixed grid order, then use the opposite fold: A selects 1.3, B selects 1.05. For each object, gain = box minus held-out R2 score. Gains (cm): beige cup `0.23928082287039348`, blue cup `0.22211950083414095`, pot `0.49047122601327375`, pitcher `-0.10599337236949369`, lid `-0.026689620534432468`; the other five are zero. Arithmetic mean `0.08191885568138821`; sample SD (denominator 9) `0.18012167185925354`; SE = SD/sqrt(10) = `0.056959473903269685`; mean/SE = `1.4381954408586235`. These are descriptive object-level summaries of adaptively selected results, not independent assessment or a correction for selection. |
@@ -46,7 +51,7 @@ Anonymous Track 3 abstract with two pages of main text, covering the fixed mesh-
 | Pose Table 2, eight-episode rows: v1 / K1a / oracle static | `P/placement/summary.json:means.v1`, `means.K1a`, `oracle_static`. Displayed `(AUC, SP-SR, RPE cm, MPPE cm)` = **(0.2688, 0, 47.51, 26.66)** / **(0.2688, 0, 36.80, 21.63)** / **(0.5319, 0.625, 15.11, 7.40)**. Oracle full precision: `RPE_cm=15.114438767442412`, `MPPE_cm=7.403291369009795`, `SP_SR=0.625`. These are recorded equal-episode means, not newly scored results. |
 | Pose Table 2, fresh episode-2 rows: v1 / K1a | `P/placement/confirmation.json:episodes["2"].v1` / `.K1a`, also `confirmation.md`. Displayed vectors = **(0.3343, 0, 54.39, 28.29)** / **(0.3343, 0, 21.79, 12.43)**. AUC rounds `0.3342747813411079` to four places. `MP_SR=0` in all seven displayed rows, including the added v2/S1 rows; episode 27 has no measurable merged cluster and no invented score. |
 | Figure 2: v2 rule versus S1 frame-0 slot-1 offset errors (cm), train 0/11/12/18/21/23/26/31 | `P/scale/summary.json:episodes[candidate][str(episode)].frame0.offset_error_cm`, keyed by candidate (`incumbent`, `S1`) and episode value. `incumbent` is the shipped v2 rule: K1a on 0/26 only, v1 on the other six, including 31. In the stated episode order, v2: **12.982646, 18.529993, 61.094409, 48.052814, 74.116841, 14.646197, 10.104506, 39.110273**; S1: **12.982646, 16.438327, 55.094711, 42.403529, 70.757237, 8.281592, 10.104506, 30.051638**. These match `P/scale/summary.md` at its six-decimal precision; the figure plots full JSON precision. Stacked 0/26 are starred; S1 is an exact no-op there. Episode 23 falls below the 9 cm translation reference, which alone does not establish surface-point or trajectory success. The prior all-episode K1a bars are replaced, not relabelled. |
-| Figure 3: D1/D2 pipeline, no new measurements | `make_figures.py:pipeline_panel` draws the documented routes: video → MoGe-2 depth plus calibrated stereo scale → object extents → R2 vessel/handle rule (else box) → D1 meshes; frame-0 placement → static scene with S1 offset scale → kit `evaluate_policy.py` → D2 trajectories. Shape implementation/provenance is in the R2 rows above; pose scale and failed-check fallbacks are in the S1/v3 rows below. Stereo scale affects pose offsets; CD-O removes mesh scale. The diagram summarizes the existing entry and does not claim dynamic manipulation, a shared mesh/policy geometry, or new evaluator results. |
+| Figure 3: D1/D2 pipeline, no new measurements | `make_figures.py:pipeline_panel` draws the documented routes: video → MoGe-2 depth → object extents → R2 vessel/handle rule (else box) → D1 meshes; frame-0 placement → static scene with S1 offset shrinkage → kit `evaluate_policy.py` → D2 trajectories. Shape implementation/provenance is in the R2 rows above; pose scale and failed-check fallbacks are in the S1/v3 rows below. Stereo scale affects pose offsets; CD-O removes mesh scale. The diagram summarizes the existing entry and does not claim dynamic manipulation, a shared mesh/policy geometry, or new evaluator results. |
 | Figure 2 threshold and Table 2 metric definitions (9 cm, 10 cm/0.5 rad, 3 cm/30 degrees, six attached points) | Kit `upstream/v2d_submission_kit/v2d_submission_kit/metric_code/track_3/AUC.py:19–23`, `_add_auc`, `_spider_success`, `_maniptrans_success`, `_relative_position_error_cm`, `_mean_per_point_error_cm`; plain-language definitions in `tracks/track_3/README.md:66–70`. The largest of `np.arange(0.01,0.10,0.01)` metres is 9 cm. This surface-point threshold is a scale reference for initial translation error, **not** a sufficient condition for trajectory success or a new proof of AUC saturation. |
 | Slot 0/1, v1, K1a, K2, oracle static, FlashCHORD and FlashSAC definitions | Slot order: kit `data/track_3_evaluation_objects.json`; pose alignment: `AUC.py:113`, `_warp_to_reference_start`. Placements/calibration/oracle: `P/placement/summary.md` and `docs/chain/pose-placement-protocol.md`. Kit `flash_chord/scripts/evaluate_policy.py:24` and `flash_chord/src/flash_chord/configs/evaluation/flash_sac.yaml:1` identify `flash_chord.training.flash_sac`. The pinned full source `upstream/video_to_data-flashchord-aee95f2/robotic_grounding/flash_chord/src/flash_chord/training/flash_sac/__init__.py:3–10` explicitly calls it a native JAX reinforcement-learning algorithm derived from Holiday Robotics FlashSAC. Its `scripts/train_flash_sac.py:4,41` describes training the reference-tracking policy. The report defines this role without inventing an acronym expansion. |
 | Post-result Amendments 2 and 3, not an unchanged original protocol | `docs/chain/pose-placement-protocol.md`, named Amendments 2/3 (Amendment 3 starts at line 164). Amendment 2 follows the failed eight-episode gates; Amendment 3 follows physical checks and changes the all-scenes requirement to a scene-wise filter. The main text explicitly retains both amendments, the single measurable confirmation, train 26 as selection data, and episode 30 retaining v1. |
@@ -252,7 +257,7 @@ edits or mutating git commands were performed. Files written by this follow-up a
 in `.runtime/tmp/ctx05-v3-files-changed.txt`; backups are in `.runtime/tmp/ctx05-v3-backup/`.
 
 
-Context 06 presentation revision (2026-11-02; current build):
+Context 06 presentation revision (2026-11-02; before the shrink/pair follow-up below):
 
 The title is **Video-Measured Meshes and Static Poses**. Figure 2 now compares the
 shipped v2 rule (`incumbent`) with S1; the unused old v1/K1a figure reader is replaced.
@@ -324,6 +329,76 @@ installs, uploads, dependency changes, references edits or mutating git commands
 Every written file (including scoped scratch artifacts and backups) is listed in
 `.runtime/tmp/ctx06/d3/files-changed.txt`.
 
-Current `d2-slot1-offset.pdf` SHA-256: `707c689a1bc1fc47677c4db8efc33d9514b75e245da9381a659e61911fc6bbdf`.
+Context-06 `d2-slot1-offset.pdf` SHA-256 (unchanged by the follow-up): `707c689a1bc1fc47677c4db8efc33d9514b75e245da9381a659e61911fc6bbdf`.
 
-Current `pipeline.pdf` SHA-256: `e01940d105b6af91e502c6469bd26f760c96ba175041e995a0d722084102f055`.
+Pre-follow-up `pipeline.pdf` SHA-256: `e01940d105b6af91e502c6469bd26f760c96ba175041e995a0d722084102f055`.
+
+
+Shrink-control and exact-pair follow-up (2026-11-02; current build):
+
+The new evidence is read from saved JSON by candidate, episode and object value;
+no scorer, model, simulator or research loop was executed for this report revision.
+The shrink protocol was fixed in **54f6872** and amended before scoring in **5a3b32a**
+(`docs/chain/pose-shrink-protocol.md`). The abstract and Figure 3 now describe S1 as
+stereo-derived **shrinkage**, without claiming that stereo corrected metric scale.
+The three-sentence control paragraph reports G, the overlapping C0 bound, and H's
+failure of both registered gates. The shuffled-scale/length-rank/oracle details above
+support that interpretation but stay outside main text to preserve readability.
+
+Table 1 replaces both columns of the packed v1/v2 rows with exact-pair results,
+avoiding a row that mixes different seed estimators. The bold cross-fitted row stays
+the headline; its pair mean, and the cube's, are explicitly reused-object estimates.
+The qualitative panel is unchanged: its caption now identifies its three-seed fitted
+labels so that they cannot be mistaken for exact packed per-pair scores. Packed versus cross-fitted differences include both per-pair seeds and the
+all-ten versus fold-selected thresholds; they cannot be attributed to seeds alone. The previous
+0.925 cm fitted score remains in this README as a distinct, historical three-seed
+measurement; the table now reports the packed 0.9257 cm object mean to four decimals.
+
+Table 2 focuses on I/v2, S1, G and C0. Historical all-train v1/K1a, oracle-static and
+fresh-episode-2 rows were removed from main text; their full values/provenance above
+remain. Confirmation on only episode 2, train episode 26's selection role, both
+post-result amendments, per-scene physical filtering, and the original failed gates
+are still disclosed. Numerical method detail was cut rather than shortening sentences
+into fragments. The unchanged 20-episode/9,120-row package count, prior preflight
+status, and 512-step one-world training budget remain in the provenance above
+rather than main text. The unvalidated stereo estimate, train-only selection, post-result
+S1 adoption and global-gate interpretation, residual ratio/direction errors, length
+oracle, missing evaluation calibration, pseudo-label/public-scan limits, episode-5
+failure/no retry, and static-rollout limitation all remain.
+
+Figure 3 is now 3.18 × 1.40 inches at the same **10 pt** font. Its shared video/depth
+step occupies one line; the pose scene says **S1 offset shrink**. Figure 2 and its PDF
+are unchanged. Template body/caption/table fonts and margins are unchanged.
+
+Build and checks use:
+
+```bash
+PYTHONPYCACHEPREFIX="$PWD/.runtime/tmp/ctx06/d3/followup/pycache" \
+  python3 -m py_compile docs/report/track3/figures/make_figures.py
+PYTHONDONTWRITEBYTECODE=1 MPLCONFIGDIR="$PWD/.runtime/tmp/ctx06/d3/matplotlib" \
+  .runtime/linux-cuda/bin/python -c 'import docs.report.track3.figures.make_figures'
+PYTHONDONTWRITEBYTECODE=1 MPLCONFIGDIR="$PWD/.runtime/tmp/ctx06/d3/matplotlib" \
+  .runtime/linux-cuda/bin/python docs/report/track3/figures/make_figures.py \
+  --pipeline --preview .runtime/tmp/ctx06/d3/followup/pipeline-preview.png
+bash scripts/report/build_pdf.sh docs/report/track3/main.tex
+LD_LIBRARY_PATH=.runtime/tools/poppler/root/usr/lib/x86_64-linux-gnu \
+  .runtime/tools/poppler/root/usr/bin/pdftoppm -r 110 -png \
+  docs/report/track3/main.pdf .runtime/tmp/ctx06/d3/followup/page
+PYTHONDONTWRITEBYTECODE=1 MPLCONFIGDIR="$PWD/.runtime/tmp/ctx06/d3/matplotlib" \
+  .runtime/linux-cuda/bin/python .runtime/tmp/ctx06/d3/followup/audit.py
+```
+
+The final PDF has **three pages: two main-text pages and one references-only page**.
+The end-of-text and all-figure/table page markers are checked in `main.log`; all three
+final 110 dpi PNGs were inspected, including the page-2 end and page-3 References.
+Images: `.runtime/tmp/ctx06/d3/followup/page-1.png`, `page-2.png`, `page-3.png`.
+No clipped labels, overlapping content, overfull boxes or undefined references remain.
+The known recoverable microtype tracking error and underfull/font warnings persist.
+
+Saved-value/geometry audit: `.runtime/tmp/ctx06/d3/followup/audit.json`;
+build output: `.runtime/tmp/ctx06/d3/followup/build.txt`;
+written-file inventory: `.runtime/tmp/ctx06/d3/followup/files-changed.txt`.
+No test suite, new experiment, install, upload, submission edit or mutating git command
+was run. The shipped D2 v3 entry is unchanged.
+
+Current `pipeline.pdf` SHA-256: `bc9600fc2616af3d983a7a0539db14196cd391ca9afb9337d40fce0d0a24f738`.
