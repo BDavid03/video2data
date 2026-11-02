@@ -203,14 +203,14 @@
     "track3/features/mesh_extents/__init__.py": "5824b435cc4e87cb6e6d110bbe4d40bad817e6f5b337bb7325242b9b085b196d",
     "track3/features/mesh_extents/__main__.py": "50c9df948a4888b9eff0ecf84df5243d5ac8936344d7d7c2421c92439362f169",
     "track3/features/mesh_extents/_geometry.py": "70636f96cdf2371a59f30746c6188e2cfc68144c90127e5b3dac97c5bb4c9c1b",
-    "track3/features/mesh_extents/_proxy.py": "447ae6f001ef84292e31272556af55e83207ad87849ba642ac33ae689c23a12e",
+    "track3/features/mesh_extents/_proxy.py": "fc27a529e8482bb60fb87e87f81cad6f580b43aa41e67ac784b447143287b21b",
     "track3/features/mesh_extents/_render.py": "37814b15cc77b197bfef9b9fa6e0ed7ff37fd180b25b18f40eb661f38f71d654",
     "track3/features/mesh_extents/_rule_scores.py": "59333b6b0d843b4c1b3f0eb366313f0f4a417a2dd8d5aab42dd3e81322c11313",
     "track3/features/mesh_extents/_shapes.py": "2040626a32396a54898b3b35eea5829af8a40db62a1ab9f1d44fdc89978fd0d5",
     "track3/features/mesh_extents/adopt.py": "b593adbdd5f2d7b635d2f1bd4a9fb8c2d30c8756ef0da30d6373725c65eb66db",
     "track3/features/mesh_extents/build.py": "b7b30184c37eab3a1a496b598af0f334be927ba2e39e2b84cc1ce51e89908187",
     "track3/features/mesh_extents/measure.py": "00d254e2f699882c035a98650695cceeb35a597bb17e5aec672df503dc7418cf",
-    "track3/features/mesh_extents/proxy.py": "60d89116e249e4735638d350b68dcede6e698ac8181546e462ba15b713ea8f80",
+    "track3/features/mesh_extents/proxy.py": "0fc2d6ee5664b150052d8739125a26b74068da1a8315e91fb36c679a60995ac2",
     "track3/features/mesh_extents/rules.py": "c2ebf7d77cd0b21bd52b3b5ad60976ed8708f84c6967046f76f59f00d3750cad",
     "track3/gpu.py": "d7b7353e6e72050b1033a5a8d8ecda73f0a0e27436f0a3ecc9d5fd044c4c15d1",
     "track3/paths.py": "5f7cf257b1e5f207e81ce781034dfe192da01a40889917bf77d5053925ee5b54",
@@ -3310,7 +3310,13 @@
     }
   ],
   "post_result_engineering": {
-    "baseline_commit": "5c4d41f",
-    "baseline_run": "outputs/mesh_extents/spoon-proxy/runs/20261102T105102.658719Z-8f4821cf/run.json"
+    "baseline_run": {
+      "path": "outputs/mesh_extents/spoon-proxy/runs/20261102T105102.658719Z-8f4821cf/run.json",
+      "sha256": "15067cd716021809e2d719aff57d40a092103163186335f318b1d9053e6c9694"
+    },
+    "baseline_request": {
+      "path": "outputs/mesh_extents/spoon-proxy/critic/baseline-request.json",
+      "sha256": "7ac7c60ba2c49fdae70320823eade4cab1642d8e8180bb37bbad9e08cd9f9f36"
+    }
   }
 }

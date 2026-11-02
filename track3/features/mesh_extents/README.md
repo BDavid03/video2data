@@ -1,624 +1,241 @@
 # mesh_extents
 
-Video-measured object proportions, and the closed primitive (ellipsoid or box) built from them, for
-the Track 3 CD-O mesh file (D1).
-
-## Spoon proxy diagnostic (Amendment 3, reported only)
-
-**Result: NOT VALIDATED.** All 149 candidate/view trials completed on CPU. The proxy passes the
-two aggregate correlation gates, but only five of eight qualifying objects pass and the sweeper
-fails. The wooden blocks have two variants each and do not enter the qualifying Spearman count.
-
-| Descriptive gate | Recorded value | Requirement | Result |
-| --- | ---: | ---: | --- |
-| Equal-object mean tau-b | 0.5442627407313806 | >=0.4 | pass |
-| Qualifying median rho | 0.6546496828075954 | >=0.6 | pass |
-| Qualifying objects with rho >=0.6 | 5/8 | >=6/8 | fail |
-| Dust pan rho | 0.6 | >=0.6 | pass |
-| Sweeper rho | -0.08571428571428573 | >=0.6 | fail |
-| Correlations defined / inputs complete | all / all | all / all | pass |
-
-| Object | Candidates | Rho | Tau-b | IoU ties |
-| --- | ---: | ---: | ---: | ---: |
-| beige_cup | 7 | 0.709299366 | 0.619779787 | 3 |
-| blue_cup | 6 | 0.845154255 | 0.774596669 | 3 |
-| mini_dust_pan | 6 | 0.600000000 | 0.466666667 | 0 |
-| mini_sweeper | 6 | -0.085714286 | -0.200000000 | 0 |
-| plastic_dish_rack | 4 | 1.000000000 | 1.000000000 | 0 |
-| water_pitcher | 7 | -0.059108280 | 0.056343617 | 3 |
-| white_pot | 8 | 0.862488692 | 0.725240668 | 3 |
-| white_pot_lid | 4 | -0.200000000 | 0.000000000 | 0 |
-| wooden_piece_1 | 2 | 1.000000000 | 1.000000000 | 0 |
-| wooden_piece_2 | 2 | 1.000000000 | 1.000000000 | 0 |
-
-IoU ties count variants beyond the number of distinct values; recorded CD-O values have no ties.
-The report-only R8-versus-box comparison favours R8 for both tools: dust pan **+0.1427749573 IoU**,
-sweeper **+0.1864114403 IoU**. These comparisons add no gate.
-
-| Spoon view (evaluation, frame 0) | v3 box IoU | v4 bowl IoU | v4 minus v3 |
-| --- | ---: | ---: | ---: |
-| 5 | 0.3648516465601565 | 0.7244720496894410 | 0.3596204031292845 |
-| 15 | 0.5559074635086753 | 0.7024841809233654 | 0.14657671741469014 |
-| 16 | 0.5418221287565294 | 0.7248242164223573 | 0.18300208766582793 |
-| Equal-view mean difference | | | **0.22973306940326751** |
-
-**Proxy not validated for spoon CD-O inference; proxy says nothing about spoon CD-O; v4 unchanged.**
-The spoon values describe silhouette agreement on reused construction views and establish no
-CD-O gain or regression. Both yaws, projected/mask areas, placements and overlay paths remain in
-`outputs/mesh_extents/spoon-proxy/summary.json`; the ledger retains every identity's trials.
-
-Run or resume the frozen diagnostic:
-
-```bash
-PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/linux-cuda/bin/python -B -m track3.features.mesh_extents proxy --request track3/features/mesh_extents/proxy-spoon.json
-```
-
-### Post-result engineering fixes
-
-After the first result, missing frozen inputs were made to produce a reasoned NOT VALIDATED
-report; unavailable candidate means, tool comparisons and spoon differences are null with a
-reason. Hash mismatches and incorrect score metadata remain admission errors. E's recorded
-path/status/seeds must match its frozen build; its PLY hash is checked against that build's
-`objects.json` (the legacy E score file contains no SHA itself). Any supplied score SHA is also
-checked. A/B/C require seeds 1/3/5. Duplicate object/SHA scores merge aliases only when equal.
-
-The shared pure `table_component` helper now serves measurement and proxy preparation; all
-candidate/spoon averaging lives in `_proxy.py`. Old/new geometry outputs are exactly equal on
-**92 recorded frames / 18 measure runs**, including labels, clusters, planes, scene arrays and
-30 assigned first-frame object extents. The recomputation matches **149/149 original IoUs**,
-both yaws, areas, placements, PNG bytes, every rho/tau-b/gate and all spoon differences exactly.
-**The result is unchanged.** Original trial/run/cache artifacts and the original ledger prefix
-are retained; engineering reruns append a new identity to the same ledger.
-The recomputation took **6.844 recorded wall seconds**; its second invocation took **1.568
-seconds** and created **zero new trials or ledger rows**. The ledger now contains 149 original
-and 149 engineering rows; all 602 captured historical artifacts remain byte-identical.
-
-The refrozen request explicitly records post-result engineering against commit `5c4d41f` and
-its completed first run. This permits the authorized uncommitted engineering rerun while
-requiring identical inputs, candidate/view definitions, gates, thresholds and package versions;
-source changes are limited to `_proxy.py`, `proxy.py` and `_geometry.py`. Normal pre-result
-requests retain the commit guard. Evidence scripts are under
-`.runtime/tmp/spoon-proxy-engineering/`; durable comparison evidence is
-`outputs/mesh_extents/spoon-proxy/engineering/result-comparison.json`.
-
-### Frozen implementation and phase-1 preparation
-
-`proxy` compares frozen mesh silhouettes with above-table depth-cluster masks from each assigned
-measure run's first frame: frame 0 except the lid at frame 110. This rule was fixed after the
-phase-1 inventory and before any candidate projection.
-It uses cached camera-a depth, local table-plane refitting, in-plane PCA, base-on-plane placement,
-one uniform long-extent scale and the better of yaw 0/pi. Every view records both IoUs, projected
-areas, target area and placement; candidate rankings use equal-view means. `_proxy.py` contains
-array-only computation; `proxy.py` owns admission, persistence and the resumable queue.
-`measure.py` is unchanged; `_geometry.py` exposes the shared pure table-component selection.
-The existing `_local_plane` and `camera_points` helpers are reused by pure proxy preparation.
-Cached NPZ loading is inline because `measure.py` exposes no loading helper.
-
-The frozen request is `proxy-spoon.json`: 52 distinct scanned-object candidates across ten
-objects, 143 candidate-view trials across 26 scanned views, plus v3 box/v4 bowl on three spoon
-views (six trials). The lid uses its recorded frame-110 labels and matching cached depth.
-The handler checks every mesh's x/y/z extents before projection: positive finite extents and
-x >= y*(1-1e-6), with x the long footprint axis, y the short footprint axis and z up.
-The R8 sweeper's longitudinal head/grip axis is z; it still follows this footprint convention.
-The frozen request records all 54 meshes' extents; constructors are unchanged.
-Existing primitive-era spoon box/ellipsoid artifacts are recorded as historical references,
-not additional scored trials. The box is byte-identical to v3. The v4 reference is the packed
-production build `20261102T051416.149421Z-f377e0a1`.
-
-`runtime.json` sets `proxy_authorized: true` by default. The normal pre-result operation refuses
-to compute scores until the request, protocol and frozen sources match HEAD. Input hashes and
-package versions must match, and episodes 41/43/44 are refused. Existing CD-O scalars are read
-from frozen ledgers; no scorer or scan is opened. Amendment 3 defines descriptive gates and
-report-only R8-versus-box comparisons on the scanned tools. The original adoption clause remains
-in force; this operation changes no submission and estimates no spoon CD-O gain.
-
-Phase 1, permitted before the commit, reconstructs target masks/planes/PCA only:
-
-```bash
-PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/linux-cuda/bin/python -B -m track3.features.mesh_extents proxy --request track3/features/mesh_extents/proxy-spoon.json --dry-run
-```
-
-Dry results live in `outputs/mesh_extents/spoon-proxy-dry/summary.{json,md}` and target-only PNGs
-under `overlays/`. No candidate is loaded for projection in dry mode, no IoU or correlation is
-computed, and the dry files are never read by the scoring summary. A separate synthetic unit-cube
-render is only a projection check and is also excluded from summary inputs.
-
-Phase 2, only after the lead commits the amendment/request/code:
-
-```bash
-PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/linux-cuda/bin/python -B -m track3.features.mesh_extents proxy --request track3/features/mesh_extents/proxy-spoon.json
-```
-
-This resumes `outputs/mesh_extents/spoon-proxy/ledger.jsonl` by frozen request/candidate/view
-identity, keeps completed trial records and overlays, and writes `summary.json` / `summary.md`.
-At most 149 trials and 7200 seconds are allowed per invocation. A missing input or undefined
-required correlation means not validated; a failed concordance gate says nothing about spoon
-CD-O. Silhouette blindness to cavities, monocular depth error, small panels and reuse of the
-spoon's construction views limit interpretation even if descriptive gates pass.
-
-## Latest result (2026-11-02): adopted R9, packed D1 v4
-
-**R9 rack-and-tools passes every development gate and the stricter exact packed-v3 veto.** R8 independently passes, satisfying R9's spoon-transfer safeguard. The queue, video attributes and constructors remain identical to pre-score commit `bc601cf`. No retuning or runner-up substitution occurred.
-
-| Rule | Fixed-rule mean (cm; all ten objects) | Pair mean (cm) | Worst regression (cm) | Gain / object / pair gates | Eligible |
-| --- | ---: | ---: | ---: | --- | --- |
-| R7 compartment-rack | 0.7200894377219091 | 0.7147165917344509 | 0.0000000000000000 | pass / pass / pass | yes |
-| R8 thin-tool-profiles | 0.7057625707817922 | 0.7649184628381274 | 0.0000000000000000 | pass / pass / pass | yes |
-| R9 rack-and-tools | 0.6527030378651946 | 0.6628808995369784 | 0.0000000000000000 | pass / pass / pass | yes |
-
-All three rules have no fitted parameter; each development estimate uses all ten objects. The legacy JSON key `cross_fitted_mean_cm` is retained for compatibility. R9's extra independent-R8 eligibility gate also passes. Development incumbent: **0.7731489706385066 cm/object / 0.8167541550356001 cm/pair**; gain must exceed 0.03 cm, worst object regression must be <=0.15 cm, and pair mean cannot worsen.
-
-| Exact packed file | Equal-object mean (cm) | Pair mean (cm) |
-| --- | ---: | ---: |
-| v3 | 0.7710770332786878 | 0.8114951342417491 |
-| v4 / R9 veto geometry | 0.6533839589873099 | 0.6629214779189021 |
-
-Packed-veto gates all pass: object mean <0.74107703 cm, pair mean <=0.81149513 cm, and worst object regression **0.0 cm** <=0.15 cm. Each pair uses its own kit seed; 26/36 pairs have public references. The ten spoon pairs remain unscored. The final v4 geometry and row order are identical to the veto pack, so these exact scores transfer by identity.
-
-First new score completed **2026-11-02T05:06:45.221558+00:00**, after the pre-score commit; its trial began 2026-11-02T05:06:38.841476+00:00. The development loop wrote 30 trials, 13 distinct new scores and 17 score reuses. Seed SDs and per-object tables are in the full report; R9 mean object seed SD **0.0053292982260532825 cm**, maximum **0.02136714096735155 cm**.
-
-Packed file: `submissions/20261102T0516Z-d1-v4/track3_meshes_v4.parquet`; **294,912 rows** in official sample order, all IDs unique. SHA-256: `6663a1c7e0491c0cfa53b27fe36d7904455351dad548181e4e59a2263215af50`. Placeholder URL names pre-score commit `bc601cf474a8ccff3e77a7c10dd0025158b0c388`. Kit preflight `--skip-kaggle`: **Ready to submit** (warnings: no trajectory results supplied, Kaggle checks skipped). Manifest verification: **6/6 hashes match**.
-
-Fresh v3 reproduction matches shipped v3's **47/47 PLY files**, including 36 pair meshes, and all Parquet geometry rows. Fresh v4 matches the veto build **47/47** and all packed geometry rows; the final file is also byte-identical to reproduced v4. Existing v3 pack bytes remain unchanged.
-
-```bash
-bash scripts/reproduce/d1_meshes.sh https://github.com/OWNER-PLACEHOLDER-not-final/video2data/commit/bc601cf474a8ccff3e77a7c10dd0025158b0c388 --version v4 --run
-bash scripts/reproduce/verify.sh submissions/20261102T0516Z-d1-v4/manifest.json
-```
-
-Evidence: `outputs/mesh_extents/round3-job-b/job-b.md` (full tables and command ledger), `outputs/mesh_extents/rules-round3/summary.md` (development), `outputs/mesh_eval/pairs/mesh-round3-veto/summary.md` (exact veto), and `outputs/mesh_extents/round3-job-b/reproduction-checks.json` (identity checks). Reproduction archives are under `outputs/mesh_extents/round3-job-b/reproduction-v3/` and `reproduction-v4/`.
-
-These are development results from a third adaptive round on the same ten scans, with prior scan-render exposure. Cross-fitting covers declared parameters only; it does not remove family-selection optimism. This is not an independent performance estimate. No host/spoon score is claimed, no upload or Kaggle rules acceptance occurred.
-
-## Adoption operation and engineering verification
-
-`adopt.py` owns request parsing, runtime admission, committed geometry/protocol checks, the existing rule
-loop, production build admission, official packing and the matched packed-pair handler. Its private
-`_packed_veto` predicate in `_rule_scores.py` is pure and reads every threshold from the queue.
-`adopt-round3.json` requests reuse of the recorded scores, production build, pack and pair request.
-Reused production meshes are checked against the current frozen constructors; all 36 packed geometry
-blocks are checked through the kit budgeter against those meshes. Completed pair records stay untouched.
-
-```bash
-PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/kit-env/bin/python -B -m track3.features.mesh_extents adopt --request track3/features/mesh_extents/adopt-round3.json
-```
-
-The round-3 rerun resumed **30/30** development trials with **0 new scores** and reused the original
-build, pack and all **52** packed-pair trials. It returns the same R9 adoption and exact means:
-**0.6629214779189021 cm/pair / 0.6533839589873099 cm/object**. An isolated round-2 rerun reused
-**70** scores with **0 new scores**. Every numerical aggregate, per-object result, seed spread,
-parameter choice and gate matches the pre-refactor summaries exactly; only presentation, provenance
-and cache counters differ. The old/new selection functions also agree on all recorded real trials.
-
-Since the queue files are frozen, round-specific report prose is centralized in `rules.ROUND_TEXT`.
-`frozen_inputs_for` reads the video and incumbent inputs; dry results have one
-`changed_from_incumbent` field. Rendering lives in `_render.py`, whose hash invalidates dry render
-caches. Parameter-free table rows say **fixed (no parameter)** and **fixed-rule, all ten objects**;
-parameterized rows identify cross-fitting. Gate columns name the gain, object-regression, pair-mean
-and, when applicable, independent-R8 spoon safeguard separately.
-
-Current evidence: `outputs/mesh_extents/maintenance/20261102T055350Z/verification.json`, its
-`round2/summary.md`, and `outputs/mesh_extents/adopt-round3/development/summary.md`.
-Changed-pair host/direct checks on dust pan **episode 19 slot 1** and rack **episode 14 slot 1**
-have **0.0 cm** error for both v3 and v4; see
-`outputs/mesh_eval/equivalence/20261102T055518.792315Z-eb3c237a/summary.md`.
-The durable v4 reproduction record is
-`outputs/mesh_extents/reproduction/20261102T052748Z/v4/manifest.json`; the shipped v4 manifest
-still verifies **6/6 hashes**. No pinned file, geometry, historical run record or packed bytes changed.
-
-## Round 2 result (2026-11-02): R6/0.10 passed the exact veto
-
-**Adopt R6 peg-rack with wall/radius fraction 0.10.** The frozen round-2 loop selects 0.10 on
-both folds and on all ten scanned objects. It passes every development gate and the exact packed
-v2 veto. The amendment, attributes, grids and constructors remain identical to commit `c7e2b56`.
-No retuning followed the veto. These are development estimates on ten reused public scans;
-choosing among three nested rules is optimistic. The spoon has no public scan and is unchanged.
-
-| Rule | Chosen on A → scored B | Chosen on B → scored A | Cross-fitted mean (cm) | In-sample mean (cm) | Pair-weighted mean (cm) | Worst regression (cm) | Gain / object / pair gates | Development eligible (veto pending) |
-| --- | --- | --- | ---: | ---: | ---: | ---: | --- | --- |
-| R6 peg-rack | 0.1 | 0.1 | 0.77315 | 0.77315 | 0.81675 | +0.00000 | pass / pass / pass | yes |
-| R5 hollow-vessels | 0.1 | 0.1 | 0.84555 | 0.84555 | 0.95600 | +0.00000 | pass / pass / pass | yes |
-| R4 rim-handle | — | None | 0.92061 | 0.92061 | 1.07740 | +0.00000 | fail / pass / pass | no |
-
-R4 has no free parameter (`—` / `None` in the unedited loop table). Seed SD is the population
-standard deviation over kit episode seeds 1/3/5 for each held-out object; this is not a confidence
-interval for independent performance.
-
-| Rule | Mean object seed SD (cm) | Maximum object seed SD (cm) |
-| --- | ---: | ---: |
-| R6 peg-rack | 0.006887335425561346 | 0.02136714096735155 |
-| R5 hollow-vessels | 0.008641243641626373 | 0.03585776336634344 |
-| R4 rim-handle | 0.009542621334146224 | 0.03585776336634344 |
-
-| Packed file | Pair-weighted CD-O (cm) | Equal-object CD-O (cm) |
-| --- | ---: | ---: |
-| v2 | 1.085023637656605 | 0.9257250385709256 |
-| v3 | 0.8114951342417491 | 0.7710770332786878 |
-
-Exact evaluation covers 26/36 pairs: **19 improve, 7 are unchanged, 0 worsen**. Each pair uses its
-own kit episode/slot seed through the unmodified `mesh_eval.pairs` handler and scorer. The ten
-spoon pairs remain unscored. Both veto means are better than packed v2; entry-point/direct
-episode-1 equivalence error is 0.0 cm.
-
-The scoring loop produced 70 parameter/object records, 23 unique scores and 47 identical-mesh
-score reuses. A repeat resumed all 70 records with zero new scores or ledger rows. Ranked table,
-per-object figure, seed spreads and full-precision independent gate recomputation live under
-`outputs/mesh_eval/rules-round2/`; exact pair results are in
-`outputs/mesh_eval/pairs/shipped-v3/` (the shipped Parquet; every pair equals the original veto).
-
-```bash
-PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 CUDA_VISIBLE_DEVICES='' .runtime/kit-env/bin/python -B -m track3.features.mesh_extents.rules --queue track3/features/mesh_extents/rules-round2.json
-PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 .runtime/linux-cuda/bin/python -B -m track3.features.mesh_extents build --request scripts/track3/requests/d1/build-v3.json
-bash scripts/reproduce/d1_meshes.sh --version v3
-```
-
-The committed handler keeps runtime caches and temporary files under its output directory.
-Use `--output <directory>` with a cache copy for an isolated rerun; the frozen queue stays unchanged.
-The reproduction command prints a CPU plan; add an explicit commit URL and `--run` to execute.
-Default v2 reproduction has a byte-identical plan and all 47 fresh v2 mesh hashes remain identical.
-V3 uses the latest `submissions/*-d1-v3/manifest.json`; `--manifest <path>` selects an explicit
-recorded manifest. Absolute paths in older manifests are rebased before inputs are read.
-
-V3 build: `outputs/mesh_extents/build/20261102T030138.153550Z-118eeb04/run.json`.
-All 11 objects and 36 pair copies were built. All ten scored meshes match selected loop candidates
-byte-for-byte; the spoon matches v2. Local placeholder pack:
-`.runtime/tmp/mesh-round2/pack/track3_meshes_v3.parquet`, **294,912 rows**, SHA-256
-`2ea5bb2da753dc4c324c1a327ed49b0f29348e9948fea485461720be8e8bf7b6`. Kit preflight `--track track_3 --skip-kaggle`: **Ready to submit**; warnings
-are no policy results and skipped Kaggle checks. No `submissions/` files were written; final
-packing and release remain the lead's. See `outputs/mesh_eval/rules-round2/job-b.md` for commands
-and full-precision gate numbers.
-
-## Portability and critic checks (2026-11-02)
-
-D1 reproduction reads only submitted v2/v3 manifests by default and rebases legacy absolute
-build/command paths before reading inputs. The shipped v3 manifest and production-build index
-now use repository-relative paths. Its reproduction evidence is archived under
-`outputs/mesh_eval/d1-v3-reproduction/`; the original temporary directory was retained.
-The shipped Parquet is unchanged: SHA-256
-`a61f02b12078a05c940037034e37ec4201e3e919a55e4bea9e0058dfa2f45f40`.
-
-`BuildRequest.rule_queue` supplies the rule queue path; its default preserves existing requests.
-The queue is admitted once against its committed SHA-256, rather than duplicated rule tuples.
-`_rule_scores.pool_extents` contains pure pooling; the handler reads records and writes meshes.
-The round-1 historical baseline is a `baseline_check` queue input. Runtime caches, temporary
-files and summary backups stay under the chosen output directory.
-
-Fresh v2 and v3 builds each match **47/47 PLY files**; pure pooling matches all 11 objects exactly.
-Both rule queues were rerun into copies under `outputs/mesh_eval/mesh-fix/`: every scientific
-summary value is identical, with **0 new scores**, 80 cached score reuses for round 1 and 70 for
-round 2. Historical summaries were not overwritten. Current-checkout v2/v3 plans and relocated
-v2/v3/legacy-absolute-v3 plans pass. The shipped-file pair run scores 26 pairs for each file and
-matches the earlier veto **exactly for all 52 values**: v3 0.8114951342417491 pair-weighted /
-0.7710770332786878 per object, v2 1.085023637656605 / 0.9257250385709256 cm.
-Evidence: `outputs/mesh_eval/mesh-fix/`, `outputs/mesh_eval/pairs/shipped-v3/`.
-
-## Round 2 geometry preparation (Job A)
-
-Job A appends Amendment 1 to `docs/chain/mesh-selection-protocol.md`, freezes `attributes.json`
-and `rules-round2.json`, and adds R4 rim handles, R5 vessel shells and R6 rack pegs. No new CD-O
-was computed and no scan file was opened, loaded or rendered. `build.py` and the round-1 queue
-were unchanged in Job A. The lead committed the amendment and attributes as `c7e2b56` before Job B scoring.
-
-```bash
-PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/linux-cuda/bin/python -B -m track3.features.mesh_extents.rules --queue track3/features/mesh_extents/rules-round2.json --dry-build
-```
-
-The dry loop reads all 11 video-measured extents from the recorded v2 build, constructs every
-candidate, checks every connected component for watertightness and positive volume, checks both
-budgets (<4096) and extents (relative tolerance 1e-6), and writes content-addressed PLY files and
-candidate-only three-view PNGs. No scorer is imported. Identities include code, protocol, attributes,
-incumbent ledger/scores, queue and extents. Completed trials resume; records append to
-`outputs/mesh_eval/rules-round2/dry/ledger.jsonl`, with the active 77 results in
-`dry/summary.json` and `dry/summary.md`. Earlier code revisions remain in the append-only ledger.
-Queue budgets are 70 scored object trials (job B), 77 dry builds, and 7200 seconds.
-
-| Object | Frozen attributes | Frame evidence (ego_cam_a) | Confidence |
-| --- | --- | --- | --- |
-| beige_cup | handle="none", open_top=true | public 11, frame 0 ([overlay](../../../outputs/mesh_extents/public/episode_000011/20261101T103701.928174Z-f63cc238/overlay_000000.png)); public 11, frame 0 ([overlay](../../../outputs/mesh_extents/public/episode_000011/20261101T103701.928174Z-f63cc238/overlay_000000.png)) | high |
-| blue_cup | handle="none", open_top=true | public 11, frame 0 ([overlay](../../../outputs/mesh_extents/public/episode_000011/20261101T103701.928174Z-f63cc238/overlay_000000.png)); public 11, frame 0 ([overlay](../../../outputs/mesh_extents/public/episode_000011/20261101T103701.928174Z-f63cc238/overlay_000000.png)) | high |
-| white_pot | handle="rim_flat", open_top=true | evaluation 5, frame 0 ([overlay](../../../outputs/mesh_extents/evaluation/episode_000005/20261101T103721.877826Z-55c95204/overlay_000000.png)); public 42, frame 0 ([overlay](../../../outputs/mesh_extents/public/episode_000042/20261101T103715.090424Z-d410dfac/overlay_000000.png)); evaluation 1, frame 110 ([overlay](../../../outputs/mesh_extents/evaluation/episode_000001/20261101T103716.335071Z-0993ba31/overlay_000110.png)) | high |
-| water_pitcher | handle="loop", open_top=true | public 21, frame 0 ([overlay](../../../outputs/mesh_extents/public/episode_000021/20261101T103707.151959Z-05bf6bac/overlay_000000.png)); public 21, frame 0 ([overlay](../../../outputs/mesh_extents/public/episode_000021/20261101T103707.151959Z-05bf6bac/overlay_000000.png)) | high |
-| white_pot_lid | handle="none", open_top=false | evaluation 1, frame 110 ([overlay](../../../outputs/mesh_extents/evaluation/episode_000001/20261101T103716.335071Z-0993ba31/overlay_000110.png)) | high |
-| plastic_dish_rack | pegs={"rows": 2, "count_per_row": 6} | public 12, frame 0 ([overlay](../../../outputs/mesh_extents/public/episode_000012/20261101T103703.949004Z-546c56c2/overlay_000000.png)); evaluation 15, frame 0 ([overlay](../../../outputs/mesh_extents/evaluation/episode_000015/20261101T103736.789367Z-86a79be7/overlay_000000.png)); evaluation 16, frame 0 ([overlay](../../../outputs/mesh_extents/evaluation/episode_000016/20261101T103740.185103Z-0f0a559d/overlay_000000.png)) | high |
-| wooden_piece_1 | unchanged R2 | public 23, frame 0 ([overlay](../../../outputs/mesh_extents/public/episode_000023/20261101T103708.924989Z-52ed3be1/overlay_000000.png)) | high |
-| wooden_piece_2 | unchanged R2 | public 23, frame 0 ([overlay](../../../outputs/mesh_extents/public/episode_000023/20261101T103708.924989Z-52ed3be1/overlay_000000.png)) | high |
-| mini_dust_pan | unchanged R2 | public 18, frame 0 ([overlay](../../../outputs/mesh_extents/public/episode_000018/20261101T103706.195611Z-8e4c4ca5/overlay_000000.png)) | high |
-| mini_sweeper | unchanged R2 | public 18, frame 0 ([overlay](../../../outputs/mesh_extents/public/episode_000018/20261101T103706.195611Z-8e4c4ca5/overlay_000000.png)) | high |
-| wooden_spoon | unchanged R2 | evaluation 5, frame 0 ([overlay](../../../outputs/mesh_extents/evaluation/episode_000005/20261101T103721.877826Z-55c95204/overlay_000000.png)) | high |
-
-The observations and exact overlay SHA-256 values live beside each attribute in `attributes.json`.
-The pot is visibly open in evaluation 5 and public 42 opening frames; usual lid-on frequency is
-not established. The lid is solid. Both cups remain without handles because aspect is below 1.3.
-The pitcher handle is vertical and retains its R2 bar. Public 12 partially occludes one rack tine;
-unobstructed evaluation 15 and 16 each show two rows of six. Board identity remains arbitrary.
-Wall/floor thickness, undersides and internal construction were not measured from video. The
-rack rule deliberately omits its visible utensil compartment and rim. Unknown or uncertain
-required attributes preserve the entire R2 shape, rather than applying part of a nested rule.
-
-Geometry conventions are frozen in the amendment: 64-section shells, wall/floor thickness equal
-fraction x short-body radius with grid `[0.02, 0.05, 0.10]`; rim handle height 0.15 x vessel height;
-rack base height 0.25 x height, pegs 0.5 x long-axis spacing by 0.3 x total short extent, two rows
-with half-peg-width end margins, overlapping the base by 0.01 x height. Vessel shell bodies are
-single connected surfaces. Handles and rack parts are overlapping closed components, with internal
-faces; the check does not claim a Boolean union or simulation validity. `_shapes.py` and
-`_rule_scores.py` contain pure construction/selection, while `rules.py` handles files and records.
-
-Incumbent R2/1.3 recomputed from the existing three-seed ledger: **0.9250628448 cm per object**,
-**1.0876784204 cm pair-weighted**. Development gates require cross-fitted mean **<0.8950628448**,
-no object regression >0.15 cm and no pair-weighted regression. All three nested rules are candidates;
-the lowest qualifying cross-fitted mean wins. Choosing among them on ten reused scans is optimistic.
-One final all-object parameter is fixed before the production build/pack; the exact packed-v2 veto
-requires both means no worse than **1.08502364 cm pair-weighted / 0.92572504 cm per object**.
-No retuning or rule switching follows that veto. Production changes and scoring remain job B.
-
-Checks completed on CPU (no test suites):
-
-- `py_compile` and CPU imports passed for all three edited Python modules.
-- All three round-1 `select` outputs match the saved implementation exactly on the 80-row ledger,
-  including thresholds, gates, per-object scores and aggregates; all 33 legacy constructor PLY
-  comparisons are byte-identical. Evidence: `.runtime/tmp/mesh-round2/round1-equivalence.json`.
-- Fresh unchanged production build `outputs/mesh_extents/build/20261102T024758.526008Z-486c5f5d/`
-  matches **all 47 PLY SHA-256 values** (11 objects plus 36 pair copies). Evidence:
-  `.runtime/tmp/mesh-round2/v2-build-equivalence.json`.
-- Dry build: **77/77 candidates**, **24 distinct meshes**, **14 distinct three-view renders**;
-  every component watertight and positive volume, largest mesh **266 vertices / 524 faces**.
-  Maximum construction extent relative error **2.22e-16**; after PLY serialization/reload **5.30e-8**.
-  Repeating the final loop resumes **77/77**, adds **0** trials and produces identical results.
-  A Python audit hook rejects scan opens and scoring imports: **0 scan-open attempts**, scorer absent.
-  Evidence: `.runtime/tmp/mesh-round2/dry-audit.json`; active per-object table and render links:
-  `outputs/mesh_eval/rules-round2/dry/summary.md`.
-- At the end of Job A, seed spread was unmeasured. Job B results above now name the incumbent
-  and report the cross-fitted per-object seed SD, its mean and maximum; ties use frozen grid order.
-
-Full handoff, amendment text, commands and file inventory: `outputs/mesh_eval/rules-round2/job-a.md`
-and `job-a-files.txt`. Job B scoring results and commands are recorded above.
-
-## D1 v2 (reproduction baseline)
-
-V2 uses the adopted **R2 vessel-handle** rule with `aspect_threshold=1.3` and
-`handle_height_fraction=0.6`, chosen on all ten objects after cross-fitted adoption. It reuses
-v1's exact 23 measure runs; vessel membership comes from `_rule_scores.CATEGORIES`, shared with
-the rule loop. The spoon and the other non-vessels retain their boxes.
-
-```bash
-PYTHONPATH=. .runtime/linux-cuda/bin/python -m track3.features.mesh_extents build --request scripts/track3/requests/d1/build-v2-r2.json
-```
-
-Build: `outputs/mesh_extents/build/20261101T160402.316899Z-0c4f8b6f/run.json`.
-Fresh local CD-O: **0.9251 cm** per object (`outputs/mesh_eval/d1-ctx03/v2-cdo.json`), the
-all-object fitted development score; the adoption headline remains **0.92572 cm cross-fitted**.
-All ten scanned meshes match the loop's R2/1.3 candidates byte-for-byte. Legacy box and ellipsoid
-builds retain identical vertex arrays, face arrays and PLY files over all 47 meshes each
-(`outputs/mesh_eval/d1-ctx03/v2-equivalence.json`).
-
-Packed: `submissions/20261101T1605Z-d1-v2/track3_meshes_v2.parquet`, **294,912 rows**, identical
-row order to the kit sample; preflight `--track track_3 --skip-kaggle`: **Ready to submit**
-(warnings: no pose results, Kaggle checks skipped). The commit URL is still the requested
-placeholder; SHA-256 and reproduction commands are in the adjacent `manifest.json` and
-`docs/chain/SUBMISSION.md`.
-
-## Why this slice exists
-
-CD-O (kit `metric_code/track_3/CD-O.py`) scales each candidate by the ratio of surface RMS radii and
-registers it rigidly to the scan before a symmetric Chamfer. Absolute scale and pose cost nothing;
-proportions do. Context 01 measured, on the 10 public scans, that a primitive with the scan's own
-principal extents scores 1.17 cm against 2.52 cm for a cube (analysis only). This slice measures those
-proportions from the egocentric video instead, so no scan geometry enters a submitted mesh (the
-challenge FAQ requires participants' own reconstructions).
+Measure object proportions from cached egocentric depth, build closed procedural meshes, and
+run frozen shape-rule or silhouette diagnostics. CD-O aligns each mesh with its own Sim(3),
+so shape matters while absolute scale and placement do not. Meshes use video evidence only.
+Monocular scale is unanchored; simulation needs separate metric calibration. Episode 41 and
+holdout episodes 43/44 are excluded. The owner handles uploads.
 
 ## Operations
 
-| Operation | Produces | GPU |
-|---|---|---|
-| `measure` | Per frame: support plane, table-relative clusters (label image, extents); per assigned object: extents per frame and their median; `overlay_<frame>.png` of the first frame | No |
-| `build` | One primitive per object pooled over measure runs, and `meshes/episode_XXXXXX/<object>.ply` for every scored pair, ready for the kit's `pack_reconstruction.py track3-meshes` | No |
+Each operation owns its request, runtime admission and run records. Commands below are CPU
+commands; `measure` consumes completed depth and does not run MoGe2. Use the existing environments.
+
+| Operation | Input and output |
+| --- | --- |
+| `measure` | Assigned clusters from a completed `depth.generate` run; labels, planes, overlays and `extents.json`. |
+| `build` | Completed measure runs; pooled shapes, `objects.json`, and one PLY per object/pair. |
+| `rules` | Frozen queue; resumable candidate builds, recorded scores and ranked summaries. `--dry-build` omits scoring. |
+| `adopt` | Frozen rule winner; production admission, pack and matched packed-pair veto. |
+| `proxy` | Frozen meshes, cached video measurements and existing CD-O scalars; IoU ledger and concordance report. |
+
+`measure` request keys are `source_split`, `episode_index`, `depth_run`, `frames` and object-to-cluster
+`objects`; `assignments.json` records reviewed identities. `<measure.json>` names such a request.
 
 ```bash
-PYTHONPATH=. .runtime/linux-cuda/bin/python scripts/track3/d1_measure.py --out .runtime/tmp/d1-runs.json
-PYTHONPATH=. .runtime/linux-cuda/bin/python -m track3.features.mesh_extents build --request <build.json>
+PYTHONPATH=. CUDA_VISIBLE_DEVICES='' .runtime/linux-cuda/bin/python -B -m track3.features.mesh_extents measure --request <measure.json>
 ```
 
-Inputs: one completed `depth.generate` run per episode (MoGe2, ego_cam_a, opening frames 0-19).
-No stereo anchor is used: a per-frame scale multiplies all three extents alike, so proportions do
-not depend on it.
-
-## Method
-
-Per frame, in camera coordinates:
-
-1. **Support plane.** RANSAC the largest plane in the lower 70 % of the image (the floor), then take
-   the sharpest histogram peak of heights 0.2-1.2 m above it (the round table top) and refit there.
-   Context 02 found that the camera_motion world plane can be the floor, which made the whole table
-   one "object" on public episode 39.
-2. **Clusters.** Points 8 mm-0.5 m above the table and within the table radius + 15 cm horizontally
-   (objects overhang the rim), joined by 4-connected metric edges of at most 2 cm, at least 300 px.
-3. **Local plane.** MoGe2 table tops are not flat: depth bleeds a few mm upwards around objects. Each
-   cluster's plane is refitted on table pixels in a 40 px ring around it and the cluster re-cut.
-4. **Extents.** In-plane PCA extents (2-98 % range) and height (98th percentile above the local
-   plane): `[in_plane_long, in_plane_short, height]`.
-
-An object's clusters are named once, on the first measured frame, in `assignments.json` (a list, so an
-object split by depth gaps is reunited). Later frames take every cluster lying mostly inside the
-object's first-frame mask dilated by 15 px. Only clean, isolated, fully visible objects are assigned;
-merged objects (a pot on the rack) are left out of that episode. `build` divides each episode's
-median by its geometric mean, takes the per-axis median over episodes and restores the median size.
-
-## Known limits
-
-- Undersides and wall/floor thickness are not measured. V3 shells use the frozen thickness fraction; visible geometry remains approximate.
-- The first-frame assignment is a recorded visual judgement by the chain context (see
-  `assignments.json`), not a detector.
-- Scale is MoGe2's, not metric. Simulation (D2) needs a metric rescale before these meshes are used.
-
-## Evidence
-
-`outputs/mesh_eval/d1-ctx02/` (local CD-O against the public scans, measurement only).
-
-## Shape rules
-
-Run all three rules and their parameter grids on CPU, or resume the same command:
+`build` requests name `measure_runs`, shape/rule and optional frozen attributes; `<build.json>` is
+one request. Existing examples include `scripts/track3/requests/d1/build-v2-r2.json` and `build-v3.json`.
 
 ```bash
-PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/kit-env/bin/python -B -m track3.features.mesh_extents.rules --queue track3/features/mesh_extents/rules.json
+PYTHONPATH=. CUDA_VISIBLE_DEVICES='' .runtime/linux-cuda/bin/python -B -m track3.features.mesh_extents build --request <build.json>
 ```
-
-The editable queue is `rules.json`. The handler reuses the v1 pooled video extents and exact
-box files from `outputs/mesh_extents/build/20261101T103838.400965Z-117fbcff/`, reproduces the
-baseline, then imports `scripts/track3/local_cdo.py` for the kit's mesh budget and CD-O scorer
-(seed episodes 1, 3, 5). Rule evaluation preserves v1's box files; `_geometry.py` and `measure.py`
-remain unchanged.
-No scans enter the shape builders in `_shapes.py`.
-
-- **R1 vessel-cylinder:** round vessels become capped elliptical cylinders; other categories
-  retain their v1 boxes. No free parameter.
-- **R2 vessel-handle:** round vessels with measured long/short aspect above the threshold
-  become circular cylinders plus a closed handle bar using the long-axis excess; other round
-  vessels become elliptical cylinders. Threshold grid: 1.05, 1.15, 1.30. Handle height is fixed
-  at 60% of measured height and width at 15% of the short extent. Tuning the threshold tests
-  when a handle is appropriate while leaving just one free parameter.
-- **R3 thin-tool-head:** thin tools become a box head plus narrow box handle, aligned along the
-  measured in-plane long axis. Head length grid: 0.25, 0.35, 0.50 of that extent; handle width is
-  fixed at 20% of the short extent. Both components retain measured height. The unscanned spoon
-  shares this rule's category but is neither scored nor rebuilt by this evaluation.
-
-Categories, folds and adoption gates follow `docs/chain/mesh-selection-protocol.md`. Each
-parameter is chosen on fold A and scored on B, then chosen on B and scored on A; ties take the
-first grid entry. The headline combines the ten held-out object scores. The in-sample column
-chooses one parameter on all ten objects and is optimistic. Pair weighting applies the v1 roster
-counts to the cross-fitted scores (26 scanned pairs). Adoption requires a gain greater than
-0.03 cm, no object regression greater than 0.15 cm, and no pair-weighted regression.
-
-Outputs under `outputs/mesh_eval/rules/`: `summary.md`, machine-readable `summary.json`,
-`rules-cdo.png`, append-only `ledger.jsonl`, content-addressed meshes and scores, and per-object
-trial `run.json` records. Complete trials resume by a hash of the rule, parameter, object,
-video extents, candidate/reference bytes, protocol, code and scoring environment. Identical
-mesh/reference pairs reuse their score across rules. Run records mark the evaluation as
-`public_asset_diagnostic`; candidate shapes still derive solely from video. The kit environment
-does the scoring; the existing `.runtime/linux-cuda` interpreter renders the matplotlib figure
-on CPU without requiring another install.
-
-Handle meshes concatenate overlapping, individually watertight components. They contain internal
-faces; this run checks the kit budget and area-weighted CD-O sampling, not Boolean union or
-physical simulation validity. No submission files are built or repacked by this command.
-
-Results: development estimates against the ten public scans, with parameters chosen on one fold
-and scored on the other. Box v1 is **1.00764 cm per object**, **1.25662 cm pair-weighted**.
-
-| Rule | Chosen on A → scored B | Chosen on B → scored A | Cross-fitted mean (cm) | In-sample mean (cm) | Pair-weighted mean (cm) | Worst regression (cm) | Gain / object / pair gates | Adopt |
-| --- | --- | --- | ---: | ---: | ---: | ---: | --- | --- |
-| R2 vessel-handle | 1.3 | 1.05 | 0.92572 | 0.92506 | 1.08742 | +0.10599 | pass / pass / pass | yes |
-| R1 vessel-cylinder | none | none | 0.95644 | 0.95644 | 1.18422 | +0.00668 | pass / pass / pass | yes |
-| R3 thin-tool-head | 0.5 | 0.25 | 0.99027 | 0.98365 | 1.24326 | +0.00000 | fail / pass / pass | no |
-
-R2 ranks first: gain **0.08192 cm per object**, with its worst regression on water_pitcher
-(1.57686 → 1.68285 cm, +0.10599 cm). R1 also qualifies, with a smaller gain of 0.05120 cm.
-R3 improves both scanned tools but its held-out gain is only 0.01737 cm, so it fails the
-0.03 cm requirement; this evidence does not support changing the unscanned spoon. No combined
-rule was tried. The adoption column means eligible under the fixed protocol; packing remains
-the lead context's decision.
-
-The full CPU run produced 80 object trials (10 baseline + 70 rule/parameter/object combinations),
-25 unique mesh scores and 55 exact mesh-score reuses. All ten baseline scores reproduce the
-stored v1 JSON within its rounding. An independent artifact-based calculation agrees with all
-fold selections, means and gates (`outputs/mesh_eval/rules/independent-recheck.json`).
-Repeating the command resumed all 80 completed trials with zero new scores, left the ledger at
-80 rows, and reproduced the ranking exactly (`outputs/mesh_eval/rules/resume-recheck.json`).
-
-## Round 3: frozen video profiles, Job A (no scoring)
-
-Amendment 2 in `docs/chain/mesh-selection-protocol.md` and the new
-`attributes-round3.json` / `rules-round3.json` are prepared for the lead's **pre-score commit**.
-The earlier attribute and queue files are unchanged. R7 replaces only the rack; R8 applies one
-broad-head/grip construction to pan, sweeper and spoon; R9 contains both exact components.
-There are no fitted parameters; vessel wall/radius remains 0.10. R9 additionally requires
-R8 to pass independently before any spoon transfer. Unknown rack underside geometry retains
-v3's floor. The construction functions are pure; `rules.py` owns the resumable loop, admission,
-checks and rendering, and calls `build.py` for each production candidate.
-
-Build/check/render all three candidates (CPU, no scans or scorer imports):
-
-```bash
-PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/linux-cuda/bin/python -B -m track3.features.mesh_extents.rules --queue track3/features/mesh_extents/rules-round3.json --dry-build
-```
-
-`outputs/mesh_extents/rules-round3/dry/summary.md` is the mesh-check table and links all current
-three-view renders and video/candidate side-by-sides. `summary.json` lists the three completed
-production builds, each with all eleven objects and 36 pair copies (47 PLY files). The standard
-production builder also accepts a request with `rule_queue` pointing at `rules-round3.json`,
-`attributes_file` pointing at `attributes-round3.json`, one queued rule name and
-`rule_parameter: null`; retain v3's measure runs.
-
-| Object | Frozen numbers (fractions of pooled video extents) | Opening-frame references |
-| --- | --- | --- |
-| Rack | Floor 0.25 retained; compartment length 0.172222, full width, height 1; rim top 0.4375; peg top 0.625; peg footprint 0.044444 long x 0.173913 short; wall 0.043478 short | evaluation 15/16, camera a; public 12 corroboration |
-| Pan | Head 0.70; neck width 0.25; grip width 0.55, starts at 0.65; floor 6/42 and grip thickness 12/42; wall width 9/280 | public 18, cameras a/b/c; public 39 camera a corroboration |
-| Sweeper | Upright axis; solid brush envelope 0.50; neck width 0.75; grip width 0.70, starts at 0.45, depth 0.65 | public 18, cameras a/b/c; sweeper absent in public 39 frame 0 |
-| Spoon | Bowl length 1/3; neck width 0.24; grip width 0.22, starts at 0.30; bowl inner radius 0.90, floor 0.25; grip thickness 0.50, flush with rim | evaluation 5/15/16, camera a |
-
-Every reference is frame 0. Exact pixel coordinates, hashes, observations and confidence are in
-`attributes-round3.json`. The pixel ratios are approximate projected measurements; thickness
-and cavity depth have medium confidence. Markers and grip holes are omitted. The rack height
-allocation is uncertain by about +/-0.10 of total height. These frozen simplifications are
-candidates, not evidence of improved reconstruction quality.
-
-CPU evidence in `outputs/mesh_extents/round3-job-a/`:
-
-- Four edited Python modules compile and the slice imports on CPU. The old constructors return
-  identical vertex/face arrays in **110 comparisons** over v3's eleven objects; old v3 dispatch
-  and PLY bytes match for **11/11** objects. The entire old `_shapes.py` remains a byte-identical
-  source prefix. All ten original evidence overlays retain their recorded hashes.
-- **33/33** candidates pass component watertightness, positive volume, budget and extent checks;
-  **15** distinct meshes, **4** three-view renders (12 views) and **4** video side-by-sides.
-  Largest mesh: **634 vertices / 1260 faces**. Construction relative extent error <= **2.22e-16**;
-  PLY-reloaded error <= **5.30054e-8**. All **141** production PLY hashes are checked; R7/R8/R9
-  keep **41/30/24** PLY files respectively byte-identical to v3, including pair copies.
-  R9's component composition is exact.
-- Resuming reuses **33/33** dry trials and all three production runs, with **0** new builds and
-  identical result rows. The audit hook saw **0** forbidden attempts and no scoring modules.
-- Buried-surface diagnostic (geometry only): v3 **10.3262%**, R7 **10.5367%** strictly inside
-  other components. Monte Carlo standard errors are **0.01470 / 0.01334 percentage points**,
-  from three replicates of 20,000 samples per component. Coincident boundary area is separately
-  **0.3069% / 9.9476%**. Total component areas are **0.81463398 / 0.83625330** in squared
-  unanchored video units. `trimesh.bounds.contains` is exact here because every component is
-  verified to be an axis-aligned box; generic ray containment requires absent `rtree`, which was
-  not installed. This diagnostic does not select a rule. Full evidence:
-  `outputs/mesh_extents/round3-diagnostic/20261102T044817.813770Z-132cdab2/summary.md`.
-
-The allowed R6/0.10 ledger rows give development incumbent **0.7731489706385066 cm/object** and
-**0.8167541550356001 cm/pair**, so the equal-object gate is **<0.7431489706385066 cm**. The
-brief's 0.77314847 differs by about 0.00000050 cm; the frozen full-precision ledger values govern.
-Packed numbers are a separate comparison. The queue owns the incumbent, gates, rule order and
-fixed single-entry grids; no new scoring constants are embedded in the loop.
-
-### Job B, only after the pre-score commit
-
-Resume the fixed development queue with the kit environment:
 
 ```bash
 PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/kit-env/bin/python -B -m track3.features.mesh_extents.rules --queue track3/features/mesh_extents/rules-round3.json
 ```
 
-The request-driven `adopt` slice operation below resumes that score loop and reads its
-single eligible winner, builds all eleven production objects, packs with the existing placeholder
-URL, calls `mesh_eval pairs` for both shipped v3 and the candidate (52 covered pair trials),
-and writes the queue's strict packed-veto verdict. It reuses completed work on restart, refuses
-changed frozen inputs or a different winner, and never switches to a runner-up. No development
-winner means retain v3 without a packed evaluation.
-
 ```bash
 PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/kit-env/bin/python -B -m track3.features.mesh_extents adopt --request track3/features/mesh_extents/adopt-round3.json
 ```
 
-The generated pair request is `outputs/mesh_extents/rules-round3/job-b/pair-request.json`; its
-standalone resumable command is `.runtime/kit-env/bin/python -B -m track3.features.mesh_eval pairs
---request outputs/mesh_extents/rules-round3/job-b/pair-request.json` with the same CPU environment.
-The slice operation writes its development summary to `outputs/mesh_extents/adopt-round3/development/summary.md`
-and records each verdict in `outputs/mesh_extents/adopt-round3/runs/<run>/result.json`, beside `run.json`.
-The original ignored Job B driver and its outputs are historical evidence, not the current entry point.
-Pair evidence remains `outputs/mesh_eval/pairs/mesh-round3-veto/`.
+```bash
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/linux-cuda/bin/python -B -m track3.features.mesh_extents proxy --request track3/features/mesh_extents/proxy-spoon.json
+```
 
-Packed veto: per-object mean **<0.74107703 cm**, pair mean **<=0.81149513 cm**, no packed object
-regression **>0.15 cm**; failure retains v3, with no runner-up or retuning. Round 3 follows two
-adaptive rounds and prior scan-render exposure on the same ten scans. Cross-fitting covers
-declared parameters only; these are development results, not an independent estimate, and the
-third round raises selection optimism further. Job A read no scan and computed no CD-O.
+Measurement finds the floor in the lower 70% of the image, then a table-height peak 0.200–1.200
+above it. Above-table clusters use height 0.008–0.500, overhang 0.150, neighbour distance 0.020,
+minimum 300 pixels and a 40-pixel local plane ring. Extents use in-plane PCA percentiles 2–98
+and height percentile 98. Tracking dilates the assigned first-frame mask by 15 pixels. Pooling
+normalizes each episode by geometric-mean size, takes median proportions and restores median size.
+Undersides, cavity depths and thicknesses remain approximate. Closed overlapping components
+can retain internal faces; closure is not a Boolean-union or simulation-validity claim.
+
+Proxy placement uses the local plane, in-plane PCA, footprint-bounds centre and base on plane;
+one uniform scale matches long footprint extent. x/y are long/short footprint axes, z is up;
+the R8 sweeper's longitudinal axis is z. Require x >= y*(1-1e-6). Evaluate yaw 0/pi, retaining
+the larger IoU, and record both yaws and projected/target areas. Each assigned run supplies its
+first frame: camera a, frame 0 except lid frame 110. Spoon views are evaluation 5/15/16.
+The panel has 52 scanned candidates, 26 scanned views/143 trials, plus two spoon meshes over
+three views/six trials: 149 trials total. Primitive-era spoon box/ellipsoid are references only.
+
+`_shapes.py` and `_rule_scores.py` own construction/selection; `_geometry.py` owns shared pure
+table selection. `_proxy.py` owns array preparation, projection, averaging and correlations;
+`proxy.py` owns files and records. `measure.py` is unchanged. No scan or scorer is opened by proxy.
+The frozen request pins input/source hashes and package versions. Its baseline pointers are
+request data; baseline run/input hashes authenticate the saved original request without Git.
+Commit the protocol/request/code before first scoring as required by the protocol; the lead
+owns that ordering. `proxy_authorized` defaults true. `--dry-run` writes target-only outputs
+under `outputs/mesh_extents/spoon-proxy-dry/summary.{json,md}` and `overlays/` without scores.
+The 149-trial/7200-second budget is per invocation. Resume filters by frozen identity and
+preserves older records. Only a truncated final ledger append is quarantined; other malformed
+rows raise. Missing inputs produce NOT VALIDATED; unavailable values are null with reasons.
+E admission checks path/status/seeds and the recorded build SHA; A/B/C require seeds 1/3/5.
+E's legacy score JSON has no SHA itself. Matching object/SHA aliases merge only for equal scores.
+
+## Latest results
+
+### D1 v4: adopted R9
+
+R9 combines the frozen R7 rack and R8 tools; R8 independently passed on the scanned objects.
+This prevents rack gains from masking scanned-tool failure; it does not validate the spoon.
+
+| Recorded comparison | Equal-object CD-O (cm) | Pair-weighted CD-O (cm) |
+| --- | ---: | ---: |
+| Packed v3 | 0.771 | 0.811 |
+| Packed v4 | 0.653 | 0.663 |
+| R7 development | 0.720 | 0.715 |
+| R8 development | 0.706 | 0.765 |
+| R9 development | 0.653 | 0.663 |
+
+Coverage is 10 scanned objects / 26 of 36 pairs; ten spoon pairs are unscored. Packed results:
+9 improved, 17 tied, 0 worse; worst regression 0.000. Gates use the frozen full-precision
+ledger/queue values, not rounded table entries: object gain >0.030, no regression >0.150,
+packed object mean <v3−0.030 and pair mean no worse. Third adaptive round on reused scans:
+these are development results, not an independent estimate. R9 seed SD mean/max: 0.005/0.021 cm.
+First new score finished 2026-11-02 05:06:45 UTC after the pre-score commit `bc601cf`.
+
+Packed file `submissions/20261102T0516Z-d1-v4/track3_meshes_v4.parquet`: 294,912 rows, official
+order, unique IDs, preflight Ready to submit with no poses and Kaggle checks skipped; manifest
+hashes 6/6. SHA-256: `6663a1c7e0491c0cfa53b27fe36d7904455351dad548181e4e59a2263215af50`.
+Fresh v3/v4 reproduction each matches 47/47 PLYs, including 36 pair files; v4 packed bytes
+match its reproduction. Full evidence: `outputs/mesh_extents/round3-job-b/job-b.md`,
+`outputs/mesh_extents/rules-round3/summary.md`, `outputs/mesh_eval/pairs/mesh-round3-veto/summary.md`.
+
+### Spoon proxy: NOT VALIDATED
+
+| Pre-registered gate | Value | Requirement | Result |
+| --- | ---: | ---: | --- |
+| Mean tau-b (10 objects) | 0.544 | >=0.400 | pass |
+| Qualifying median rho | 0.655 | >=0.600 | pass |
+| Qualifying objects passing rho | 5/8 | >=6 | fail |
+| Both scanned tools | 1/2 | all | fail |
+| Dust pan rho | 0.600 | >=0.600 | pass |
+| Sweeper rho | -0.086 | >=0.600 | fail |
+| Correlations defined / inputs complete | all / all | all / all | pass |
+
+| Object | Candidates | Rho | Tau-b | IoU ties |
+| --- | ---: | ---: | ---: | ---: |
+| beige_cup | 7 | 0.709 | 0.620 | 3 |
+| blue_cup | 6 | 0.845 | 0.775 | 3 |
+| mini_dust_pan | 6 | 0.600 | 0.467 | 0 |
+| mini_sweeper | 6 | -0.086 | -0.200 | 0 |
+| plastic_dish_rack | 4 | 1.000 | 1.000 | 0 |
+| water_pitcher | 7 | -0.059 | 0.056 | 3 |
+| white_pot | 8 | 0.862 | 0.725 | 3 |
+| white_pot_lid | 4 | -0.200 | 0.000 | 0 |
+| wooden_piece_1 | 2 | 1.000 | 1.000 | 0 |
+| wooden_piece_2 | 2 | 1.000 | 1.000 | 0 |
+
+IoU ties count variants beyond distinct values; CD-O ties are zero. Report-only R8-minus-box
+IoU is +0.143 for dust pan and +0.186 for sweeper; R8 ranks above box for both.
+
+| Spoon evaluation view, frame 0 | v3 box IoU | v4 bowl IoU | Difference |
+| --- | ---: | ---: | ---: |
+| 5 | 0.365 | 0.724 | 0.360 |
+| 15 | 0.556 | 0.702 | 0.147 |
+| 16 | 0.542 | 0.725 | 0.183 |
+| Equal-view mean difference | | | 0.230 |
+
+**Proxy not validated for spoon CD-O inference; proxy says nothing about spoon CD-O; v4 unchanged.**
+Full-precision values, both yaws, mask/projected areas and overlays: `outputs/mesh_extents/spoon-proxy/summary.json`.
+The ledger is `outputs/mesh_extents/spoon-proxy/ledger.jsonl`.
+
+**Post-result reporting, not another gate:** mean tau-b over the eight objects with >=4 variants
+is 0.430, beside the pre-registered ten-object mean 0.544. Both two-variant wooden blocks
+contribute +1.000; two untied variants force tau-b to ±1. Dust pan passes at exactly rho 0.600.
+**Hypothesis:** silhouettes may miss walls or brush depth; this explanation has not been
+separated from mask and placement error. Construction views were reused and samples are small.
+
+## History
+
+### Rounds 1–2 and earlier engineering
+
+| Round / rule | Object mean (cm) | In-sample (cm) | Pair mean (cm) | Worst regression (cm) | Selection |
+| --- | ---: | ---: | ---: | ---: | --- |
+| v1 box | 1.008 | 1.008 | 1.257 | — | baseline |
+| R1 cylinder | 0.956 | 0.956 | 1.184 | 0.007 | fixed, eligible |
+| R2 handle | 0.926 | 0.925 | 1.087 | 0.106 | folds 1.300 / 1.050; adopted |
+| R3 head | 0.990 | 0.984 | 1.243 | 0.000 | folds 0.500 / 0.250; failed gain |
+| R4 rim handle | 0.921 | 0.921 | 1.077 | 0.000 | fixed, failed gain |
+| R5 hollow | 0.846 | 0.846 | 0.956 | 0.000 | thickness 0.100, eligible |
+| R6 peg rack | 0.773 | 0.773 | 0.817 | 0.000 | thickness 0.100, adopted as v3 |
+
+R2 improved object mean by 0.082; pitcher regressed 1.577→1.683 (+0.106). R1 gain was 0.051;
+R3 gain 0.017 failed >0.030. R2 aspect grid: 1.050/1.150/1.300, handle height/width 0.600/0.150.
+R3 head grid: 0.250/0.350/0.500, handle width 0.200. Round 1: 80 trials, 25 unique scores,
+55 reuses; resume added zero. V2 reused 23 measure runs and the non-vessel/spoon boxes.
+Round-2 incumbent fixed R2/1.300: 0.925 object / 1.088 pair; object gate <0.895, worst <=0.150.
+R4 rim handle height is 0.150; R5 wall/floor grid 0.020/0.050/0.100, 64 sections; R6 rack has
+two rows of six pegs, base height 0.250, peg length 0.500 of spacing, width 0.300, overlap 0.010.
+R6/R5/R4 seed-SD mean/max: 0.007/0.021, 0.009/0.036, 0.010/0.036 cm.
+Round 2: 70 scores, 23 unique, 47 reuses; packed v2→v3 object 0.926→0.771, pair 1.085→0.811;
+19 improved, seven tied, zero worse. Dry: 77/77 candidates, 24 distinct meshes, 14 renders,
+266 vertices/524 faces maximum; 33 legacy constructors and 47 production PLYs unchanged.
+Construction error <=2.22e-16, reloaded <=5.30e-8; all dry/scored resumes added zero work.
+Portability checks reproduced 47/47 v2/v3 PLYs, all 11 pooled extents, 80/70 cached rule rows
+and all 52 packed-pair values. Ten scanned meshes matched selected candidates; spoon matched v2.
+Temporary v3 pack SHA: `2ea5bb2da753dc4c324c1a327ed49b0f29348e9948fea485461720be8e8bf7b6`;
+shipped v3 SHA: `a61f02b12078a05c940037034e37ec4201e3e919a55e4bea9e0058dfa2f45f40`.
+An earlier oracle analysis scored 1.170 versus cube 2.520 cm; oracle proportions never enter builds.
+
+### Round 3 and proxy engineering
+
+R7 changes rack, R8 changes pan/sweeper/spoon, R9 composes both, with no fitted parameter.
+Video profiles retain rack floor 1/4, compartment length 155/900, rim top 7/16, peg top 5/8,
+peg footprint 40/900 by 40/230 and wall 10/230; rack height uncertainty is ±0.100.
+Pan head/neck/grip/start: 0.700/0.250/0.550/0.650; floor/grip/wall: 6/42, 12/42, 9/280.
+Sweeper brush/neck/grip/start/depth: 0.500/0.750/0.700/0.450/0.650; upright longitudinal axis.
+Spoon head/neck/grip/start: 1/3, 0.240, 0.220, 0.300; inner radius/floor/thickness: 0.900/0.250/0.500;
+bowl uses 48 angular sections and six radial intervals. Markers and holes are omitted.
+Round-3 dry checks: 110 legacy comparisons, 11/11 old meshes, ten evidence overlays unchanged;
+33/33 candidates, 15 distinct meshes, four renders/12 views and four video comparisons; max
+634 vertices/1260 faces, 141 PLY hashes checked, 41/30/24 R7/R8/R9 files unchanged from v3.
+Both construction/reload errors remain <=2.22e-16 / 5.30e-8. Development: 30 trials, 13 new
+scores, 17 reuses; later resume reused all 30 and 52 packed-pair trials with zero new work.
+Incumbent object/pair 0.773/0.817; frozen object gate <0.743 (a prior transcription differed by 5e-7 cm).
+Buried rack surface v3/R7: 10.326%/10.537%, SE 0.015/0.013 percentage points; coincident boundary
+0.307%/9.948%, areas 0.815/0.836 unanchored squared units; three replicates of 20,000 samples/component.
+These geometry-only diagnostics use axis-aligned containment and never select a rule.
+
+Post-result proxy fixes provide null/reason failure reports and strict score admission, share
+table selection, and keep numerical averaging pure. Old/new geometry matches exactly over
+92 recorded frames / 18 runs / 30 assigned objects. Recomputations match 149/149 first-run
+IoUs, both yaws, areas, placements, PNGs, every rho/tau/gate and spoon difference; second
+invocations add zero trials. Original run/trial/cache artifacts and ledger prefixes are retained.
+Prior engineering timings were 6.844 seconds recomputation / 1.568 seconds resume; 602 original
+artifacts stayed unchanged. Evidence scripts: `.runtime/tmp/spoon-proxy-engineering/`.
+
+Critic cleanup removes proxy's Git dependency and tightens ledger recovery. Audited reruns took
+9.862/3.385 seconds with zero subprocess or `.git` file-access attempts; resume added zero trials.
+All 149 values still match the first run and 1,218 historical artifacts are unchanged. Current proof:
+`outputs/mesh_extents/spoon-proxy/critic/result-comparison.json` and `critic/portability.json`.
+
+### Evidence index
+
+All prior evidence paths remain below; detailed values and command inventories stay in their
+recorded JSON/Markdown artifacts. Earlier shorthand paths are retained with their original bases.
+- `../../../outputs/mesh_extents/evaluation/episode_000001/20261101T103716.335071Z-0993ba31/overlay_000110.png`; `../../../outputs/mesh_extents/evaluation/episode_000005/20261101T103721.877826Z-55c95204/overlay_000000.png`; `../../../outputs/mesh_extents/evaluation/episode_000015/20261101T103736.789367Z-86a79be7/overlay_000000.png`
+- `../../../outputs/mesh_extents/evaluation/episode_000016/20261101T103740.185103Z-0f0a559d/overlay_000000.png`; `../../../outputs/mesh_extents/public/episode_000011/20261101T103701.928174Z-f63cc238/overlay_000000.png`; `../../../outputs/mesh_extents/public/episode_000012/20261101T103703.949004Z-546c56c2/overlay_000000.png`
+- `../../../outputs/mesh_extents/public/episode_000018/20261101T103706.195611Z-8e4c4ca5/overlay_000000.png`; `../../../outputs/mesh_extents/public/episode_000021/20261101T103707.151959Z-05bf6bac/overlay_000000.png`; `../../../outputs/mesh_extents/public/episode_000023/20261101T103708.924989Z-52ed3be1/overlay_000000.png`
+- `../../../outputs/mesh_extents/public/episode_000042/20261101T103715.090424Z-d410dfac/overlay_000000.png`; `.runtime/tmp/d1-runs.json`; `.runtime/tmp/mesh-round2/dry-audit.json`
+- `.runtime/tmp/mesh-round2/pack/track3_meshes_v3.parquet`; `.runtime/tmp/mesh-round2/round1-equivalence.json`; `.runtime/tmp/mesh-round2/v2-build-equivalence.json`
+- `docs/chain/SUBMISSION.md`; `docs/chain/mesh-selection-protocol.md`; `dry/summary.json`
+- `meshes/episode_XXXXXX/<object>.ply`; `metric_code/track_3/CD-O.py`; `outputs/mesh_eval/d1-ctx02/`
+- `outputs/mesh_eval/d1-ctx03/v2-cdo.json`; `outputs/mesh_eval/d1-ctx03/v2-equivalence.json`; `outputs/mesh_eval/d1-v3-reproduction/`
+- `outputs/mesh_eval/equivalence/20261102T055518.792315Z-eb3c237a/summary.md`; `outputs/mesh_eval/mesh-fix/`; `outputs/mesh_eval/pairs/shipped-v3/`
+- `outputs/mesh_eval/rules-round2/dry/ledger.jsonl`; `outputs/mesh_eval/rules-round2/dry/summary.md`; `outputs/mesh_eval/rules-round2/job-a.md`
+- `outputs/mesh_eval/rules-round2/job-b.md`; `outputs/mesh_eval/rules/independent-recheck.json`; `outputs/mesh_eval/rules/resume-recheck.json`
+- `outputs/mesh_extents/adopt-round3/development/summary.md`; `outputs/mesh_extents/adopt-round3/runs/<run>/result.json`; `outputs/mesh_extents/build/20261101T103838.400965Z-117fbcff/`
+- `outputs/mesh_extents/build/20261101T160402.316899Z-0c4f8b6f/run.json`; `outputs/mesh_extents/build/20261102T024758.526008Z-486c5f5d/`; `outputs/mesh_extents/build/20261102T030138.153550Z-118eeb04/run.json`
+- `outputs/mesh_extents/maintenance/20261102T055350Z/verification.json`; `outputs/mesh_extents/reproduction/20261102T052748Z/v4/manifest.json`; `outputs/mesh_extents/round3-diagnostic/20261102T044817.813770Z-132cdab2/summary.md`
+- `outputs/mesh_extents/round3-job-a/`; `outputs/mesh_extents/round3-job-b/reproduction-checks.json`; `outputs/mesh_extents/round3-job-b/reproduction-v3/`
+- `outputs/mesh_extents/rules-round3/dry/summary.md`; `outputs/mesh_extents/rules-round3/job-b/pair-request.json`; `outputs/mesh_extents/spoon-proxy/engineering/result-comparison.json`
+- `reproduction-v4/`; `round2/summary.md`; `scripts/reproduce/d1_meshes.sh`
+- `scripts/reproduce/verify.sh`; `scripts/track3/d1_measure.py`; `scripts/track3/local_cdo.py`
+- `scripts/track3/requests/d1/build-v3.json`; `submissions/*-d1-v3/manifest.json`; `submissions/20261101T1605Z-d1-v2/track3_meshes_v2.parquet`
+- `submissions/20261102T0516Z-d1-v4/manifest.json`; `track3/features/mesh_extents/rules-round2.json`; `track3/features/mesh_extents/rules.json`
+
+Additional indexed evidence: `outputs/mesh_eval/rules-round2/job-a-files.txt`; `outputs/mesh_extents/maintenance/20261102T055350Z/round2/summary.md`; `outputs/mesh_extents/round3-job-b/reproduction-v4/`.

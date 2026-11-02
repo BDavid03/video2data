@@ -160,7 +160,14 @@ def rank_panel(objects, gates):
               "median_rho": median_rho is not None and median_rho >= gates["rho"],
               "qualifying_count": len(qualifying) == 8 and passing >= gates["passing_objects"],
               "both_tools": len(tools) == 2 and all(r["rho"] is not None and r["rho"] >= gates["rho"] for r in tools)}
+    qualified_tau = [r["tau_b"] for r in qualifying]
+    qualified_mean = float(np.mean(qualified_tau)) if qualifying and all(v is not None for v in qualified_tau) else None
     return {"objects": rows, "mean_tau_b": mean_tau, "qualifying_median_rho": median_rho,
+            "post_result_reporting": {"mean_tau_b_ge_four_variants": qualified_mean,
+                "objects": len(qualifying), "used_for_gate": False,
+                "undefined_reason": None if qualified_mean is not None else "Undefined qualifying-object tau-b",
+                "hypothesis": "Silhouettes may miss wall or brush-depth differences; this explanation has not been "
+                              "separated from mask and placement error."},
             "undefined_reasons": {"mean_tau_b": None if all_tau else "Undefined per-object tau-b",
                                   "qualifying_median_rho": None if all_rho else "Undefined qualifying-object rho"},
             "qualifying_passing": passing, "qualifying_objects": len(qualifying),

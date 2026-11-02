@@ -2,16 +2,15 @@
 
 from collections import Counter
 from dataclasses import dataclass
-import hashlib
 import importlib.metadata
 import json
 from pathlib import Path
-import subprocess
+import re
 import time
 
 from track3.paths import output_path
 from track3.provenance import input_file, read_run, run_fields, sha256_file, write_json
-from track3.runs import ROOT, artifact, authorize_episode, new_run_id, read_json, recorded, runtime_flag, source_hashes
+from track3.runs import ROOT, artifact, authorize_episode, checked_entry, new_run_id, read_json, recorded, runtime_flag, source_hashes
 from .rules import append_ledger, identity
 
 FEATURE = Path(__file__).parent
@@ -23,8 +22,6 @@ LEDGERS = ("outputs/mesh_eval/rules/ledger.jsonl", "outputs/mesh_eval/rules-roun
 ELLIPSOID_SCORES = "outputs/mesh_eval/d1-ctx02/v1-ellipsoid.json"
 SPOON_BUILDS = {"v3_box": "outputs/mesh_extents/build/20261102T031152.089350Z-ea88a295",
                 "v4_bowl": "outputs/mesh_extents/build/20261102T051416.149421Z-f377e0a1"}
-BASELINE_COMMIT = "5c4d41f"
-BASELINE_RUN = "outputs/mesh_extents/spoon-proxy/runs/20261102T105102.658719Z-8f4821cf/run.json"
 
 
 def _input(path, inputs, expected=None):
@@ -144,7 +141,7 @@ def load_candidate(candidate):
     return mesh
 
 
-def freeze_request(path, *, post_result=False):
+def freeze_request(path, *, baseline=None):
     """Expand the pre-registered panel and hash its inputs, without projecting or scoring."""
     inputs = {}
     candidates = _freeze_panel(inputs)
@@ -170,8 +167,8 @@ def freeze_request(path, *, post_result=False):
         "panel": [{"object": n, "candidates": count, "views": view_counts[n], "trials": count * view_counts[n],
                    "missing_views": sum(v["object"] == n for v in missing_views)}
                   for n, count in sorted({**counts, "wooden_spoon": 2}.items())]}
-    if post_result:
-        request["post_result_engineering"] = {"baseline_commit": BASELINE_COMMIT, "baseline_run": BASELINE_RUN}
+    if baseline is not None:
+        request["post_result_engineering"] = baseline
     write_json(output_path(ROOT, path), request)
     return request
 
@@ -188,16 +185,16 @@ class ProxyRequest:
 
 
 def _post_result_scope(request):
-    """Permit engineering reruns only against an already completed, committed scientific definition."""
-    amendment = request.data["post_result_engineering"]
-    if amendment != {"baseline_commit": BASELINE_COMMIT, "baseline_run": BASELINE_RUN}:
-        raise PermissionError("Unknown post-result baseline")
-    committed = subprocess.check_output(["git", "show", f"{BASELINE_COMMIT}:track3/features/mesh_extents/proxy-spoon.json"], cwd=ROOT)
-    baseline = json.loads(committed)
-    completed = read_run(ROOT, BASELINE_RUN, kind="mesh_extents.proxy")
-    entry = next(r for r in completed["inputs"] if r["path"] == "track3/features/mesh_extents/proxy-spoon.json")
-    if entry["sha256"] != hashlib.sha256(committed).hexdigest():
-        raise PermissionError("Completed baseline did not use the committed request")
+    """Check an engineering request against the hash-pinned completed baseline artifacts."""
+    pointer, admission = request.data["post_result_engineering"], {"inputs": []}
+    run_path = checked_entry(pointer["baseline_run"], admission)
+    completed = read_run(ROOT, run_path, kind="mesh_extents.proxy")
+    recorded_inputs = {entry["path"]: entry["sha256"] for entry in completed["inputs"]}
+    if pointer["baseline_request"]["sha256"] != recorded_inputs[completed["request"]["manifest"]]:
+        raise PermissionError("Baseline request does not match the completed run's recorded input hash")
+    baseline = read_json(checked_entry(pointer["baseline_request"], admission))
+    if any(recorded_inputs.get(path) != digest for path, digest in request.data["inputs"].items()):
+        raise PermissionError("Engineering inputs differ from the completed baseline run")
     for key in ("inputs", "packages", "candidates", "spoon", "spoon_history", "views", "missing_views",
                 "gates", "budget", "panel", "axis_convention"):
         if request.data[key] != baseline[key]:
@@ -208,8 +205,8 @@ def _post_result_scope(request):
         raise PermissionError("Post-result source changes exceed the authorized scope")
 
 
-def _admit(request, dry_run):
-    """Check frozen bytes and episode permissions, and enforce the pre-score commit."""
+def _admit(request):
+    """Check frozen bytes, episode permissions and any recorded engineering baseline."""
     runtime = runtime_flag(FEATURE, "proxy_authorized", "Spoon proxy diagnostic")
     data = request.data
     missing = []
@@ -227,18 +224,16 @@ def _admit(request, dry_run):
         from .measure import MeasureRequest
 
         authorize_episode(runtime, MeasureRequest(source_split=view["split"], episode_index=view["episode"]), "proxy")
-        if any(row["path"] == view["measure_run"] for row in missing):
+        if any(row.get("path") == view["measure_run"] for row in missing):
             continue
         measure = read_run(ROOT, view["measure_run"], kind="mesh_extents.measure", allowed=("video_only",))
         if view["frame"] != measure["frames"][0]["frame_index"]:
             raise PermissionError("Proxy view must use the first frame of its assigned measure run")
     if data.get("post_result_engineering"):
-        _post_result_scope(request)
-    elif not dry_run and not missing:
-        for path in [request.path, *data["sources"]]:
-            committed = subprocess.check_output(["git", "show", f"HEAD:{path}"], cwd=ROOT)
-            if hashlib.sha256(committed).hexdigest() != sha256_file(ROOT / path):
-                raise PermissionError(f"Commit frozen request/protocol/code before scoring: {path}")
+        try:
+            _post_result_scope(request)
+        except FileNotFoundError as error:
+            missing.append({"reason": f"Recorded baseline input is missing: {error}"})
     return identity({"request": data, "request_sha256": sha256_file(ROOT / request.path)}), missing
 
 
@@ -328,6 +323,7 @@ def _summary(data, results, missing=()):
     if not complete:
         summary["validated"] = False
     summary.update(spoon=spoon, spoon_mean_difference=mean, spoon_undefined_reason=reason,
+                   gate_thresholds=data["gates"],
                    spoon_history_reference_only=data["spoon_history"], panel=data["panel"], trials=results,
                    missing_views=data["missing_views"], missing_inputs=list(missing),
                    verdict="PANEL CONCORDANCE PASSED" if summary["validated"] else "PROXY NOT VALIDATED FOR SPOON CD-O INFERENCE",
@@ -338,50 +334,102 @@ def _summary(data, results, missing=()):
     return summary
 
 
+def _format(value):
+    return "null" if value is None else f"{value:.3f}"
+
+
 def _write_summary(summary, directory):
     write_json(directory / "summary.json", summary)
+    gates, thresholds = summary["gates"], summary["gate_thresholds"]
+    tools = [r for r in summary["objects"] if r["object"] in ("mini_dust_pan", "mini_sweeper")]
+    passing_tools = sum(r["rho"] is not None and r["rho"] >= thresholds["rho"] for r in tools)
+    gate_rows = [
+        ("Mean tau-b", _format(summary["mean_tau_b"]), f">={_format(thresholds['mean_tau_b'])}", gates["mean_tau_b"]),
+        ("Qualifying median rho", _format(summary["qualifying_median_rho"]), f">={_format(thresholds['rho'])}", gates["median_rho"]),
+        ("Qualifying objects passing rho", f"{summary['qualifying_passing']}/{summary['qualifying_objects']}",
+         f">={thresholds['passing_objects']}", gates["qualifying_count"]),
+        ("Both scanned tools", f"{passing_tools}/{len(tools)}", "all", gates["both_tools"]),
+        ("Required correlations defined", "all" if gates["all_required_correlations_defined"] else "incomplete",
+         "all", gates["all_required_correlations_defined"]),
+        ("Inputs complete", "yes" if gates["complete_inputs"] else "no", "yes", gates["complete_inputs"])]
+    gate_rows += [(r["object"] + " rho", _format(r["rho"]), f">={_format(thresholds['rho'])}",
+                   r["rho"] is not None and r["rho"] >= thresholds["rho"]) for r in tools]
     lines = ["# Spoon proxy diagnostic", "", summary["verdict"], "", summary["interpretation"], "",
-             summary["limitations"], "", f"Mean tau-b: {json.dumps(summary['mean_tau_b'])}; median qualifying rho: "
-             f"{json.dumps(summary['qualifying_median_rho'])}; passing: {summary['qualifying_passing']}/8.", "",
-             "| Object | Candidates | Rho | Tau-b | Proxy ties | Undefined reason |", "| --- | ---: | ---: | ---: | ---: | --- |"]
+             "## Pre-registered gates", "", "| Gate | Value | Requirement | Result |", "| --- | ---: | ---: | --- |"]
+    lines += [f"| {name} | {value} | {requirement} | {'pass' if passed else 'fail'} |"
+              for name, value, requirement, passed in gate_rows]
+    lines += ["", "## Per-object concordance", "",
+              "| Object | Candidates | Rho | Tau-b | Proxy ties | Undefined reason |", "| --- | ---: | ---: | ---: | ---: | --- |"]
     for row in summary["objects"]:
-        lines.append(f"| {row['object']} | {row['candidates']} | {json.dumps(row['rho'])} | "
-                     f"{json.dumps(row['tau_b'])} | {row['proxy_ties']} | {row['undefined_reason'] or ''} |")
-    lines += ["", "Descriptive gates: " + json.dumps(summary["gates"]), "", "R8 versus box, report only:"]
-    lines += ["- " + json.dumps(row) for row in summary["tool_r8_vs_box_report_only"]]
-    lines += ["", "| Spoon view | v3 IoU | v4 IoU | Difference |", "| --- | ---: | ---: | ---: |"]
+        lines.append(f"| {row['object']} | {row['candidates']} | {_format(row['rho'])} | "
+                     f"{_format(row['tau_b'])} | {row['proxy_ties']} | {row['undefined_reason'] or ''} |")
+    lines += ["", "## R8 versus box (report only)", "",
+              "| Object | R8 minus box IoU | R8 above box | Tie | Undefined reason |", "| --- | ---: | --- | --- | --- |"]
+    for row in summary["tool_r8_vs_box_report_only"]:
+        above = "null" if row["r8_ranked_above_box"] is None else ("yes" if row["r8_ranked_above_box"] else "no")
+        tie = "null" if row["tie"] is None else ("yes" if row["tie"] else "no")
+        lines.append(f"| {row['object']} | {_format(row['r8_minus_box_iou'])} | {above} | {tie} | {row['undefined_reason'] or ''} |")
+    lines += ["", "## Spoon silhouettes", "", "| Spoon view | v3 IoU | v4 IoU | Difference |", "| --- | ---: | ---: | ---: |"]
     for row in summary["spoon"]:
-        lines.append(f"| {row['view']} | {json.dumps(row['v3_box']['iou'])} | {json.dumps(row['v4_bowl']['iou'])} | "
-                     f"{json.dumps(row['v4_minus_v3_iou'])} |")
-    lines += ["", f"Spoon equal-view mean difference: {json.dumps(summary['spoon_mean_difference'])}", "",
-              "Both yaws, target/projected areas, placements, rankings and overlay paths are in summary.json.",
-              "Missing views: " + json.dumps(summary["missing_views"])]
-    lines += ["", "Missing inputs: " + json.dumps(summary["missing_inputs"]),
-              "Undefined values: " + json.dumps({**summary["undefined_reasons"], "spoon": summary["spoon_undefined_reason"]})]
+        lines.append(f"| {row['view']} | {_format(row['v3_box']['iou'])} | {_format(row['v4_bowl']['iou'])} | "
+                     f"{_format(row['v4_minus_v3_iou'])} |")
+    lines += ["", f"Spoon equal-view mean difference: {_format(summary['spoon_mean_difference'])}", "",
+              "Full precision, both yaws, areas, placements, rankings and overlay paths are in summary.json.", "",
+              "## Post-result reporting (not pre-registered)", ""]
+    post = summary["post_result_reporting"]
+    lines += [f"Pre-registered mean tau-b: {_format(summary['mean_tau_b'])}. Mean over the {post['objects']} objects "
+              f"with at least four variants: {_format(post['mean_tau_b_ge_four_variants'])}; this adds no gate."]
+    two_variant = [r for r in summary["objects"] if r["candidates"] == 2]
+    lines += ["Two-variant objects: " + ", ".join(f"{r['object']} tau-b {_format(r['tau_b'])}" for r in two_variant) +
+              ". With two untied variants, tau-b can only be +1 or -1."]
+    pan = next((r for r in tools if r["object"] == "mini_dust_pan"), None)
+    if pan is not None and pan["rho"] == thresholds["rho"]:
+        lines += [f"Dust pan passes at exactly rho = {_format(pan['rho'])}, the frozen threshold."]
+    lines += ["Hypothesis: " + post["hypothesis"], "", summary["limitations"]]
+    reasons = [r["reason"] for r in [*summary["missing_views"], *summary["missing_inputs"]]]
+    reasons += [r for r in [*summary["undefined_reasons"].values(), summary["spoon_undefined_reason"]] if r]
+    if reasons:
+        lines += ["", "## Unavailable inputs or values", "", *("- " + reason for reason in reasons)]
     if not summary["validated"]:
         lines += ["", "Proxy not validated for spoon CD-O inference; proxy says nothing about spoon CD-O; v4 unchanged."]
     (directory / "summary.md").write_text("\n".join(lines) + "\n")
 
 
+def read_ledger(path):
+    """Read complete rows; quarantine only a truncated final append before resuming."""
+    rows, offset = [], 0
+    lines = path.read_bytes().splitlines(keepends=True) if path.exists() else []
+    for index, line in enumerate(lines):
+        try:
+            rows.append(json.loads(line))
+        except json.JSONDecodeError as error:
+            text = line.decode().rstrip()
+            suffix = text[error.pos:]
+            partial_literal = error.msg == "Expecting value" and any(token.startswith(suffix) for token in ("true", "false", "null"))
+            partial_number = error.msg == "Expecting ',' delimiter" and re.search(r"(?:^|[:\[,]\s*)-?(?:0|[1-9]\d*)(?:\.\d*)?(?:[eE][+-]?)?$", text)
+            truncated = error.pos >= len(text) or error.msg.startswith("Unterminated string") or partial_literal or partial_number
+            if index != len(lines) - 1 or line.endswith((b"\n", b"\r")) or not text.startswith("{") or not truncated:
+                raise ValueError(f"{path}:{index + 1}: undecodable ledger row") from error
+            fragments = path.parent / "ledger-fragments"
+            fragments.mkdir(exist_ok=True)
+            (fragments / f"{new_run_id()}.bin").write_bytes(line)
+            with path.open("r+b") as stream:
+                stream.truncate(offset)
+        offset += len(line)
+    return rows
+
+
 def proxy(request, *, dry_run=False):
     """Run either target-only preparation or the committed, frozen scoring queue."""
-    frozen_id, missing = _admit(request, dry_run)
+    frozen_id, missing = _admit(request)
     data = request.data
     directory = output_path(ROOT, data["dry_output"] if dry_run else data["output"])
     directory.mkdir(parents=True, exist_ok=True)
     ledger_path = directory / "ledger.jsonl"
-    logged = {}
-    if ledger_path.exists():
-        for line in ledger_path.read_text().splitlines():
-            try:
-                row = json.loads(line)
-            except json.JSONDecodeError:
-                continue  # An interrupted append is retained, never rewritten.
-            if row["frozen_identity"] == frozen_id:
-                logged[row["identity"]] = row
+    logged = {row["identity"]: row for row in read_ledger(ledger_path) if row["frozen_identity"] == frozen_id}
     record = run_fields(ROOT, "mesh_extents", "proxy_dry" if dry_run else "proxy", {"manifest": request.path,
                         "frozen_identity": frozen_id}, inputs=[request.path, *(p for p in data["inputs"]
-                        if not any(row["path"] == p for row in missing))],
+                        if not any(row.get("path") == p for row in missing))],
                         provenance="public_asset_diagnostic")
     run_directory = directory / "runs" / new_run_id()
     started, results, masks = time.monotonic(), [], []
