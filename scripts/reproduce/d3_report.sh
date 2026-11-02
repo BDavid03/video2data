@@ -28,7 +28,11 @@ command bash -o pipefail -c 'git archive "$1" docs/report/track3 | tar -x -C "$2
 command cp -a "$ROOT/.cache/tectonic/." "$TECTONIC_CACHE_DIR/"
 FIGURES="$WORK/src/docs/report/track3/figures"
 # Read recorded inputs from this checkout; write figure PDFs into the archived tree.
+command git diff --quiet "$COMMIT" -- docs/report/track3/figures/make_figures.py || {
+  echo 'Figure generator differs from the archived commit; commit it before building.' >&2; exit 1;
+}
 command .runtime/linux-cuda/bin/python -B docs/report/track3/figures/make_figures.py --output-dir "$FIGURES"
+command .runtime/linux-cuda/bin/python -B docs/report/track3/figures/make_figures.py --qualitative --output-dir "$FIGURES"
 command .runtime/linux-cuda/bin/python -B docs/report/track3/figures/make_figures.py --pose-offsets --output-dir "$FIGURES"
 command .runtime/linux-cuda/bin/python -B docs/report/track3/figures/make_figures.py --bars --output-dir "$FIGURES"
 # Exact pinned build_pdf.sh engine arguments, with a private writable cache.

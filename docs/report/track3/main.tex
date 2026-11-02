@@ -24,12 +24,11 @@ are zero, providing no evidence of stereo-specific calibration benefit or manipu
 \setlength{\parskip}{0.25\baselineskip}
 
 \section{Primitive mesh reconstruction}
-Track 3 scores meshes (D1) and policy-rollout poses (D2) separately~\cite{challenge}.
+Track 3 scores reconstructed meshes (D1) and policy-rollout poses (D2)
+separately~\cite{challenge,faq}.
 A \emph{pair entry} is one (episode, object) slot scored by the leaderboard.
-Our mesh constructors take MoGe-2-derived extents and manually read video
-attributes; public-scan scores and renders guided rule development.
-These are our own reconstructed meshes, as required by the challenge~\cite{faq}.
-All mesh scores below describe adaptive development on reused scans.
+CD-O rewards proportions and part structure, which a few
+video measurements can capture; we show how far primitive constructions go.
 
 \noindent\begin{minipage}{\columnwidth}
 \centering
@@ -41,19 +40,22 @@ The spoon's ten entries are unmeasured.}
 \label{fig:objects}
 \end{minipage}\par
 
+CD-O registers each mesh to the scan with its own similarity transform before
+computing Chamfer distance, so it measures shape; its centimetres are not
+absolute reconstruction accuracy.
+
 \begin{samepage}
-\textbf{Measurements.} MoGe-2~\cite{moge2} supplies predicted depth and
-above-table point clusters. We name objects manually and discard merged or
-clipped observations. For each observation, divide the three extents by their
-geometric mean. Aggregate normalised extents using per-axis medians, first
-within episodes and then across episodes; at each stage, restore the median
-geometric-mean scale. This reduces scale variation but retains depth-induced
+\textbf{Measurements.} MoGe-2~\cite{moge2} supplies depth and above-table
+point clusters. We name objects manually, discarding merged or clipped
+observations. Divide each extent triplet by its geometric mean, take per-axis
+medians within then across episodes, and restore the median geometric-mean
+scale at each stage. This limits scale variation but retains depth-induced
 proportion errors.
 \par\end{samepage}
 
 \begin{samepage}
-\textbf{Shape rules.} Early rules use cylinders and box handles for vessels,
-with a handle when long/short horizontal extents satisfy $L/W>1.30$.
+\textbf{Shape rules.} Early rules use cylinders with box handles when
+long/short horizontal extents satisfy $L/W>1.30$.
 Round 2 adds cup-shaped cavities, a rim-height pot handle and a slab with
 counted rack pegs. Wall/floor thickness is $fW/2$, where $W$ is the short
 horizontal extent; cross-fitting across two five-object folds selects
@@ -69,14 +71,12 @@ shallow bowl with a narrow handle for the spoon. Component ratios were fixed
 from video before third-round scoring; no parameters were tuned in that round.
 \par\end{samepage}
 
-\subsection{Selection on reused scans}
+\subsection{Rule selection}
 \begin{samepage}
-Before third-round scoring, we fixed three candidates: rack-only, tools-only
-and combined. Their three-seed development object means were 0.72009, 0.70576
-and 0.65270\,cm (Table~\ref{tab:cdo}). The combined candidate became v4.
-The tools-only rule had to pass alone before the combined rule was allowed,
-so the rack gain could not carry an untested spoon change. Selection reused
-the same ten previously inspected scans and provides no independent assessment.
+Before third-round scoring, we fixed rack-only, tools-only and combined
+candidates (Table~\ref{tab:cdo}). The combined candidate became v4.
+Requiring tools-only to pass prevented rack gains from masking failure on the
+two scanned tools; it did not validate the spoon.
 \par\end{samepage}
 
 \noindent\begin{minipage}{\columnwidth}
@@ -108,6 +108,17 @@ The ten spoon entries are unmeasured.}
 \label{tab:cdo}
 \end{minipage}\par
 
+\noindent\begin{minipage}{\columnwidth}
+\centering
+\includegraphics[width=\columnwidth]{figures/d1-v4-qualitative.pdf}
+\captionof{figure}{Rack and dust-pan meshes beside public scans: independently
+centred and uniformly normalised, with matched orthographic views. Spoon:
+identical crops of recorded evaluation-15 video overlays; green is the observed
+mask, magenta the projected mesh outline. Higher silhouette IoU does not
+establish better CD-O.}
+\label{fig:qualitative}
+\end{minipage}\par
+
 \begin{samepage}
 On the measured 26/36 entries, v4 improves the object mean by 15.3\% and the pair
 mean by 18.3\% relative to v3 (Table~\ref{tab:cdo}); nine entries improve,
@@ -117,21 +128,18 @@ maximum 0.0214: sampling variability, not uncertainty on new objects.
 \par\end{samepage}
 
 \begin{samepage}
-\textbf{Design exposure.} Scan feedback guided earlier rules and measurement
-thresholds. Round 3 rebuilt poorly scoring objects; tools-only is a second
-attempt on the same two scanned tools after the first round failed.
-The rack compartment was visible in previously viewed scan renders.
-The rack rule changes one scanned object and the tool rule two; this approaches
-our own stricter prohibition on choosing shapes object by object from scan scores,
-which is not a challenge rule. Repeated selection increases optimism by an
-unknown amount.
+\textbf{Design exposure.} Scan feedback guided rules and measurement
+thresholds. Round 3 rebuilt poor performers; tools-only retries the two scanned
+tools after round 1 failed. The rack compartment had appeared in scan renders.
+Rack and tool rules change one and two scanned objects, respectively.
+Selection reused the same ten inspected scans without independent assessment;
+optimism is unknown.
 \par\end{samepage}
 
 \begin{samepage}
-\textbf{Unmeasured spoon.} Its ten of 36 leaderboard entries change from a box
-to a bowl and handle without a scan. Bowl-depth ratios are coarse, visually
-estimated values recorded with medium confidence. An average spoon regression
-of about 0.39\,cm would cancel the measured gain over all 36 entries:
+\textbf{Unmeasured spoon.} Ten of 36 entries change from a box to a bowl and
+handle without a scan, using medium-confidence video-read depth ratios.
+An average spoon regression of 0.39\,cm would cancel the measured gain:
 $26(0.8115-0.6629)/10$. Its leaderboard effect is unknown.
 A scan-free silhouette check fixed before scoring failed validation against
 recorded CD-O (5/8 objects passed; sweeper Spearman $\rho=-0.09$), so it cannot
@@ -139,66 +147,53 @@ infer spoon CD-O. Descriptively, v4's outline fits the spoon's video mask better
 than the box (mean intersection-over-union $+0.23$); v4 is unchanged.
 \par\end{samepage}
 
+
 \section{Static poses: a negative result}
 \begin{samepage}
 FlashCHORD~\cite{flashchord} evaluates static video-sized boxes with parked
-hands. The baseline uses video centroids, preset fallback positions when no
-centroid is available, and stacking for objects sharing a point cluster.
-Selection was exploratory: single-object tuning episodes cannot evaluate
-the second-object correction.
+hands. The baseline uses video centroids, preset fallbacks and shared-cluster
+stacking. Selection was exploratory: single-object tuning episodes cannot
+evaluate a second-object correction.
 \par\end{samepage}
 
 \begin{samepage}
-Stereo shrinkage scales the second object's horizontal displacement from the
-first by a stereo/MoGe-2 depth ratio: median over jointly valid pixels, then
-frames. Uniform shrinkage uses the mean of the training episodes' stereo factors.
-Stereo MPPE is 20.84\,cm versus 20.80\,cm for uniform (Table~\ref{tab:pose});
-both success rates are zero, offering no evidence of stereo-specific calibration
-benefit or manipulation.
+Stereo shrinkage uses a stereo/MoGe-2 depth ratio; uniform uses its training
+mean. Both give nearly equal initial-placement error on all eight episodes and
+similar rollout errors (Table~\ref{tab:pose}), with zero success rates.
 \par\end{samepage}
 
 \noindent\begin{minipage}{\columnwidth}
 \centering
 \small
 \setlength{\tabcolsep}{2.5pt}
-\begin{tabular}{lrrrr}
+\begin{tabular}{lrrr}
 \toprule
-Placement & AUC $\uparrow$ & SP-SR $\uparrow$ & \shortstack{RPE\\cm $\downarrow$} & \shortstack{MPPE\\cm $\downarrow$} \\
+Placement & AUC $\uparrow$ & \shortstack{RPE\\cm $\downarrow$} & \shortstack{MPPE\\cm $\downarrow$} \\
 \midrule
-\multicolumn{5}{l}{Eight training episodes (equal-episode means)} \\
-Centroids + stacking & 0.2688 & 0 & 39.36 & 22.82 \\
-Stereo shrinkage & 0.2690 & 0 & 35.34 & 20.84 \\
-Uniform shrinkage & 0.2690 & 0 & 35.28 & 20.80 \\
+\multicolumn{4}{l}{Eight training episodes (equal-episode means)} \\
+Centroids + stacking & 0.2688 & 39.36 & 22.82 \\
+Stereo shrinkage & 0.2690 & 35.34 & 20.84 \\
+Uniform shrinkage & 0.2690 & 35.28 & 20.80 \\
 \bottomrule
 \end{tabular}
-\captionof{table}{Kit rollout metrics~\cite{challenge}. AUC: normalised area of
-surface-point accuracy at 1--9\,cm thresholds. SP-SR requires mean position
+\captionof{table}{Kit rollout metrics~\cite{challenge}. AUC integrates
+surface-point accuracy at 1--9\,cm, normalised. SP-SR requires mean position
 error $\leq$10\,cm and mean rotation error $\leq$0.5\,rad; MP-SR requires every
-object $<$3\,cm and $<$30$^\circ$ and is zero throughout. RPE: relative-position
-error. MPPE: mean error of six body-fixed points, 5\,cm from the origin along
-the positive/negative coordinate axes.}
+object $<$3\,cm and $<$30$^\circ$. SP-SR and MP-SR are zero for every row.
+RPE: relative-position error. MPPE: mean error of six body-fixed points at
+$\pm$5\,cm on the three coordinate axes.}
 \label{tab:pose}
 \end{minipage}\par
 
-\noindent\begin{minipage}{\columnwidth}
-\centering
-\includegraphics[width=\columnwidth]{figures/d2-slot1-offset.pdf}
-\captionof{figure}{Initial second-object position error in the first object's
-body frame. Initial-placement diagnostic; Table~\ref{tab:pose} reports rollout
-metrics. Episodes 0 and 26 have stacked initial placements.}
-\label{fig:offset}
-\end{minipage}\par
-
 \section{Conclusion}
-\noindent On ten reused scans covering 26/36 entries, v4 object-mean CD-O is
-0.6534\,cm versus v3's 0.7711\,cm (Table~\ref{tab:cdo}). This adaptive result
-does not isolate a cause, measure the spoon or demonstrate manipulation.
+\noindent V4 improves measured shape scores (Table~\ref{tab:cdo}), without
+isolating a cause. Spoon accuracy and manipulation remain unverified.
 
 \typeout{TRACK3-MAIN-TEXT-END-PAGE: \thepage}
 \typeout{TRACK3-TABLE-PAGE: \getpagerefnumber{tab:cdo}}
 \typeout{TRACK3-FIGURE-PAGE: \getpagerefnumber{fig:objects}}
 \typeout{TRACK3-POSE-TABLE-PAGE: \getpagerefnumber{tab:pose}}
-\typeout{TRACK3-OFFSET-FIGURE-PAGE: \getpagerefnumber{fig:offset}}
+\typeout{TRACK3-QUALITATIVE-FIGURE-PAGE: \getpagerefnumber{fig:qualitative}}
 \clearpage
 \bibliographystyle{plainnat}
 \bibliography{references}
