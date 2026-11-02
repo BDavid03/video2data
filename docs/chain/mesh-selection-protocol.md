@@ -316,3 +316,78 @@ One synthetic unit cube outside the panel may check rendering; its artifact is n
 Phase 2: CPU only, <=149 candidate-view trials and 7200 seconds per invocation; identity-based resume, append-only ledger.
 Require request/protocol/source bytes to match HEAD before phase-2 scoring; never modify historical trial records.
 Report small n, silhouette blindness, mask/placement errors, reused development objects and construction-view optimism.
+
+## Amendment 5 (round 4): pooled vessel profiles and exterior rack boundary, fixed before any round-4 score
+
+Dated **2026-11-03**. All earlier text is retained (Amendment 4 is in
+`docs/chain/mesh-proxy-insights-protocol.md`). The lead commits this amendment before any round-4
+job runs. Phase A (build and kill tests) reads video-derived data and candidate geometry only: it
+never opens a public scan, never calls a CD-O scorer and reads no CD-O ledger except the ten R9
+baseline rows named below (already published in the round-3 summary). Phase B
+(scoring) starts only after the lead has committed the frozen queue
+`track3/features/mesh_extents/rules-round4.json`, the new code and the candidate-geometry hashes.
+Episodes 41, 43 and 44 are excluded everywhere. The spoon is unchanged in every candidate.
+
+### Incumbent and baseline
+
+The incumbent is **packed D1 v4** (R9 rack-and-tools; placeholder-URL Parquet SHA-256 prefix
+`6663a1c7`, real-URL file `a4c7f8a5`; geometry identical). The development baseline is the ten R9
+rows of `outputs/mesh_extents/rules-round3/ledger.jsonl` (kit seed episodes 1/3/5, original folds):
+**0.65270 cm per object / 0.66288 cm pair-weighted**; the frozen queue copies the full-precision
+values from that ledger and they govern. The packed baseline is
+`outputs/mesh_eval/pairs/mesh-round3-veto/summary.json`: **0.65338396 per object /
+0.66292148 pair-weighted** on 26/36 covered pairs. This is the fourth adaptive round on the same
+ten public scans; every result is development evidence with selection optimism of unknown size.
+
+### Two components, three candidates, no scan-chosen parameter
+
+- **R10 pooled vessel profile.** For the round vessels (beige_cup, blue_cup, white_pot,
+  water_pitcher) the constant-radius body of the v4 vessel is replaced by a revolved body whose
+  radius follows a normalized radius-versus-height profile with **three height knots**, fitted
+  from the depth points of the object's assigned opening-frame clusters already saved by the
+  recorded v4 measure runs. Each frame gets its own centre, scale and local table plane; the
+  profile is pooled robustly across admitted frames and episodes. v4's handles, wall/radius
+  ratio 0.10, open top, cavity construction and pooled overall extents are kept exactly. No CD-O
+  enters any choice: profile complexity, robust loss, frame rejection and fallback thresholds
+  are fixed in Phase A from video evidence on tuning episodes 39/42 (pot on 42) only, then frozen.
+- **R10 per-object fallback gate (video only, fixed now).** An eligible vessel takes its fitted
+  profile only if, on its own admitted frames, (a) profiles fitted to two disjoint frame subsets
+  differ by less than **5 % of body radius** at every knot, (b) the fitted profile's held-out-frame
+  surface residual is at least **10 % lower** than the constant-radius body's, and (c) visible
+  surface coverage of the held-out frames is not lower. Otherwise it keeps its v4 bytes.
+- **R10 kill test (Phase A, before freezing).** On public tuning episode 42 (white_pot), fit
+  disjoint frame subsets and predict omitted frames. If (a) or (b) fails there, or the pot's height
+  coverage is too thin to place three knots, R10 is dropped and the round continues with R11 only.
+  Episode 39 is a negative control for table and mask handling only, not vessel-fit evidence.
+- **R11 exterior rack boundary.** The v4 rack (R7, all axis-aligned boxes) is rebuilt as the exact
+  boundary of the union of the same boxes: coordinate intervals at every box face, occupied cells,
+  faces only between occupied and empty cells, coplanar patches merged. Occupied volume, overall
+  extents, cavities and every component dimension are unchanged; buried and coincident internal
+  faces disappear (idea 38 measured 10.54 % buried area). No parameter.
+- **R11 kill test (Phase A).** The boundary mesh must be watertight and consistently oriented,
+  with volume equal to the union volume (1e-6 relative), bounds equal to v4's rack bounds, and
+  fewer than 4096 vertices and 4096 faces. Otherwise R11 is dropped.
+- **Candidates.** C10 = v4 + R10; C11 = v4 + R11; C12 = v4 + R10 + R11 (exact components, nothing
+  new). Untouched objects keep v4 bytes, and the existing constructors must still rebuild v4
+  byte-identically (`scripts/reproduce/d1_meshes.sh <url> --version v4 --run` identity checks).
+  No file pinned by a v4 manifest is edited; new code lives in new modules of `mesh_extents`.
+
+### Gates and selection (development, matched seeds 1/3/5, all ten scanned objects)
+
+A candidate is **eligible** when its equal-object mean is **strictly below 0.62270 cm** (baseline
+minus 0.03; the queue states the full-precision value), no object regresses by **more than
+0.15 cm** against its R9 row, and its pair-weighted mean is **no worse than the R9 pair-weighted
+mean**. C12 is eligible only if C10 and C11 each, alone, regress no object by more than 0.15 cm
+and lower the equal mean of the objects they change; this stops one component subsidising a
+harmful other. The lowest eligible equal-object mean wins; ties go C11, C10, C12 (simplest first).
+Seeds: report each candidate's per-object seed SD. No grid, no per-object mixture, no rescoring
+after a result, no repair of a losing component.
+
+### Packed veto
+
+Only the development winner is built with the production builder (all 11 objects), packed with a
+placeholder URL and scored with `track3/features/mesh_eval` pairs (each pair its own kit seed).
+It is adopted as D1 v5 only if packed per-object mean **< 0.62338396 cm**, packed pair-weighted
+mean **<= 0.66292148 cm**, and no object is worse than packed v4 by **> 0.15 cm**. Failure keeps
+v4: no runner-up, no retuning. A v5 is then repacked with the real-URL script at a new commit and
+the upload commands go to `docs/chain/NEEDS-YOU.md`; uploading stays the owner's choice.
