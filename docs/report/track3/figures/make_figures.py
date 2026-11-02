@@ -1,4 +1,4 @@
-"""Draw the mesh panel (default), pose offsets (--pose-offsets), or legacy bars (--bars)."""
+"""Draw the mesh panel, v2/S1 pose offsets, pipeline, or legacy mesh bars."""
 
 import argparse
 import json
@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
-os.environ.setdefault("MPLCONFIGDIR", str(ROOT / ".runtime/tmp/ctx05-matplotlib"))
+os.environ.setdefault("MPLCONFIGDIR", str(ROOT / ".runtime/tmp/ctx06/d3/matplotlib"))
 
 import matplotlib
 
@@ -17,7 +17,7 @@ import trimesh
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 SUMMARY = ROOT / "outputs/mesh_eval/rules/summary.json"
-PLACEMENT = ROOT / "outputs/pose_insurance/placement"
+POSE_SCALE = ROOT / "outputs/pose_insurance/scale/summary.json"
 BUILD = ROOT / "outputs/mesh_extents/build/20261101T160402.316899Z-0c4f8b6f"
 SCORES = ROOT / "outputs/mesh_eval/d1-ctx03/v2-cdo.json"
 BOX_SCORES = ROOT / "outputs/mesh_eval/d1-ctx02/v1-box.json"
@@ -43,46 +43,99 @@ LABELS = {
 
 
 def pose_offset_panel(episodes: list[int], offsets: dict[str, list[float]]) -> plt.Figure:
-    """Plot recorded frame-zero translation errors against the kit's 9 cm threshold."""
-    plt.rcParams.update({"font.size": 7, "pdf.fonttype": 42})
-    fig, ax = plt.subplots(figsize=(3.18, 1.65), layout="constrained")
+    """Compare v2 and S1 frame-zero offsets with the largest kit AUC threshold."""
+    plt.rcParams.update({"font.size": 9, "pdf.fonttype": 42})
+    fig, ax = plt.subplots(figsize=(3.18, 1.95), layout="constrained")
     x = np.arange(len(episodes))
-    for shift, name, colour, hatch in ((-0.18, "v1", BLUE, ""),
-                                      (0.18, "K1a", "#D55E00", "//")):
-        ax.bar(x + shift, offsets[name], width=0.34, label=name,
+    for shift, name, label, colour, hatch in (
+        (-0.18, "incumbent", "v2 rule", BLUE, ""),
+        (0.18, "S1", "S1 stereo scale", "#D55E00", "//"),
+    ):
+        ax.bar(x + shift, offsets[name], width=0.34, label=label,
                color=colour, hatch=hatch, linewidth=0.4, edgecolor="white")
     ax.axhline(9, color="#333333", linestyle="--", linewidth=0.9)
-    ax.text(0.99, 9.8, "9 cm: largest AUC threshold", ha="right", va="bottom",
-            transform=ax.get_yaxis_transform(), fontsize=6.5,
+    ax.text(7.4, 10.5, "9 cm", ha="right", va="bottom", fontsize=9,
             bbox={"facecolor": "white", "edgecolor": "none", "pad": 1})
-    ax.set(xticks=x, xticklabels=episodes, xlabel="Public train episode",
-           ylabel="Slot-1 offset error (cm)", ylim=(0, 90), yticks=[0, 20, 40, 60, 80])
+    labels = [f"{episode}*" if episode in (0, 26) else str(episode) for episode in episodes]
+    ax.set(xticks=x, xticklabels=labels, xlabel="Train episode (* stacked)",
+           ylabel="Offset error (cm)", ylim=(0, 88), yticks=[0, 20, 40, 60, 80])
     ax.grid(axis="y", color="#dddddd", linewidth=0.5)
     ax.set_axisbelow(True)
     ax.spines[["top", "right"]].set_visible(False)
-    ax.legend(frameon=False, ncol=2, loc="upper left", fontsize=6.5)
+    ax.tick_params(axis="x", pad=2)
+    ax.legend(frameon=False, ncol=2, loc="upper left", fontsize=9,
+              handlelength=1.1, columnspacing=0.8, handletextpad=0.4)
     return fig
 
 
 def pose_offset_chart(preview: Path | None, output_dir: Path = TARGET.parent) -> None:
-    """Follow ledger run pointers to saved decompositions, without executing metrics."""
+    """Read episode and candidate keys from the saved scale summary, without rescoring."""
     episodes = [0, 11, 12, 18, 21, 23, 26, 31]
-    offsets = {name: {} for name in ("v1", "K1a")}
-    for line in (PLACEMENT / "ledger.jsonl").read_text().splitlines():
-        row = json.loads(line)
-        if row["candidate"] in offsets and row["status"] == "completed":
-            saved = json.loads((ROOT / row["run"]).with_name("metrics.json").read_text())
-            offsets[row["candidate"]][row["episode"]] = saved["frame0"]["offset_error_cm"]
-    values = {name: [by_episode[e] for e in episodes] for name, by_episode in offsets.items()}
+    summary = json.loads(POSE_SCALE.read_text())
+    values = {
+        name: [summary["episodes"][name][str(e)]["frame0"]["offset_error_cm"] for e in episodes]
+        for name in ("incumbent", "S1")
+    }
     fig = pose_offset_panel(episodes, values)
     target = output_dir / "d2-slot1-offset.pdf"
-    fig.savefig(target, metadata={"Title": "Recorded frame-zero slot-1 offset errors",
+    fig.savefig(target, metadata={"Title": "v2 and stereo-scaled frame-zero slot-1 offset errors",
                                  "Author": "", "Creator": "", "CreationDate": None,
                                  "ModDate": None})
     if preview:
         fig.savefig(preview, dpi=300)
     plt.close(fig)
     print(json.dumps({"episodes": episodes, "offset_error_cm": values}, indent=2))
+    print(target.relative_to(ROOT))
+
+
+def pipeline_panel() -> plt.Figure:
+    """Draw the mesh and static-pose branches at column width with template-sized text."""
+    fig, ax = plt.subplots(figsize=(3.18, 1.95))
+    fig.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99)
+    ax.set(xlim=(0, 1), ylim=(0, 1))
+    ax.set_axis_off()
+    nodes = {
+        "video": (0.5, 0.94, "Egocentric video"),
+        "depth": (0.5, 0.77, "MoGe-2 depth + stereo scale"),
+        "extents": (0.23, 0.59, "Object extents"),
+        "placement": (0.74, 0.59, "Frame-0 placement"),
+        "shape": (0.23, 0.39, "R2: vessel + handle;\nelse box"),
+        "scene": (0.74, 0.39, "Static scene\nS1 offset scale"),
+        "meshes": (0.23, 0.12, "D1 meshes"),
+        "kit": (0.74, 0.20, "evaluate_policy.py"),
+        "poses": (0.74, 0.055, "D2 trajectories"),
+    }
+    for source, dest in (("video", "depth"), ("depth", "extents"),
+                         ("depth", "placement"), ("extents", "shape"),
+                         ("shape", "meshes"), ("placement", "scene"),
+                         ("scene", "kit"), ("kit", "poses")):
+        endpoint = nodes[dest][:2]
+        if source == "depth":
+            endpoint = (endpoint[0], endpoint[1] + 0.065)
+        ax.annotate("", xy=endpoint, xytext=nodes[source][:2],
+                    arrowprops={"arrowstyle": "->", "color": "#555555",
+                                "linewidth": 0.9,
+                                "shrinkA": 13 if source in ("shape", "scene") else 7,
+                                "shrinkB": 0 if source == "depth" else
+                                13 if dest in ("shape", "scene") else 7})
+    for name, (x, y, label) in nodes.items():
+        ax.text(x, y, label, ha="center", va="center", fontsize=10,
+                color=BLUE if name == "meshes" else "#D55E00" if name == "poses" else "#222222",
+                bbox={"facecolor": "#F0F5F8" if name in ("shape", "scene") else "white",
+                      "edgecolor": "none", "pad": 2})
+    return fig
+
+
+def pipeline_chart(preview: Path | None, output_dir: Path = TARGET.parent) -> None:
+    """Save the schematic without loading data or running either submission branch."""
+    fig = pipeline_panel()
+    target = output_dir / "pipeline.pdf"
+    fig.savefig(target, metadata={"Title": "Track 3 mesh and static-pose pipeline",
+                                 "Author": "", "Creator": "", "CreationDate": None,
+                                 "ModDate": None})
+    if preview:
+        fig.savefig(preview, dpi=300)
+    plt.close(fig)
     print(target.relative_to(ROOT))
 
 
@@ -183,13 +236,17 @@ def qualitative_panel(rows):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--bars", action="store_true", help="regenerate the legacy score chart")
-    parser.add_argument("--pose-offsets", action="store_true", help="draw recorded pose offsets")
+    parser.add_argument("--pose-offsets", action="store_true", help="draw recorded v2/S1 pose offsets")
+    parser.add_argument("--pipeline", action="store_true", help="draw the mesh and pose pipeline")
     parser.add_argument("--preview", type=Path, help="also save the panel as a 300 dpi PNG")
     parser.add_argument("--output-dir", type=Path, default=TARGET.parent,
                         help="write figure PDFs here instead of beside this script")
     args = parser.parse_args()
     args.output_dir = args.output_dir.resolve()
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    if args.pipeline:
+        pipeline_chart(args.preview, args.output_dir)
+        return
     if args.pose_offsets:
         pose_offset_chart(args.preview, args.output_dir)
         return
