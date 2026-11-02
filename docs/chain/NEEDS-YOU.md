@@ -18,7 +18,7 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
    accepting rules.
 
    **Both Track 3 files are ready (D1 v2 from context 03, D2 v3 from context 05; branch `worktree-chain-ctx01`).** Each carries a
-   placeholder commit URL. After item 1 (push a commit that contains context 05's last commit or later), run from
+   placeholder commit URL. After item 1 (push a commit that contains context 06's last commit or later), run from
    the checkout that holds the outputs (the worktree `.claude/worktrees/chain-ctx01`, or main after
    copying `outputs/mesh_extents/`, `outputs/pose_insurance/` and `outputs/stereo_depth/` back), with `<owner>/<repo>` and the
    pushed `<sha>` filled in. The geometry and trajectories are identical to the packed files; only
@@ -85,6 +85,10 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
    `outputs/pose_insurance` (new `scale/`, `v3/`, `results-v3/` and run dirs), `outputs/stereo_depth`,
    `outputs/mesh_extents/build/20261102T000114.850697Z-1a4c354e` and
    `submissions/20261102T0032Z-d2-v3`.
+   *Update, context 06:* main again equalled the branch at start (`5972bdd`) and the guard still
+   refused edits, so context 06 worked on `worktree-chain-ctx01` (commits after `5972bdd`). To
+   continue: in main, `git merge worktree-chain-ctx01`; copy back with `cp -al`
+   `outputs/pose_insurance/shrink` and `outputs/mesh_eval/pairs`. No packed file changed.
    *Notifications (2026-11-02, at the owner's request):* the branch's `scripts/chain/session_chain.py`
    now logs `STRANDED` with the merge command when a newer hand-off exists only in a worktree, and
    rings the terminal bell on that and on every finish (STALLED, LIMIT, COMPLETE). Set
