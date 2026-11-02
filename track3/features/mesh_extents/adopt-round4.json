@@ -1,0 +1,8 @@
+{
+  "queue": "track3/features/mesh_extents/rules-round4.json",
+  "output": "outputs/mesh_extents/adopt-round4",
+  "incumbent_manifest": "submissions/20261102T0516Z-d1-v4/manifest.json",
+  "frozen_commit": "HEAD",
+  "score_cache": "outputs/mesh_extents/rules-round4/scores",
+  "code_commit_url": "https://github.com/OWNER-PLACEHOLDER-not-final/video2data/commit/0000000000000000000000000000000000000000"
+}

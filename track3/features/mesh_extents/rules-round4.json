@@ -1,0 +1,135 @@
+{
+  "round": 4,
+  "output": "outputs/mesh_extents/rules-round4",
+  "build": "outputs/mesh_extents/build/20261102T051416.149421Z-f377e0a1",
+  "attributes": "track3/features/mesh_extents/attributes-round3.json",
+  "base_attributes": "track3/features/mesh_extents/attributes.json",
+  "incumbent": {
+    "label": "R9 rack-and-tools / packed v4 (development seeds 1/3/5)",
+    "ledger": "outputs/mesh_extents/rules-round3/ledger.jsonl",
+    "rule": "R9 rack-and-tools",
+    "parameter": null,
+    "build": "outputs/mesh_extents/build/20261102T051416.149421Z-f377e0a1",
+    "per_object_cm": {
+      "beige_cup": 0.3207342096946351,
+      "blue_cup": 0.380004128502687,
+      "mini_dust_pan": 0.5140177537468585,
+      "mini_sweeper": 0.5969603887017243,
+      "plastic_dish_rack": 0.8601408999547365,
+      "water_pitcher": 1.472552596081469,
+      "white_pot": 0.8631161086673155,
+      "white_pot_lid": 0.6755823809179679,
+      "wooden_piece_1": 0.44443347270991,
+      "wooden_piece_2": 0.39948843967464204
+    },
+    "per_object_mean_cm": 0.6527030378651946,
+    "pair_weighted_mean_cm": 0.6628808995369784,
+    "pair_counts": {
+      "beige_cup": 2,
+      "blue_cup": 5,
+      "mini_dust_pan": 2,
+      "mini_sweeper": 2,
+      "plastic_dish_rack": 5,
+      "water_pitcher": 1,
+      "white_pot": 6,
+      "white_pot_lid": 1,
+      "wooden_piece_1": 1,
+      "wooden_piece_2": 1
+    },
+    "seed_std_cm": {
+      "beige_cup": 0.0023110032254011386,
+      "blue_cup": 0.0030230002302918464,
+      "mini_dust_pan": 0.001603160367295024,
+      "mini_sweeper": 0.005585445093839869,
+      "plastic_dish_rack": 0.007501955010517485,
+      "water_pitcher": 0.02136714096735155,
+      "white_pot": 0.007384020711811657,
+      "white_pot_lid": 0.002681071807640951,
+      "wooden_piece_1": 0.0009183614444309756,
+      "wooden_piece_2": 0.0009178234019523273
+    },
+    "seed_std_mean_cm": 0.0053292982260532825,
+    "seed_std_max_cm": 0.02136714096735155,
+    "packed_parquet_sha256": "6663a1c7e0491c0cfa53b27fe36d7904455351dad548181e4e59a2263215af50",
+    "packed_summary": "outputs/mesh_eval/pairs/mesh-round3-veto/summary.json",
+    "packed_per_object_cm": {
+      "beige_cup": 0.3255779904456613,
+      "blue_cup": 0.3813848177210324,
+      "mini_dust_pan": 0.5175778895841998,
+      "mini_sweeper": 0.5822331273978031,
+      "plastic_dish_rack": 0.8648440157297346,
+      "water_pitcher": 1.4871715535982997,
+      "white_pot": 0.8583628989575244,
+      "white_pot_lid": 0.6652307596979717,
+      "wooden_piece_1": 0.44528260815414733,
+      "wooden_piece_2": 0.40617392858672485
+    },
+    "packed_per_object_mean_cm": 0.6533839589873099,
+    "packed_pair_weighted_mean_cm": 0.6629214779189021
+  },
+  "seed_episodes": [
+    1,
+    3,
+    5
+  ],
+  "gates": {
+    "minimum_gain_cm": 0.03,
+    "per_object_mean_strict_upper_cm": 0.6227030378651945,
+    "maximum_regression_cm": 0.15,
+    "pair_weighted_mean_upper_cm": 0.6628808995369784
+  },
+  "packed_veto": {
+    "per_object_mean_strict_upper_cm": 0.62338396,
+    "pair_weighted_mean_upper_cm": 0.66292148,
+    "maximum_object_regression_cm": 0.15,
+    "failure_policy": "Keep v4; no runner-up or retuning."
+  },
+  "budget": {
+    "max_object_trials": 10,
+    "max_seconds": 7200,
+    "max_candidate_builds": 11
+  },
+  "dropped_candidates": {
+    "C10": "R10 failed tuning-42 subset stability: 0.456684 of radius >= 0.05.",
+    "C12": "R10 dropped; no combined candidate."
+  },
+  "phase_a_evidence": [
+    "outputs/mesh_extents/round4-union/report.md",
+    "outputs/mesh_extents/round4-profiles/report.md"
+  ],
+  "rules": [
+    {
+      "name": "R11 rack-union",
+      "parameter": null,
+      "grid": [
+        null
+      ],
+      "base_rule": "R6 peg-rack",
+      "wall_radius_fraction": 0.1,
+      "aspect_threshold": 1.3,
+      "handle_height_fraction": 0.6,
+      "compartment_rack": true,
+      "thin_tool_profiles": true,
+      "shapes": {
+        "round_vessel": "vessel_with_handle",
+        "flat_or_blocky": "box",
+        "thin_tool": "box"
+      },
+      "candidate": "C11",
+      "rack_union": true
+    }
+  ],
+  "candidate_mesh_sha256": {
+    "beige_cup": "ada9ca29abcf6c12db12e6f070af15b788ab382ed7e77e73eebee2b587b5e5b4",
+    "blue_cup": "fb4379a5f01823633852d22dc5e32480707ce6420bbdf6eab64bef0a253f7b00",
+    "mini_dust_pan": "a46e438545fa4a32ce45c667c40d10c75cbd7ae442f30ec781b53843099ba190",
+    "mini_sweeper": "c294cab5ecd39460672196c9bd04eb5064a2dd89e5059c1036cb49e149ab8c95",
+    "plastic_dish_rack": "75f2fa6d21c4553b2ce4236dfea689ca2cb25213cc3584918b1a1ce03e3ee2b5",
+    "water_pitcher": "50774ba9c01f32f5f9fbc8f889f29a2914f663603bc19eb5d329b8ea32439e28",
+    "white_pot": "d18d668e4ac60c76433b2d16dc1f9161d2d118531457e39fa9b9ee256844e7e1",
+    "white_pot_lid": "8861228ad08cdfd29443cfe679c53e8092c39cfeda3e08ce1507bc2cc3b36ea2",
+    "wooden_piece_1": "525ed2ddac44e4df8eb9d8423011a69cfd052bf4a207d11a3e9d2cd679abc8f1",
+    "wooden_piece_2": "3c544514caa89889ce7730f7be2c640cf3930ca411ae65cd995926a170ece249",
+    "wooden_spoon": "28c4f67eecd0296c898dc63b3ec312d03381ee47ba7e44aa310a49eb99e9c48d"
+  }
+}

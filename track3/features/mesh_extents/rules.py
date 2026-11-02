@@ -18,7 +18,8 @@ from track3.provenance import input_file, read_run, run_fields, sha256_file, wri
 from track3.runs import ROOT, artifact, new_run_id, recorded, runtime_flag
 
 from ._render import plot, render_candidate, render_video_comparison
-from ._rule_scores import CATEGORIES, FOLDS, NAMES, mesh_for, select, shape_for
+from ._rule_scores import CATEGORIES, FOLDS, NAMES, select, shape_for
+from ._union import mesh_for
 
 FEATURE = Path(__file__).parent
 BUILD = Path("outputs/mesh_extents/build/20261101T103838.400965Z-117fbcff")
@@ -27,6 +28,7 @@ OUTPUT = Path("outputs/mesh_eval/rules")
 SEEDS = [1, 3, 5]
 ROUND3_QUEUE_SHA256 = "5644a29dd2432feea4fb1bda6b4f156b3559e193d84d289cb97fdb602456edb3"
 ROUND2_QUEUE_SHA256 = "3b21c00b7e215c5af027ffe2e09f28d7674fc1e48d48926c5751f9698fea05aa"
+ROUND4_QUEUE_SHA256 = "2aa73fd03ef2d9199daa954a4442bd3b04b2f16ae9e1b9a49a3ba7b1ced38776"
 
 
 ROUND_TEXT = {
@@ -48,6 +50,12 @@ ROUND_TEXT = {
         "spoon": "The unscanned spoon is not scored; its profile changes only through independently eligible R8.",
         "verdict": "Development eligible (veto pending)",
     },
+    4: {
+        "rules": "C11 = v4 + R11: exact exterior union of the R7 rack boxes; every other object retains v4 geometry. No fitted parameter. R10 failed its video-only kill test; C10/C12 were dropped before scoring.",
+        "adoption": "Fourth adaptive round on the same ten public scans: selection optimism is unknown. Development eligibility is provisional until the single-winner packed-v4 veto; failure keeps v4 without retuning or runner-up substitution.",
+        "spoon": "The unscanned spoon retains v4 bytes and is not scored.",
+        "verdict": "Development eligible (veto pending)",
+    },
 }
 
 
@@ -56,10 +64,14 @@ def identity(value: dict) -> str:
 
 
 def read_queue(path: Path) -> dict:
-    """Read one admitted queue, checking frozen round-2/3 bytes exactly."""
+    """Read one admitted queue, checking frozen round-2/3/4 bytes exactly."""
     data = path.read_bytes()
     queue = json.loads(data)
     rules = queue["rules"]
+    if queue.get("round") == 4:
+        if hashlib.sha256(data).hexdigest() != ROUND4_QUEUE_SHA256:
+            raise ValueError("Round-4 queue differs from its frozen hash")
+        return queue
     if queue.get("round") == 3:
         if hashlib.sha256(data).hexdigest() != ROUND3_QUEUE_SHA256:
             raise ValueError("Round-3 queue differs from its frozen hash")
@@ -146,7 +158,10 @@ def evaluate_object(rule: dict, parameter, name: str, context: dict) -> dict:
     shape, candidate, geometry = build_candidate(rule, parameter, name, row["extents_m"],
                                                 ROOT / context["build"] / row["file"], output / "meshes",
                                                 context.get("attributes"))
-    score_inputs = {"candidate_sha256": sha256_file(candidate), "reference": context["references"][name],
+    mesh_hash = sha256_file(candidate)
+    if context.get("frozen_meshes") and mesh_hash != context["frozen_meshes"][name]:
+        raise ValueError(f"Scoring mesh differs from frozen geometry: {name}")
+    score_inputs = {"candidate_sha256": mesh_hash, "reference": context["references"][name],
                     "scoring": context["scoring"]}
     score_id = identity(score_inputs)
     request = {"rule": {key: value for key, value in rule.items() if key != "grid"},
@@ -283,7 +298,8 @@ def write_report(summary: dict, directory: Path) -> None:
     text += ["", "![Per-object CD-O](rules-cdo.png)", "",
              f"Figure: {summary.get('baseline_label', 'Box v1')} versus each rule's development per-object CD-O (cm). "
              "These are development estimates against the public scans, not an independent final assessment.", "",
-             "Concatenated components remain individually closed; overlaps leave internal faces. "
+             ("R11 removes internal rack faces; other concatenated shapes can retain overlaps. "
+              if summary.get("round") == 4 else "Concatenated components remain individually closed; overlaps leave internal faces. ") +
              "The real run checks the kit's 4096-row budget and finite area-weighted sampling, " +
              "not Boolean union or physical simulation validity. " + prose["spoon"], "",
              f"This invocation: {summary['new_scores']} new mesh scores, {summary['reused_scores']} reused mesh scores, "
@@ -299,7 +315,7 @@ def write_report(summary: dict, directory: Path) -> None:
 def incumbent_scores(queue: dict) -> tuple[dict, list]:
     """Read the exact fixed-threshold incumbent from its completed ledger rows."""
     incumbent = queue["incumbent"]
-    if queue.get("round") == 3:
+    if queue.get("round") in (3, 4):
         return incumbent["per_object_cm"], [{"object": n, "seed_std_cm": v}
                                            for n, v in incumbent["seed_std_cm"].items()]
     rows = {}
@@ -319,7 +335,7 @@ def incumbent_scores(queue: dict) -> tuple[dict, list]:
 
 def frozen_inputs_for(queue: dict) -> tuple[dict, dict, list]:
     """Read frozen video attributes and the matched incumbent inputs."""
-    if queue.get("round") not in (2, 3):
+    if queue.get("round") not in (2, 3, 4):
         return {}, {}, []
     path = project_path(ROOT, queue["attributes"])
     attributes = json.loads(path.read_text())
@@ -330,7 +346,7 @@ def frozen_inputs_for(queue: dict) -> tuple[dict, dict, list]:
             if evidence["episode"] in (41, 43, 44):
                 raise ValueError("Excluded episode in video attributes")
     baseline, _ = incumbent_scores(queue)
-    if queue.get("round") == 3:
+    if queue.get("round") in (3, 4):
         base_path = project_path(ROOT, queue["base_attributes"])
         return attributes["objects"], {"attributes": input_file(ROOT, path),
                                         "base_attributes": input_file(ROOT, base_path),
@@ -342,7 +358,7 @@ def frozen_inputs_for(queue: dict) -> tuple[dict, dict, list]:
 
 
 def production_dry_builds(queue_path: Path, queue: dict, parent: dict, sources: dict, results: list, output: Path) -> list:
-    """Resume all three production builds and compare their bytes with the dry meshes."""
+    """Resume production builds and compare their bytes with the dry meshes."""
     from .build import BuildRequest, build
 
     entries = []
@@ -423,8 +439,8 @@ def dry_build(queue_path: Path, output_override: Path | None = None) -> Path:
     queue_path = project_path(ROOT, queue_path)
     queue = read_queue(queue_path)
     rules = queue["rules"]
-    if queue.get("round") not in (2, 3):
-        raise ValueError("Dry build requires a frozen round-2 or round-3 queue")
+    if queue.get("round") not in (2, 3, 4):
+        raise ValueError("Dry build requires a frozen round-2/3/4 queue")
     output = output_path(ROOT, Path(output_override or queue["output"]) / "dry")
     for folder in ("meshes", "renders", "trials", "runs"):
         (output / folder).mkdir(parents=True, exist_ok=True)
@@ -446,6 +462,8 @@ def dry_build(queue_path: Path, output_override: Path | None = None) -> Path:
     if any(ep["episode_index"] in (41, 43, 44) for row in objects.values() for ep in row["episodes"]):
         raise ValueError("Excluded episode in video measurements")
     sources = {p.name: sha256_file(p) for p in (Path(__file__), FEATURE / "_shapes.py", FEATURE / "_rule_scores.py", FEATURE / "build.py", FEATURE / "_render.py")}
+    if queue["round"] == 4:
+        sources["_union.py"] = sha256_file(FEATURE / "_union.py")
     deadline = time.monotonic() + queue["budget"]["max_seconds"]
     results, resumed = [], 0
     ledger = output / "ledger.jsonl"
@@ -481,11 +499,13 @@ def dry_build(queue_path: Path, output_override: Path | None = None) -> Path:
                             raise TimeoutError("Dry-build time budget exhausted; resume the same command")
                         result = build_dry_trial(trial, attributes, output)
                         write_json(cached, result)
+                    if queue.get("candidate_mesh_sha256") and result["mesh_sha256"] != queue["candidate_mesh_sha256"][name]:
+                        raise ValueError(f"Dry mesh differs from frozen geometry: {name}")
                     if trial_id not in logged:
                         append_ledger(ledger, result)
                         logged.add(trial_id)
                     results.append(result)
-        production = production_dry_builds(queue_path, queue, parent, sources, results, output) if queue["round"] == 3 else []
+        production = production_dry_builds(queue_path, queue, parent, sources, results, output) if queue["round"] in (3, 4) else []
         write_json(directory / "production-builds.json", production)
         summary = {"production_builds": production, "scoring": False, "scan_access": False, "inputs": request, "results": results,
                    "candidate_count": len(results), "resumed": resumed, "new_builds": len(results) - resumed,
@@ -557,6 +577,8 @@ def run(queue_path: Path, output_override: Path | None = None) -> Path:
     scoring_paths = [Path(local_cdo.__file__), local_cdo.KIT / "v2dlb/mesh_budget.py",
                      local_cdo.KIT / "metric_code/track_3/CD-O.py"]
     sources = [input_file(ROOT, p) for p in [Path(__file__), FEATURE / "_shapes.py", FEATURE / "_rule_scores.py"]]
+    if queue.get("round") == 4:
+        sources.append(input_file(ROOT, FEATURE / "_union.py"))
     scoring = {"sources": [input_file(ROOT, p) for p in scoring_paths], "seed_episodes": SEEDS,
                "budget": local_cdo.BUDGET, "packages": {p: importlib.metadata.version(p)
                 for p in ("numpy", "scipy", "trimesh", "fast-simplification")}}
@@ -573,12 +595,13 @@ def run(queue_path: Path, output_override: Path | None = None) -> Path:
                "references": {n: input_file(ROOT, local_cdo.scan_path(n)) for n in NAMES},
                "reference_arrays": {}, "new_scores": 0, "reused_scores": 0, "resumed": 0, "build": build, "attributes": attributes,
                "round2_inputs": round2_inputs, "extra_inputs": extra_inputs,
+               "frozen_meshes": queue.get("candidate_mesh_sha256", {}),
                "deadline": time.monotonic() + queue.get("budget", {}).get("max_seconds", 7200)}
     record.update(rule_sources=sources, scoring=scoring, references=context["references"],
                   protocol=context["protocol"], categories=CATEGORIES, folds=FOLDS, round2_inputs=round2_inputs)
     directory = output / "runs" / new_run_id()
     with recorded(directory, record):
-        if queue.get("round") in (2, 3):
+        if queue.get("round") in (2, 3, 4):
             baseline, baseline_rows = incumbent_scores(queue)
         else:
             baseline_rule = {"name": "box-v1 baseline", "parameter": None, "grid": [None],
@@ -593,6 +616,10 @@ def run(queue_path: Path, output_override: Path | None = None) -> Path:
             trials = [{"parameter": p, "objects": [evaluate_object(rule, p, name, context) for name in NAMES]}
                       for p in rule["grid"]]
             result = select(rule, trials, baseline, counts, queue.get("gates"))
+            if queue.get("round") == 4:
+                result["gates"]["gain_gt_0.03_cm"] = result["cross_fitted_mean_cm"] < queue["gates"]["per_object_mean_strict_upper_cm"]
+                result["gates"]["pair_mean_no_worse"] = result["pair_weighted_mean_cm"] <= queue["incumbent"]["pair_weighted_mean_cm"]
+                result["adopt"] = all(result["gates"].values())
             spreads = {row["object"]: row["seed_std_cm"] for trial in trials for row in trial["objects"]
                        if trial["parameter"] == result["chosen_on_fold"]["B" if row["object"] in FOLDS["A"] else "A"]}
             result["seed_spread_cm"] = {"per_object": spreads, "mean": float(np.mean(list(spreads.values()))),

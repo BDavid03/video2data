@@ -13,7 +13,8 @@ from track3.paths import output_path, project_path
 from track3.provenance import input_file, read_run, run_fields, sha256_file, write_json
 from track3.runs import ROOT, artifact, new_run_id, recorded, runtime_flag
 
-from ._rule_scores import NAMES, _packed_veto, mesh_for, shape_for
+from ._rule_scores import NAMES, _packed_veto, shape_for
+from ._union import mesh_for
 from .build import BuildRequest, FEATURE, ROSTER, build
 from .rules import PROTOCOL, read_queue, run
 
@@ -26,6 +27,7 @@ class AdoptRequest:
     frozen_commit: str
     score_cache: str | None = None
     resume_from: str | None = None
+    code_commit_url: str | None = None
 
     @classmethod
     def from_file(cls, path):
@@ -37,6 +39,8 @@ def _frozen_inputs(request: AdoptRequest, queue: dict) -> dict:
     paths = [request.queue, queue["attributes"], FEATURE / "_shapes.py", PROTOCOL]
     if queue.get("base_attributes"):
         paths.append(queue["base_attributes"])
+    if queue.get("round") == 4:
+        paths += [FEATURE / name for name in ("_union.py", "_rule_scores.py", "rules.py", "build.py", "adopt.py")]
     entries = {}
     for value in paths:
         path = project_path(ROOT, value)
@@ -78,6 +82,8 @@ def _production(build_request: BuildRequest, reuse: str | None, queue: dict, rul
         mesh = mesh_for(shape, rule, name, row["extents_m"], build_request.rule_parameter, attributes)
         if hashlib.sha256(mesh.export(file_type="ply")).hexdigest() != row["sha256"]:
             raise ValueError(f"Production geometry differs from the frozen rule: {name}")
+        if queue.get("candidate_mesh_sha256") and row["sha256"] != queue["candidate_mesh_sha256"][name]:
+            raise ValueError(f"Production geometry differs from frozen candidate: {name}")
     for name in producer["artifacts"]:
         if name.endswith(".ply"):
             artifact((path, producer), name, record)
@@ -223,7 +229,8 @@ def adopt(request: AdoptRequest):
             build_run = _production(BuildRequest(**config), state.get("build_run"), queue, rule, record)
             state["build_run"] = build_run.relative_to(ROOT).as_posix()
             write_json(state_path, state)
-            packed = _pack(incumbent, build_run, directory, state, record)
+            pack_manifest = {**incumbent, "code_commit_url": request.code_commit_url or incumbent["code_commit_url"]}
+            packed = _pack(pack_manifest, build_run, directory, state, record)
             write_json(state_path, state)
             pairs = _pairs(incumbent, packed, directory, state, record)
             result.update(_packed_veto(pairs["summary"], queue["packed_veto"], pairs["comparison"]),

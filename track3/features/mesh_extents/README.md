@@ -62,7 +62,8 @@ first frame: camera a, frame 0 except lid frame 110. Spoon views are evaluation 
 The panel has 52 scanned candidates, 26 scanned views/143 trials, plus two spoon meshes over
 three views/six trials: 149 trials total. Primitive-era spoon box/ellipsoid are references only.
 
-`_shapes.py` and `_rule_scores.py` own construction/selection; `_geometry.py` owns shared pure
+`_shapes.py` and `_rule_scores.py` own construction/selection; `_union.py` applies the pure R11
+rack boundary wrapper shared by development, production and adoption. `_geometry.py` owns shared pure
 table selection. `_proxy.py` owns array preparation, projection, averaging, correlations and report formatting;
 `proxy.py` owns files and records. `measure.py` is unchanged. No scan or scorer is opened by proxy.
 The frozen request pins input/source hashes and package versions. Its baseline pointers are
@@ -79,6 +80,59 @@ Its E scores were admitted by path/status/seeds/build SHA and A/B/C by seeds 1/3
 score JSON has no SHA itself. Matching object/SHA aliases were merged only for equal scores.
 
 ## Latest results
+
+### Round 4: frozen C11, unscored
+
+`rules-round4.json` admits only **C11 = v4 + R11 rack-union**. R11 replaces the 21 overlapping
+R7 rack boxes with their exact exterior boundary (157 vertices / 310 faces, one closed component),
+using the unchanged constructor and pooled measurements. The other nine scanned objects and the
+unscanned spoon retain v4 bytes. R10 failed its tuning-42 video-only kill test: disjoint-subset
+knots differ by 45.7% of radius (limit <5%). C10 and C12 are dropped; all vessels retain v4.
+No round-4 CD-O evidence exists yet; the construction PASS does not establish a scoring gain.
+
+The queue freezes all eleven candidate PLY SHA-256s, ten full-precision R9 development rows and
+seed SDs, and packed-v4 baselines. Development requires object mean <0.6227030378651945 cm,
+pair mean <=0.6628808995369784 cm, and no object regression >0.15 cm. Packed veto requires object
+mean <0.62338396 cm, pair mean <=0.66292148 cm, and no object regression >0.15 cm versus packed v4.
+Failure retains v4 without retuning. These remain fourth-round development estimates on reused scans.
+
+Run the geometry-only resumable loop with the project interpreter:
+
+```bash
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/linux-cuda/bin/python -B -m track3.features.mesh_extents.rules --queue track3/features/mesh_extents/rules-round4.json --dry-build
+```
+
+It builds all eleven objects and 36 pair files from the 23 frozen measure runs through the production
+builder (`scripts/track3/requests/d1/build-v5.json` is the standalone request). Dry artifacts and the
+resumable ledger live in `outputs/mesh_extents/rules-round4/dry/`; production run paths are in its
+`summary.json`. The audited first invocation built 11 candidates; resume added zero. All nine
+untouched scanned objects and the spoon match v4; the rack SHA-256 is
+`75f2fa6d21c4553b2ce4236dfea689ca2cb25213cc3584918b1a1ce03e3ee2b5`, exactly the Phase A artifact.
+All five pinned files remain unchanged; rounds 2/3 remain admitted; 110 legacy construction
+comparisons match byte-for-byte. Full hashes and audit evidence: `outputs/mesh_extents/rules-round4/verification.json`.
+
+The pinned v4 reproduction script's `--run` includes CD-O. Its Phase A geometry-only equivalent
+is the read-only plan followed by the same build request and comparison of all 47 PLY SHA-256s
+(11 objects plus 36 pairs); all 47 matched the recorded v4 build. Do not run its scoring step here.
+
+```bash
+bash scripts/reproduce/d1_meshes.sh https://github.com/OWNER-PLACEHOLDER-not-final/video2data/commit/0000000000000000000000000000000000000000 --version v4
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' .runtime/linux-cuda/bin/python -B -m track3.features.mesh_extents build --request scripts/track3/requests/d1/build-v4.json
+```
+
+**Phase B only, after the lead commits the queue, code and geometry hashes:** run development
+scoring, then admission/production/placeholder pack/matched packed veto, in that order:
+
+```bash
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/kit-env/bin/python -B -m track3.features.mesh_extents.rules --queue track3/features/mesh_extents/rules-round4.json
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/kit-env/bin/python -B -m track3.features.mesh_extents adopt --request track3/features/mesh_extents/adopt-round4.json
+```
+
+`adopt-round4.json` uses the placeholder-URL packed-v4 manifest as incumbent, an explicit placeholder
+candidate URL and `frozen_commit: HEAD`; run at the reviewed freeze commit. Admission checks the
+committed queue, attributes, constructor, union, rule runner, builder, adoption code and protocol.
+Development and adoption resume using the content-addressed score cache; only an eligible C11
+reaches packing and the pair evaluator. Neither Phase B command was run in Phase A.
 
 ### D1 v4: adopted R9
 

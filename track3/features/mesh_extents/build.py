@@ -62,7 +62,7 @@ def _primitive(shape, dims, subdivisions, trimesh):
 def _rule_inputs(request: BuildRequest):
     """Read the named frozen rule and its video-only attributes for a production build."""
     if request.rule is None:
-        return None, {}, []
+        return None, {}, [], {}
     from .rules import read_queue
 
     queue_path = project_path(ROOT, request.rule_queue)
@@ -75,12 +75,12 @@ def _rule_inputs(request: BuildRequest):
     attributes = read_json(request.attributes_file)
     if attributes["provenance"] != "video_only":
         raise ValueError("Production attributes require video-only provenance")
-    return rule, attributes["objects"], [queue_path, request.attributes_file]
+    return rule, attributes["objects"], [queue_path, request.attributes_file], queue.get("candidate_mesh_sha256", {})
 
 
 def build(request: BuildRequest):
     runtime_flag(FEATURE, "build_authorized", "Mesh extents build")
-    rule, attributes, rule_inputs = _rule_inputs(request)
+    rule, attributes, rule_inputs, frozen_meshes = _rule_inputs(request)
     parents, episodes = [], set()
     for value in request.measure_runs:
         path = ROOT / value
@@ -106,7 +106,8 @@ def build(request: BuildRequest):
         import trimesh
 
         from . import _shapes
-        from ._rule_scores import CATEGORIES, mesh_for, pool_extents, shape_for
+        from ._rule_scores import CATEGORIES, pool_extents, shape_for
+        from ._union import mesh_for
 
         contributions = {}
         for path, parent in parents:
@@ -143,9 +144,12 @@ def build(request: BuildRequest):
                 raise ValueError(f"{name}: primitive is not closed")
             target = directory / "objects" / f"{name}.ply"
             mesh.export(target)
+            mesh_hash = sha256_file(target)
+            if frozen_meshes and mesh_hash != frozen_meshes[name]:
+                raise ValueError(f"Production mesh differs from frozen geometry: {name}")
             objects[name] = {"shape": shape, "extents_m": pooled.tolist(), "proportions": (pooled / pooled.max()).tolist(),
                              "episodes": rows, "file": target.relative_to(directory).as_posix(),
-                             "sha256": sha256_file(target), "faces": int(len(mesh.faces))}
+                             "sha256": mesh_hash, "faces": int(len(mesh.faces))}
         roster = read_json(ROSTER)["episodes"]
         missing, pairs = [], []
         for episode, names in sorted(roster.items(), key=lambda item: int(item[0])):
