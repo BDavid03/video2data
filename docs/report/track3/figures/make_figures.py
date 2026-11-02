@@ -1,4 +1,4 @@
-"""Draw the mesh panel, v2/S1 pose offsets, pipeline, or legacy mesh bars."""
+"""Draw recorded mesh examples, pose offsets, the pipeline, or legacy mesh bars."""
 
 import argparse
 import json
@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
-os.environ.setdefault("MPLCONFIGDIR", str(ROOT / "docs/report/track3/.matplotlib"))
+os.environ.setdefault("MPLCONFIGDIR", str(ROOT / ".runtime/tmp/d3-plain/matplotlib"))
 
 import matplotlib
 
@@ -19,8 +19,9 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 SUMMARY = ROOT / "outputs/mesh_eval/rules/summary.json"
 POSE_SCALE = ROOT / "outputs/pose_insurance/scale/summary.json"
 BUILD = ROOT / "outputs/mesh_extents/build/20261101T160402.316899Z-0c4f8b6f"
-SCORES = ROOT / "outputs/mesh_eval/d1-ctx03/v2-cdo.json"
-BOX_SCORES = ROOT / "outputs/mesh_eval/d1-ctx02/v1-box.json"
+# These saved-score filenames each identify one recorded evaluation.
+SCORES, = (ROOT / "outputs/mesh_eval").glob("*/v2-cdo.json")
+BOX_SCORES, = (ROOT / "outputs/mesh_eval").glob("*/v1-box.json")
 ASSIGNMENTS = ROOT / "track3/features/mesh_extents/assignments.json"
 SCANS = ROOT / ("datasets--nvidia--video_to_data_challenge/snapshots/"
                 "5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh")
@@ -43,28 +44,26 @@ LABELS = {
 
 
 def pose_offset_panel(episodes: list[int], offsets: dict[str, list[float]]) -> plt.Figure:
-    """Compare v2 and S1 frame-zero offsets with the largest kit AUC threshold."""
+    """Compare recorded frame-zero errors of the second object's relative position."""
     plt.rcParams.update({"font.size": 9, "pdf.fonttype": 42})
-    fig, ax = plt.subplots(figsize=(3.18, 1.95), layout="constrained")
+    fig, ax = plt.subplots(figsize=(3.18, 2.15), layout="constrained")
     x = np.arange(len(episodes))
     for shift, name, label, colour, hatch in (
-        (-0.18, "incumbent", "v2 rule", BLUE, ""),
-        (0.18, "S1", "S1 stereo shrink", "#D55E00", "//"),
+        (-0.18, "incumbent", "earlier rule", BLUE, ""),
+        (0.18, "S1", "stereo shrinkage", "#D55E00", "//"),
     ):
         ax.bar(x + shift, offsets[name], width=0.34, label=label,
                color=colour, hatch=hatch, linewidth=0.4, edgecolor="white")
-    ax.axhline(9, color="#333333", linestyle="--", linewidth=0.9)
-    ax.annotate("9 cm", xy=(1, 9), xycoords=("axes fraction", "data"),
-                xytext=(4, 0), textcoords="offset points", ha="left", va="center",
-                fontsize=9, annotation_clip=False)
     labels = [f"{episode}*" if episode in (0, 26) else str(episode) for episode in episodes]
     ax.set(xticks=x, xticklabels=labels, xlabel="Train episode (* stacked)",
-           ylabel="Offset error (cm)", ylim=(0, 88), yticks=[0, 20, 40, 60, 80])
+           ylabel="Frame-0 offset error of\nsecond object (cm)",
+           ylim=(0, 88), yticks=[0, 20, 40, 60, 80])
+    ax.yaxis.label.set_fontsize(8)
     ax.grid(axis="y", color="#dddddd", linewidth=0.5)
     ax.set_axisbelow(True)
     ax.spines[["top", "right"]].set_visible(False)
     ax.tick_params(axis="x", pad=2)
-    ax.legend(frameon=False, ncol=2, loc="upper left", fontsize=9,
+    ax.legend(frameon=False, ncol=2, loc="upper left", fontsize=8,
               handlelength=1.1, columnspacing=0.8, handletextpad=0.4)
     return fig
 
@@ -79,7 +78,7 @@ def pose_offset_chart(preview: Path | None, output_dir: Path = TARGET.parent) ->
     }
     fig = pose_offset_panel(episodes, values)
     target = output_dir / "d2-slot1-offset.pdf"
-    fig.savefig(target, metadata={"Title": "v2 and stereo-derived shrinkage frame-zero slot-1 offset errors",
+    fig.savefig(target, metadata={"Title": "Second-object frame-zero offset errors before and after stereo shrinkage",
                                  "Author": "", "Creator": "", "CreationDate": None,
                                  "ModDate": None})
     if preview:
@@ -91,33 +90,32 @@ def pose_offset_chart(preview: Path | None, output_dir: Path = TARGET.parent) ->
 
 def pipeline_panel() -> plt.Figure:
     """Draw both submission branches and the stereo input with readable arrows."""
-    fig, ax = plt.subplots(figsize=(3.18, 1.75))
+    fig, ax = plt.subplots(figsize=(3.18, 2.00))
     fig.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99)
     ax.set(xlim=(0, 1), ylim=(0, 1))
     ax.set_axis_off()
     nodes = {
-        "depth": (0.5, 0.95, "Egocentric video → MoGe-2 depth"),
-        "extents": (0.23, 0.75, "Object extents"),
-        "placement": (0.75, 0.75, "Frame-0 placement"),
-        "shape": (0.23, 0.50, "R2: vessel + handle;\nelse box"),
-        "scene": (0.75, 0.50, "Static scene\nS1 shrink ($s$)"),
-        "meshes": (0.23, 0.25, "D1 meshes"),
-        "kit": (0.75, 0.25, "Kit simulation"),
-        "stereo": (0.23, 0.07, "C/B stereo → $s$"),
-        "poses": (0.75, 0.07, "D2 trajectories"),
+        "depth": (0.5, 0.94, "Egocentric video → MoGe-2 depth"),
+        "naming": (0.5, 0.77, "Manual object naming"),
+        "extents": (0.23, 0.59, "Measured dimensions"),
+        "placement": (0.76, 0.59, "Initial placement"),
+        "meshes": (0.23, 0.37, "Primitive meshes (D1)"),
+        "scene": (0.76, 0.36, "Stereo shrinkage\n+ static simulation"),
+        "stereo": (0.23, 0.12, "Stereo scale\n(cameras C left, B right)"),
+        "poses": (0.76, 0.10, "Static pose\ntrajectories (D2)"),
     }
     labels = {}
     for name, (x, y, label) in nodes.items():
         labels[name] = ax.text(
-            x, y, label, ha="center", va="center", fontsize=10,
+            x, y, label, ha="center", va="center", fontsize=8.4,
             color=BLUE if name == "meshes" else "#D55E00" if name == "poses" else "#222222",
-            bbox={"facecolor": "#F0F5F8" if name in ("shape", "scene") else "white",
-                  "edgecolor": "none", "pad": 1},
+            bbox={"facecolor": "#F0F5F8" if name in ("naming", "scene") else "white",
+                  "edgecolor": "#DDE5EA", "pad": 2},
         )
-    for source, dest in (("depth", "extents"), ("depth", "placement"),
-                         ("extents", "shape"), ("shape", "meshes"),
-                         ("placement", "scene"), ("scene", "kit"),
-                         ("kit", "poses"), ("stereo", "scene")):
+    for source, dest in (("depth", "naming"), ("naming", "extents"),
+                         ("naming", "placement"), ("extents", "meshes"),
+                         ("placement", "scene"), ("scene", "poses"),
+                         ("stereo", "scene")):
         ax.annotate("", xy=nodes[dest][:2], xytext=nodes[source][:2],
                     arrowprops={"arrowstyle": "->", "color": "#555555",
                                 "linewidth": 1.0, "shrinkA": 2, "shrinkB": 2,
@@ -145,7 +143,7 @@ def score_chart(output_dir: Path = TARGET.parent) -> None:
     rule = next(row for row in summary["ranking"] if row["rule"] == "R2 vessel-handle")
     series = [
         ("Video box", summary["baseline_per_object_cm"], "#4477AA"),
-        ("R2 cross-fitted", rule["per_object_cm"], "#228833"),
+        ("Cylinder-plus-handle rule (cross-fitted)", rule["per_object_cm"], "#228833"),
     ]
     objects = sorted(rule["per_object_cm"], key=rule["per_object_cm"].get)
     weights = summary["pair_counts"]
@@ -207,10 +205,10 @@ def qualitative_panel(rows):
     grid = fig.add_gridspec(3, 3, left=0.01, right=0.99, bottom=0.12, top=0.82,
                            wspace=0.05, hspace=0.36)
     for x, title in zip((0.17, 0.50, 0.83),
-                        ("(a) Public frame 0\nassigned cluster",
-                         "(b) D1 v2 (R2)\nR2 / box CD-O (cm)",
-                         "(c) Public scan\nscoring reference")):
-        fig.text(x, 0.96, title, ha="center", va="top", fontsize=6.8, weight="bold")
+                        ("Video frame\n(assigned cluster)",
+                         "Submitted mesh",
+                         "Public scan\n(scoring only)")):
+        fig.text(x, 0.96, title, ha="center", va="top", fontsize=6.5, weight="bold")
     for i, row in enumerate(rows):
         ax = fig.add_subplot(grid[i, 0])
         rgb, mask = row["crop"]
@@ -226,8 +224,9 @@ def qualitative_panel(rows):
             mesh_ax = fig.add_subplot(grid[i, j], projection="3d")
             draw_mesh(mesh_ax, *row[key], colour)
             if key == "candidate":
-                mesh_ax.text2D(0.5, -0.02, f"{row['score']:.3f} / {row['box_score']:.3f}",
-                               ha="center", va="top", transform=mesh_ax.transAxes, fontsize=6.6)
+                mesh_ax.text2D(0.5, -0.02,
+                               f"ours {row['score']:.3f} / box {row['box_score']:.3f} cm",
+                               ha="center", va="top", transform=mesh_ax.transAxes, fontsize=5.8)
     fig.text(0.5, 0.014, "Meshes shown at normalised scale · lower CD-O is better",
              ha="center", va="bottom", fontsize=6.2)
     return fig
@@ -236,7 +235,7 @@ def qualitative_panel(rows):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--bars", action="store_true", help="regenerate the legacy score chart")
-    parser.add_argument("--pose-offsets", action="store_true", help="draw recorded v2/S1 pose offsets")
+    parser.add_argument("--pose-offsets", action="store_true", help="draw recorded earlier-rule and stereo-shrinkage pose offsets")
     parser.add_argument("--pipeline", action="store_true", help="draw the mesh and pose pipeline")
     parser.add_argument("--preview", type=Path, help="also save the panel as a 300 dpi PNG")
     parser.add_argument("--output-dir", type=Path, default=TARGET.parent,
@@ -274,11 +273,11 @@ def main():
                      "candidate": (normalised_vertices(candidate.vertices, np.eye(3)), candidate.faces),
                      "scan": (normalised_vertices(scan.vertices, SCAN_ROTATIONS[name]), scan.faces),
                      "score": scores[name]["cd_o_cm"], "box_score": boxes[name]})
-        print(f"{name}: R2 {scores[name]['cd_o_cm']:.4f} cm; box {boxes[name]:.4f} cm; "
+        print(f"{name}: ours {scores[name]['cd_o_cm']:.4f} cm; box {boxes[name]:.4f} cm; "
               f"public ep. {episode}, clusters {ids}; {measure.relative_to(ROOT)}")
     fig = qualitative_panel(rows)
     target = args.output_dir / TARGET.name
-    fig.savefig(target, dpi=300, metadata={"Title": "Video clusters, submitted R2 meshes and scoring references",
+    fig.savefig(target, dpi=300, metadata={"Title": "Video clusters, submitted meshes and scoring references",
                                          "Author": "", "Creator": ""})
     if args.preview:
         fig.savefig(args.preview, dpi=300)
