@@ -3,6 +3,60 @@
 Video-measured object proportions, and the closed primitive (ellipsoid or box) built from them, for
 the Track 3 CD-O mesh file (D1).
 
+## Spoon proxy diagnostic (Amendment 3, reported only)
+
+`proxy` compares frozen mesh silhouettes with above-table depth-cluster masks from each assigned
+measure run's first frame: frame 0 except the lid at frame 110. This rule was fixed after the
+phase-1 inventory and before any candidate projection.
+It uses cached camera-a depth, local table-plane refitting, in-plane PCA, base-on-plane placement,
+one uniform long-extent scale and the better of yaw 0/pi. Every view records both IoUs, projected
+areas, target area and placement; candidate rankings use equal-view means. `_proxy.py` contains
+array-only computation; `proxy.py` owns admission, persistence and the resumable queue.
+`_geometry.py` and `measure.py` are unchanged; the existing `_local_plane` and `camera_points`
+helpers are reused. Cached NPZ loading is inline because `measure.py` exposes no loading helper.
+
+The frozen request is `proxy-spoon.json`: 52 distinct scanned-object candidates across ten
+objects, 143 candidate-view trials across 26 scanned views, plus v3 box/v4 bowl on three spoon
+views (six trials). The lid uses its recorded frame-110 labels and matching cached depth.
+The handler checks every mesh's x/y/z extents before projection: positive finite extents and
+x >= y*(1-1e-6), with x the long footprint axis, y the short footprint axis and z up.
+The R8 sweeper's longitudinal head/grip axis is z; it still follows this footprint convention.
+The frozen request records all 54 meshes' extents; constructors are unchanged.
+Existing primitive-era spoon box/ellipsoid artifacts are recorded as historical references,
+not additional scored trials. The box is byte-identical to v3. The v4 reference is the packed
+production build `20261102T051416.149421Z-f377e0a1`.
+
+`runtime.json` sets `proxy_authorized: true` by default. The full operation additionally refuses
+to compute scores until the request, protocol and frozen sources match HEAD. Input hashes and
+package versions must match, and episodes 41/43/44 are refused. Existing CD-O scalars are read
+from frozen ledgers; no scorer or scan is opened. Amendment 3 defines descriptive gates and
+report-only R8-versus-box comparisons on the scanned tools. The original adoption clause remains
+in force; this operation changes no submission and estimates no spoon CD-O gain.
+
+Phase 1, permitted before the commit, reconstructs target masks/planes/PCA only:
+
+```bash
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/linux-cuda/bin/python -B -m track3.features.mesh_extents proxy --request track3/features/mesh_extents/proxy-spoon.json --dry-run
+```
+
+Dry results live in `outputs/mesh_extents/spoon-proxy-dry/summary.{json,md}` and target-only PNGs
+under `overlays/`. No candidate is loaded for projection in dry mode, no IoU or correlation is
+computed, and the dry files are never read by the scoring summary. A separate synthetic unit-cube
+render is only a projection check and is also excluded from summary inputs.
+
+Phase 2, only after the lead commits the amendment/request/code:
+
+```bash
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/linux-cuda/bin/python -B -m track3.features.mesh_extents proxy --request track3/features/mesh_extents/proxy-spoon.json
+```
+
+This resumes `outputs/mesh_extents/spoon-proxy/ledger.jsonl` by frozen request/candidate/view
+identity, keeps completed trial records and overlays, and writes `summary.json` / `summary.md`.
+At most 149 trials and 7200 seconds are allowed per invocation. A missing input or undefined
+required correlation means not validated; a failed concordance gate says nothing about spoon
+CD-O. Silhouette blindness to cavities, monocular depth error, small panels and reuse of the
+spoon's construction views limit interpretation even if descriptive gates pass.
+
 ## Latest result (2026-11-02): adopted R9, packed D1 v4
 
 **R9 rack-and-tools passes every development gate and the stricter exact packed-v3 veto.** R8 independently passes, satisfying R9's spoon-transfer safeguard. The queue, video attributes and constructors remain identical to pre-score commit `bc601cf`. No retuning or runner-up substitution occurred.

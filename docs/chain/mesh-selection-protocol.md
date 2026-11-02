@@ -270,3 +270,49 @@ Round 3 follows two adaptive rounds on the same ten scans plus prior exposure to
 Cross-fitting covers declared parameters only. The results are development evidence, not an
 independent estimate. A third round on the same ten scans raises selection optimism further.
 New seeds and the packed veto do not remove that optimism, whose size is not known.
+
+## Amendment 3: spoon proxy diagnostic, reported only
+Dated **2026-11-02**; this amendment, request and code are committed before any proxy value.
+Packed D1 v4 is unchanged either way; no adoption, repacking, scan access or new CD-O is permitted.
+A = `outputs/mesh_eval/rules/ledger.jsonl`; B = `outputs/mesh_eval/rules-round2/ledger.jsonl`.
+C = `outputs/mesh_extents/rules-round3/ledger.jsonl`; E = `outputs/mesh_eval/d1-ctx02/v1-ellipsoid.json`.
+Use every candidate in A/B/C plus E with existing seed-1/3/5 means; deduplicate by object and mesh SHA-256.
+Keep rule aliases and source rows. Counts: beige 7, blue 6, pan 6, sweeper 6, rack 4, pitcher 7,
+pot 8, lid 4, each wood block 2 (52 candidates); exclude oracle, scan-self, unit and earlier proportion variants.
+V = `outputs/mesh_extents/build/20261101T103838.400965Z-117fbcff/run.json`.
+Each view uses the first frame of its assigned measure run in V.request.measure_runs, camera `ego_cam_a`.
+This is frame 0 except the lid at frame 110; fixed after the phase-1 inventory, before any candidate was projected.
+There are 26 scanned views, 143 scanned trials plus six spoon trials; episodes 41/43/44 are excluded.
+Spoon views are evaluation 5/15/16, first measured frame (0), camera a, from V.
+Read each measure run, `labels_<frame>.npz`, overlay, matching depth parent/frame NPZ and `preprocessing.npz`.
+Expanded paths and hashes, including saved global planes inside measure runs, are frozen in the request.
+M is the union of assigned labels clipped to `input_valid`, without morphology, edits or view selection.
+Reconstruct local support planes with `_geometry._local_plane`, saved global planes and recorded settings.
+In-plane PCA uses cached assigned points, axes ordered by 2–98% extent, longest first.
+Centre mesh footprint bounds on the PCA-bounds midpoint projected onto the local plane; base on plane; require x >= y*(1-1e-6).
+One uniform scale matches long footprint extent, preserving proportions; try yaw 0/pi only and keep max IoU.
+Record both yaw IoUs, both projected areas, selected yaw and target mask area for every candidate/view.
+Project with `input_intrinsics_pixels` on the native depth grid; opaque triangle union via OpenCV `fillPoly`, shift=8.
+Clip projection P to `input_valid`; IoU = intersection(M,P)/union(M,P); no continuous alignment search.
+Average views equally per candidate/object before SciPy `spearmanr(IoU,-CD-O)` and `kendalltau` (tau-b).
+Primary aggregate: equal-object mean tau-b across ten objects; report all per-object rho/tau, ties and counts.
+Qualifying Spearman summary uses eight objects with >=4 variants: median rho and count with rho >=0.6.
+Descriptive gates fixed now, before any value: mean tau-b >=0.4; qualifying median rho >=0.6;
+>=6/8 qualifying objects pass rho >=0.6; dust pan and sweeper each pass rho >=0.6.
+Missing inputs or undefined required correlations mean NOT VALIDATED; no silent exclusions or substitutions.
+These replace the original three-shape Spearman test for this diagnostic only: n=3 makes rho >=0.6 a perfect ranking.
+The original spoon clause still governs adoption; these descriptive gates authorize none and imply no significance.
+Report, without another gate, whether R8 ranks above the box for each scanned thin tool; distinguish ties.
+Spoon v3: `outputs/mesh_extents/build/20261102T031152.089350Z-ea88a295/objects/wooden_spoon.ply`.
+Spoon v4: `outputs/mesh_extents/build/20261102T051416.149421Z-f377e0a1/objects/wooden_spoon.ply` (packed production).
+Record existing primitive-era spoon box/ellipsoid hashes as historical references only; do not add scored spoon trials.
+Report v3/v4 IoUs, differences per view and equal-view mean, both yaws, areas and overlays; infer no centimetre gain.
+On failure: "Proxy not validated for spoon CD-O inference; proxy says nothing about spoon CD-O; v4 unchanged."
+Pure functions: `track3/features/mesh_extents/_proxy.py`; handler: `track3/features/mesh_extents/proxy.py`.
+Operation: `mesh_extents proxy`; request: `track3/features/mesh_extents/proxy-spoon.json` with all input hashes.
+Outputs: `outputs/mesh_extents/spoon-proxy/{ledger.jsonl,summary.json,summary.md}`, `trials/`, `runs/`, overlay PNGs.
+Phase 1: hash inputs and target-only dry outputs in `outputs/mesh_extents/spoon-proxy-dry/`; no candidate projection or scores.
+One synthetic unit cube outside the panel may check rendering; its artifact is never a summary input.
+Phase 2: CPU only, <=149 candidate-view trials and 7200 seconds per invocation; identity-based resume, append-only ledger.
+Require request/protocol/source bytes to match HEAD before phase-2 scoring; never modify historical trial records.
+Report small n, silhouette blindness, mask/placement errors, reused development objects and construction-view optimism.
