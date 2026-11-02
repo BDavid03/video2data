@@ -18,19 +18,19 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 SUMMARY = ROOT / "outputs/mesh_eval/rules/summary.json"
 POSE_SHRINK = ROOT / "outputs/pose_insurance/shrink/summary.json"
-BUILD = ROOT / "outputs/mesh_extents/build/20261102T031152.089350Z-ea88a295"
-SCORES = ROOT / "outputs/mesh_eval/pairs/mesh-round2-v2-v3/summary.json"
-PREVIOUS_BUILD = ROOT / "outputs/mesh_extents/build/20261101T160402.316899Z-0c4f8b6f"
+BUILD = ROOT / "outputs/mesh_extents/build/20261102T051416.149421Z-f377e0a1"
+SCORES = ROOT / "outputs/mesh_eval/pairs/mesh-round3-veto/summary.json"
+PREVIOUS_BUILD = ROOT / "outputs/mesh_extents/build/20261102T031152.089350Z-ea88a295"
 SCANS = ROOT / ("datasets--nvidia--video_to_data_challenge/snapshots/"
                 "5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh")
-TARGET = Path(__file__).with_name("d1-v3-qualitative.pdf")
+TARGET = Path(__file__).with_name("d1-v4-qualitative.pdf")
 # Fixed display-only rotations: upright, handle/long horizontal axis towards +x.
 SCAN_ROTATIONS = {
     "white_pot": np.array([[0, 0, 1], [0, -1, 0], [1, 0, 0]]),
-    "blue_cup": np.diag([1, -1, -1]),
+    "mini_dust_pan": np.array([[0, 0, 1], [0, -1, 0], [1, 0, 0]]),
     "plastic_dish_rack": np.array([[0, 0, 1], [0, -1, 0], [1, 0, 0]]),
 }
-PANEL_OBJECTS = ("white_pot", "plastic_dish_rack", "blue_cup")
+PANEL_OBJECTS = ("plastic_dish_rack", "mini_dust_pan", "white_pot")
 BLUE = "#0072B2"
 LABELS = {
     "beige_cup": "Beige cup", "blue_cup": "Blue cup",
@@ -144,7 +144,7 @@ def qualitative_panel(rows):
     fig = plt.figure(figsize=(3.18, 3.10))
     grid = fig.add_gridspec(len(rows), 3, left=0.10, right=0.99, bottom=0.07, top=0.89,
                            wspace=0.02, hspace=0.54)
-    for j, title in enumerate(("v2 mesh", "v3 mesh", "Public scan")):
+    for j, title in enumerate(("v3 mesh", "v4 mesh", "Public scan")):
         bounds = grid[0, j].get_position(fig)
         fig.text((bounds.x0 + bounds.x1) / 2, 0.98, title,
                  ha="center", va="top", fontsize=8.5, weight="bold")
@@ -191,8 +191,8 @@ def main():
                      "previous": (normalised_vertices(old.vertices, np.eye(3)), old.faces),
                      "candidate": (normalised_vertices(candidate.vertices, np.eye(3)), candidate.faces),
                      "scan": (normalised_vertices(scan.vertices, SCAN_ROTATIONS[name]), scan.faces),
-                     "score": scores[name]["v3"], "previous_score": scores[name]["v2"]})
-        print(f"{name}: v2 {scores[name]['v2']:.4f} cm; v3 {scores[name]['v3']:.4f} cm")
+                     "score": scores[name]["candidate"], "previous_score": scores[name]["v3"]})
+        print(f"{name}: v3 {scores[name]['v3']:.4f} cm; v4 {scores[name]['candidate']:.4f} cm")
     fig = qualitative_panel(rows)
     target = args.output_dir / TARGET.name
     fig.savefig(target, dpi=300, metadata={"Title": "Previous and revised meshes beside public scans; exact packed means",

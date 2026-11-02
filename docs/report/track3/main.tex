@@ -2,17 +2,16 @@
 
 \venue{From Human Videos to Dexterous Robot Capability (CoRL 2026)}
 \submissionID{Anonymous submission}
-\title{Video-Measured Shells, Racks and Static Poses}
-\shorttitle{Video-Measured Shells, Racks and Static Poses}
+\title{Video-Measured Meshes and Static Poses}
+\shorttitle{Video-Measured Meshes and Static Poses}
 
 \begin{abstract}
 \textbf{Abstract:}
-Packaged video-derived meshes achieve object Chamfer
-distance (CD-O) of 0.7711\,cm versus 0.9257 for the previous cylinder-plus-handle
-meshes (1.0091 for boxes). Pair means are 0.8115 versus 1.0850\,cm (boxes:
-1.2547), with matching kit seeds on ten reused public scans. Cross-fitted
-selection gives 0.773\,cm; scan reuse for development prevents an independent
-test claim.
+Packaged v4 meshes achieve object Chamfer distance (CD-O) of 0.6534\,cm
+versus 0.7711 for the v3 meshes they replace (1.0091 for boxes).
+Pair means are 0.6629 versus 0.8115\,cm (boxes: 1.2547), with matching kit seeds
+on ten reused public scans. Third-round cross-fitted selection gives 0.653\,cm;
+adaptive scan reuse prevents an independent test claim.
 We use MoGe-2 depth predictions rather than measured depth.
 On eight public training episodes, stereo shrinkage reduces mean point error
 from 22.82 to 20.84\,cm, versus 20.80\,cm for uniform shrinkage.
@@ -35,11 +34,11 @@ data and asks for our own reconstructed meshes~\cite{faq}.
 
 \noindent\begin{minipage}{\columnwidth}
 \centering
-\includegraphics[width=\columnwidth]{figures/d1-v3-qualitative.pdf}
-\captionof{figure}{Illustrative v2/v3 meshes and public scans at normalised scale
-and matched viewing directions (display-only rotations). Labels give packed
-per-object CD-O (cm, $\downarrow$). Attributes came from video frames;
-rack compartments and the pitcher spout remain missing.}
+\includegraphics[width=\columnwidth]{figures/d1-v4-qualitative.pdf}
+\captionof{figure}{Illustrative v3/v4 meshes and public scans at normalised scale
+and matched views (display-only rotations). Labels give packed per-object CD-O
+(cm, $\downarrow$). Video frames supplied attributes. The pot is unchanged;
+the pan's grip hole remains omitted.}
 \label{fig:qualitative}
 \end{minipage}\par
 
@@ -52,44 +51,37 @@ without correcting distorted proportions.
 \par\end{samepage}
 
 \begin{samepage}
-\textbf{Three nested refinements.} For long/short horizontal extents $L,W$
-and height $H$, round 1 uses elliptical cylinders for vessels. If $L/W>1.30$,
-a circular body of diameter $W$ instead has a box handle extending to $L$.
-Non-vessels keep boxes.
+\textbf{Rounds 1--2.} Vessels use elliptical cylinders, or a circular body
+with a box handle when long/short horizontal extents satisfy $L/W>1.30$.
+Round 2 puts the pot handle at rim height and adds cup-shaped cavities with
+wall/floor thickness $fW/2$, $f\in\{0.02,0.05,0.10\}$; the rack has a base
+and two rows of six pegs. Joined parts retain internal surfaces.
 \par\end{samepage}
 
 \begin{samepage}
-Round 2 makes the pot's rim-height handle $0.15H$
-thick, top flush with the rim. Open cups, pot and pitcher become closed solids
-with cup-shaped cavities: wall and floor thickness $fW/2$,
-$f\in\{0.02,0.05,0.10\}$; unhandled shells retain elliptical footprints.
-\par\end{samepage}
-
-\begin{samepage}
-The rack uses a $0.25H$ base and two rows of six box pegs rising to $H$.
-Joined parts retain internal surfaces.
+\textbf{Round 3.} R7 adds an open utensil compartment and tray rim to the rack,
+and lowers its two rows of six pegs to their observed height.
+R8 uses video-measured heads and grips for all three thin tools: a tapered
+scoop with low walls and a filled ring grip for the pan, a solid brush
+envelope for the sweeper, and a shallow bowl with a narrow handle for the spoon.
+R9 combines R7 and R8, with frozen video attributes and no free parameters.
 \par\end{samepage}
 
 \subsection{Selection on reused scans}
 \begin{samepage}
 Two five-object folds select parameters on one fold and score on the other,
-then swap; round 1 selected cylinder-plus-handle over boxes.
-Round 2 was pre-registered against that fixed-threshold incumbent
-requiring mean gain $>0.03$\,cm,
-worst object regression $\leq0.15$\,cm and no pair-mean regression.
+then swap. Round 2 selected wall fraction $f=0.10$, the largest tested;
+thicker walls remain untried. Round 3 was registered before scoring, against
+v3's three-seed mean of 0.77315\,cm. Its gate requires mean $<0.74315$\,cm,
+no object regression $>0.15$\,cm and no pair-mean regression.
 \par\end{samepage}
 
 \begin{samepage}
-The rim-handle rule fails the gain criterion; hollow vessels and
-peg rack pass with no object regression, and peg rack has the lowest
-cross-fitted mean. The final packaged meshes also improve both means over v2,
-without retuning. Both folds select $f=0.10$, the largest tested.
-\par\end{samepage}
-
-\begin{samepage}
-Across three seeds, per-object standard deviation averages 0.0069\,cm
-(maximum 0.0214\,cm): sampling variability, not uncertainty on new objects.
-The shared wall fraction is a compromise; thicker walls were not tried.
+Parameter-free rules use all ten objects as their cross-fitted score.
+R7, R8 and R9 score 0.72009, 0.70576 and 0.65270\,cm, with no regressions.
+R8 independently passes before R9 is eligible. R9 wins; its packaged meshes
+also pass the frozen comparison with v3, without retuning. Three sampling
+seeds measure sampling variability, not uncertainty on new objects.
 \par\end{samepage}
 
 \noindent\begin{minipage}{\columnwidth}
@@ -103,28 +95,31 @@ Mesh & Object mean & Pair mean \\
 \multicolumn{3}{l}{Packaged submission: exact per-pair seeds} \\
 Boxes & 1.0091 & 1.2547 \\
 Cylinder-plus-handle (v2) & 0.9257 & 1.0850 \\
-\textbf{Peg-rack rule (v3)} & \textbf{0.7711} & \textbf{0.8115} \\
+Peg-rack rule (v3) & 0.7711 & 0.8115 \\
+\textbf{Rack and tools (v4)} & \textbf{0.6534} & \textbf{0.6629} \\
 \midrule
 \multicolumn{3}{l}{Selection: three-seed object scores} \\
 Round 1 (cross-fitted) & 0.926 & 1.087 \\
 Round 2 (cross-fitted) & 0.773 & 0.817 \\
+Round 3 (cross-fitted) & 0.653 & 0.663 \\
 \bottomrule
 \end{tabular}
 \captionof{table}{CD-O (cm, $\downarrow$) on ten reused public scans.
 Pair means weight 26 episode--object entries equally; object means average
 within object, then over ten objects. Selection pair means reuse object scores.
-The packed comparison improves 19 pairs, leaves seven unchanged and worsens none.}
+V4 versus v3 improves nine pairs, leaves 17 unchanged and worsens none.}
 \label{tab:cdo}
 \end{minipage}\par
 
 \begin{samepage}
-\textbf{Disclosure.} Cross-fitting selects parameters but cannot undo scan
-exposure during rule design and attribute reading, or episode 39's scan-informed
-thresholds. These numbers are development estimates on reused scans.
-The rim-handle and peg-rack refinements each change one object, close to our own
-stricter selection protocol's ban on per-object shape choice. That ban is not a
-challenge rule; these meshes are our own reconstructions. The unscanned spoon
-keeps its box (10 of 36 pairs excluded).
+\textbf{Disclosure.} Cross-fitting cannot undo prior scan exposure during rule
+design, attribute reading or episode 39's threshold setting. A third adaptive
+round on the same ten scans raises selection optimism by an unknown amount;
+these are development estimates. The rack rule changes one scanned object,
+the tool rule two, close to our own stricter protocol's ban on per-object shape
+choice; this is not a challenge rule. The spoon now changes from a box to the
+shared tool profile without a scan: its effect on ten of 36 leaderboard pairs
+is unknown, and those pairs are excluded from the means.
 \par\end{samepage}
 
 \section{Static-object poses}
@@ -205,7 +200,8 @@ no official pose-score gain is established.
 \par\end{samepage}
 
 \begin{samepage}
-Shells and rack pegs improve mesh scores on reused development scans.
+Rack and tool profiles improve development scores; remaining CD-O is
+1.487\,cm for the pitcher (spout missing), 0.858 for the pot and 0.865 for the rack.
 Static poses establish neither calibration benefit nor manipulation success.
 \par\end{samepage}
 
