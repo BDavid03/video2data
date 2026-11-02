@@ -1,0 +1,926 @@
+{
+  "fixed_date": "2026-11-02",
+  "provenance": "video_only",
+  "unknown_policy": "Unknown or low-confidence rack components retain their corresponding v3 component. All other objects retain v3 unless the frozen profile rule applies.",
+  "objects": {
+    "beige_cup": {
+      "handle": "none",
+      "open_top": true,
+      "evidence": [
+        {
+          "attribute": "open_top",
+          "split": "public",
+          "episode": 11,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/public/episode_000011/20261101T103701.928174Z-f63cc238/overlay_000000.png",
+          "sha256": "5148c72bdb92ea7673a17ebbfa224a1cc15d0bc32f3d9743887719e479262b55",
+          "observation": "Uncapped mouth and interior plainly visible; small external tracking markers are not handles.",
+          "confidence": "high"
+        },
+        {
+          "attribute": "handle",
+          "split": "public",
+          "episode": 11,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/public/episode_000011/20261101T103701.928174Z-f63cc238/overlay_000000.png",
+          "sha256": "5148c72bdb92ea7673a17ebbfa224a1cc15d0bc32f3d9743887719e479262b55",
+          "observation": "No vessel handle visible; measured aspect is below 1.3, so no handle is added.",
+          "confidence": "high"
+        }
+      ]
+    },
+    "blue_cup": {
+      "handle": "none",
+      "open_top": true,
+      "evidence": [
+        {
+          "attribute": "open_top",
+          "split": "public",
+          "episode": 11,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/public/episode_000011/20261101T103701.928174Z-f63cc238/overlay_000000.png",
+          "sha256": "5148c72bdb92ea7673a17ebbfa224a1cc15d0bc32f3d9743887719e479262b55",
+          "observation": "Uncapped mouth and interior plainly visible; small external tracking markers are not handles.",
+          "confidence": "high"
+        },
+        {
+          "attribute": "handle",
+          "split": "public",
+          "episode": 11,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/public/episode_000011/20261101T103701.928174Z-f63cc238/overlay_000000.png",
+          "sha256": "5148c72bdb92ea7673a17ebbfa224a1cc15d0bc32f3d9743887719e479262b55",
+          "observation": "No vessel handle visible; measured aspect is below 1.3, so no handle is added.",
+          "confidence": "high"
+        }
+      ]
+    },
+    "white_pot": {
+      "handle": "rim_flat",
+      "open_top": true,
+      "evidence": [
+        {
+          "attribute": "handle",
+          "split": "evaluation",
+          "episode": 5,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/evaluation/episode_000005/20261101T103721.877826Z-55c95204/overlay_000000.png",
+          "sha256": "798efc0ca3a7cde621b7fd9053cb134cad2f7f5f1799a7b57afae62b0e4457c5",
+          "observation": "Single long flat horizontal saucepan handle joins the body at rim height.",
+          "confidence": "high"
+        },
+        {
+          "attribute": "open_top",
+          "split": "public",
+          "episode": 42,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/public/episode_000042/20261101T103715.090424Z-d410dfac/overlay_000000.png",
+          "sha256": "cc3fc9a96228b1719db6e521e250d17d59dba6f46b07a07cfdf526ffdb003a37",
+          "observation": "Uncovered circular mouth and interior floor visible in opening frame.",
+          "confidence": "high"
+        },
+        {
+          "attribute": "open_top",
+          "split": "evaluation",
+          "episode": 1,
+          "camera": "ego_cam_a",
+          "frame_index": 110,
+          "path": "outputs/mesh_extents/evaluation/episode_000001/20261101T103716.335071Z-0993ba31/overlay_000110.png",
+          "sha256": "95f65cf04d98bccfe92f8d6174f064500ef0b3385406c26fbec159c363d964ea",
+          "observation": "Lid is separate on table; open pot interior visible. This later frame corroborates opening-frame evidence.",
+          "confidence": "high"
+        }
+      ],
+      "note": "Opening frames 5 and public 42 show the pot open. Usually lid-on is not supported by these reviewed views."
+    },
+    "water_pitcher": {
+      "handle": "loop",
+      "open_top": true,
+      "evidence": [
+        {
+          "attribute": "handle",
+          "split": "public",
+          "episode": 21,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/public/episode_000021/20261101T103707.151959Z-05bf6bac/overlay_000000.png",
+          "sha256": "6ae58605abe7b404d261190d464e2688fe9850509bd1d2673540d4b871ba0484",
+          "observation": "Handle descends vertically beside body, with a large opening under the upper attachment; loop category preserves the R2 bar.",
+          "confidence": "high"
+        },
+        {
+          "attribute": "open_top",
+          "split": "public",
+          "episode": 21,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/public/episode_000021/20261101T103707.151959Z-05bf6bac/overlay_000000.png",
+          "sha256": "6ae58605abe7b404d261190d464e2688fe9850509bd1d2673540d4b871ba0484",
+          "observation": "Uncapped pitcher mouth and interior visible; tall pouring lip is not a lid.",
+          "confidence": "high"
+        }
+      ]
+    },
+    "white_pot_lid": {
+      "handle": "none",
+      "open_top": false,
+      "evidence": [
+        {
+          "attribute": "open_top",
+          "split": "evaluation",
+          "episode": 1,
+          "camera": "ego_cam_a",
+          "frame_index": 110,
+          "path": "outputs/mesh_extents/evaluation/episode_000001/20261101T103716.335071Z-0993ba31/overlay_000110.png",
+          "sha256": "95f65cf04d98bccfe92f8d6174f064500ef0b3385406c26fbec159c363d964ea",
+          "observation": "Separate solid lid with top grip; not an open-topped vessel.",
+          "confidence": "high"
+        }
+      ]
+    },
+    "plastic_dish_rack": {
+      "pegs": {
+        "rows": 2,
+        "count_per_row": 6
+      },
+      "evidence": [
+        {
+          "attribute": "pegs",
+          "split": "public",
+          "episode": 12,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/public/episode_000012/20261101T103703.949004Z-546c56c2/overlay_000000.png",
+          "sha256": "6cb883d2830be9607ca90ad58558e7fc400b30b37700a959109e2e7c29aa0d6b",
+          "observation": "Two parallel rows of upright tines on a base; cup partly occludes near-right tine.",
+          "confidence": "high"
+        },
+        {
+          "attribute": "pegs",
+          "split": "evaluation",
+          "episode": 15,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/evaluation/episode_000015/20261101T103736.789367Z-86a79be7/overlay_000000.png",
+          "sha256": "49950b9f3bb6e99e9385d43e85c44a2f0c7b5bf763a55ee79c1393fb88b23a89",
+          "observation": "Unobstructed opening view: six back-row tines and six front-row tines, two rows total.",
+          "confidence": "high"
+        },
+        {
+          "attribute": "pegs",
+          "split": "evaluation",
+          "episode": 16,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/evaluation/episode_000016/20261101T103740.185103Z-0f0a559d/overlay_000000.png",
+          "sha256": "555b3f80969d651e7ae921e70827c77904e3e7eabc1ca9933d86c62a69524c95",
+          "observation": "Second unobstructed opening view corroborates two rows of six upright tines.",
+          "confidence": "high"
+        },
+        {
+          "attribute": "rack_profile",
+          "split": "evaluation",
+          "episode": 15,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/round3-video/evaluation-15-a-000000.png",
+          "sha256": "c6905c72a7fa77e95a4f64c33f225ce77334be5f4474b99074bf0d6da8c27e2e",
+          "video": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000015.mp4",
+          "image_size_px": [
+            2028,
+            1520
+          ],
+          "observation": "Unobstructed tray, open utensil compartment, rim and two rows of six pegs; compartment substantially taller than pegs.",
+          "confidence": "high",
+          "confidence_scope": "Visible component and approximate projected ratios; not exact 3-D metrology."
+        },
+        {
+          "attribute": "rack_profile",
+          "split": "evaluation",
+          "episode": 16,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/round3-video/evaluation-16-a-000000.png",
+          "sha256": "b9376d1759bc44b44788c4ab2d9dba7617615757c14dff25b197caae37f250c9",
+          "video": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000016.mp4",
+          "image_size_px": [
+            2028,
+            1520
+          ],
+          "observation": "Independent opening view corroborates layout, lower pegs and open compartment.",
+          "confidence": "high",
+          "confidence_scope": "Visible component and approximate projected ratios; not exact 3-D metrology."
+        },
+        {
+          "attribute": "rack_profile",
+          "split": "public",
+          "episode": 12,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/round3-video/public-12-a-000000.png",
+          "sha256": "718c22e4643636e5deb7aa051260afedbfd8965c3afff460fef0a15eee8641d1",
+          "video": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000012.mp4",
+          "image_size_px": [
+            2028,
+            1520
+          ],
+          "observation": "Same compartment and rim; cup occludes part of front row. Corroboration only.",
+          "confidence": "high",
+          "confidence_scope": "Visible component and approximate projected ratios; not exact 3-D metrology."
+        }
+      ],
+      "note": "Round 3 preserves the v3 floor; visible rim and compartment are added, peg footprints/positions and heights use opening-frame annotations.",
+      "rack_profile": {
+        "confidence": "high",
+        "floor_height_fraction": 0.25,
+        "floor_policy": "Unseen underside/floor thickness: retain the v3 full-footprint slab and its 0.25 height fraction.",
+        "rim_top_fraction": 0.4375,
+        "wall_short_fraction": 0.043478260869565216,
+        "compartment_length_fraction": 0.17222222222222222,
+        "compartment_width_fraction": 1.0,
+        "compartment_center_fraction": [
+          0.08611111111111111,
+          0.5
+        ],
+        "compartment_top_fraction": 1.0,
+        "peg_top_fraction": 0.625,
+        "peg_long_fraction": 0.044444444444444446,
+        "peg_short_fraction": 0.17391304347826086,
+        "peg_centers_long_fraction": [
+          0.22,
+          0.32,
+          0.42,
+          0.52,
+          0.62,
+          0.72
+        ],
+        "peg_centers_short_fraction": [
+          0.2608695652173913,
+          0.6521739130434783
+        ],
+        "overlap_height_fraction": 0.01,
+        "measurements": [
+          {
+            "frame": "evaluation/15/ego_cam_a/0",
+            "quantity": "long footprint reference",
+            "points_px": [
+              [
+                650,
+                1110
+              ],
+              [
+                1550,
+                1005
+              ]
+            ],
+            "projected_axis_length_px": 900,
+            "note": "Horizontal long-axis span, rounded; perspective slope retained in annotation."
+          },
+          {
+            "frame": "evaluation/15/ego_cam_a/0",
+            "quantity": "short footprint reference",
+            "points_px": [
+              [
+                1110,
+                880
+              ],
+              [
+                1150,
+                1110
+              ]
+            ],
+            "projected_axis_length_px": 230
+          },
+          {
+            "frame": "evaluation/15/ego_cam_a/0",
+            "quantity": "compartment long footprint",
+            "points_px": [
+              [
+                650,
+                1110
+              ],
+              [
+                805,
+                1092
+              ]
+            ],
+            "axis_span_px": 155,
+            "ratio": 0.17222222222222222
+          },
+          {
+            "frame": "evaluation/15/ego_cam_a/0",
+            "quantity": "relative above-floor heights",
+            "compartment_segment_px": [
+              [
+                655,
+                960
+              ],
+              [
+                720,
+                1106
+              ]
+            ],
+            "peg_segment_px": [
+              [
+                1120,
+                925
+              ],
+              [
+                1153,
+                998
+              ]
+            ],
+            "rim_segment_px": [
+              [
+                1050,
+                1040
+              ],
+              [
+                1066,
+                1076
+              ]
+            ],
+            "rounded_lengths_px": {
+              "compartment": 160,
+              "peg": 80,
+              "rim": 40
+            },
+            "formula": "top_fraction = v3_floor_fraction + (1-v3_floor_fraction) * component_above_floor / compartment_above_floor",
+            "uncertainty": "Projected height ratios about +/-0.10 of total height; floor endpoints near occlusion are extrapolated along the visible face."
+          },
+          {
+            "frame": "evaluation/15/ego_cam_a/0",
+            "quantity": "peg basal footprint and rim lip",
+            "peg_long_segment_px": [
+              [
+                920,
+                1030
+              ],
+              [
+                960,
+                1025
+              ]
+            ],
+            "peg_short_span_px": 40,
+            "rim_lip_span_px": 10,
+            "uncertainty_px": 5
+          },
+          {
+            "frame": "evaluation/15/ego_cam_a/0",
+            "quantity": "peg centers",
+            "long_origin_px": 650,
+            "long_axis_span_px": 900,
+            "long_centers_px": [
+              848,
+              938,
+              1028,
+              1118,
+              1208,
+              1298
+            ],
+            "short_origin_px": 880,
+            "short_centers_px": [
+              940,
+              1030
+            ],
+            "short_axis_span_px": 230,
+            "note": "Projected axis coordinates; six per row, no fitting to scans."
+          },
+          {
+            "frame": "evaluation/16/ego_cam_a/0",
+            "quantity": "corroboration",
+            "compartment_front_segment_px": [
+              [
+                700,
+                1030
+              ],
+              [
+                760,
+                1168
+              ]
+            ],
+            "peg_front_segment_px": [
+              [
+                1100,
+                1030
+              ],
+              [
+                1128,
+                1100
+              ]
+            ],
+            "rim_front_segment_px": [
+              [
+                1110,
+                1120
+              ],
+              [
+                1125,
+                1155
+              ]
+            ],
+            "note": "Projected lengths approximately 150/75/38 px; same half/quarter ordering."
+          }
+        ],
+        "approximation": "Rectangular compartment walls and box pegs; rounded corners, small drain ridges and taper omitted. In-plane lip thickness is visible; underside thickness is unknown. Overlap is the unchanged v3 contact convention, not a video measurement.",
+        "display_crop_px": [
+          580,
+          760,
+          1590,
+          1140
+        ]
+      }
+    },
+    "wooden_piece_1": {
+      "evidence": [
+        {
+          "attribute": "unchanged",
+          "split": "public",
+          "episode": 23,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/public/episode_000023/20261101T103708.924989Z-52ed3be1/overlay_000000.png",
+          "sha256": "30deed82128cc24db8f43e83e41ef57ca7df325f04b9567c49de36b120f55917",
+          "observation": "Flat wooden board; identity of the two boards remains arbitrary.",
+          "confidence": "high"
+        }
+      ]
+    },
+    "wooden_piece_2": {
+      "evidence": [
+        {
+          "attribute": "unchanged",
+          "split": "public",
+          "episode": 23,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/public/episode_000023/20261101T103708.924989Z-52ed3be1/overlay_000000.png",
+          "sha256": "30deed82128cc24db8f43e83e41ef57ca7df325f04b9567c49de36b120f55917",
+          "observation": "Flat wooden board; identity of the two boards remains arbitrary.",
+          "confidence": "high"
+        }
+      ]
+    },
+    "mini_dust_pan": {
+      "evidence": [
+        {
+          "attribute": "unchanged",
+          "split": "public",
+          "episode": 18,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/public/episode_000018/20261101T103706.195611Z-8e4c4ca5/overlay_000000.png",
+          "sha256": "c1c11fec0b053a6884e4d407d412bdf11109d6e994c8e22d9a58a9d0f75eadf0",
+          "observation": "Thin tool; unchanged by R4/R5/R6 eligibility.",
+          "confidence": "high"
+        },
+        {
+          "attribute": "profile",
+          "split": "public",
+          "episode": 18,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/round3-video/public-18-a-000000.png",
+          "sha256": "73d326e5e3e4746fa48f9959c048923c6685e8a62b9eef76f8162658293f916e",
+          "video": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000018.mp4",
+          "image_size_px": [
+            2028,
+            1520
+          ],
+          "observation": "Tapered scoop and broad circular grip; raised side/back lip, open front. Grip hole may be omitted; markers ignored.",
+          "confidence": "high",
+          "confidence_scope": "Visible component and approximate projected ratios; not exact 3-D metrology."
+        },
+        {
+          "attribute": "profile",
+          "split": "public",
+          "episode": 18,
+          "camera": "ego_cam_b",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/round3-video/public-18-b-000000.png",
+          "sha256": "4c13c093114ae6b6ea282eb8b6f4d3535c483375e0b62f97931096e37be7e640",
+          "video": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000018.mp4",
+          "image_size_px": [
+            1280,
+            800
+          ],
+          "observation": "Tapered scoop and broad circular grip; raised side/back lip, open front. Grip hole may be omitted; markers ignored.",
+          "confidence": "high",
+          "confidence_scope": "Visible component and approximate projected ratios; not exact 3-D metrology."
+        },
+        {
+          "attribute": "profile",
+          "split": "public",
+          "episode": 18,
+          "camera": "ego_cam_c",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/round3-video/public-18-c-000000.png",
+          "sha256": "c69f11fc54ea52208799ab58d039b95fe50078108d2bb189f340cfa0a48edc60",
+          "video": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000018.mp4",
+          "image_size_px": [
+            1280,
+            800
+          ],
+          "observation": "Tapered scoop and broad circular grip; raised side/back lip, open front. Grip hole may be omitted; markers ignored.",
+          "confidence": "high",
+          "confidence_scope": "Visible component and approximate projected ratios; not exact 3-D metrology."
+        },
+        {
+          "attribute": "profile",
+          "split": "public",
+          "episode": 39,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/round3-video/public-39-a-000000.png",
+          "sha256": "457ef21cd9adbe2b38f5d87aa5af499151868d39e6a0d701ecc4dee269a08d6f",
+          "video": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000039.mp4",
+          "image_size_px": [
+            2028,
+            1520
+          ],
+          "observation": "Unoccluded pan corroborates tapered scoop, grip and open front.",
+          "confidence": "high",
+          "confidence_scope": "Visible component and approximate projected ratios; not exact 3-D metrology."
+        }
+      ],
+      "profile": {
+        "confidence": "high",
+        "kind": "scoop",
+        "axis": "x",
+        "head_fraction": 0.7,
+        "neck_width_fraction": 0.25,
+        "grip_width_fraction": 0.55,
+        "grip_start_fraction": 0.65,
+        "floor_thickness_fraction": 0.14285714285714285,
+        "grip_thickness_fraction": 0.2857142857142857,
+        "wall_width_fraction": 0.03214285714285714,
+        "measurements": [
+          {
+            "frame": "public/18/ego_cam_a/0",
+            "quantity": "head/grip outline",
+            "wide_front_px": [
+              [
+                830,
+                1015
+              ],
+              [
+                1080,
+                1065
+              ]
+            ],
+            "head_neck_px": [
+              885,
+              1185
+            ],
+            "grip_end_px": [
+              860,
+              1295
+            ],
+            "projected_axis_spans_px": {
+              "total": 300,
+              "head": 210,
+              "grip_width": 154,
+              "head_width": 280,
+              "neck_width": 70
+            },
+            "formula": "head=210/300; grip_width=154/280; neck=70/280; grip_start=195/300",
+            "uncertainty_px": 12
+          },
+          {
+            "frame": "public/18/ego_cam_a/0",
+            "quantity": "visible low walls and thickness",
+            "side_wall_segment_px": [
+              [
+                825,
+                991
+              ],
+              [
+                829,
+                1033
+              ]
+            ],
+            "floor_edge_span_px": 6,
+            "grip_edge_span_px": 12,
+            "lip_width_px": 9,
+            "wall_height_px": 42,
+            "confidence": "medium",
+            "note": "Coarse visible edge ratios, not calibrated thickness; full observed height belongs to raised scoop walls."
+          },
+          {
+            "frame": "public/39/ego_cam_a/0",
+            "quantity": "corroborating outline",
+            "front_px": [
+              [
+                860,
+                805
+              ],
+              [
+                1150,
+                845
+              ]
+            ],
+            "neck_px": [
+              944,
+              953
+            ],
+            "grip_end_px": [
+              924,
+              1063
+            ],
+            "note": "Same triangular scoop/circular grip; hole omitted, markers ignored."
+          }
+        ],
+        "approximation": "Convex tapered floor, low side/back walls at measured full height; solid elliptical grip, hole omitted.",
+        "display_crop_px": [
+          760,
+          960,
+          1130,
+          1310
+        ]
+      },
+      "note": "Frozen shared broad-head plus measured-grip construction, applied only by R8/R9."
+    },
+    "mini_sweeper": {
+      "evidence": [
+        {
+          "attribute": "unchanged",
+          "split": "public",
+          "episode": 18,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/public/episode_000018/20261101T103706.195611Z-8e4c4ca5/overlay_000000.png",
+          "sha256": "c1c11fec0b053a6884e4d407d412bdf11109d6e994c8e22d9a58a9d0f75eadf0",
+          "observation": "Thin tool; unchanged by R4/R5/R6 eligibility.",
+          "confidence": "high"
+        },
+        {
+          "attribute": "profile",
+          "split": "public",
+          "episode": 18,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/round3-video/public-18-a-000000.png",
+          "sha256": "73d326e5e3e4746fa48f9959c048923c6685e8a62b9eef76f8162658293f916e",
+          "video": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_000018.mp4",
+          "image_size_px": [
+            2028,
+            1520
+          ],
+          "observation": "Brush rests upright: bristle envelope below wide upright grip; hole omitted and markers ignored.",
+          "confidence": "high",
+          "confidence_scope": "Visible component and approximate projected ratios; not exact 3-D metrology."
+        },
+        {
+          "attribute": "profile",
+          "split": "public",
+          "episode": 18,
+          "camera": "ego_cam_b",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/round3-video/public-18-b-000000.png",
+          "sha256": "4c13c093114ae6b6ea282eb8b6f4d3535c483375e0b62f97931096e37be7e640",
+          "video": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000018.mp4",
+          "image_size_px": [
+            1280,
+            800
+          ],
+          "observation": "Brush rests upright: bristle envelope below wide upright grip; hole omitted and markers ignored.",
+          "confidence": "high",
+          "confidence_scope": "Visible component and approximate projected ratios; not exact 3-D metrology."
+        },
+        {
+          "attribute": "profile",
+          "split": "public",
+          "episode": 18,
+          "camera": "ego_cam_c",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/round3-video/public-18-c-000000.png",
+          "sha256": "c69f11fc54ea52208799ab58d039b95fe50078108d2bb189f340cfa0a48edc60",
+          "video": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_c/episode_000018.mp4",
+          "image_size_px": [
+            1280,
+            800
+          ],
+          "observation": "Brush rests upright: bristle envelope below wide upright grip; hole omitted and markers ignored.",
+          "confidence": "high",
+          "confidence_scope": "Visible component and approximate projected ratios; not exact 3-D metrology."
+        },
+        {
+          "attribute": "profile",
+          "split": "public",
+          "episode": 39,
+          "camera": "ego_cam_b",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/round3-video/public-39-b-000000.png",
+          "sha256": "ba5b52ab61e3e652752c53deaa37ca01e6aa621ce5b84101476e14492116463b",
+          "video": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/videos/chunk-000/observation.images.ego_cam_b/episode_000039.mp4",
+          "image_size_px": [
+            1280,
+            800
+          ],
+          "observation": "Sweeper no longer visible in frame 0; no corroborating measurement used.",
+          "confidence": "high",
+          "confidence_scope": "Visible component and approximate projected ratios; not exact 3-D metrology."
+        }
+      ],
+      "profile": {
+        "confidence": "high",
+        "kind": "brush",
+        "axis": "z",
+        "head_fraction": 0.5,
+        "neck_width_fraction": 0.75,
+        "grip_width_fraction": 0.7,
+        "grip_start_fraction": 0.45,
+        "grip_thickness_fraction": 0.65,
+        "measurements": [
+          {
+            "frame": "public/18/ego_cam_c/0",
+            "quantity": "upright brush/head/grip silhouette",
+            "top_px": [
+              842,
+              478
+            ],
+            "head_boundary_px": [
+              846,
+              548
+            ],
+            "bottom_px": [
+              850,
+              618
+            ],
+            "projected_axis_spans_px": {
+              "total": 140,
+              "head": 70,
+              "head_width": 80,
+              "head_top_width": 60,
+              "grip_width": 56,
+              "grip_start": 63
+            },
+            "formula": "head=70/140; neck=60/80; grip_width=56/80; grip_start=63/140",
+            "uncertainty_px": 6
+          },
+          {
+            "frame": "public/18/ego_cam_a/0",
+            "quantity": "grip thickness vs brush envelope",
+            "grip_side_span_px": 26,
+            "brush_depth_span_px": 40,
+            "formula": "26/40",
+            "confidence": "medium",
+            "note": "Oblique visible side estimate; depth envelope remains the video short extent."
+          }
+        ],
+        "approximation": "One solid tapered bristle envelope and one solid elliptical grip in the upright plane; no individual bristles or tracking markers.",
+        "display_crop_px": [
+          1250,
+          870,
+          1450,
+          1200
+        ]
+      },
+      "note": "Frozen shared broad-head plus measured-grip construction, applied only by R8/R9."
+    },
+    "wooden_spoon": {
+      "evidence": [
+        {
+          "attribute": "unchanged",
+          "split": "evaluation",
+          "episode": 5,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/evaluation/episode_000005/20261101T103721.877826Z-55c95204/overlay_000000.png",
+          "sha256": "798efc0ca3a7cde621b7fd9053cb134cad2f7f5f1799a7b57afae62b0e4457c5",
+          "observation": "Thin tool; unchanged by R4/R5/R6 eligibility.",
+          "confidence": "high"
+        },
+        {
+          "attribute": "profile",
+          "split": "evaluation",
+          "episode": 5,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/round3-video/evaluation-05-a-000000.png",
+          "sha256": "c57c67d636a1ab687d5950ded22a9382621da6726d7422c830f490f4885907aa",
+          "video": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000005.mp4",
+          "image_size_px": [
+            2028,
+            1520
+          ],
+          "observation": "Broad shallow bowl and narrow handle; tracking markers excluded. Same head/grip policy as scanned thin tools.",
+          "confidence": "high",
+          "confidence_scope": "Visible component and approximate projected ratios; not exact 3-D metrology."
+        },
+        {
+          "attribute": "profile",
+          "split": "evaluation",
+          "episode": 15,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/round3-video/evaluation-15-a-000000.png",
+          "sha256": "c6905c72a7fa77e95a4f64c33f225ce77334be5f4474b99074bf0d6da8c27e2e",
+          "video": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000015.mp4",
+          "image_size_px": [
+            2028,
+            1520
+          ],
+          "observation": "Broad shallow bowl and narrow handle; tracking markers excluded. Same head/grip policy as scanned thin tools.",
+          "confidence": "high",
+          "confidence_scope": "Visible component and approximate projected ratios; not exact 3-D metrology."
+        },
+        {
+          "attribute": "profile",
+          "split": "evaluation",
+          "episode": 16,
+          "camera": "ego_cam_a",
+          "frame_index": 0,
+          "path": "outputs/mesh_extents/round3-video/evaluation-16-a-000000.png",
+          "sha256": "b9376d1759bc44b44788c4ab2d9dba7617615757c14dff25b197caae37f250c9",
+          "video": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/evaluation/videos/chunk-000/observation.images.ego_cam_a/episode_000016.mp4",
+          "image_size_px": [
+            2028,
+            1520
+          ],
+          "observation": "Broad shallow bowl and narrow handle; tracking markers excluded. Same head/grip policy as scanned thin tools.",
+          "confidence": "high",
+          "confidence_scope": "Visible component and approximate projected ratios; not exact 3-D metrology."
+        }
+      ],
+      "profile": {
+        "confidence": "high",
+        "kind": "bowl",
+        "axis": "x",
+        "head_fraction": 0.3333333333333333,
+        "neck_width_fraction": 0.24,
+        "grip_width_fraction": 0.22,
+        "grip_start_fraction": 0.3,
+        "floor_thickness_fraction": 0.25,
+        "grip_thickness_fraction": 0.5,
+        "bowl_inner_radius_fraction": 0.9,
+        "measurements": [
+          {
+            "frame": "evaluation/16/ego_cam_a/0",
+            "quantity": "bowl and handle outline",
+            "bowl_tip_px": [
+              840,
+              1365
+            ],
+            "neck_px": [
+              1090,
+              1352
+            ],
+            "grip_end_px": [
+              1590,
+              1272
+            ],
+            "projected_axis_spans_px": {
+              "total": 750,
+              "head": 250,
+              "bowl_width": 100,
+              "grip_width": 22,
+              "neck_width": 24,
+              "grip_start": 225
+            },
+            "formula": "head=250/750; neck=24/100; grip_width=22/100; grip_start=225/750",
+            "uncertainty_px": 8
+          },
+          {
+            "frame": "evaluation/5/ego_cam_a/0",
+            "quantity": "visible shallow bowl and edge ratios",
+            "bowl_edge_rim_px": [
+              [
+                1202,
+                840
+              ],
+              [
+                1207,
+                850
+              ]
+            ],
+            "inner_lip_span_px": 5,
+            "outer_half_width_px": 50,
+            "floor_edge_span_px": 2.5,
+            "grip_edge_span_px": 5,
+            "height_span_px": 10,
+            "formula": "inner_radius=(50-5)/50; floor=2.5/10; grip=5/10",
+            "confidence": "medium",
+            "note": "Shallow, partly perspective-compressed profile; coarse regularized paraboloid, not recovered cavity metrology."
+          }
+        ],
+        "approximation": "Elliptical shallow paraboloid shell plus tapered narrow grip, 48 angular sections. Spoon remains unscored and changes only if shared R8 independently qualifies.",
+        "display_crop_px": [
+          1170,
+          780,
+          1470,
+          1300
+        ]
+      },
+      "note": "Frozen shared broad-head plus measured-grip construction, applied only by R8/R9."
+    }
+  },
+  "round": 3,
+  "measurement_method": "Manual pixel landmarks on decoded opening frames; projected ratios are approximate, not calibrated metric measurements. Rounded ratios are frozen once, before scoring. Overall dimensions remain the pooled video extents."
+}

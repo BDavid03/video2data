@@ -147,3 +147,126 @@ faces, as permitted for R2. The vessel body itself is one connected shell. Every
 be watertight and a positive volume, every mesh below 4096 vertices and 4096 faces; overall
 extents must match video extents to 1e-6 relative. Candidate-only dry renders show three views
 per changed object. No new score is computed as part of this amendment's preparation.
+
+## Amendment 2 (round 3), fixed before any round-3 score
+
+Dated **2026-11-02**. All earlier text is retained. The lead must commit this amendment,
+`attributes-round3.json`, `rules-round3.json` and the geometry before Job B scores anything.
+Job A reads video and candidate geometry only, apart from the explicitly allowed R6/0.10
+incumbent ledger rows. It does not open public scans or call a CD-O scorer.
+
+### Incumbent, gates and selection
+
+The incumbent is **packed D1 v3**, R6 peg-rack with wall/radius **0.10**, Parquet SHA-256
+`a61f02b12078a05c940037034e37ec4201e3e919a55e4bea9e0058dfa2f45f40`.
+Matched development comparisons use kit seed episodes **1/3/5**, retaining the original folds.
+The ten R6/0.10 rows in `outputs/mesh_eval/rules-round2/ledger.jsonl` give
+**0.7731489706385066 cm per object / 0.8167541550356001 cm pair-weighted**.
+The brief's 0.77314847 is a transcription discrepancy of about 0.00000050 cm;
+full-precision ledger values, frozen in the round-3 queue, govern development gates.
+
+| Object | R6/0.10 development CD-O (cm) | Scanned pairs |
+| --- | ---: | ---: |
+| beige_cup | 0.3207342096946351 | 2 |
+| blue_cup | 0.380004128502687 | 5 |
+| mini_dust_pan | 1.0612569261637064 | 2 |
+| mini_sweeper | 0.723585214852021 | 2 |
+| plastic_dish_rack | 1.3907362291207122 | 5 |
+| water_pitcher | 1.472552596081469 | 1 |
+| white_pot | 0.8631161086673155 | 6 |
+| white_pot_lid | 0.6755823809179679 | 1 |
+| wooden_piece_1 | 0.44443347270991 | 1 |
+| wooden_piece_2 | 0.39948843967464204 | 1 |
+
+A rule must have cross-fitted equal-object mean **strictly below incumbent minus 0.03 cm**
+(**< 0.7431489706385066 cm**), no object regression **> 0.15 cm** relative to that object's
+matched incumbent, and pair-weighted mean **<= 0.8167541550356001 cm**. Never compare a
+three-seed development score with a packed-pair score. There are exactly three rules below,
+with **no free parameter and no grids** (`grid: [null]` denotes one fixed construction);
+wall/radius stays 0.10. A no-parameter rule's all-ten-object score is its cross-fitted score.
+Among eligible rules, lowest cross-fitted equal-object mean wins; ties use **R7, R8, R9** order.
+There is no scan-selected per-object mixture. R9 uses the exact R7 rack and exact R8 tools.
+
+The spoon safeguard from the route review is fixed explicitly: **R8 must independently pass
+all development gates before R9 is eligible**, so a rack improvement cannot subsidize an
+unsupported spoon change. The unscanned spoon changes only if R8 or eligible R9 is adopted.
+
+### Three video-only rules
+
+The full annotations are in `track3/features/mesh_extents/attributes-round3.json`: original
+frame coordinates, episode/camera/frame, decoded-image SHA-256, observation, confidence and
+uncertainty. `attributes.json` and `rules-round2.json` remain byte-identical. Original vessel
+attributes are inherited without modification. Measurements are approximate projected pixel
+ratios, not calibrated 3-D metrology; their numerical precision does not imply that accuracy.
+Tracking markers are ignored. All meshes keep the pooled video extents.
+
+- **R7 compartment rack = v3 plus the rebuilt rack.** Evaluation 15/16 frame 0 `ego_cam_a`,
+  with public 12 corroboration, show a full-footprint tray, open utensil compartment at one end,
+  and two rows of six pegs lower than that compartment. The unseen floor/underside keeps the
+  v3 slab (0.25 total height). Above-floor projected heights, approximately **160/80/40 px**
+  for compartment/peg/rim in evaluation 15 and **150/75/38 px** in evaluation 16, freeze peg
+  top at **0.625** and rim top at **0.4375** total height; compartment top is **1.0**.
+  Its footprint length is **155/900 = 0.17222222** of long extent, full short extent, centered
+  at **(0.08611111, 0.5)** in normalized footprint coordinates. Wall thickness is **10/230 =
+  0.04347826** of short extent. Peg footprint is **40/900 = 0.04444444** long by **40/230 =
+  0.17391304** short; long centers **[0.22, 0.32, 0.42, 0.52, 0.62, 0.72]**, short centers
+  **[60/230, 150/230]**. Shapes are closed boxes, omitting small ridges and rounded corners;
+  the compartment has four walls and the existing floor, no cap across its mouth. Contact
+  overlap remains v3's **0.01 x height**, an inherited construction convention. Unknown or
+  low-confidence rack components retain their corresponding v3 geometry, rather than gaining
+  scan-inferred detail. Height-ratio uncertainty is about +/-0.10 of total height.
+- **R8 thin-tool profiles = v3 plus one broad-head/measured-grip policy for all three tools.**
+  Public 18 frame 0 `ego_cam_a/b/c` supplies pan and sweeper outlines; public 39 corroborates
+  the pan (its frame-0 sweeper is absent). Evaluation 5/15/16 frame 0 supplies the spoon.
+  The longitudinal axis follows the visible tool: in-plane long axis for pan/spoon, vertical
+  for the upright sweeper. Pan: head length **210/300 = 0.70**, neck width **70/280 = 0.25**,
+  elliptical solid grip width **154/280 = 0.55**, starting at **195/300 = 0.65**; tapered
+  scoop floor thickness **6/42**, grip thickness **12/42**, side/back wall width **9/280**.
+  Open front and low raised walls use the measured full height. Sweeper: solid tapered brush
+  envelope length **70/140 = 0.50**, neck width **60/80 = 0.75**, grip width **56/80 = 0.70**,
+  grip starting at **63/140 = 0.45**; grip thickness **26/40 = 0.65** of brush depth.
+  Spoon: elliptical shallow bowl length **250/750 = 1/3**, neck **24/100 = 0.24**, narrow
+  grip **22/100 = 0.22**, starting at **225/750 = 0.30**; inner bowl radius **0.90**, floor
+  fraction **0.25**, grip thickness **0.50** from coarse visible edge ratios. The bowl is a
+  closed shallow paraboloid shell with 48 angular sections and six radial intervals; the grip
+  sits flush with its rim. Heights
+  and thicknesses are visibly approximate (medium confidence), not recovered cavity geometry.
+  Visible grip holes are omitted as authorized; no tracking markers or individual bristles.
+- **R9 rack and tools = exactly R7 + R8**, with no extra components, measurements or parameters.
+  Every other object retains v3 bytes; production building all eleven objects uses the same
+  frozen queue and constructors as development building.
+
+### Geometry checks and buried surfaces
+
+Every component must be watertight with positive volume. Each mesh has **<4096 vertices and
+<4096 faces**, and overall extents equal video extents within **1e-6 relative**. Untouched
+objects must remain byte-identical to v3, and existing constructors must return identical
+vertex and face arrays on the v3 objects. Candidate-only renders show three views per changed
+object, plus a side-by-side video frame/candidate; no scans appear in these figures.
+
+A geometry-only diagnostic reports, for both v3 and R7 racks, the surface-area fraction inside
+another component: sample each component's surface with fixed seeds, use trimesh containment
+against other components (all rack components are axis-aligned boxes, so
+`trimesh.bounds.contains` is exact and needs no optional ray-index dependency), and weight each buried fraction by that component's area. Report
+sampling resolution, uncertainty and boundary convention. Overlapping coincident boundary
+faces are reported separately if necessary. CD-O samples area-weighted points and normalizes
+by surface radius, so buried faces can influence it. **This diagnostic chooses nothing in
+round 3** and never accesses a scan.
+
+### Stricter packed veto and optimism
+
+Only the selected development winner is built with the production builder (all **11** objects),
+packed with the placeholder URL and scored through `track3/features/mesh_eval`, each pair using
+its own kit seed. Apply the explicit brief's thresholds from `rules-round3.json`:
+packed per-object mean **< 0.74107703 cm**, packed pair-weighted mean **<= 0.81149513 cm**,
+and no object's packed mean worse than packed v3's by **> 0.15 cm**. Job B obtains matched v3
+per-object packed means through that same pair evaluator; Job A does not read those ledgers.
+Failure retains v3, **no runner-up, no retuning**. Packed-v3 unrounded means are
+0.7710770332786878 per object / 0.8114951342417491 pair-weighted; the explicit veto thresholds
+above are deliberately retained as written in the brief. Build, pack and veto follow the
+pre-score commit; dry builds do not authorize adoption.
+
+Round 3 follows two adaptive rounds on the same ten scans plus prior exposure to scan renders.
+Cross-fitting covers declared parameters only. The results are development evidence, not an
+independent estimate. A third round on the same ten scans raises selection optimism further.
+New seeds and the packed veto do not remove that optimism, whose size is not known.

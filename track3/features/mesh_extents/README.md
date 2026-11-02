@@ -320,3 +320,102 @@ stored v1 JSON within its rounding. An independent artifact-based calculation ag
 fold selections, means and gates (`outputs/mesh_eval/rules/independent-recheck.json`).
 Repeating the command resumed all 80 completed trials with zero new scores, left the ledger at
 80 rows, and reproduced the ranking exactly (`outputs/mesh_eval/rules/resume-recheck.json`).
+
+## Round 3: frozen video profiles, Job A (no scoring)
+
+Amendment 2 in `docs/chain/mesh-selection-protocol.md` and the new
+`attributes-round3.json` / `rules-round3.json` are prepared for the lead's **pre-score commit**.
+The earlier attribute and queue files are unchanged. R7 replaces only the rack; R8 applies one
+broad-head/grip construction to pan, sweeper and spoon; R9 contains both exact components.
+There are no fitted parameters; vessel wall/radius remains 0.10. R9 additionally requires
+R8 to pass independently before any spoon transfer. Unknown rack underside geometry retains
+v3's floor. The construction functions are pure; `rules.py` owns the resumable loop, admission,
+checks and rendering, and calls `build.py` for each production candidate.
+
+Build/check/render all three candidates (CPU, no scans or scorer imports):
+
+```bash
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/linux-cuda/bin/python -B -m track3.features.mesh_extents.rules --queue track3/features/mesh_extents/rules-round3.json --dry-build
+```
+
+`outputs/mesh_extents/rules-round3/dry/summary.md` is the mesh-check table and links all current
+three-view renders and video/candidate side-by-sides. `summary.json` lists the three completed
+production builds, each with all eleven objects and 36 pair copies (47 PLY files). The standard
+production builder also accepts a request with `rule_queue` pointing at `rules-round3.json`,
+`attributes_file` pointing at `attributes-round3.json`, one queued rule name and
+`rule_parameter: null`; retain v3's measure runs.
+
+| Object | Frozen numbers (fractions of pooled video extents) | Opening-frame references |
+| --- | --- | --- |
+| Rack | Floor 0.25 retained; compartment length 0.172222, full width, height 1; rim top 0.4375; peg top 0.625; peg footprint 0.044444 long x 0.173913 short; wall 0.043478 short | evaluation 15/16, camera a; public 12 corroboration |
+| Pan | Head 0.70; neck width 0.25; grip width 0.55, starts at 0.65; floor 6/42 and grip thickness 12/42; wall width 9/280 | public 18, cameras a/b/c; public 39 camera a corroboration |
+| Sweeper | Upright axis; solid brush envelope 0.50; neck width 0.75; grip width 0.70, starts at 0.45, depth 0.65 | public 18, cameras a/b/c; sweeper absent in public 39 frame 0 |
+| Spoon | Bowl length 1/3; neck width 0.24; grip width 0.22, starts at 0.30; bowl inner radius 0.90, floor 0.25; grip thickness 0.50, flush with rim | evaluation 5/15/16, camera a |
+
+Every reference is frame 0. Exact pixel coordinates, hashes, observations and confidence are in
+`attributes-round3.json`. The pixel ratios are approximate projected measurements; thickness
+and cavity depth have medium confidence. Markers and grip holes are omitted. The rack height
+allocation is uncertain by about +/-0.10 of total height. These frozen simplifications are
+candidates, not evidence of improved reconstruction quality.
+
+CPU evidence in `outputs/mesh_extents/round3-job-a/`:
+
+- Four edited Python modules compile and the slice imports on CPU. The old constructors return
+  identical vertex/face arrays in **110 comparisons** over v3's eleven objects; old v3 dispatch
+  and PLY bytes match for **11/11** objects. The entire old `_shapes.py` remains a byte-identical
+  source prefix. All ten original evidence overlays retain their recorded hashes.
+- **33/33** candidates pass component watertightness, positive volume, budget and extent checks;
+  **15** distinct meshes, **4** three-view renders (12 views) and **4** video side-by-sides.
+  Largest mesh: **634 vertices / 1260 faces**. Construction relative extent error <= **2.22e-16**;
+  PLY-reloaded error <= **5.30054e-8**. All **141** production PLY hashes are checked; R7/R8/R9
+  keep **41/30/24** PLY files respectively byte-identical to v3, including pair copies.
+  R9's component composition is exact.
+- Resuming reuses **33/33** dry trials and all three production runs, with **0** new builds and
+  identical result rows. The audit hook saw **0** forbidden attempts and no scoring modules.
+- Buried-surface diagnostic (geometry only): v3 **10.3262%**, R7 **10.5367%** strictly inside
+  other components. Monte Carlo standard errors are **0.01470 / 0.01334 percentage points**,
+  from three replicates of 20,000 samples per component. Coincident boundary area is separately
+  **0.3069% / 9.9476%**. Total component areas are **0.81463398 / 0.83625330** in squared
+  unanchored video units. `trimesh.bounds.contains` is exact here because every component is
+  verified to be an axis-aligned box; generic ray containment requires absent `rtree`, which was
+  not installed. This diagnostic does not select a rule. Full evidence:
+  `outputs/mesh_extents/round3-diagnostic/20261102T044817.813770Z-132cdab2/summary.md`.
+
+The allowed R6/0.10 ledger rows give development incumbent **0.7731489706385066 cm/object** and
+**0.8167541550356001 cm/pair**, so the equal-object gate is **<0.7431489706385066 cm**. The
+brief's 0.77314847 differs by about 0.00000050 cm; the frozen full-precision ledger values govern.
+Packed numbers are a separate comparison. The queue owns the incumbent, gates, rule order and
+fixed single-entry grids; no new scoring constants are embedded in the loop.
+
+### Job B, only after the pre-score commit
+
+Resume the fixed development queue with the kit environment:
+
+```bash
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/kit-env/bin/python -B -m track3.features.mesh_extents.rules --queue track3/features/mesh_extents/rules-round3.json
+```
+
+Then run the prepared orchestration artifact below. It resumes that same score loop, reads its
+single eligible winner, builds all eleven production objects, packs with the existing placeholder
+URL, calls `mesh_eval pairs` for both shipped v3 and the candidate (52 covered pair trials),
+and writes the queue's strict packed-veto verdict. It reuses completed work on restart, refuses
+changed frozen inputs or a different winner, and never switches to a runner-up. No development
+winner means retain v3 without a packed evaluation.
+
+```bash
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/linux-cuda/bin/python -B outputs/mesh_extents/round3-job-a/job_b.py
+```
+
+The generated pair request is `outputs/mesh_extents/rules-round3/job-b/pair-request.json`; its
+standalone resumable command is `.runtime/kit-env/bin/python -B -m track3.features.mesh_eval pairs
+--request outputs/mesh_extents/rules-round3/job-b/pair-request.json` with the same CPU environment.
+Development summary: `outputs/mesh_extents/rules-round3/summary.md`; final verdict:
+`outputs/mesh_extents/rules-round3/job-b/veto.json`; pair evidence:
+`outputs/mesh_eval/pairs/mesh-round3-veto/`. This Job B script was **syntax checked only**, never
+executed in Job A. No pack, preflight or scoring result is claimed here.
+
+Packed veto: per-object mean **<0.74107703 cm**, pair mean **<=0.81149513 cm**, no packed object
+regression **>0.15 cm**; failure retains v3, with no runner-up or retuning. Round 3 follows two
+adaptive rounds and prior scan-render exposure on the same ten scans. Cross-fitting covers
+declared parameters only; these are development results, not an independent estimate, and the
+third round raises selection optimism further. Job A read no scan and computed no CD-O.

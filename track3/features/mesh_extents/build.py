@@ -69,9 +69,9 @@ def _rule_inputs(request: BuildRequest):
     queue = read_queue(queue_path)
     rule = next((row for row in queue["rules"] if row["name"] == request.rule), None)
     if rule is None or request.rule_parameter not in rule["grid"]:
-        raise ValueError("Name a frozen round-2 rule and one of its recorded parameters")
+        raise ValueError("Name a frozen rule and one of its recorded parameters")
     if request.attributes_file != queue["attributes"]:
-        raise ValueError("Use the frozen round-2 attributes file")
+        raise ValueError("Use the queue's frozen attributes file")
     attributes = read_json(request.attributes_file)
     if attributes["provenance"] != "video_only":
         raise ValueError("Production attributes require video-only provenance")

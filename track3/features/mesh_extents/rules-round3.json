@@ -1,0 +1,118 @@
+{
+  "round": 3,
+  "output": "outputs/mesh_extents/rules-round3",
+  "build": "outputs/mesh_extents/build/20261102T031152.089350Z-ea88a295",
+  "attributes": "track3/features/mesh_extents/attributes-round3.json",
+  "base_attributes": "track3/features/mesh_extents/attributes.json",
+  "incumbent": {
+    "label": "R6 at wall/radius 0.10 (three seeds)",
+    "ledger": "outputs/mesh_eval/rules-round2/ledger.jsonl",
+    "rule": "R6 peg-rack",
+    "parameter": 0.1,
+    "build": "outputs/mesh_extents/build/20261102T031152.089350Z-ea88a295",
+    "per_object_cm": {
+      "beige_cup": 0.3207342096946351,
+      "blue_cup": 0.380004128502687,
+      "mini_dust_pan": 1.0612569261637064,
+      "mini_sweeper": 0.723585214852021,
+      "plastic_dish_rack": 1.3907362291207122,
+      "water_pitcher": 1.472552596081469,
+      "white_pot": 0.8631161086673155,
+      "white_pot_lid": 0.6755823809179679,
+      "wooden_piece_1": 0.44443347270991,
+      "wooden_piece_2": 0.39948843967464204
+    },
+    "per_object_mean_cm": 0.7731489706385066,
+    "pair_weighted_mean_cm": 0.8167541550356001,
+    "packed_parquet_sha256": "a61f02b12078a05c940037034e37ec4201e3e919a55e4bea9e0058dfa2f45f40",
+    "packed_pair_weighted_mean_cm": 0.8114951342417491,
+    "packed_per_object_mean_cm": 0.7710770332786878,
+    "seed_std_cm": {
+      "beige_cup": 0.0023110032254011386,
+      "blue_cup": 0.0030230002302918464,
+      "mini_dust_pan": 0.009430431828276959,
+      "mini_sweeper": 0.002521819432762883,
+      "plastic_dish_rack": 0.018318681205693178,
+      "water_pitcher": 0.02136714096735155,
+      "white_pot": 0.007384020711811657,
+      "white_pot_lid": 0.002681071807640951,
+      "wooden_piece_1": 0.0009183614444309756,
+      "wooden_piece_2": 0.0009178234019523273
+    }
+  },
+  "gates": {
+    "minimum_gain_cm": 0.03,
+    "maximum_regression_cm": 0.15
+  },
+  "packed_veto": {
+    "per_object_mean_strict_upper_cm": 0.74107703,
+    "pair_weighted_mean_upper_cm": 0.81149513,
+    "maximum_object_regression_cm": 0.15,
+    "failure_policy": "Keep v3; no runner-up or retuning."
+  },
+  "budget": {
+    "max_object_trials": 30,
+    "max_seconds": 7200,
+    "max_candidate_builds": 33
+  },
+  "eligibility": {
+    "combined_rule": "R9 rack-and-tools",
+    "requires_rule": "R8 thin-tool-profiles"
+  },
+  "rules": [
+    {
+      "name": "R7 compartment-rack",
+      "parameter": null,
+      "grid": [
+        null
+      ],
+      "base_rule": "R6 peg-rack",
+      "wall_radius_fraction": 0.1,
+      "aspect_threshold": 1.3,
+      "handle_height_fraction": 0.6,
+      "compartment_rack": true,
+      "thin_tool_profiles": false,
+      "shapes": {
+        "round_vessel": "vessel_with_handle",
+        "flat_or_blocky": "box",
+        "thin_tool": "box"
+      }
+    },
+    {
+      "name": "R8 thin-tool-profiles",
+      "parameter": null,
+      "grid": [
+        null
+      ],
+      "base_rule": "R6 peg-rack",
+      "wall_radius_fraction": 0.1,
+      "aspect_threshold": 1.3,
+      "handle_height_fraction": 0.6,
+      "compartment_rack": false,
+      "thin_tool_profiles": true,
+      "shapes": {
+        "round_vessel": "vessel_with_handle",
+        "flat_or_blocky": "box",
+        "thin_tool": "box"
+      }
+    },
+    {
+      "name": "R9 rack-and-tools",
+      "parameter": null,
+      "grid": [
+        null
+      ],
+      "base_rule": "R6 peg-rack",
+      "wall_radius_fraction": 0.1,
+      "aspect_threshold": 1.3,
+      "handle_height_fraction": 0.6,
+      "compartment_rack": true,
+      "thin_tool_profiles": true,
+      "shapes": {
+        "round_vessel": "vessel_with_handle",
+        "flat_or_blocky": "box",
+        "thin_tool": "box"
+      }
+    }
+  ]
+}

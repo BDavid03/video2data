@@ -25,6 +25,7 @@ BUILD = Path("outputs/mesh_extents/build/20261101T103838.400965Z-117fbcff")
 PROTOCOL = Path("docs/chain/mesh-selection-protocol.md")
 OUTPUT = Path("outputs/mesh_eval/rules")
 SEEDS = [1, 3, 5]
+ROUND3_QUEUE_SHA256 = "5644a29dd2432feea4fb1bda6b4f156b3559e193d84d289cb97fdb602456edb3"
 ROUND2_QUEUE_SHA256 = "3b21c00b7e215c5af027ffe2e09f28d7674fc1e48d48926c5751f9698fea05aa"
 
 
@@ -33,10 +34,14 @@ def identity(value: dict) -> str:
 
 
 def read_queue(path: Path) -> dict:
-    """Read one admitted queue, checking the committed round-2 bytes exactly."""
+    """Read one admitted queue, checking frozen round-2/3 bytes exactly."""
     data = path.read_bytes()
     queue = json.loads(data)
     rules = queue["rules"]
+    if queue.get("round") == 3:
+        if hashlib.sha256(data).hexdigest() != ROUND3_QUEUE_SHA256:
+            raise ValueError("Round-3 queue differs from its frozen hash")
+        return queue
     if queue.get("round") == 2:
         if hashlib.sha256(data).hexdigest() != ROUND2_QUEUE_SHA256:
             raise ValueError("Round-2 queue differs from its committed frozen hash")
@@ -189,7 +194,7 @@ def ranked_table(summary: dict) -> str:
                     f"{row['pair_weighted_mean_cm']:.5f} | {row['worst_held_out_regression_cm']:+.5f} | "
                     f"{gates} | {'yes' if row['adopt'] else 'no'} |")
     table = "\n".join(rows).replace("| None |", "| — |")
-    return table.replace("| Adopt |", "| Development eligible (veto pending) |") if summary.get("round") == 2 else table
+    return table.replace("| Adopt |", "| Development eligible (veto pending) |") if summary.get("round") in (2, 3) else table
 
 
 def plot(summary_path: str, target: str) -> None:
@@ -231,9 +236,12 @@ def write_report(summary: dict, directory: Path) -> None:
             ("R2 tunes only the aspect threshold; handle height is fixed at 0.6, width at 0.15 of the short "
             "extent. This tests when the measured long-axis excess should become a handle. "
             "R3 uses a box head and handle width 0.2 of the short extent; the height remains measured."
-            if summary.get("round") != 2 else
-            "R4 moves only video-confirmed rim-flat handles. R5 adds open vessel shells, and R6 adds "
-            "video-counted rack pegs. R5/R6 tune wall/radius over [0.02, 0.05, 0.10]; threshold stays 1.3."), "",
+            if summary.get("round", 1) == 1 else
+            ("R4 moves only video-confirmed rim-flat handles. R5 adds open vessel shells, and R6 adds "
+             "video-counted rack pegs. R5/R6 tune wall/radius over [0.02, 0.05, 0.10]; threshold stays 1.3."
+             if summary.get("round") == 2 else
+             "R7 rebuilds the rack; R8 applies one measured head/grip policy to all thin tools; R9 uses "
+             "both exact components. There are no fitted parameters. R9 requires independently eligible R8.")), "",
             "| Object | Fold | Pairs | " + summary.get("baseline_label", "Box v1") + " (cm) | " + " | ".join(r["rule"] + " (cm)" for r in summary["ranking"]) + " |",
             "| --- | --- | ---: | ---: | " + " | ".join("---:" for _ in summary["ranking"]) + " |"]
     for name in NAMES:
@@ -246,16 +254,22 @@ def write_report(summary: dict, directory: Path) -> None:
     for row in summary["ranking"]:
         spread = row["seed_spread_cm"]
         text.append(f"| {row['rule']} | {spread['mean']:.8f} | {spread['max']:.8f} |")
-    if summary.get("round") == 2:
-        text += ["", "Choosing among three nested results on ten reused scans is optimistic. "
-                 "Development eligibility is provisional: production build/pack and the exact packed-v2 veto "
+    if summary.get("round") in (2, 3):
+        text += ["", "Choosing among three results on ten reused scans is optimistic. "
+                 "Development eligibility is provisional: production build/pack and the queue's exact packed veto "
                  "must pass before adoption; no retuning or rule switching after the veto."]
+    if summary.get("round") == 3:
+        text += ["", "Round 3 follows two adaptive rounds on the same ten scans and prior scan-render exposure. "
+                 "Cross-fitting covers declared parameters only; a third round raises selection optimism further. "
+                 "All results, including the packed veto, are development evidence, not an independent estimate."]
     text += ["", "![Per-object CD-O](rules-cdo.png)", "",
              f"Figure: {summary.get('baseline_label', 'Box v1')} versus each rule's cross-fitted per-object CD-O (cm). "
              "These are development estimates against the public scans, not an independent final assessment.", "",
              "Concatenated components remain individually closed; overlaps leave internal faces. "
-             "The real run checks the kit's 4096-row budget and finite area-weighted sampling, "
-             "not Boolean union or physical simulation validity. The unscanned spoon is not scored or changed.", "",
+             "The real run checks the kit's 4096-row budget and finite area-weighted sampling, " +
+             ("not Boolean union or physical simulation validity. The unscanned spoon is not scored; its profile "
+              "changes only through independently eligible R8." if summary.get("round") == 3 else
+              "not Boolean union or physical simulation validity. The unscanned spoon is not scored or changed."), "",
              f"This invocation: {summary['new_scores']} new mesh scores, {summary['reused_scores']} reused mesh scores, "
              f"{summary['resumed']} completed object trials resumed.", "",
              "Every parameter/object result, including losers, is in `ledger.jsonl`; full trial inputs, "
@@ -269,6 +283,9 @@ def write_report(summary: dict, directory: Path) -> None:
 def incumbent_scores(queue: dict) -> tuple[dict, list]:
     """Read the exact fixed-threshold incumbent from its completed ledger rows."""
     incumbent = queue["incumbent"]
+    if queue.get("round") == 3:
+        return incumbent["per_object_cm"], [{"object": n, "seed_std_cm": v}
+                                           for n, v in incumbent["seed_std_cm"].items()]
     rows = {}
     path = project_path(ROOT, incumbent["ledger"])
     for line in path.read_text().splitlines():
@@ -285,8 +302,8 @@ def incumbent_scores(queue: dict) -> tuple[dict, list]:
 
 
 def round2_inputs_for(queue: dict) -> tuple[dict, dict, list]:
-    """Read frozen video attributes and hash the incumbent and attribute inputs."""
-    if queue.get("round") != 2:
+    """Read frozen video attributes and the matched incumbent inputs."""
+    if queue.get("round") not in (2, 3):
         return {}, {}, []
     path = project_path(ROOT, queue["attributes"])
     attributes = json.loads(path.read_text())
@@ -297,6 +314,11 @@ def round2_inputs_for(queue: dict) -> tuple[dict, dict, list]:
             if evidence["episode"] in (41, 43, 44):
                 raise ValueError("Excluded episode in video attributes")
     baseline, _ = incumbent_scores(queue)
+    if queue.get("round") == 3:
+        base_path = project_path(ROOT, queue["base_attributes"])
+        return attributes["objects"], {"attributes": input_file(ROOT, path),
+                                        "base_attributes": input_file(ROOT, base_path),
+                                        "incumbent": queue["incumbent"]}, [path, base_path]
     inputs = [path, project_path(ROOT, queue["incumbent"]["ledger"])]
     hashes = {"attributes": input_file(ROOT, path), "incumbent": queue["incumbent"],
               "incumbent_scores": baseline, "incumbent_ledger": input_file(ROOT, inputs[1])}
@@ -341,6 +363,60 @@ def render_candidate(mesh, target: Path, label: str) -> None:
     plt.close(fig)
 
 
+
+def render_video_comparison(render: Path, frame: Path, target: Path, name: str, crop=None) -> None:
+    """Put the measured video crop beside the candidate-only three-view figure."""
+    import matplotlib.pyplot as plt
+    from PIL import Image
+
+    video = Image.open(frame)
+    if crop:
+        video = video.crop(crop)
+    fig, axes = plt.subplots(1, 2, figsize=(18, 6), width_ratios=(1, 2), constrained_layout=True)
+    axes[0].imshow(video)
+    axes[0].set_title("Opening video frame (markers ignored)")
+    axes[1].imshow(Image.open(render))
+    axes[1].set_title("Frozen candidate geometry")
+    for ax in axes:
+        ax.axis("off")
+    fig.suptitle(name.replace("_", " ") + " / video and candidate; views are not registered")
+    fig.savefig(target, dpi=140)
+    plt.close(fig)
+
+
+def production_dry_builds(queue_path: Path, queue: dict, parent: dict, sources: dict, results: list, output: Path) -> list:
+    """Resume all three production builds and compare their bytes with the dry meshes."""
+    from .build import BuildRequest, build
+
+    entries = []
+    folder = output / "production"
+    folder.mkdir(exist_ok=True)
+    for rule in queue["rules"]:
+        request = {**parent["request"], "rule": rule["name"], "rule_parameter": rule["grid"][0],
+                   "attributes_file": queue["attributes"], "rule_queue": queue_path.relative_to(ROOT).as_posix()}
+        key = identity({"request": request, "sources": sources, "builder": sha256_file(FEATURE / "build.py"),
+                        "attributes": sha256_file(ROOT / queue["attributes"]), "protocol": sha256_file(ROOT / PROTOCOL)})
+        cache = folder / (key + ".json")
+        if cache.exists():
+            entry = json.loads(cache.read_text())
+            run = ROOT / entry["build_run"]
+        else:
+            run = build(BuildRequest(**request))
+        record = read_run(ROOT, run, kind="mesh_extents.build", allowed=("video_only",))
+        objects = json.loads(artifact((run, record), "objects.json", {"inputs": []}).read_text())["objects"]
+        checks = [r for r in results if r["rule"] == rule["name"]]
+        if any(objects[r["object"]]["sha256"] != r["mesh_sha256"] for r in checks):
+            raise ValueError("Production and dry candidate bytes differ")
+        entry = {"rule": rule["name"], "build_run": run.relative_to(ROOT).as_posix(),
+                 "object_count": len(objects), "pairs_written": record["pairs_written"],
+                 "all_dry_meshes_identical": True,
+                 "unchanged_objects": [r["object"] for r in checks if not r["changed_from_incumbent"]]}
+        if not cache.exists():
+            write_json(cache, entry)
+        entries.append(entry)
+    return entries
+
+
 def build_dry_trial(trial: dict, attributes: dict, output: Path) -> dict:
     """Build, check and persist one video-only candidate and its three-view render."""
     rule, parameter, name, dims = (trial[k] for k in ("rule", "parameter", "object", "extents_m"))
@@ -357,10 +433,19 @@ def build_dry_trial(trial: dict, attributes: dict, output: Path) -> dict:
     render = output / "renders" / (render_id + ".png")
     if changed and not render.exists():
         render_candidate(mesh, render, f"{name} / {shape}" + (f" / wall-radius {parameter}" if shape == "vessel_shell" else ""))
+    comparison = None
+    attrs = attributes.get(name, {})
+    profile = attrs.get("rack_profile", attrs.get("profile"))
+    if changed and profile:
+        evidence = next(e for e in attrs["evidence"] if e["attribute"] == ("rack_profile" if "rack_profile" in attrs else "profile"))
+        comparison = output / "renders" / (render_id + "-video.png")
+        if not comparison.exists():
+            render_video_comparison(render, ROOT / evidence["path"], comparison, name, profile.get("display_crop_px"))
     result = {"identity": identity(trial), "rule": rule["name"], "parameter": parameter, "object": name,
-              "shape": shape, **geometry, "changed_from_R2": changed,
+              "shape": shape, **geometry, "changed_from_incumbent": changed, "changed_from_R2": changed,
               "mesh": target.relative_to(ROOT).as_posix(), "mesh_sha256": mesh_hash,
               "render": render.relative_to(ROOT).as_posix() if changed else None,
+              "video_comparison": comparison.relative_to(ROOT).as_posix() if comparison else None,
               "inputs": trial, "provenance": "video_only", "scoring": False}
     return result
 
@@ -371,8 +456,8 @@ def dry_build(queue_path: Path, output_override: Path | None = None) -> Path:
     queue_path = project_path(ROOT, queue_path)
     queue = read_queue(queue_path)
     rules = queue["rules"]
-    if queue.get("round") != 2:
-        raise ValueError("Dry build requires the round-2 queue")
+    if queue.get("round") not in (2, 3):
+        raise ValueError("Dry build requires a frozen round-2 or round-3 queue")
     output = output_path(ROOT, Path(output_override or queue["output"]) / "dry")
     for folder in ("meshes", "renders", "trials", "runs"):
         (output / folder).mkdir(parents=True, exist_ok=True)
@@ -393,7 +478,7 @@ def dry_build(queue_path: Path, output_override: Path | None = None) -> Path:
         raise ValueError("Dry-build candidate count exceeds queue budget")
     if any(ep["episode_index"] in (41, 43, 44) for row in objects.values() for ep in row["episodes"]):
         raise ValueError("Excluded episode in video measurements")
-    sources = {p.name: sha256_file(p) for p in (Path(__file__), FEATURE / "_shapes.py", FEATURE / "_rule_scores.py")}
+    sources = {p.name: sha256_file(p) for p in (Path(__file__), FEATURE / "_shapes.py", FEATURE / "_rule_scores.py", FEATURE / "build.py")}
     deadline = time.monotonic() + queue["budget"]["max_seconds"]
     results, resumed = [], 0
     ledger = output / "ledger.jsonl"
@@ -433,24 +518,31 @@ def dry_build(queue_path: Path, output_override: Path | None = None) -> Path:
                         append_ledger(ledger, result)
                         logged.add(trial_id)
                     results.append(result)
-        summary = {"scoring": False, "scan_access": False, "inputs": request, "results": results,
+        production = production_dry_builds(queue_path, queue, parent, sources, results, output) if queue["round"] == 3 else []
+        write_json(directory / "production-builds.json", production)
+        summary = {"production_builds": production, "scoring": False, "scan_access": False, "inputs": request, "results": results,
                    "candidate_count": len(results), "resumed": resumed, "new_builds": len(results) - resumed,
                    "unique_meshes": len({r["mesh_sha256"] for r in results}),
                    "unique_renders": len({r["render"] for r in results if r["render"]})}
         write_json(directory / "summary.json", summary)
-        lines = ["# Round-2 candidate-only dry build", "", "No scan files or scoring code accessed.",
+        lines = [f"# Round-{queue['round']} candidate-only dry build", "", "No scan files or scoring code accessed.",
                  f"{len(results)} candidates; {resumed} resumed; {summary['unique_meshes']} distinct meshes; "
                  f"{summary['unique_renders']} three-view renders. Seed spread: not measured (no scoring).", "",
                  "| Rule | Parameter | Object | Shape | Vertices | Faces | Watertight / volume | Components | Max extent relative error | Render |",
                  "| --- | --- | --- | --- | ---: | ---: | --- | ---: | ---: | --- |"]
         for r in results:
-            render = f"[three views]({Path(r['render']).relative_to(Path(queue['output']) / 'dry')})" if r["render"] else "unchanged"
+            render = f"[three views]({os.path.relpath(ROOT / r['render'], directory)})" if r["render"] else "unchanged"
+            if r.get("video_comparison"):
+                render += f" / [video]({os.path.relpath(ROOT / r['video_comparison'], directory)})"
             lines.append(f"| {r['rule']} | {r['parameter']} | {r['object']} | {r['shape']} | {r['vertices']} | "
                          f"{r['faces_before_budget']} | {r['watertight']} / {r['volume']} | {r['closed_components']} | "
                          f"{r['max_relative_extent_error']:.3g} | {render} |")
         (directory / "summary.md").write_text("\n".join(lines) + "\n")
     for name in ("summary.json", "summary.md"):
         shutil.copy2(directory / name, output / name)
+    top_summary = output / "summary.md"
+    text = (directory / "summary.md").read_text()
+    top_summary.write_text(text.replace("../../renders/", "renders/"))
     print(f"Dry build: {len(results)} candidates, {resumed} resumed; {output / 'summary.md'}", flush=True)
     return directory / "run.json"
 
@@ -519,7 +611,7 @@ def run(queue_path: Path, output_override: Path | None = None) -> Path:
                   protocol=context["protocol"], categories=CATEGORIES, folds=FOLDS, round2_inputs=round2_inputs)
     directory = output / "runs" / new_run_id()
     with recorded(directory, record):
-        if queue.get("round") == 2:
+        if queue.get("round") in (2, 3):
             baseline, baseline_rows = incumbent_scores(queue)
         else:
             baseline_rule = {"name": "box-v1 baseline", "parameter": None, "grid": [None],
@@ -539,13 +631,19 @@ def run(queue_path: Path, output_override: Path | None = None) -> Path:
             result["seed_spread_cm"] = {"per_object": spreads, "mean": float(np.mean(list(spreads.values()))),
                                          "max": max(spreads.values())}
             ranking.append(result)
+        if queue.get("eligibility"):
+            safeguard = queue["eligibility"]
+            eligible = next(r for r in ranking if r["rule"] == safeguard["requires_rule"])["adopt"]
+            combined = next(r for r in ranking if r["rule"] == safeguard["combined_rule"])
+            combined["gates"]["shared_tool_rule_independently_eligible"] = eligible
+            combined["adopt"] = all(combined["gates"].values())
         ranking.sort(key=lambda row: row["cross_fitted_mean_cm"])
         summary = {"ranking": ranking, "baseline_per_object_cm": baseline,
                    "baseline_mean_cm": float(np.mean(list(baseline.values()))),
                    "baseline_pair_mean_cm": float(np.average([baseline[n] for n in NAMES], weights=[counts[n] for n in NAMES])),
                    "pair_counts": dict(counts), "protocol": context["protocol"], "queue": input_file(ROOT, queue_path),
                    "new_scores": context["new_scores"], "reused_scores": context["reused_scores"],
-                   "resumed": context["resumed"], "baseline_matches_v1_rounding": queue.get("round") != 2,
+                   "resumed": context["resumed"], "baseline_matches_v1_rounding": queue.get("round", 1) == 1,
                    "baseline_label": baseline_label, "round": queue.get("round", 1),
                    "round2_inputs": round2_inputs,
                    "winner_pending_exact_veto": next((r["rule"] for r in ranking if r["adopt"]), None),

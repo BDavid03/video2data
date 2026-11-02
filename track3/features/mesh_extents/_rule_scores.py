@@ -25,6 +25,17 @@ def shape_for(rule: dict, name: str, extents, parameter, attributes: dict | None
     """Apply a category rule before any reference scan is read."""
     category = next(key for key, names in CATEGORIES.items() if name in names)
     shape = rule["shapes"][category]
+    if "base_rule" in rule:
+        attrs = (attributes or {}).get(name, {})
+        rack = attrs.get("rack_profile", {})
+        profile = attrs.get("profile", {})
+        if rule["compartment_rack"] and rack.get("confidence") == "high":
+            return "compartment_rack"
+        if rule["thin_tool_profiles"] and category == "thin_tool" and profile.get("confidence") == "high":
+            return "thin_tool_profile"
+        base = {**rule, "name": rule["base_rule"]}
+        base.pop("base_rule")
+        return shape_for(base, name, extents, rule["wall_radius_fraction"], attributes)
     if rule["name"].startswith(("R4 ", "R5 ", "R6 ")):
         attrs = (attributes or {}).get(name, {})
         evidence = attrs.get("evidence", [])
@@ -60,6 +71,12 @@ def mesh_for(shape: str, rule: dict, name: str, extents, parameter, attributes: 
 
     from . import _shapes
 
+    if "base_rule" in rule:
+        parameter = rule["wall_radius_fraction"]
+    if shape == "compartment_rack":
+        return _shapes.compartment_rack(extents, attributes[name]["rack_profile"])
+    if shape == "thin_tool_profile":
+        return _shapes.thin_tool_profile(extents, attributes[name]["profile"])
     if shape == "box":
         return trimesh.creation.box(extents=extents)
     if shape == "cylinder":

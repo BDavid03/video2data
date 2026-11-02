@@ -96,3 +96,96 @@ def peg_rack(extents, rows: int, count_per_row: int) -> trimesh.Trimesh:
             peg.apply_translation((x, y, height / 2 - peg_height / 2))
             parts.append(peg)
     return trimesh.util.concatenate(parts)
+
+
+def _bounded_box(lower, upper) -> trimesh.Trimesh:
+    """Create a closed box between two corners."""
+    lower, upper = np.asarray(lower, dtype=float), np.asarray(upper, dtype=float)
+    mesh = trimesh.creation.box(extents=upper - lower)
+    mesh.apply_translation((upper + lower) / 2)
+    return mesh
+
+
+def compartment_rack(extents, profile: dict) -> trimesh.Trimesh:
+    """Build the video tray, open compartment and lower pegs around the v3 floor."""
+    dims = np.asarray(extents, dtype=float)
+    p = profile
+    floor, overlap = p["floor_height_fraction"], p["overlap_height_fraction"]
+    wall_x = p["wall_short_fraction"] * dims[1] / dims[0]
+    wall_y = p["wall_short_fraction"]
+    parts = [_bounded_box((0, 0, 0), (1, 1, floor))]
+    for length, width, cx, cy, top in (
+        (1, 1, 0.5, 0.5, p["rim_top_fraction"]),
+        (p["compartment_length_fraction"], p["compartment_width_fraction"],
+         *p["compartment_center_fraction"], p["compartment_top_fraction"]),
+    ):
+        x0, x1, y0, y1 = cx - length / 2, cx + length / 2, cy - width / 2, cy + width / 2
+        for lo, hi in (((x0, y0), (x1, y0 + wall_y)), ((x0, y1 - wall_y), (x1, y1)),
+                       ((x0, y0), (x0 + wall_x, y1)), ((x1 - wall_x, y0), (x1, y1))):
+            parts.append(_bounded_box((*lo, floor - overlap), (*hi, top)))
+    for x in p["peg_centers_long_fraction"]:
+        for y in p["peg_centers_short_fraction"]:
+            half_x, half_y = p["peg_long_fraction"] / 2, p["peg_short_fraction"] / 2
+            parts.append(_bounded_box((x - half_x, y - half_y, floor - overlap),
+                                      (x + half_x, y + half_y, p["peg_top_fraction"])))
+    mesh = trimesh.util.concatenate(parts)
+    mesh.apply_translation((-0.5, -0.5, -0.5))
+    mesh.apply_scale(dims)
+    return mesh
+
+
+def _profile_prism(outline, lower: float, upper: float) -> trimesh.Trimesh:
+    """Extrude a convex outline into a closed solid using the existing convex hull."""
+    xy = np.asarray(outline, dtype=float)
+    return trimesh.convex.convex_hull(np.vstack([np.column_stack((xy, np.full(len(xy), z)))
+                                                for z in (lower, upper)]))
+
+
+def _shallow_bowl(length: float, inner_radius: float, floor: float) -> trimesh.Trimesh:
+    """Revolve a closed shallow paraboloid shell and scale its elliptical footprint."""
+    radii = np.linspace(0, 1, 7)
+    outer = [(r, (1 - floor) * r * r) for r in radii]
+    inner = [(inner_radius * r, floor + (1 - floor) * r * r) for r in radii[::-1]]
+    mesh = trimesh.creation.revolve([*outer, (1, 1), *inner, outer[0]], sections=48)
+    mesh.apply_scale((length / 2, 0.5, 1))
+    mesh.apply_translation((length / 2, 0, 0))
+    return mesh
+
+
+def thin_tool_profile(extents, profile: dict) -> trimesh.Trimesh:
+    """Join a measured broad head and grip in the tool's observed longitudinal plane."""
+    p = profile
+    head, neck = p["head_fraction"], p["neck_width_fraction"]
+    outline = np.array([(0, -0.5), (head, -neck / 2), (head, neck / 2), (0, 0.5)])
+    if p["kind"] == "bowl":
+        parts = [_shallow_bowl(head, p["bowl_inner_radius_fraction"], p["floor_thickness_fraction"])]
+    elif p["kind"] == "brush":
+        parts = [_profile_prism(outline, 0, 1)]
+    else:
+        parts = [_profile_prism(outline, 0, p["floor_thickness_fraction"])]
+        wall = p["wall_width_fraction"]
+        for first, second in ((0, 1), (2, 3)):
+            a, b = outline[first], outline[second]
+            direction = b - a
+            inward = np.array([-direction[1], direction[0]]) / np.linalg.norm(direction) * wall
+            parts.append(_profile_prism(np.clip([a, b, b + inward, a + inward],
+                                                (0, -0.5), (head, 0.5)), 0, 1))
+        parts.append(_profile_prism([(head - wall, -neck / 2), (head, -neck / 2),
+                                     (head, neck / 2), (head - wall, neck / 2)], 0, 1))
+    start, width = p["grip_start_fraction"], p["grip_width_fraction"]
+    if p["kind"] == "bowl":
+        grip_outline = [(start, -neck / 2), (1, -width / 2), (1, width / 2), (start, neck / 2)]
+    else:
+        angles = np.linspace(0, 2 * np.pi, 48, endpoint=False)
+        grip_outline = np.column_stack(((1 + start) / 2 + (1 - start) / 2 * np.cos(angles),
+                                        width / 2 * np.sin(angles)))
+    thickness = p["grip_thickness_fraction"]
+    lower = 1 - thickness if p["kind"] == "bowl" else 0
+    parts.append(_profile_prism(grip_outline, lower, lower + thickness))
+    mesh = trimesh.util.concatenate(parts)
+    mesh.apply_translation((-0.5, 0, -0.5))
+    if p["axis"] == "z":
+        # Proper rotation maps longitudinal u to height, transverse v to long, thickness w to short.
+        mesh.vertices = mesh.vertices[:, [1, 2, 0]]
+    mesh.apply_scale(extents)
+    return mesh
