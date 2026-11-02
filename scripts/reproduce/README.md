@@ -288,3 +288,21 @@ from recorded evaluated exports, not retraining or numerical GPU reproducibility
 **D3 fresh-directory reproduction is recorded above.** Placeholder URLs remain nonfinal;
 Kaggle authentication/checks were skipped and no upload was attempted. The D1
 preflight also retains the recorded `no --results given` warning.
+
+## D2 v3: stereo-scale hybrid composition
+
+D2 v3 uses the v2 CPU composition path with the manifest's accepted `S1` exports
+and unchanged `v2` exports. It verifies every source before copying, then runs the
+official packer and preflight. It also requires the reproduced CSV hash to equal
+the recorded v3 hash. This reproduces the package from evaluated exports; it does
+not repeat stereo estimation, training or the physical evaluator.
+
+```bash
+bash scripts/reproduce/d2_poses.sh \
+  'https://github.com/OWNER-PLACEHOLDER-not-final/video2data/commit/bb8a3f02fac668e86ff7b6a3ad7c3ccaec40050d' \
+  --manifest submissions/<stamp>-d2-v3/manifest.json --run
+```
+
+New v3 reproduction artifacts are written beneath
+`.runtime/tmp/ctx05-scored-reproduce-d2-<new>/`. The v3 campaign evidence and final
+hash comparison are recorded in `outputs/pose_insurance/v3/report.md`.

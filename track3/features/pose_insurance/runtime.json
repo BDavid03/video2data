@@ -8,7 +8,8 @@
     "diagnostic_authorized": true,
     "placement_diagnostic_authorized": true,
     "pack_authorized": true,
-    "scale_diagnostic_authorized": true
+    "scale_diagnostic_authorized": true,
+    "scored_scale_authorized": true
   },
   "authorized_episode_indices": {
     "evaluation": [
