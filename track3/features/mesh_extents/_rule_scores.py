@@ -117,3 +117,17 @@ def select(rule: dict, trials: list[dict], baseline: dict, pair_counts: dict, th
             "in_sample_parameter": trials[best]["parameter"], "pair_weighted_mean_cm": pair_mean,
             "worst_held_out_regression_cm": regression, "gates": gates, "adopt": all(gates.values()),
             "per_object_cm": held_out, "trials": trials}
+
+
+def _packed_veto(summary: dict, thresholds: dict, comparison) -> dict:
+    """Apply packed adoption limits to matched object and pair measurements."""
+    before, after = comparison
+    means = summary["means"][after]
+    regression = max(row[after] - row[before] for row in summary["objects"])
+    gates = {
+        "per_object_mean_below_upper": means["per_object_cm"] < thresholds["per_object_mean_strict_upper_cm"],
+        "pair_mean_no_worse": means["pair_weighted_cm"] <= thresholds["pair_weighted_mean_upper_cm"],
+        "object_regression_within_limit": regression <= thresholds["maximum_object_regression_cm"],
+    }
+    return {"adopt": all(gates.values()), "gates": gates, "candidate_means_cm": means,
+            "worst_object_regression_cm": regression, "failure_policy": thresholds["failure_policy"]}

@@ -1,0 +1,8 @@
+{
+  "queue": "track3/features/mesh_extents/rules-round3.json",
+  "output": "outputs/mesh_extents/adopt-round3",
+  "incumbent_manifest": "submissions/20261102T0313Z-d1-v3/manifest.json",
+  "frozen_commit": "f877607",
+  "score_cache": "outputs/mesh_extents/rules-round3/scores",
+  "resume_from": "outputs/mesh_extents/rules-round3/job-b"
+}

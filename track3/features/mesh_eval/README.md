@@ -93,3 +93,16 @@ The adopted file is `submissions/20261102T0516Z-d1-v4/track3_meshes_v4.parquet`.
 Evidence: `outputs/mesh_eval/pairs/mesh-round3-veto/{run.json,ledger.jsonl,summary.json,summary.md}`, `outputs/mesh_extents/round3-job-b/independent-packed-recheck.json`, `outputs/mesh_extents/round3-job-b/reproduction-checks.json`.
 
 This third adaptive round reuses the same ten public scans and follows earlier scan-render inspection. These are development estimates, not an independent assessment. No scan geometry entered the frozen constructors or the submitted meshes.
+
+## Changed-geometry host equivalence
+
+The additional recorded CPU check covers **episode 19 slot 1, mini_dust_pan**, and
+**episode 14 slot 1, plastic_dish_rack**, on both shipped v3 and v4 files. Each check calls the
+unmodified host `score`, then `_object_chamfer_cm` on the same decoded arrays with the pair's own
+seed. All four absolute differences are **0.0 cm**, and every score exactly matches its earlier
+veto-pair value. This covers changed geometry in addition to the historical episode-1 pot/lid checks.
+
+Evidence: `outputs/mesh_eval/equivalence/20261102T055518.792315Z-eb3c237a/{run.json,results.json,summary.md}`.
+The request-driven mesh-extents adoption operation reuses the already completed 52-trial pair run;
+this verification did not rewrite it. These are development checks on public scans, not independent
+performance estimates.

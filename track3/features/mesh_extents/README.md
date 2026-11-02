@@ -7,13 +7,13 @@ the Track 3 CD-O mesh file (D1).
 
 **R9 rack-and-tools passes every development gate and the stricter exact packed-v3 veto.** R8 independently passes, satisfying R9's spoon-transfer safeguard. The queue, video attributes and constructors remain identical to pre-score commit `bc601cf`. No retuning or runner-up substitution occurred.
 
-| Rule | Cross-fitted object mean (cm) | Pair mean (cm) | Worst regression (cm) | Gain / object / pair gates | Eligible |
+| Rule | Fixed-rule mean (cm; all ten objects) | Pair mean (cm) | Worst regression (cm) | Gain / object / pair gates | Eligible |
 | --- | ---: | ---: | ---: | --- | --- |
 | R7 compartment-rack | 0.7200894377219091 | 0.7147165917344509 | 0.0000000000000000 | pass / pass / pass | yes |
 | R8 thin-tool-profiles | 0.7057625707817922 | 0.7649184628381274 | 0.0000000000000000 | pass / pass / pass | yes |
 | R9 rack-and-tools | 0.6527030378651946 | 0.6628808995369784 | 0.0000000000000000 | pass / pass / pass | yes |
 
-All three rules have no fitted parameter, so cross-fitted and in-sample means coincide. R9's extra independent-R8 eligibility gate also passes. Development incumbent: **0.7731489706385066 cm/object / 0.8167541550356001 cm/pair**; gain must exceed 0.03 cm, worst object regression must be <=0.15 cm, and pair mean cannot worsen.
+All three rules have no fitted parameter; each development estimate uses all ten objects. The legacy JSON key `cross_fitted_mean_cm` is retained for compatibility. R9's extra independent-R8 eligibility gate also passes. Development incumbent: **0.7731489706385066 cm/object / 0.8167541550356001 cm/pair**; gain must exceed 0.03 cm, worst object regression must be <=0.15 cm, and pair mean cannot worsen.
 
 | Exact packed file | Equal-object mean (cm) | Pair mean (cm) |
 | --- | ---: | ---: |
@@ -36,6 +36,42 @@ bash scripts/reproduce/verify.sh submissions/20261102T0516Z-d1-v4/manifest.json
 Evidence: `outputs/mesh_extents/round3-job-b/job-b.md` (full tables and command ledger), `outputs/mesh_extents/rules-round3/summary.md` (development), `outputs/mesh_eval/pairs/mesh-round3-veto/summary.md` (exact veto), and `outputs/mesh_extents/round3-job-b/reproduction-checks.json` (identity checks). Reproduction archives are under `outputs/mesh_extents/round3-job-b/reproduction-v3/` and `reproduction-v4/`.
 
 These are development results from a third adaptive round on the same ten scans, with prior scan-render exposure. Cross-fitting covers declared parameters only; it does not remove family-selection optimism. This is not an independent performance estimate. No host/spoon score is claimed, no upload or Kaggle rules acceptance occurred.
+
+## Adoption operation and engineering verification
+
+`adopt.py` owns request parsing, runtime admission, committed geometry/protocol checks, the existing rule
+loop, production build admission, official packing and the matched packed-pair handler. Its private
+`_packed_veto` predicate in `_rule_scores.py` is pure and reads every threshold from the queue.
+`adopt-round3.json` requests reuse of the recorded scores, production build, pack and pair request.
+Reused production meshes are checked against the current frozen constructors; all 36 packed geometry
+blocks are checked through the kit budgeter against those meshes. Completed pair records stay untouched.
+
+```bash
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/kit-env/bin/python -B -m track3.features.mesh_extents adopt --request track3/features/mesh_extents/adopt-round3.json
+```
+
+The round-3 rerun resumed **30/30** development trials with **0 new scores** and reused the original
+build, pack and all **52** packed-pair trials. It returns the same R9 adoption and exact means:
+**0.6629214779189021 cm/pair / 0.6533839589873099 cm/object**. An isolated round-2 rerun reused
+**70** scores with **0 new scores**. Every numerical aggregate, per-object result, seed spread,
+parameter choice and gate matches the pre-refactor summaries exactly; only presentation, provenance
+and cache counters differ. The old/new selection functions also agree on all recorded real trials.
+
+Since the queue files are frozen, round-specific report prose is centralized in `rules.ROUND_TEXT`.
+`frozen_inputs_for` reads the video and incumbent inputs; dry results have one
+`changed_from_incumbent` field. Rendering lives in `_render.py`, whose hash invalidates dry render
+caches. Parameter-free table rows say **fixed (no parameter)** and **fixed-rule, all ten objects**;
+parameterized rows identify cross-fitting. Gate columns name the gain, object-regression, pair-mean
+and, when applicable, independent-R8 spoon safeguard separately.
+
+Current evidence: `outputs/mesh_extents/maintenance/20261102T055350Z/verification.json`, its
+`round2/summary.md`, and `outputs/mesh_extents/adopt-round3/development/summary.md`.
+Changed-pair host/direct checks on dust pan **episode 19 slot 1** and rack **episode 14 slot 1**
+have **0.0 cm** error for both v3 and v4; see
+`outputs/mesh_eval/equivalence/20261102T055518.792315Z-eb3c237a/summary.md`.
+The durable v4 reproduction record is
+`outputs/mesh_extents/reproduction/20261102T052748Z/v4/manifest.json`; the shipped v4 manifest
+still verifies **6/6 hashes**. No pinned file, geometry, historical run record or packed bytes changed.
 
 ## Round 2 result (2026-11-02): R6/0.10 passed the exact veto
 
@@ -429,7 +465,7 @@ Resume the fixed development queue with the kit environment:
 PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/kit-env/bin/python -B -m track3.features.mesh_extents.rules --queue track3/features/mesh_extents/rules-round3.json
 ```
 
-Then run the prepared orchestration artifact below. It resumes that same score loop, reads its
+The request-driven `adopt` slice operation below resumes that score loop and reads its
 single eligible winner, builds all eleven production objects, packs with the existing placeholder
 URL, calls `mesh_eval pairs` for both shipped v3 and the candidate (52 covered pair trials),
 and writes the queue's strict packed-veto verdict. It reuses completed work on restart, refuses
@@ -437,16 +473,16 @@ changed frozen inputs or a different winner, and never switches to a runner-up. 
 winner means retain v3 without a packed evaluation.
 
 ```bash
-PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/linux-cuda/bin/python -B outputs/mesh_extents/round3-job-a/job_b.py
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/kit-env/bin/python -B -m track3.features.mesh_extents adopt --request track3/features/mesh_extents/adopt-round3.json
 ```
 
 The generated pair request is `outputs/mesh_extents/rules-round3/job-b/pair-request.json`; its
 standalone resumable command is `.runtime/kit-env/bin/python -B -m track3.features.mesh_eval pairs
 --request outputs/mesh_extents/rules-round3/job-b/pair-request.json` with the same CPU environment.
-Development summary: `outputs/mesh_extents/rules-round3/summary.md`; final verdict:
-`outputs/mesh_extents/rules-round3/job-b/veto.json`; pair evidence:
-`outputs/mesh_eval/pairs/mesh-round3-veto/`. This Job B script was **syntax checked only**, never
-executed in Job A. No pack, preflight or scoring result is claimed here.
+The slice operation writes its development summary to `outputs/mesh_extents/adopt-round3/development/summary.md`
+and records each verdict in `outputs/mesh_extents/adopt-round3/runs/<run>/result.json`, beside `run.json`.
+The original ignored Job B driver and its outputs are historical evidence, not the current entry point.
+Pair evidence remains `outputs/mesh_eval/pairs/mesh-round3-veto/`.
 
 Packed veto: per-object mean **<0.74107703 cm**, pair mean **<=0.81149513 cm**, no packed object
 regression **>0.15 cm**; failure retains v3, with no runner-up or retuning. Round 3 follows two

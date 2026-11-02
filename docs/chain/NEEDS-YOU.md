@@ -46,6 +46,15 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
      --track track_3 -m "Static objects, stereo-scaled placement"
    ```
 
+   **Spoon risk in D1 v4 (please read before uploading).** v4 changes the wooden spoon, which
+   has 10 of the 36 scored pairs and no public scan, from a box to a bowl-and-handle shape. The
+   pre-registered rule required this (the same thin-tool rule passed on the scanned dust pan and
+   sweeper), but nothing measured the spoon itself, and its depth ratios are medium confidence.
+   The new spoon differs from the old box by 1.32-1.39 cm CD-O. If it were on average 0.39 cm
+   worse than the box against the host's spoon, it would cancel the whole measured gain over the
+   36 pairs. The chain recommends v4 as packed and did not pack a spoon-as-box variant: uploading
+   both and keeping the better score would choose a shape on the host's references.
+
    Superseded files (do not upload): D1 v0, v1, v2, v3; D2 v0, v1, v2. Please write the leaderboard scores back
    here or in `AGENTS.md` so the chain can record them in `SUBMISSION.md`.
 4. [ ] **Chain contexts cannot edit the main checkout (added by context 01).** Claude Code's

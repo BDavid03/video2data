@@ -17,7 +17,7 @@ from track3.paths import output_path, project_path
 from track3.provenance import input_file, read_run, run_fields, sha256_file, write_json
 from track3.runs import ROOT, artifact, new_run_id, recorded, runtime_flag
 
-from . import _shapes
+from ._render import plot, render_candidate, render_video_comparison
 from ._rule_scores import CATEGORIES, FOLDS, NAMES, mesh_for, select, shape_for
 
 FEATURE = Path(__file__).parent
@@ -27,6 +27,28 @@ OUTPUT = Path("outputs/mesh_eval/rules")
 SEEDS = [1, 3, 5]
 ROUND3_QUEUE_SHA256 = "5644a29dd2432feea4fb1bda6b4f156b3559e193d84d289cb97fdb602456edb3"
 ROUND2_QUEUE_SHA256 = "3b21c00b7e215c5af027ffe2e09f28d7674fc1e48d48926c5751f9698fea05aa"
+
+
+ROUND_TEXT = {
+    1: {
+        "rules": "R2 tunes only the aspect threshold; handle height is fixed at 0.6, width at 0.15 of the short extent. R3 uses a box head and handle width 0.2 of the short extent; height remains measured.",
+        "adoption": "",
+        "spoon": "The unscanned spoon is not scored or changed.",
+        "verdict": "Adopt",
+    },
+    2: {
+        "rules": "R4 moves only video-confirmed rim-flat handles. R5 adds open vessel shells, and R6 adds video-counted rack pegs. R5/R6 tune wall/radius over [0.02, 0.05, 0.10]; threshold stays 1.3.",
+        "adoption": "Choosing among three results on ten reused scans is optimistic. Development eligibility is provisional: production build/pack and the queue's exact packed veto must pass before adoption; no retuning or rule switching after the veto.",
+        "spoon": "The unscanned spoon is not scored or changed.",
+        "verdict": "Development eligible (veto pending)",
+    },
+    3: {
+        "rules": "R7 rebuilds the rack; R8 applies one measured head/grip policy to all thin tools; R9 uses both exact components. There are no fitted parameters. R9 requires independently eligible R8.",
+        "adoption": "Development eligibility is provisional until the queue's exact packed veto passes; no retuning or rule switching after the veto. Round 3 follows two adaptive rounds on the same ten scans and prior scan-render exposure. Cross-fitting covers declared parameters only; a third round raises selection optimism further. All results, including the packed veto, are development evidence, not an independent estimate.",
+        "spoon": "The unscanned spoon is not scored; its profile changes only through independently eligible R8.",
+        "verdict": "Development eligible (veto pending)",
+    },
+}
 
 
 def identity(value: dict) -> str:
@@ -183,65 +205,67 @@ def evaluate_object(rule: dict, parameter, name: str, context: dict) -> dict:
 
 
 def ranked_table(summary: dict) -> str:
-    header = ("| Rule | Chosen on A → scored B | Chosen on B → scored A | Cross-fitted mean (cm) | "
-              "In-sample mean (cm) | Pair-weighted mean (cm) | Worst regression (cm) | Gain / object / pair gates | Adopt |\n"
-              "| --- | --- | --- | ---: | ---: | ---: | ---: | --- | --- |")
-    rows = [header]
-    for row in summary["ranking"]:
-        gates = " / ".join("pass" if value else "fail" for value in row["gates"].values())
-        rows.append(f"| {row['rule']} | {row['chosen_on_fold']['A']} | {row['chosen_on_fold']['B']} | "
-                    f"{row['cross_fitted_mean_cm']:.5f} | {row['in_sample_mean_cm']:.5f} | "
-                    f"{row['pair_weighted_mean_cm']:.5f} | {row['worst_held_out_regression_cm']:+.5f} | "
-                    f"{gates} | {'yes' if row['adopt'] else 'no'} |")
-    table = "\n".join(rows).replace("| None |", "| — |")
-    return table.replace("| Adopt |", "| Development eligible (veto pending) |") if summary.get("round") in (2, 3) else table
+    """Name the estimation method and every applicable development gate explicitly."""
+    ranking = summary["ranking"]
+    fixed = all(row["parameter"] is None for row in ranking)
+    score_label = "Fixed-rule mean (cm; all ten objects)" if fixed else "Development mean (cm)"
+    gate_keys = list(dict.fromkeys(key for row in ranking for key in row["gates"]))
+    gate_labels = []
+    for key in gate_keys:
+        if key.startswith("gain_gt_"):
+            label = "Gain > " + key.removeprefix("gain_gt_").removesuffix("_cm") + " cm"
+        elif key.startswith("worst_regression_le_"):
+            label = "Worst object regression <= " + key.removeprefix("worst_regression_le_").removesuffix("_cm") + " cm"
+        else:
+            label = {"pair_mean_no_worse": "Pair mean no worse",
+                     "shared_tool_rule_independently_eligible": "Spoon safeguard (R8 independently eligible)"}[key]
+        gate_labels.append(label)
+    headers = ["Rule", "Chosen on A → scored B", "Chosen on B → scored A", "Estimate",
+               score_label, "In-sample mean (cm)", "Pair-weighted mean (cm)", "Worst regression (cm)",
+               *gate_labels, ROUND_TEXT[summary.get("round", 1)]["verdict"]]
+    lines = ["| " + " | ".join(headers) + " |", "| " + " | ".join(["---"] * len(headers)) + " |"]
+    for row in ranking:
+        no_parameter = row["parameter"] is None
+        folds = ["fixed (no parameter)"] * 2 if no_parameter else [str(row["chosen_on_fold"][f]) for f in ("A", "B")]
+        values = [row["rule"], *folds, "fixed-rule, all ten objects" if no_parameter else "cross-fitted",
+                  f"{row['cross_fitted_mean_cm']:.5f}", f"{row['in_sample_mean_cm']:.5f}",
+                  f"{row['pair_weighted_mean_cm']:.5f}", f"{row['worst_held_out_regression_cm']:+.5f}"]
+        values += [("pass" if row["gates"][k] else "fail") if k in row["gates"] else "not applicable" for k in gate_keys]
+        values.append("yes" if row["adopt"] else "no")
+        lines.append("| " + " | ".join(values) + " |")
+    return "\n".join(lines)
 
 
-def plot(summary_path: str, target: str) -> None:
-    """Render the completed measurements using the existing matplotlib environment."""
+def _save_figure(figure, target: Path, dpi: int) -> None:
+    """Persist and release a figure owned by this handler."""
+    import matplotlib.pyplot as plt
+
+    try:
+        figure.savefig(target, dpi=dpi)
+    finally:
+        plt.close(figure)
+
+
+def _plot_report(summary_path: str, target: str) -> None:
+    """Load the report and save its figure in the plotting interpreter."""
     import matplotlib
 
     matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-    import numpy as np
-
-    summary = json.loads(Path(summary_path).read_text())
-    x = np.arange(len(NAMES))
-    fig, ax = plt.subplots(figsize=(14, 6), constrained_layout=True)
-    series = [(summary.get("baseline_label", "Box v1"), summary["baseline_per_object_cm"])]
-    series += [(row["rule"], row["per_object_cm"]) for row in summary["ranking"]]
-    for i, (label, values) in enumerate(series):
-        ax.bar(x + (i - 1.5) * 0.2, [values[n] for n in NAMES], 0.2, label=label)
-    ax.set(xticks=x, xticklabels=[name.replace("_", " ") for name in NAMES],
-           xlabel="Object (public scan)", ylabel="CD-O (cm; lower is better)",
-           title="Mesh rules: cross-fitted development estimates against public scans")
-    plt.setp(ax.get_xticklabels(), rotation=35, ha="right")
-    ax.legend()
-    ax.grid(axis="y", alpha=0.2)
-    ax.set_axisbelow(True)
-    fig.savefig(target, dpi=160)
-    plt.close(fig)
+    _save_figure(plot(json.loads(Path(summary_path).read_text())), Path(target), 160)
 
 
 def write_report(summary: dict, directory: Path) -> None:
     """Write the ranked and per-object tables with an independently runnable figure."""
     write_json(directory / "summary.json", summary)
     baseline = summary["baseline_mean_cm"]
+    prose = ROUND_TEXT[summary.get("round", 1)]
     text = ["# Mesh shape rules", "", "Development estimates against the 10 public scans; scans are measurement-only.",
             f"{summary.get('baseline_label', 'Box v1')}: **{baseline:.5f} cm** per object; **{summary['baseline_pair_mean_cm']:.5f} cm** "
             "over the 26 scanned pairs. Kit seed episodes: 1, 3, 5.", "", ranked_table(summary), "",
-            "Parameters are selected on the named fold and scored on the opposite fold. In-sample means "
-            "select a single parameter on all 10 objects (optimistic). Ties use the original queue order. "
-            "Pair weighting uses each object's count in the v1 roster, with its cross-fitted score.", "",
-            ("R2 tunes only the aspect threshold; handle height is fixed at 0.6, width at 0.15 of the short "
-            "extent. This tests when the measured long-axis excess should become a handle. "
-            "R3 uses a box head and handle width 0.2 of the short extent; the height remains measured."
-            if summary.get("round", 1) == 1 else
-            ("R4 moves only video-confirmed rim-flat handles. R5 adds open vessel shells, and R6 adds "
-             "video-counted rack pegs. R5/R6 tune wall/radius over [0.02, 0.05, 0.10]; threshold stays 1.3."
-             if summary.get("round") == 2 else
-             "R7 rebuilds the rack; R8 applies one measured head/grip policy to all thin tools; R9 uses "
-             "both exact components. There are no fitted parameters. R9 requires independently eligible R8.")), "",
+            "Rules with a declared parameter select on the named fold and score the opposite fold. "
+            "Fixed rules have no fitted parameter and use all ten objects. In-sample means select a single "
+            "parameter on all ten objects where applicable. Ties use queue order; pair weights use roster counts.", "",
+            prose["rules"], "",
             "| Object | Fold | Pairs | " + summary.get("baseline_label", "Box v1") + " (cm) | " + " | ".join(r["rule"] + " (cm)" for r in summary["ranking"]) + " |",
             "| --- | --- | ---: | ---: | " + " | ".join("---:" for _ in summary["ranking"]) + " |"]
     for name in NAMES:
@@ -254,29 +278,21 @@ def write_report(summary: dict, directory: Path) -> None:
     for row in summary["ranking"]:
         spread = row["seed_spread_cm"]
         text.append(f"| {row['rule']} | {spread['mean']:.8f} | {spread['max']:.8f} |")
-    if summary.get("round") in (2, 3):
-        text += ["", "Choosing among three results on ten reused scans is optimistic. "
-                 "Development eligibility is provisional: production build/pack and the queue's exact packed veto "
-                 "must pass before adoption; no retuning or rule switching after the veto."]
-    if summary.get("round") == 3:
-        text += ["", "Round 3 follows two adaptive rounds on the same ten scans and prior scan-render exposure. "
-                 "Cross-fitting covers declared parameters only; a third round raises selection optimism further. "
-                 "All results, including the packed veto, are development evidence, not an independent estimate."]
+    if prose["adoption"]:
+        text += ["", prose["adoption"]]
     text += ["", "![Per-object CD-O](rules-cdo.png)", "",
-             f"Figure: {summary.get('baseline_label', 'Box v1')} versus each rule's cross-fitted per-object CD-O (cm). "
+             f"Figure: {summary.get('baseline_label', 'Box v1')} versus each rule's development per-object CD-O (cm). "
              "These are development estimates against the public scans, not an independent final assessment.", "",
              "Concatenated components remain individually closed; overlaps leave internal faces. "
              "The real run checks the kit's 4096-row budget and finite area-weighted sampling, " +
-             ("not Boolean union or physical simulation validity. The unscanned spoon is not scored; its profile "
-              "changes only through independently eligible R8." if summary.get("round") == 3 else
-              "not Boolean union or physical simulation validity. The unscanned spoon is not scored or changed."), "",
+             "not Boolean union or physical simulation validity. " + prose["spoon"], "",
              f"This invocation: {summary['new_scores']} new mesh scores, {summary['reused_scores']} reused mesh scores, "
              f"{summary['resumed']} completed object trials resumed.", "",
              "Every parameter/object result, including losers, is in `ledger.jsonl`; full trial inputs, "
              "source hashes and provenance are in `trials/<identity>/<run-id>/run.json`."]
     (directory / "summary.md").write_text("\n".join(text) + "\n")
     subprocess.run([str(ROOT / ".runtime/linux-cuda/bin/python"), "-B", "-c",
-                    "import sys; from track3.features.mesh_extents.rules import plot; plot(*sys.argv[1:])",
+                    "import sys; from track3.features.mesh_extents.rules import _plot_report; _plot_report(*sys.argv[1:])",
                     str(directory / "summary.json"), str(directory / "rules-cdo.png")], check=True, cwd=ROOT)
 
 
@@ -301,7 +317,7 @@ def incumbent_scores(queue: dict) -> tuple[dict, list]:
     return {name: row["cd_o_cm"] for name, row in rows.items()}, list(rows.values())
 
 
-def round2_inputs_for(queue: dict) -> tuple[dict, dict, list]:
+def frozen_inputs_for(queue: dict) -> tuple[dict, dict, list]:
     """Read frozen video attributes and the matched incumbent inputs."""
     if queue.get("round") not in (2, 3):
         return {}, {}, []
@@ -323,65 +339,6 @@ def round2_inputs_for(queue: dict) -> tuple[dict, dict, list]:
     hashes = {"attributes": input_file(ROOT, path), "incumbent": queue["incumbent"],
               "incumbent_scores": baseline, "incumbent_ledger": input_file(ROOT, inputs[1])}
     return attributes["objects"], hashes, inputs
-
-
-def render_candidate(mesh, target: Path, label: str) -> None:
-    """Render candidate geometry alone in three views with equal axis scale."""
-    import matplotlib
-
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-    import numpy as np
-    from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-
-    fig = plt.figure(figsize=(14, 4.8), constrained_layout=True)
-    center = mesh.bounds.mean(axis=0)
-    radius = mesh.extents.max() * 0.55
-    for index, (elevation, azimuth) in enumerate(((25, -60), (90, -90), (0, -90)), 1):
-        ax = fig.add_subplot(1, 3, index, projection="3d")
-        collection = Poly3DCollection(mesh.triangles, facecolor="#80b9cd", edgecolor="#305060", linewidth=0.15)
-        ax.add_collection3d(collection)
-        ax.set(xlim=center[0] + np.array([-radius, radius]), ylim=center[1] + np.array([-radius, radius]),
-               zlim=center[2] + np.array([-radius, radius]), xlabel="Long axis (video units)",
-               ylabel="Short axis", zlabel="Height")
-        ax.set_box_aspect((1, 1, 1))
-        from matplotlib.ticker import MaxNLocator
-
-        for axis in (ax.xaxis, ax.yaxis, ax.zaxis):
-            axis.set_major_locator(MaxNLocator(3))
-        ax.set_proj_type("ortho")
-        if elevation == 90:
-            ax.set_zticks([])
-            ax.set_zlabel("")
-        elif elevation == 0:
-            ax.set_yticks([])
-            ax.set_ylabel("")
-        ax.set_title(("Perspective", "Top", "Side")[index - 1])
-        ax.view_init(elev=elevation, azim=azimuth)
-    fig.suptitle(label + " — candidate only")
-    fig.savefig(target, dpi=140)
-    plt.close(fig)
-
-
-
-def render_video_comparison(render: Path, frame: Path, target: Path, name: str, crop=None) -> None:
-    """Put the measured video crop beside the candidate-only three-view figure."""
-    import matplotlib.pyplot as plt
-    from PIL import Image
-
-    video = Image.open(frame)
-    if crop:
-        video = video.crop(crop)
-    fig, axes = plt.subplots(1, 2, figsize=(18, 6), width_ratios=(1, 2), constrained_layout=True)
-    axes[0].imshow(video)
-    axes[0].set_title("Opening video frame (markers ignored)")
-    axes[1].imshow(Image.open(render))
-    axes[1].set_title("Frozen candidate geometry")
-    for ax in axes:
-        ax.axis("off")
-    fig.suptitle(name.replace("_", " ") + " / video and candidate; views are not registered")
-    fig.savefig(target, dpi=140)
-    plt.close(fig)
 
 
 def production_dry_builds(queue_path: Path, queue: dict, parent: dict, sources: dict, results: list, output: Path) -> list:
@@ -429,10 +386,14 @@ def build_dry_trial(trial: dict, attributes: dict, output: Path) -> dict:
     if not target.exists():
         target.write_bytes(data)
     changed = mesh_hash != trial["incumbent_mesh_sha256"]
-    render_id = identity({"mesh": mesh_hash, "renderer": trial["sources"]["rules.py"]})
+    render_id = identity({"mesh": mesh_hash, "renderer": trial["sources"]["_render.py"]})
     render = output / "renders" / (render_id + ".png")
     if changed and not render.exists():
-        render_candidate(mesh, render, f"{name} / {shape}" + (f" / wall-radius {parameter}" if shape == "vessel_shell" else ""))
+        import matplotlib
+
+        matplotlib.use("Agg")
+        label = f"{name} / {shape}" + (f" / wall-radius {parameter}" if shape == "vessel_shell" else "")
+        _save_figure(render_candidate(mesh, label), render, 140)
     comparison = None
     attrs = attributes.get(name, {})
     profile = attrs.get("rack_profile", attrs.get("profile"))
@@ -440,9 +401,15 @@ def build_dry_trial(trial: dict, attributes: dict, output: Path) -> dict:
         evidence = next(e for e in attrs["evidence"] if e["attribute"] == ("rack_profile" if "rack_profile" in attrs else "profile"))
         comparison = output / "renders" / (render_id + "-video.png")
         if not comparison.exists():
-            render_video_comparison(render, ROOT / evidence["path"], comparison, name, profile.get("display_crop_px"))
+            from PIL import Image
+
+            with Image.open(render) as candidate, Image.open(ROOT / evidence["path"]) as video:
+                candidate.load()
+                video.load()
+                figure = render_video_comparison(candidate, video, name, profile.get("display_crop_px"))
+                _save_figure(figure, comparison, 140)
     result = {"identity": identity(trial), "rule": rule["name"], "parameter": parameter, "object": name,
-              "shape": shape, **geometry, "changed_from_incumbent": changed, "changed_from_R2": changed,
+              "shape": shape, **geometry, "changed_from_incumbent": changed,
               "mesh": target.relative_to(ROOT).as_posix(), "mesh_sha256": mesh_hash,
               "render": render.relative_to(ROOT).as_posix() if changed else None,
               "video_comparison": comparison.relative_to(ROOT).as_posix() if comparison else None,
@@ -463,7 +430,7 @@ def dry_build(queue_path: Path, output_override: Path | None = None) -> Path:
         (output / folder).mkdir(parents=True, exist_ok=True)
     os.environ.update(MPLCONFIGDIR=str(output), TMPDIR=str(output))
     tempfile.tempdir = str(output)
-    attributes, hashes, extra_inputs = round2_inputs_for(queue)
+    attributes, hashes, extra_inputs = frozen_inputs_for(queue)
     build = Path(queue["build"])
     parent = read_run(ROOT, build / "run.json", kind="mesh_extents.build", allowed=("video_only",))
     request = {"queue": input_file(ROOT, queue_path), "round2_inputs": hashes, "dry_build": True}
@@ -478,7 +445,7 @@ def dry_build(queue_path: Path, output_override: Path | None = None) -> Path:
         raise ValueError("Dry-build candidate count exceeds queue budget")
     if any(ep["episode_index"] in (41, 43, 44) for row in objects.values() for ep in row["episodes"]):
         raise ValueError("Excluded episode in video measurements")
-    sources = {p.name: sha256_file(p) for p in (Path(__file__), FEATURE / "_shapes.py", FEATURE / "_rule_scores.py", FEATURE / "build.py")}
+    sources = {p.name: sha256_file(p) for p in (Path(__file__), FEATURE / "_shapes.py", FEATURE / "_rule_scores.py", FEATURE / "build.py", FEATURE / "_render.py")}
     deadline = time.monotonic() + queue["budget"]["max_seconds"]
     results, resumed = [], 0
     ledger = output / "ledger.jsonl"
@@ -555,7 +522,7 @@ def run(queue_path: Path, output_override: Path | None = None) -> Path:
     rules = queue["rules"]
     build = Path(queue.get("build", BUILD))
     output = output_path(ROOT, output_override or queue.get("output", OUTPUT))
-    attributes, round2_inputs, extra_inputs = round2_inputs_for(queue)
+    attributes, round2_inputs, extra_inputs = frozen_inputs_for(queue)
     baseline_label = queue.get("incumbent", {}).get("label", "Box v1")
     for name in ("cache", "scores", "meshes", "trials"):
         (output / name).mkdir(parents=True, exist_ok=True)
