@@ -235,15 +235,24 @@ def qualitative_panel(rows: list[dict], spoon: list[dict]) -> plt.Figure:
                                (1, "candidate", "#B5B5B5"), (2, "scan", "#B5B5B5")):
             ax = fig.add_axes((0.10+j*0.30, bottom, 0.30, 0.26), projection="3d")
             draw_mesh(ax, *row[key], colour)
-    fig.text(0.5, 0.35, "Spoon: evaluation 15, single-frame IoU", ha="center",
+            if key == "candidate":
+                label, point, text = (
+                    ("compartment", (0.465, 0.83), (0.55, 0.915)) if i == 0
+                    else ("grip", (0.61, 0.45), (0.55, 0.39))
+                )
+                ax.annotate(label, xy=point, xytext=text,
+                            xycoords=fig.transFigure, textcoords=fig.transFigure,
+                            ha="center", va="center", fontsize=8, annotation_clip=False,
+                            arrowprops={"arrowstyle": "-", "color": "#444444", "lw": 0.6})
+    fig.text(0.5, 0.33, "Spoon: evaluation 15, single-frame IoU", ha="center",
              va="center", fontsize=8.5, weight="bold")
     for j, row in enumerate(spoon):
-        ax = fig.add_axes((0.03+j*0.50, 0.15, 0.44, 0.16))
+        ax = fig.add_axes((0.03+j*0.50, 0.13, 0.44, 0.16))
         ax.imshow(row["crop"])
         ax.set_axis_off()
-        fig.text(0.25+j*0.50, 0.12, f"{row['label']}: {row['iou']:.2f}",
+        fig.text(0.25+j*0.50, 0.105, f"{row['label']}: {row['iou']:.2f}",
                  ha="center", va="top", fontsize=8.5)
-    fig.text(0.5, 0.035, "IoU is not a validated CD-O proxy", ha="center",
+    fig.text(0.5, 0.008, "IoU is not a validated CD-O proxy", ha="center",
              va="bottom", fontsize=8.5, weight="bold")
     return fig
 
