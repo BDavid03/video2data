@@ -1,4 +1,4 @@
-"""Draw recorded mesh examples, initial pose offsets, or legacy mesh bars."""
+"""Plot recorded packed mesh scores, initial pose errors, or legacy mesh bars."""
 
 import argparse
 import json
@@ -6,31 +6,20 @@ import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
-os.environ.setdefault("MPLCONFIGDIR", str(ROOT / ".runtime/tmp/d3fix/matplotlib"))
+os.environ.setdefault("MPLCONFIGDIR", str(ROOT / ".runtime/tmp/report-matplotlib"))
 
 import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
-import trimesh
-from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 SUMMARY = ROOT / "outputs/mesh_eval/rules/summary.json"
 POSE_SHRINK = ROOT / "outputs/pose_insurance/shrink/summary.json"
-BUILD = ROOT / "outputs/mesh_extents/build/20261102T051416.149421Z-f377e0a1"
 SCORES = ROOT / "outputs/mesh_eval/pairs/mesh-round3-veto/summary.json"
-PREVIOUS_BUILD = ROOT / "outputs/mesh_extents/build/20261102T031152.089350Z-ea88a295"
-SCANS = ROOT / ("datasets--nvidia--video_to_data_challenge/snapshots/"
-                "5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh")
-TARGET = Path(__file__).with_name("d1-v4-qualitative.pdf")
-# Fixed display-only rotations: upright, handle/long horizontal axis towards +x.
-SCAN_ROTATIONS = {
-    "mini_dust_pan": np.array([[0, 0, 1], [0, -1, 0], [1, 0, 0]]),
-    "plastic_dish_rack": np.array([[0, 0, 1], [0, -1, 0], [1, 0, 0]]),
-}
-PANEL_OBJECTS = ("plastic_dish_rack", "mini_dust_pan", "wooden_spoon")
+TARGET = Path(__file__).with_name("d1-v4-objects.pdf")
 BLUE = "#0072B2"
+ORANGE = "#D55E00"
 LABELS = {
     "beige_cup": "Beige cup", "blue_cup": "Blue cup",
     "mini_dust_pan": "Dust pan", "mini_sweeper": "Sweeper",
@@ -46,15 +35,15 @@ def pose_offset_panel(episodes: list[int], offsets: dict[str, list[float]]) -> p
     fig, ax = plt.subplots(figsize=(3.18, 2.10), layout="constrained")
     x = np.arange(len(episodes))
     for shift, name, label, colour, hatch in (
-        (-0.25, "I", "Earlier rule", BLUE, ""),
+        (-0.25, "I", "Centroids + stacking", BLUE, ""),
         (0.0, "S1", "Stereo shrinkage", "#D55E00", "//"),
         (0.25, "G", "Uniform shrinkage", "#009E73", ".."),
     ):
         ax.bar(x + shift, offsets[name], width=0.24, label=label,
                color=colour, hatch=hatch, linewidth=0.4, edgecolor="white")
-    labels = [f"{episode}*" if episode in (0, 26) else str(episode) for episode in episodes]
-    ax.set(xticks=x, xticklabels=labels, xlabel="Train episode (* stacked)",
-           ylabel="Frame-0 offset error of\nsecond object (cm)",
+    labels = [str(episode) for episode in episodes]
+    ax.set(xticks=x, xticklabels=labels, xlabel="Training episode",
+           ylabel="Initial second-object\nposition error (cm)",
            ylim=(0, 100), yticks=[0, 20, 40, 60, 80])
     ax.yaxis.label.set_fontsize(8)
     ax.grid(axis="y", color="#dddddd", linewidth=0.5)
@@ -119,100 +108,93 @@ def score_chart(output_dir: Path = TARGET.parent) -> None:
     print(target.relative_to(ROOT))
 
 
-def normalised_vertices(vertices, rotation):
-    """Rigidly orient, centre the bounding box, and uniformly scale its longest side to one."""
-    points = np.asarray(vertices) @ rotation.T
-    return (points - (points.max(0) + points.min(0)) / 2) / np.ptp(points, axis=0).max()
-
-
-def draw_mesh(ax, vertices, faces, colour):
-    """Use one orthographic camera and one light for all normalised meshes."""
-    surface = Poly3DCollection(vertices[faces], facecolors=colour, linewidths=0, shade=True)
-    surface.set_rasterized(True)
-    ax.add_collection3d(surface)
-    ax.set(xlim=(-0.55, 0.55), ylim=(-0.55, 0.55), zlim=(-0.55, 0.55))
-    ax.set_box_aspect((1, 1, 1), zoom=1.65)
-    ax.set_proj_type("ortho")
-    ax.view_init(elev=40, azim=-65)
-    ax.set_axis_off()
-
-
-def qualitative_panel(rows):
-    """Compare previous/revised geometry and scans with matched views and readable scores."""
-    plt.rcParams.update({"font.size": 8, "pdf.fonttype": 42})
-    fig = plt.figure(figsize=(3.18, 3.10))
-    grid = fig.add_gridspec(len(rows), 3, left=0.10, right=0.99, bottom=0.07, top=0.89,
-                           wspace=0.02, hspace=0.54)
-    for j, title in enumerate(("v3 mesh", "v4 mesh", "Public scan")):
-        bounds = grid[0, j].get_position(fig)
-        fig.text((bounds.x0 + bounds.x1) / 2, 0.98, title,
-                 ha="center", va="top", fontsize=8.5, weight="bold")
-    for i, row in enumerate(rows):
-        bounds = grid[i, 0].get_position(fig)
-        fig.text(0.035, (bounds.y0 + bounds.y1) / 2, LABELS[row["name"]],
-                 rotation=90, ha="center", va="center", fontsize=8, weight="bold")
-        for j, key, colour in ((0, "previous", "#669BBC"),
-                               (1, "candidate", BLUE), (2, "scan", "#B5B5B5")):
-            if key == "scan" and row[key] is None:
-                ax = fig.add_subplot(grid[i, j])
-                ax.set_axis_off()
-                ax.text(0.5, 0.5, "No public scan\nUnscored", ha="center", va="center",
-                        fontsize=8, color="#444444")
-                continue
-            ax = fig.add_subplot(grid[i, j], projection="3d")
-            draw_mesh(ax, *row[key], colour)
-            if key != "scan":
-                score = row["previous_score"] if key == "previous" else row["score"]
-                label = "Unscored" if score is None else f"{score:.3f} cm"
-                ax.text2D(0.5, -0.02, label, ha="center", va="top",
-                          transform=ax.transAxes, fontsize=8)
+def object_score_panel(rows: list[dict]) -> plt.Figure:
+    """Join v3/v4 per-object means on one axis, with an unmeasured spoon row."""
+    plt.rcParams.update({"font.size": 9, "pdf.fonttype": 42})
+    fig, ax = plt.subplots(figsize=(3.18, 3.40))
+    fig.subplots_adjust(left=0.39, right=0.98, bottom=0.27, top=0.86)
+    y = np.arange(len(rows))
+    before = [row["v3"] for row in rows]
+    after = [row["v4"] for row in rows]
+    ax.hlines(y, after, before, color="#777777", linewidth=1.3, zorder=2)
+    ax.plot(before, y, linestyle="none", marker="o", markersize=6,
+            markerfacecolor="none", markeredgewidth=1.2, color=BLUE,
+            label="v3", zorder=3)
+    ax.plot(after, y, linestyle="none", marker="x", markersize=4.5,
+            markeredgewidth=1.3, color=ORANGE, label="v4", zorder=4)
+    ax.set(yticks=y,
+           yticklabels=[f"{LABELS[row['object']]} ({row['pairs']})" for row in rows],
+           xlim=(0, 1.6), xticks=[0, 0.5, 1.0, 1.5], ylim=(len(rows)-0.3, -0.7),
+           xlabel="CD-O (cm; lower is better)")
+    ax.xaxis.label.set_fontsize(8.5)
+    ax.tick_params(axis="y", length=0, pad=5)
+    ax.grid(axis="x", color="#dddddd", linewidth=0.5)
+    ax.set_axisbelow(True)
+    ax.spines[["top", "right", "left"]].set_visible(False)
+    fig.text(0.01, 0.97, "Object (pairs)", va="top", fontsize=9)
+    fig.legend(*ax.get_legend_handles_labels(), loc="upper right",
+               bbox_to_anchor=(0.99, 0.995), ncol=2, frameon=False, fontsize=9,
+               handlelength=1, columnspacing=0.8, handletextpad=0.4)
+    fig.add_artist(plt.Line2D([0.02, 0.98], [0.145, 0.145],
+                             transform=fig.transFigure, color="#bbbbbb", linewidth=0.6))
+    fig.text(0.02, 0.12, "Spoon", va="top", fontsize=9, weight="bold")
+    fig.text(0.02, 0.065, "unmeasured: 10/36 pair entries, no public scan",
+             va="top", fontsize=8)
     return fig
+
+
+def object_score_chart(preview: Path | None, output_dir: Path = TARGET.parent) -> None:
+    """Aggregate recorded pair scores, assert the published means, and draw all objects."""
+    summary = json.loads(SCORES.read_text())
+    rows = []
+    for saved in summary["objects"]:
+        pairs = [row for row in summary["pairs"] if row["object"] == saved["object"]]
+        before = float(np.mean([row["v3"] for row in pairs]))
+        after = float(np.mean([row["candidate"] for row in pairs]))
+        assert len(pairs) == saved["pairs"]
+        assert np.isclose(before, saved["v3"], rtol=0, atol=1e-12)
+        assert np.isclose(after, saved["candidate"], rtol=0, atol=1e-12)
+        rows.append({"object": saved["object"], "pairs": len(pairs),
+                     "v3": before, "v4": after})
+    rows.sort(key=lambda row: (row["v4"]-row["v3"], LABELS[row["object"]]))
+    means = {name: float(np.mean([row[name] for row in rows])) for name in ("v3", "v4")}
+    assert len(rows) == 10 and sum(row["pairs"] for row in rows) == 26
+    assert f"{means['v3']:.4f}" == "0.7711"
+    assert f"{means['v4']:.4f}" == "0.6534"
+    assert np.isclose(means["v3"], summary["means"]["v3"]["per_object_cm"], rtol=0, atol=1e-12)
+    assert np.isclose(means["v4"], summary["means"]["candidate"]["per_object_cm"], rtol=0, atol=1e-12)
+    assert summary["total_pairs"] == 36 and len(summary["unscored"]) == 10
+    assert all(row["object"] == "wooden_spoon" for row in summary["unscored"])
+    pair_means = {name: sum(row[name]*row["pairs"] for row in rows)/26 for name in ("v3", "v4")}
+    fig = object_score_panel(rows)
+    target = output_dir / TARGET.name
+    fig.savefig(target, metadata={"Title": "Packed v3/v4 CD-O on all ten scanned objects",
+                                  "Author": "", "Creator": "", "CreationDate": None,
+                                  "ModDate": None})
+    if preview:
+        fig.savefig(preview, dpi=300)
+    plt.close(fig)
+    print(json.dumps({"objects": rows, "object_means_cm": means, "pair_means_cm": pair_means,
+                      "measured_pair_entries": 26, "unmeasured_spoon_entries": 10}, indent=2))
+    print(target.relative_to(ROOT))
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--bars", action="store_true", help="regenerate the legacy score chart")
-    parser.add_argument("--pose-offsets", action="store_true", help="draw recorded earlier-rule, stereo and uniform pose offsets")
-    parser.add_argument("--preview", type=Path, help="also save the panel as a 300 dpi PNG")
+    parser.add_argument("--bars", action="store_true", help="draw the legacy mesh score bars")
+    parser.add_argument("--pose-offsets", action="store_true", help="draw initial position errors")
+    parser.add_argument("--preview", type=Path, help="also save the included figure as a PNG")
     parser.add_argument("--output-dir", type=Path, default=TARGET.parent,
                         help="write figure PDFs here instead of beside this script")
     args = parser.parse_args()
-    args.output_dir = args.output_dir.resolve()
-    args.output_dir.mkdir(parents=True, exist_ok=True)
+    output_dir = args.output_dir.resolve()
+    output_dir.mkdir(parents=True, exist_ok=True)
     if args.pose_offsets:
-        pose_offset_chart(args.preview, args.output_dir)
-        return
-    if args.bars:
-        score_chart(args.output_dir)
-        return
-    objects = json.loads((BUILD / "objects.json").read_text())["objects"]
-    previous = json.loads((PREVIOUS_BUILD / "objects.json").read_text())["objects"]
-    scores = {r["object"]: r for r in json.loads(SCORES.read_text())["objects"]}
-    rows = []
-    for name in PANEL_OBJECTS:
-        old = trimesh.load(PREVIOUS_BUILD / previous[name]["file"], force="mesh")
-        candidate = trimesh.load(BUILD / objects[name]["file"], force="mesh")
-        scan_data = None
-        score = previous_score = None
-        if name != "wooden_spoon":
-            scan = trimesh.load(SCANS / name / f"{name}.glb", force="mesh")
-            scan_data = (normalised_vertices(scan.vertices, SCAN_ROTATIONS[name]), scan.faces)
-            score, previous_score = scores[name]["candidate"], scores[name]["v3"]
-            print(f"{name}: v3 {previous_score:.4f} cm; v4 {score:.4f} cm")
-        else:
-            print("wooden_spoon: v3 box -> v4 bowl and handle; no public scan, unscored")
-        rows.append({"name": name,
-                     "previous": (normalised_vertices(old.vertices, np.eye(3)), old.faces),
-                     "candidate": (normalised_vertices(candidate.vertices, np.eye(3)), candidate.faces),
-                     "scan": scan_data, "score": score, "previous_score": previous_score})
-    fig = qualitative_panel(rows)
-    target = args.output_dir / TARGET.name
-    fig.savefig(target, dpi=300, metadata={"Title": "Previous and revised meshes beside public scans; exact packed means",
-                                         "Author": "", "Creator": ""})
-    if args.preview:
-        fig.savefig(args.preview, dpi=300)
-    plt.close(fig)
-    print(target.relative_to(ROOT))
+        pose_offset_chart(args.preview, output_dir)
+    elif args.bars:
+        score_chart(output_dir)
+    else:
+        object_score_chart(args.preview, output_dir)
 
 
 if __name__ == "__main__":
