@@ -84,3 +84,27 @@ The report says: the scale idea came from mocap distance ratios on train episode
 train episodes, because tuning 39/42 have one object and cannot measure placement (the chain's
 recorded disagreement with `PROGRAM.md` section 4); the AUC ceiling above; and any per-episode
 fallback.
+
+## Decision after the train result (2026-11-02, context 05, post-result: written after the scores, before any scored-episode scale or scene existed)
+
+Result (`outputs/pose_insurance/scale/summary.md`, 30 trials, incumbent reproduced exactly):
+stereo scales `s` 0.819-0.923 on the eight train episodes (0.760 and 0.829 on 39/42), all valid.
+Equal-episode means, incumbent / S1 / S2: RPE 39.36 / 35.34 / 35.02 cm, MPPE 22.82 / 20.84 /
+20.68 cm, AUC 0.26884 / 0.26902 / 0.26902, SP-SR and MP-SR 0 throughout. Both candidates pass
+the three gates. S1 lowers RPE by 2.8-8.7 cm and MPPE by 1.4-4.5 cm on each of the six episodes
+it changes (the K1a-stacked 0 and 26 are unchanged) and worsens none. S1 matches the incumbent
+exactly on controls 39 and 42; S2 differs on 39 in MPPE by 7.1e-15 cm (aligned positions differ
+by 2.8e-17 m, floating-point cancellation, `numerical_control.json`).
+
+The invariance clause above names no tolerance and does not say whether one candidate's failure
+blocks the other. The job (Codex) read it fail-closed as a global block and kept D2 v2. **Lead
+decision: the control disqualifies the candidate that fails it, not the other one.** S1 passes
+every control and gate exactly, and S1 is selected under either reading of S2's status: if S2 is
+disqualified, S1 is the only passing candidate; if not, the tie-break picks S1 (S2's MPPE
+advantage is 0.16 cm, below 1 cm). **S1 is adopted** and goes to the scored-episode stage above
+unchanged (estimator, validity filter, physical check and per-episode fallback as fixed).
+
+Caveat for the report: after S1 the distance ratio is still 1.18-2.23, and with slot-1 direction
+errors of 2-130 degrees a shorter offset lowers error even when its scale is not the true one, so
+part of S1's gain may be this hedge effect (IDEAS 28) rather than a corrected metric scale. The
+evaluation split ships no calibration; the public stereo calibration is assumed to hold for it.

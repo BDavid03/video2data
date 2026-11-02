@@ -329,3 +329,31 @@ packing-time HEAD; working-source hashes are also recorded for review. Complete
 composition, copied-file hashes, caveats and checks are in
 `outputs/pose_insurance/v2/report.md`. Existing v1 results and package remain
 unchanged.
+
+## Scale test
+
+Run the fixed stereo-anchored scale diagnostic (IDEAS 27) with:
+
+```bash
+PYTHONPATH=. PYTHONPYCACHEPREFIX="$PWD/.cache/pycache" CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/linux-cuda/bin/python -m track3.features.pose_insurance.scale_loop
+```
+
+`scale_queue.json` fixes eight train episodes, tuning controls 39/42 and the
+incumbent/S1/S2 candidates. The loop calls unchanged stereo handlers on the exact
+scene depth frames, resumes completed identities, appends `scale/ledger.jsonl`,
+and writes `outputs/pose_insurance/scale/summary.md`, `summary.json`, the per-episode
+RPE/MPPE figure and hashed trial `run.json` records. `_scale.py` contains only pure
+estimation, scene transforms and gates. The existing placement code stays pinned.
+Invalid estimates retain D2 v2. This CPU diagnostic never constructs scored scenes,
+runs the physical evaluator or packs a submission. Results and the registered
+adoption decision are in the summary; physical adoption remains a separate stage.
+
+Latest result: all ten stereo estimates are valid; all 30 kinematic trials completed
+and a second invocation resumed all 30 without rerunning them. S1 changes mean
+RPE/MPPE from 39.363846/22.818618 cm to 35.335583/20.843565 cm; S2 gives
+35.024862/20.683371 cm. Both pass all three numerical gates. Incumbents reproduce
+all five historical metrics exactly. The strict decision is blocked because S2's
+single-object episode-39 MPPE changes by 7.1054e-15 cm under rigid alignment;
+`numerical_control.json` traces this to a 2.7756e-17 m position difference, consistent
+with floating-point cancellation. No equality tolerance was introduced after scores.
+The numerical tie-break favours S1; physical follow-up remains the lead's decision.

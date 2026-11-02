@@ -9,5 +9,19 @@
     "evaluation_authorized": false,
     "validation_authorized": false
   },
-  "authorized_episode_indices": {"public": [39], "evaluation": []}
+  "authorized_episode_indices": {
+    "public": [
+      0,
+      11,
+      12,
+      18,
+      21,
+      23,
+      26,
+      31,
+      39,
+      42
+    ],
+    "evaluation": []
+  }
 }
