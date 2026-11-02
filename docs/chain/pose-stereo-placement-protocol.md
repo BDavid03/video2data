@@ -120,3 +120,28 @@ The report says: the idea came from a train diagnostic; its fresh confirmation f
 and the owner approved the candidate anyway; the train gates were set after the frame-0 errors were
 known; the expected effect is RPE/MPPE; direction stays unobservable; and which scored episodes
 changed or fell back, and why.
+
+## Amendment 1 (2026-11-02 22:40 UTC, context 12, after a read-only Codex review and before anything was built or scored)
+
+Review: `outputs/chain/codex/20261102T223225Z-route-t1-12.answer.md`. Clarifications, none of which
+reads a score or label:
+
+- **Clearance, exactly.** Clearance means the maximum projected gap between the two oriented
+  footprint rectangles over their unit edge normals is >= 0.01 m (as `_shrink.py`'s
+  `footprint_clearance`). If `d_T` is clear at `c = 1`, `c = 1`. Otherwise, with upper bound
+  `u = L_S1 / |d_T|`: if `|d_T|` is zero or non-finite, or `u < 1`, or `d_T * u` is not clear, the
+  episode falls back; else bisect `c` in [1, u] to width 1e-4 and use the feasible upper endpoint.
+  Clearance never shrinks `d_T`.
+- **Offset reproduction** compares the raw, pre-clearance `d_T` on the train episodes where the
+  length summary has a V_stereo vector (11, 12, 18, 21, 23) within 1e-9 m, and requires the same
+  missingness on 0, 26, 31. Scored episodes have no historical comparator; their per-slot cluster
+  ids come from the D2 v3 plans (`outputs/pose_insurance/v3/plans/episode_*.json`, `scene[].clusters`,
+  unions kept as recorded) and their stereo runs from the scored-scale records' `anchors` entries.
+- **Known fallback before scoring:** scored episode 30 has no slot-0 cluster, so it keeps v3.
+- **T1 edits only `positions[1, :2]`** of the S1 geometry (copied); no geometry is rebuilt from
+  stereo clusters, so yaw, heights and sizes cannot change.
+- **Descriptive reading, defined:** angles and errors are horizontal (table-plane xy) after the
+  kit's slot-0 alignment; the angle uses the applied (post-clearance) offset and is undefined for a
+  zero offset (0, 26). The angle tolerance is `2 asin(min(1, 9 cm / (2 |M_o|)))`, which assumes the
+  predicted length equals the mocap length; the exact-direction error `| |d_T| - |M_o| |` is reported
+  beside it.
