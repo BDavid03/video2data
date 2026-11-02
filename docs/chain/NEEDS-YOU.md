@@ -6,6 +6,25 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
 
 ## Open
 
+**Update 2026-11-03 (owner wrote "all owner requirements approved").** Both final files are packed with
+the real URL `https://github.com/BDavid03/video2data/commit/15060c13b07bda03b056f5cc507f0e4f68a083f0` (SUBMISSION.md, "Final real-URL files"). Three steps need your own logins:
+
+1. Push the commit. In `~/repos/video2data`: `git merge --ff-only worktree-chain-ctx01`, then
+   `git push -u origin main` (log in first with `gh auth login` then `gh auth setup-git`, or use a token).
+   The repository should be public so the commit URL resolves. Note: pushing publishes the whole history,
+   including the two coursework notebooks and four episode-41 camera frames under `reports/calibration/`.
+2. Kaggle: accept the rules on all six Track 3 competitions in the browser, and save your token from
+   <https://www.kaggle.com/settings/api> to `~/.kaggle/access_token`.
+3. Upload, once each (paths are in the worktree):
+   ```bash
+   W=~/repos/video2data/.claude/worktrees/chain-ctx01; K=$W/upstream/v2d_submission_kit/v2d_submission_kit
+   $W/.runtime/kit-env/bin/python $K/submit/v2d_submit.py $W/submissions/20261102T0516Z-d1-v4/track3_meshes_v4_final.parquet \
+     --track track_3_mesh -m "Video-measured primitives: hollow vessels, compartment rack, thin-tool profiles"
+   $W/.runtime/kit-env/bin/python $K/submit/v2d_submit.py $W/submissions/20261102T0032Z-d2-v3/track3_poses_v3_final.csv \
+     --track track_3 -m "Static objects, stereo-scaled placement"
+   ```
+   Read the spoon-risk note under item 2 first. Write the scores back here so they can be recorded.
+
 1. [ ] **GitHub remote (D4).** Both packed files must carry a `.../commit/<sha>` URL. The
    checkout became a local git repository on 2026-11-01. Create a GitHub repository (the
    challenge requires Apache-2.0 release for a winning entry), add it as `origin` and push, or

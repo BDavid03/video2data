@@ -156,6 +156,18 @@ depth runs and update those paths (the run ids are timestamps).
 
 ## Packed files
 
+### Final real-URL files (2026-11-03, owner approval "all owner requirements approved")
+
+Code commit `15060c1` (Apache-2.0 `LICENSE`, identity-checked reproduction scripts); URL `https://github.com/BDavid03/video2data/commit/15060c13b07bda03b056f5cc507f0e4f68a083f0`.
+Rebuilt by the recorded scripts; only the URL column differs from the packed v4/v3 files; kit preflight
+"Ready to submit" for both. Not uploaded yet: the commit must be pushed and the upload needs the owner's
+Kaggle token (NEEDS-YOU 1, 2).
+
+| File | SHA-256 | Command | Identity |
+| --- | --- | --- | --- |
+| `submissions/20261102T0516Z-d1-v4/track3_meshes_v4_final.parquet` | a4c7f8a5675885234ccdf77e7d6eb6f4ff26263fda420ce2ed4914e22480935f | `bash scripts/reproduce/d1_meshes.sh <URL> --version v4 --run` (`manifest-final.json`) | 36/36 PLY byte-identical; 294,912 rows equal except `code_commit_url` |
+| `submissions/20261102T0032Z-d2-v3/track3_poses_v3_final.csv` | 903ebaef4696192c7268017407bcd20870b4de4e8cb7a852ab6d216dede41192 | `bash scripts/reproduce/d2_poses.sh <URL> --version v3 --run` (`manifest-final.json`) | 9,120 rows equal except `code_commit_url` |
+
 | Time (UTC) | File | SHA-256 | Commit | Final? | Scores (from the owner) |
 | --- | --- | --- | --- | --- | --- |
 | 2026-11-01 10:35 | `submissions/20261101T1035Z-d1-v0/track3_meshes_v0.parquet` (D1, 294,912 rows, 1.6 MB) | `f814da46bdaaa747012cc078d6ca29274070633ab4745bcbae5319fabc24b710` | `0f8619373f2953eada625e25aa53d98f0f06d11a` (branch `worktree-chain-ctx01`) in placeholder URL `https://github.com/OWNER-PLACEHOLDER-not-final/video2data/commit/...` | **no**: repack with the real URL after the push | - |
