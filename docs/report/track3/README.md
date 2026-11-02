@@ -79,6 +79,7 @@ the first object's body frame and are distinct from Table 2's rollout metrics.
   `episodes[I/S1/G][episode].frame0.offset_error_cm`, for training episodes
   0, 11, 12, 18, 21, 23, 26 and 31. Rollout aggregates are `means8.I/S1/G`.
   Uniform shrinkage uses the mean of those eight stereo factors.
+- **Spoon silhouette proxy:** `outputs/mesh_extents/spoon-proxy/summary.md` (5/8 passing, sweeper Spearman −0.09, mean spoon IoU gain +0.23; not validated for CD-O, v4 unchanged).
 - **Dimension estimator:** `track3/features/mesh_extents/measure.py:measure`
   divides per-frame extent triplets by their geometric mean, takes per-axis
   medians, then restores the median of the geometric means.

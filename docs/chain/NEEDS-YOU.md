@@ -54,6 +54,12 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
    worse than the box against the host's spoon, it would cancel the whole measured gain over the
    36 pairs. The chain recommends v4 as packed and did not pack a spoon-as-box variant: uploading
    both and keeping the better score would choose a shape on the host's references.
+   *Update, context 09:* a scan-free check fixed before scoring (silhouette agreement with the
+   opening video frame) could not be validated on the scanned objects (it ranked shapes like
+   CD-O on only 5 of 8 objects), so it cannot score the spoon. Descriptively, the v4 spoon's
+   outline matches the video silhouette much better than the old box (mean IoU 0.72 vs 0.49 over three views), which
+   is reassuring about its outline but says nothing certain about its CD-O. The recommendation
+   is unchanged (`outputs/mesh_extents/spoon-proxy/summary.md`).
 
    Superseded files (do not upload): D1 v0, v1, v2, v3; D2 v0, v1, v2. Please write the leaderboard scores back
    here or in `AGENTS.md` so the chain can record them in `SUBMISSION.md`.
