@@ -7,11 +7,12 @@ from .adopt import AdoptRequest, adopt
 from .build import BuildRequest, build
 from .measure import MeasureRequest, measure
 from .proxy import ProxyRequest, proxy
+from .proxy_insights import InsightsRequest, proxy_insights
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("operation", choices=("measure", "build", "adopt", "proxy"))
+    parser.add_argument("operation", choices=("measure", "build", "adopt", "proxy", "proxy-insights"))
     parser.add_argument("--request", type=Path, required=True)
     parser.add_argument("--dry-run", action="store_true", help="proxy: target masks and placement only")
     args = parser.parse_args()
@@ -21,7 +22,7 @@ def main():
         print(proxy(ProxyRequest.from_file(args.request), dry_run=args.dry_run))
         return
     handler, request_type = {"measure": (measure, MeasureRequest), "build": (build, BuildRequest),
-                             "adopt": (adopt, AdoptRequest)}[args.operation]
+                             "adopt": (adopt, AdoptRequest), "proxy-insights": (proxy_insights, InsightsRequest)}[args.operation]
     print(handler(request_type.from_file(args.request)))
 
 

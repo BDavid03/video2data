@@ -18,6 +18,7 @@ commands; `measure` consumes completed depth and does not run MoGe2. Use the exi
 | `rules` | Frozen queue; resumable candidate builds, recorded scores and ranked summaries. `--dry-build` omits scoring. |
 | `adopt` | Frozen rule winner; production admission, pack and matched packed-pair veto. |
 | `proxy` | Frozen meshes, cached video measurements and existing CD-O scalars; IoU ledger and concordance report. |
+| `proxy-insights` | Amendment-4 selected-yaw replay and descriptive within-object pair comparisons. |
 
 `measure` request keys are `source_split`, `episode_index`, `depth_run`, `frames` and object-to-cluster
 `objects`; `assignments.json` records reviewed identities. `<measure.json>` names such a request.
@@ -73,6 +74,7 @@ The 149-trial/7200-second budget is per invocation. Resume filters by frozen ide
 preserves older records. Only a truncated final ledger append is quarantined; other malformed
 rows raise. Missing inputs produce NOT VALIDATED; unavailable values are null with reasons.
 Re-freezing refreshes source hashes only; the authenticated baseline fixes the admitted panel.
+Adding a slice operation changes `__main__.py`/`runtime.json`, so affected frozen requests must be re-frozen and re-proved.
 Its E scores were admitted by path/status/seeds/build SHA and A/B/C by seeds 1/3/5; E's legacy
 score JSON has no SHA itself. Matching object/SHA aliases were merged only for equal scores.
 
@@ -149,6 +151,22 @@ is 0.430, beside the pre-registered ten-object mean 0.544. Both two-variant wood
 contribute +1.000; two untied variants force tau-b to ±1. Dust pan passes at exactly rho 0.600.
 **Hypothesis:** silhouettes may miss walls or brush depth; this explanation has not been
 separated from mask and placement error. Construction views were reused and samples are small.
+
+### Descriptive proxy failure analysis (Amendment 4)
+
+Replays the ledger placement and selected yaw directly; all 135 IoUs and projected/target areas match exactly.
+The failed-group signature is **not separated**. At both 0.03/0.06 cm cutoffs only the lid retains
+outline-score disagreement; sweeper and both cups are gap-sensitive. Failed-minus-contrast B is -0.167
+(descriptive flag true); the T difference/flag is undefined because the lid has one view.
+All signatures remain conditional on recorded views, normalization and selected yaw; hidden geometry
+versus mask/placement error remains unproven. Amendment 3 remains NOT VALIDATED; packed meshes unchanged.
+
+```bash
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/linux-cuda/bin/python -B -m track3.features.mesh_extents proxy-insights --request track3/features/mesh_extents/proxy-insights.json
+```
+
+Writes `outputs/mesh_extents/proxy-insights/<run-id>/{run.json,summary.json,summary.md,pairs.json,pairs.md,replays/}`,
+plus stable `summary.{json,md}` and an identity-resumable `replay-ledger.jsonl` in that output root.
 
 ## History
 

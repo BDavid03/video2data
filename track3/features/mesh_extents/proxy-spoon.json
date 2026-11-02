@@ -201,7 +201,7 @@
   },
   "sources": {
     "track3/features/mesh_extents/__init__.py": "5824b435cc4e87cb6e6d110bbe4d40bad817e6f5b337bb7325242b9b085b196d",
-    "track3/features/mesh_extents/__main__.py": "50c9df948a4888b9eff0ecf84df5243d5ac8936344d7d7c2421c92439362f169",
+    "track3/features/mesh_extents/__main__.py": "032d220db897f66d7404b24e1d055f40a11d3b817587901da48e4244abde9f22",
     "track3/features/mesh_extents/_geometry.py": "70636f96cdf2371a59f30746c6188e2cfc68144c90127e5b3dac97c5bb4c9c1b",
     "track3/features/mesh_extents/_proxy.py": "c916be81c257ad0fc14856e7e43419f4d8c8b358affc45d86a205a11d9f7319d",
     "track3/features/mesh_extents/_render.py": "37814b15cc77b197bfef9b9fa6e0ed7ff37fd180b25b18f40eb661f38f71d654",
@@ -210,7 +210,7 @@
     "track3/features/mesh_extents/adopt.py": "b593adbdd5f2d7b635d2f1bd4a9fb8c2d30c8756ef0da30d6373725c65eb66db",
     "track3/features/mesh_extents/build.py": "b7b30184c37eab3a1a496b598af0f334be927ba2e39e2b84cc1ce51e89908187",
     "track3/features/mesh_extents/measure.py": "00d254e2f699882c035a98650695cceeb35a597bb17e5aec672df503dc7418cf",
-    "track3/features/mesh_extents/proxy.py": "a522907885cfdcb6a062d21d2c832d8f7d35a29e641151a1965a173ae75c81ef",
+    "track3/features/mesh_extents/proxy.py": "631d36e7e773973f266139814f56ef274cf1db511842899e15bea3cd25bca79c",
     "track3/features/mesh_extents/rules.py": "c2ebf7d77cd0b21bd52b3b5ad60976ed8708f84c6967046f76f59f00d3750cad",
     "track3/gpu.py": "d7b7353e6e72050b1033a5a8d8ecda73f0a0e27436f0a3ecc9d5fd044c4c15d1",
     "track3/paths.py": "5f7cf257b1e5f207e81ce781034dfe192da01a40889917bf77d5053925ee5b54",
@@ -219,7 +219,7 @@
     "configs/sources.lock.json": "9cb4be3c5aa2275e7defb1436f1ee4e2d2595a12e605d38c20daea64e3984a20",
     "configs/splits/public-v1.json": "01b08863972ff92c51422346432b10810d5f002629b248f5dd74002a6c6c4076",
     "docs/chain/mesh-selection-protocol.md": "dfdfa48e5621ee2b9c7f873e0acef5d800de6f441dd437a915e7e6b35b0c72bf",
-    "track3/features/mesh_extents/runtime.json": "6e55b3eb14b5cee56fe8d46a254a5503822b501ce6e1dcb6ed0ee1fd86a54b90"
+    "track3/features/mesh_extents/runtime.json": "5d05514931c1948a35dce5f26f6c70f49e47c4878c6b1901581ae0181b0e0e7a"
   },
   "packages": {
     "numpy": "2.2.6",

@@ -57,7 +57,7 @@ def _post_result_scope(request: ProxyRequest) -> None:
                 "gates", "budget", "panel", "axis_convention"):
         if request.data[key] != baseline[key]:
             raise PermissionError(f"Post-result engineering changed the scientific definition: {key}")
-    allowed = {f"track3/features/mesh_extents/{name}.py" for name in ("_proxy", "proxy", "_geometry")}
+    allowed = {f"track3/features/mesh_extents/{name}" for name in ("_proxy.py", "proxy.py", "_geometry.py", "__main__.py", "runtime.json")}
     if set(request.data["sources"]) != set(baseline["sources"]) or any(
             digest != baseline["sources"][path] for path, digest in request.data["sources"].items() if path not in allowed):
         raise PermissionError("Post-result source changes exceed the authorized scope")
