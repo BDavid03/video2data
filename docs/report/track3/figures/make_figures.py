@@ -64,7 +64,7 @@ def pose_offset_panel(episodes: list[int], offsets: dict[str, list[float]]) -> p
     return fig
 
 
-def pose_offset_chart(preview: Path | None) -> None:
+def pose_offset_chart(preview: Path | None, output_dir: Path = TARGET.parent) -> None:
     """Follow ledger run pointers to saved decompositions, without executing metrics."""
     episodes = [0, 11, 12, 18, 21, 23, 26, 31]
     offsets = {name: {} for name in ("v1", "K1a")}
@@ -75,7 +75,7 @@ def pose_offset_chart(preview: Path | None) -> None:
             offsets[row["candidate"]][row["episode"]] = saved["frame0"]["offset_error_cm"]
     values = {name: [by_episode[e] for e in episodes] for name, by_episode in offsets.items()}
     fig = pose_offset_panel(episodes, values)
-    target = Path(__file__).with_name("d2-slot1-offset.pdf")
+    target = output_dir / "d2-slot1-offset.pdf"
     fig.savefig(target, metadata={"Title": "Recorded frame-zero slot-1 offset errors",
                                  "Author": "", "Creator": "", "CreationDate": None,
                                  "ModDate": None})
@@ -86,7 +86,7 @@ def pose_offset_chart(preview: Path | None) -> None:
     print(target.relative_to(ROOT))
 
 
-def score_chart() -> None:
+def score_chart(output_dir: Path = TARGET.parent) -> None:
     """Read recorded scores, save a vector PDF, and print the derived means for review."""
     summary = json.loads(SUMMARY.read_text())
     rule = next(row for row in summary["ranking"] if row["rule"] == "R2 vessel-handle")
@@ -113,7 +113,7 @@ def score_chart() -> None:
     ax.spines[["top", "right", "left"]].set_visible(False)
     ax.tick_params(axis="y", length=0)
     ax.legend(frameon=False, fontsize=6.5, loc="upper right")
-    target = Path(__file__).with_name("d1-v2-cdo.pdf")
+    target = output_dir / "d1-v2-cdo.pdf"
     fig.savefig(target, metadata={"Title": "Cross-fitted development CD-O on public scans", "Author": "", "Creator": ""})
     plt.close(fig)
     print(target.relative_to(ROOT))
@@ -185,12 +185,16 @@ def main():
     parser.add_argument("--bars", action="store_true", help="regenerate the legacy score chart")
     parser.add_argument("--pose-offsets", action="store_true", help="draw recorded pose offsets")
     parser.add_argument("--preview", type=Path, help="also save the panel as a 300 dpi PNG")
+    parser.add_argument("--output-dir", type=Path, default=TARGET.parent,
+                        help="write figure PDFs here instead of beside this script")
     args = parser.parse_args()
+    args.output_dir = args.output_dir.resolve()
+    args.output_dir.mkdir(parents=True, exist_ok=True)
     if args.pose_offsets:
-        pose_offset_chart(args.preview)
+        pose_offset_chart(args.preview, args.output_dir)
         return
     if args.bars:
-        score_chart()
+        score_chart(args.output_dir)
         return
     build = json.loads((BUILD / "run.json").read_text())
     assignments = json.loads(ASSIGNMENTS.read_text())["episodes"]
@@ -216,12 +220,13 @@ def main():
         print(f"{name}: R2 {scores[name]['cd_o_cm']:.4f} cm; box {boxes[name]:.4f} cm; "
               f"public ep. {episode}, clusters {ids}; {measure.relative_to(ROOT)}")
     fig = qualitative_panel(rows)
-    fig.savefig(TARGET, dpi=300, metadata={"Title": "Video clusters, submitted R2 meshes and scoring references",
+    target = args.output_dir / TARGET.name
+    fig.savefig(target, dpi=300, metadata={"Title": "Video clusters, submitted R2 meshes and scoring references",
                                          "Author": "", "Creator": ""})
     if args.preview:
         fig.savefig(args.preview, dpi=300)
     plt.close(fig)
-    print(TARGET.relative_to(ROOT))
+    print(target.relative_to(ROOT))
 
 
 if __name__ == "__main__":

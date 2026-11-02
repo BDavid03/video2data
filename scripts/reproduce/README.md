@@ -97,25 +97,103 @@ changing a path does not reconstruct historical code. The CPU comparison below
 checks all four printed v1 commands against the original script; it does not
 execute the v1 campaign. Packing/preflight and their logs retain the same behavior.
 
-## D3: figures → PDF
+## D3: committed report tree → fresh figures → fresh PDF
 
 ```bash
-bash scripts/reproduce/d3_report.sh --run
-# Optional source argument after --run: docs/report/track3/main.tex
+bash scripts/reproduce/d3_report.sh        # plan only, no directories created
+bash scripts/reproduce/d3_report.sh --run  # CPU; always creates a fresh directory
 ```
 
-This CPU command runs `docs/report/track3/figures/make_figures.py` to regenerate
-the current qualitative panel from recorded measurements, meshes and scores,
-then `bash scripts/report/build_pdf.sh docs/report/track3/main.tex`.
-It performs no metric rerun. The existing figure script owns its recorded input
-paths; [the report README](../../docs/report/track3/README.md) documents their
-provenance, display transforms and the **2-page** PDF evidence.
+The script pins HEAD, exports `docs/report/track3` with read-only `git archive`
+and `tar` into `.runtime/tmp/reproduce-d3-<unique>/src/`, then regenerates the
+mesh panel, `--pose-offsets` panel and `--bars` legacy chart there. The checked-out
+figure generator reads the recorded inputs from this checkout; its only change
+from the archived generator is the output-directory option. All figure drawing,
+values and metadata configuration are unchanged. Its used source hash is saved in
+`figure-generator.sha256`. The unused legacy `d1-v1-cdo.pdf` is preserved by
+archive copy, not regenerated; both figures referenced by `main.tex` are rebuilt.
 
-Execution refreshes the figure PDF and `main.pdf`/TeX logs beside their sources.
-A fresh `.runtime/tmp/reproduce-d3-<unique>/build.log` records both commands and
-their output; Matplotlib uses `.runtime/tmp/reproduce-report-matplotlib/`.
-The existing builder uses the pinned Tectonic and its in-checkout cache, accepts
-only the documented microtype tracking error and rejects other TeX errors.
+The archived `main.tex`, classes, bibliography and assets are then built with the
+pinned Tectonic 0.17.0 using the exact `build_pdf.sh` engine arguments:
+`-X compile -Z continue-on-errors --keep-logs`. Matplotlib, temporary files and
+Tectonic's writable cache are private to the fresh work directory; the existing
+`.cache/tectonic` is copied as a read-only input. The wrapper's same microtype
+error filter is retained. `scripts/report/build_pdf.sh` needed no edit.
+
+A single `SOURCE_DATE_EPOCH` setting, taken from the archived commit's timestamp,
+makes both Matplotlib and Tectonic reproducible. Existing report PDFs, logs and
+other report files are never rewritten. No metrics, GPU operation, install or
+upload is performed.
+
+### Executed twice, 2026-11-02
+
+The final script was run twice serially by a resumable two-entry ledger script;
+both invocations of `bash scripts/reproduce/d3_report.sh --run` exited **0**.
+Both used commit `9fb178a3fc74435ea193524cfddc15f753f4ea6a` and
+`SOURCE_DATE_EPOCH=1793578088` (2026-11-02 00:08:08 UTC).
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' .runtime/linux-cuda/bin/python -B \
+  .runtime/tmp/reproduce-d3-audit-eTmAqxDt/run_reproductions.py
+PYTHONDONTWRITEBYTECODE=1 .runtime/linux-cuda/bin/python -B \
+  .runtime/tmp/reproduce-d3-audit-eTmAqxDt/compare_pdfs.py
+bash -n scripts/reproduce/d3_report.sh
+bash -n scripts/report/build_pdf.sh
+```
+
+The first command resumes completed entries; each new invocation of the D3 shell
+script itself always creates a fresh work directory. Shell syntax passed; the
+edited figure generator also passed `py_compile` and a CPU import. The final
+report has **3 pages: 2 main-text pages plus 1 references-only page**, with both
+figures. The only TeX error remains the allowed XeTeX/microtype tracking error;
+there are no overfull boxes or undefined references.
+
+SHA-256 comparison of every figure PDF and the report (the `main.pdf` reference
+is the prior in-place build, which is untracked, rather than a committed PDF):
+
+| PDF | Committed / prior SHA-256 | Run 1 SHA-256 | Run 2 SHA-256 | Result |
+| --- | --- | --- | --- | --- |
+| figures/d1-v1-cdo.pdf | `65716f91a28826bcbd7c0621e0a6f3e2cf197a919d1c7f1c1abf70f996bfafc9` | `65716f91a28826bcbd7c0621e0a6f3e2cf197a919d1c7f1c1abf70f996bfafc9` | `65716f91a28826bcbd7c0621e0a6f3e2cf197a919d1c7f1c1abf70f996bfafc9` | archive copy; unused legacy figure |
+| figures/d1-v2-cdo.pdf | `c3ec50578a5fdfae0833895672119b3bbd4895e4c6074acf2d0a4b43fb94b70f` | `ebeb0edd890afd1050ba6894a06d1861809cd3f0a10afa0ef748b4cd28c4ecb9` | `ebeb0edd890afd1050ba6894a06d1861809cd3f0a10afa0ef748b4cd28c4ecb9` | CreationDate and startxref offset only |
+| figures/d1-v2-qualitative.pdf | `53f6c1842a34c458e7b923985d6b66f2bc8944b0e640580a06ededd757b65e8a` | `3a3008a81143ce215de0969f0285fb00f9e2c8c22cf84e88224b96b8d19d6666` | `3a3008a81143ce215de0969f0285fb00f9e2c8c22cf84e88224b96b8d19d6666` | CreationDate and startxref offset only |
+| figures/d2-slot1-offset.pdf | `71e9e9a64c09ca43f0953dd02d564cd79527744078f9b60759ccf3d63ddf71df` | `71e9e9a64c09ca43f0953dd02d564cd79527744078f9b60759ccf3d63ddf71df` | `71e9e9a64c09ca43f0953dd02d564cd79527744078f9b60759ccf3d63ddf71df` | byte-identical |
+| main.pdf | `62117515559c989bc1a58edf0667175ad1c5cf5714031b748ef0f29d7fb27e37` | `476c27e70900550b606c2c494534dad6f03cb12d248a41f15baf55fc61c91170` | `476c27e70900550b606c2c494534dad6f03cb12d248a41f15baf55fc61c91170` | CreationDate in object stream 11; compressed length grows by one byte; trailer ID and xref/startxref offset change; all other objects byte-identical |
+
+Both runs match **every PDF byte-for-byte**. The historical differences are fully
+accounted for:
+
+- The two D1 v2 figure PDFs change only `CreationDate` and the `startxref` byte
+  offset: the old date strings `D:20261102031035+10'00'` (bars) and
+  `D:20261102084334+10'00'` (mesh panel) become `D:20261102000808Z`. The new
+  string is six bytes shorter; `startxref` decreases by six. Normalising exactly
+  those two fields makes the original/fresh bytes identical. Fonts and drawing
+  streams do not change. The pose-offset PDF already omits CreationDate/ModDate
+  and matches the committed bytes exactly.
+- The prior report's CreationDate `D:20261102000438-00'00'` becomes
+  `D:20261102000808-00'00'` inside object stream 11. Its compressed length grows
+  from **5,653 to 5,654 bytes**. Of **55 direct objects**, only stream 11 and the
+  cross-reference stream 206 change. Decompressing stream 11 proves its sole
+  content difference is that date; all other direct objects, including fonts,
+  page content and embedded figures, are byte-identical. Stream 206 changes the
+  PDF ID and its own byte offset by +1; `startxref` changes **341,794 → 341,795**.
+  Thus the report's historical hash difference is metadata/offsets only, with
+  identical page content. No historical PDF was rewritten to force a hash match.
+
+Final artifacts and evidence:
+
+| Item | Path |
+| --- | --- |
+| Run 1 PDF | `.runtime/tmp/reproduce-d3-38r6BKup/src/docs/report/track3/main.pdf` |
+| Run 2 PDF | `.runtime/tmp/reproduce-d3-1cmKxGAh/src/docs/report/track3/main.pdf` |
+| Per-run records | Each run directory: `build.log`, `commit.txt`, `source-date-epoch.txt`, `figure-generator.sha256`, `sha256.txt`; figures and TeX logs under `src/docs/report/track3/` |
+| Audit | `.runtime/tmp/reproduce-d3-audit-eTmAqxDt/`: `ledger.jsonl`, `summary.json`, `run-{1,2}.log`, `comparison.json`, `hash-table.md`, `syntax.log`, `pdfinfo.log`, `tex-evidence.log` |
+
+The audit hashes the original report tree before/after the runs and confirms no
+file changed during execution. The only report-tree edit is the allowed
+`make_figures.py` output-directory option. Two preliminary builds before the
+final path-handling adjustment also succeeded; their evidence is retained under
+`.runtime/tmp/reproduce-d3-audit-xeEJsNaE/`. The complete generated/source file
+inventory is `.runtime/tmp/reproduce-d3-audit-eTmAqxDt/files-changed.txt`.
 
 ## Run records and hash coverage
 
@@ -207,6 +285,6 @@ provenance mismatch; a fully matching historical source tree is not established.
 Remaining gap: **D2 GPU regeneration was not executed**, including the physical
 K1a runs for episodes 1/28 and the v1 campaign. The CPU result proves reproduction
 from recorded evaluated exports, not retraining or numerical GPU reproducibility.
-**D3 reproduction is handled separately.** Placeholder URLs remain nonfinal;
+**D3 fresh-directory reproduction is recorded above.** Placeholder URLs remain nonfinal;
 Kaggle authentication/checks were skipped and no upload was attempted. The D1
 preflight also retains the recorded `no --results given` warning.
