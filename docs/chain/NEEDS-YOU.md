@@ -17,8 +17,8 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
    accept the rules on all six Track 3 competitions (five pose, one CD-O). There is no API for
    accepting rules.
 
-   **Both Track 3 files are ready (D1 v3 from context 07, D2 v3 from context 05; branch `worktree-chain-ctx01`).** Each carries a
-   placeholder commit URL. After item 1 (push a commit that contains context 07's last commit or later), run from
+   **Both Track 3 files are ready (D1 v4 from context 08, D2 v3 from context 05; branch `worktree-chain-ctx01`).** Each carries a
+   placeholder commit URL. After item 1 (push a commit that contains context 08's last commit or later), run from
    the checkout that holds the outputs (the worktree `.claude/worktrees/chain-ctx01`, or main after
    copying `outputs/mesh_extents/`, `outputs/pose_insurance/` and `outputs/stereo_depth/` back), with `<owner>/<repo>` and the
    pushed `<sha>` filled in. The geometry and trajectories are identical to the packed files; only
@@ -27,12 +27,12 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
    ```bash
    K=upstream/v2d_submission_kit/v2d_submission_kit
    URL=https://github.com/<owner>/<repo>/commit/<sha>
-   # D1 v3 meshes (CD-O; peg-rack rule, exact local CD-O 0.8115 cm pair-weighted vs v2 1.0850)
+   # D1 v4 meshes (CD-O; rack compartment + thin-tool profiles, exact local CD-O 0.6629 cm pair-weighted vs v3 0.8115)
    .runtime/kit-env/bin/python $K/tools/pack_reconstruction.py track3-meshes \
-     --meshes outputs/mesh_extents/build/20261102T031152.089350Z-ea88a295/meshes \
+     --meshes outputs/mesh_extents/build/20261102T051416.149421Z-f377e0a1/meshes \
      --sample $K/data/track_3_mesh_sample_submission.parquet \
-     --commit $URL --out submissions/20261102T0313Z-d1-v3/track3_meshes_v3_final.parquet
-   # (or rebuild end to end: bash scripts/reproduce/d1_meshes.sh $URL --version v3 --run)
+     --commit $URL --out submissions/20261102T0516Z-d1-v4/track3_meshes_v4_final.parquet
+   # (or rebuild end to end: bash scripts/reproduce/d1_meshes.sh $URL --version v4 --run)
    # D2 v3 poses (five pose metrics)
    .runtime/kit-env/bin/python $K/tools/pack_submission.py --track track_3 \
      --results outputs/pose_insurance/results-v3 --code-commit $URL \
@@ -40,13 +40,13 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
      --skip-crosscheck --out submissions/20261102T0032Z-d2-v3/track3_poses_v3_final.csv
    .runtime/kit-env/bin/python $K/tools/preflight.py --track track_3 --results outputs/pose_insurance/results-v3
    # upload (needs KAGGLE_API_TOKEN and the rules accepted on all six Track 3 competitions)
-   .runtime/kit-env/bin/python $K/submit/v2d_submit.py submissions/20261102T0313Z-d1-v3/track3_meshes_v3_final.parquet \
-     --track track_3_mesh -m "Video-measured primitives: hollow vessels, rim handle, peg rack"
+   .runtime/kit-env/bin/python $K/submit/v2d_submit.py submissions/20261102T0516Z-d1-v4/track3_meshes_v4_final.parquet \
+     --track track_3_mesh -m "Video-measured primitives: hollow vessels, compartment rack, thin-tool profiles"
    .runtime/kit-env/bin/python $K/submit/v2d_submit.py submissions/20261102T0032Z-d2-v3/track3_poses_v3_final.csv \
      --track track_3 -m "Static objects, stereo-scaled placement"
    ```
 
-   Superseded files (do not upload): D1 v0, v1, v2; D2 v0, v1, v2. Please write the leaderboard scores back
+   Superseded files (do not upload): D1 v0, v1, v2, v3; D2 v0, v1, v2. Please write the leaderboard scores back
    here or in `AGENTS.md` so the chain can record them in `SUBMISSION.md`.
 4. [ ] **Chain contexts cannot edit the main checkout (added by context 01).** Claude Code's
    background-job guard rejects file edits in `/home/ceolwolf/repos/video2data` and requires a

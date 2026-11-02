@@ -11,19 +11,21 @@ printf '\n'
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 import shlex
 import subprocess
 import tempfile
 
-p = argparse.ArgumentParser(description="D1 v2/v3 build, local CD-O, kit pack and preflight; CPU only")
+p = argparse.ArgumentParser(description="D1 v2/v3/v4 build, local CD-O, kit pack and preflight; CPU only")
 p.add_argument("commit_url", nargs="?", help="defaults to the recorded (currently placeholder) URL")
 p.add_argument("--manifest", type=Path)
-p.add_argument("--version", choices=("v2", "v3"), default="v2")
+p.add_argument("--version", choices=("v2", "v3", "v4"), default="v2")
 p.add_argument("--run", action="store_true", help="execute; otherwise print the plan")
 a = p.parse_args()
 root = Path.cwd()
-manifest = a.manifest or sorted(root.glob(f"submissions/*-d1-{a.version}/manifest.json"))[-1]
+manifests = sorted(root.glob(f"submissions/*-d1-{a.version}/manifest.json"))
+manifest = a.manifest or manifests[-1]
 m = json.loads(manifest.read_text())
 recorded_python = Path(m["pack_command"][0])
 recorded_root = recorded_python.parents[3] if recorded_python.is_absolute() else root
@@ -39,34 +41,43 @@ def relative(value):
     return path.relative_to(root).as_posix() if path.is_absolute() else str(value)
 
 
-request = Path("scripts/track3/requests/d1") / ("build-v2-r2.json" if a.version == "v2" else "build-v3.json")
+request = Path("scripts/track3/requests/d1") / ("build-v2-r2.json" if a.version == "v2" else f"build-{a.version}.json")
 build_run = Path(rebase(m["build_run"]))
 record = json.loads((root / build_run).read_text())
-if json.loads(request.read_text()) != record["request"]:
+request_data = json.loads(request.read_text())
+if request_data != record["request"]:
     raise ValueError("Committed request differs from the manifest's build request")
 url = a.commit_url or m["code_commit_url"]
 if a.run and a.commit_url is None:
     p.error("--run requires an explicit commit URL")
-print(f"Manifest: {manifest}\nRecorded build: {build_run}\nMeasure runs: {len(record['request']['measure_runs'])}", flush=True)
-work = Path(tempfile.mkdtemp(prefix="reproduce-d1-", dir=root / ".runtime/tmp")) if a.run else Path(".runtime/tmp/reproduce-d1-<new>")
+print(f"Manifest: {manifest}\nRecorded build: {build_run}\nMeasure runs: {len(request_data['measure_runs'])}", flush=True)
+scratch = root / ".runtime/tmp"
+if a.run:
+    scratch.mkdir(parents=True, exist_ok=True)
+work = Path(tempfile.mkdtemp(prefix=f"reproduce-d1-{a.version}-", dir=scratch)) if a.run else Path(f".runtime/tmp/reproduce-d1-{a.version}-<new>")
 print(f"Outputs/logs: {work}", flush=True)
 commands = []
 
-def command(argv, log):
+def command(argv, log, env=None):
     argv = list(map(str, argv))
     commands.append(argv)
     print("+ " + shlex.join(argv), flush=True)
     if a.run:
         with (work / log).open("w") as stream:
-            subprocess.run(argv, stdout=stream, stderr=subprocess.STDOUT, check=True)
+            subprocess.run(argv, stdout=stream, stderr=subprocess.STDOUT, check=True, env=env)
 
 build = [".runtime/linux-cuda/bin/python", "-B", "-m", "track3.features.mesh_extents", "build", "--request", request]
 command(build, "build.log")
 new_run = Path((work / "build.log").read_text().strip().splitlines()[-1]) if a.run else Path("<new-build>/run.json")
-command([".runtime/kit-env/bin/python", "-B", "scripts/track3/local_cdo.py", "--candidates", new_run.parent / "objects", "--out", work / "cdo.json"], "score.log")
+new_run = Path(relative(new_run))
+score_temp = work / "tmp"
+if a.run:
+    score_temp.mkdir()
+score_env = dict(os.environ, TMPDIR=str(score_temp), TEMP=str(score_temp), TMP=str(score_temp))
+command([".runtime/kit-env/bin/python", "-B", "scripts/track3/local_cdo.py", "--candidates", new_run.parent / "objects", "--out", work / "cdo.json"], "score.log", env=score_env)
 # Rebase the recorded commands so the checkout can move without editing run IDs.
 pack = [rebase(s) for s in m["pack_command"]]
-packed = work / Path(m["file"]).name
+packed = work / f"track3_meshes_{a.version}.parquet"
 for flag, value in (("--meshes", new_run.parent / "meshes"), ("--commit", url), ("--out", packed)):
     pack[pack.index(flag) + 1] = str(value)
 command(pack, "pack.log")

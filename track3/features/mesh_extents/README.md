@@ -3,7 +3,41 @@
 Video-measured object proportions, and the closed primitive (ellipsoid or box) built from them, for
 the Track 3 CD-O mesh file (D1).
 
-## Latest result (2026-11-02): R6/0.10 passes the exact veto
+## Latest result (2026-11-02): adopted R9, packed D1 v4
+
+**R9 rack-and-tools passes every development gate and the stricter exact packed-v3 veto.** R8 independently passes, satisfying R9's spoon-transfer safeguard. The queue, video attributes and constructors remain identical to pre-score commit `bc601cf`. No retuning or runner-up substitution occurred.
+
+| Rule | Cross-fitted object mean (cm) | Pair mean (cm) | Worst regression (cm) | Gain / object / pair gates | Eligible |
+| --- | ---: | ---: | ---: | --- | --- |
+| R7 compartment-rack | 0.7200894377219091 | 0.7147165917344509 | 0.0000000000000000 | pass / pass / pass | yes |
+| R8 thin-tool-profiles | 0.7057625707817922 | 0.7649184628381274 | 0.0000000000000000 | pass / pass / pass | yes |
+| R9 rack-and-tools | 0.6527030378651946 | 0.6628808995369784 | 0.0000000000000000 | pass / pass / pass | yes |
+
+All three rules have no fitted parameter, so cross-fitted and in-sample means coincide. R9's extra independent-R8 eligibility gate also passes. Development incumbent: **0.7731489706385066 cm/object / 0.8167541550356001 cm/pair**; gain must exceed 0.03 cm, worst object regression must be <=0.15 cm, and pair mean cannot worsen.
+
+| Exact packed file | Equal-object mean (cm) | Pair mean (cm) |
+| --- | ---: | ---: |
+| v3 | 0.7710770332786878 | 0.8114951342417491 |
+| v4 / R9 veto geometry | 0.6533839589873099 | 0.6629214779189021 |
+
+Packed-veto gates all pass: object mean <0.74107703 cm, pair mean <=0.81149513 cm, and worst object regression **0.0 cm** <=0.15 cm. Each pair uses its own kit seed; 26/36 pairs have public references. The ten spoon pairs remain unscored. The final v4 geometry and row order are identical to the veto pack, so these exact scores transfer by identity.
+
+First new score completed **2026-11-02T05:06:45.221558+00:00**, after the pre-score commit; its trial began 2026-11-02T05:06:38.841476+00:00. The development loop wrote 30 trials, 13 distinct new scores and 17 score reuses. Seed SDs and per-object tables are in the full report; R9 mean object seed SD **0.0053292982260532825 cm**, maximum **0.02136714096735155 cm**.
+
+Packed file: `submissions/20261102T0516Z-d1-v4/track3_meshes_v4.parquet`; **294,912 rows** in official sample order, all IDs unique. SHA-256: `6663a1c7e0491c0cfa53b27fe36d7904455351dad548181e4e59a2263215af50`. Placeholder URL names pre-score commit `bc601cf474a8ccff3e77a7c10dd0025158b0c388`. Kit preflight `--skip-kaggle`: **Ready to submit** (warnings: no trajectory results supplied, Kaggle checks skipped). Manifest verification: **6/6 hashes match**.
+
+Fresh v3 reproduction matches shipped v3's **47/47 PLY files**, including 36 pair meshes, and all Parquet geometry rows. Fresh v4 matches the veto build **47/47** and all packed geometry rows; the final file is also byte-identical to reproduced v4. Existing v3 pack bytes remain unchanged.
+
+```bash
+bash scripts/reproduce/d1_meshes.sh https://github.com/OWNER-PLACEHOLDER-not-final/video2data/commit/bc601cf474a8ccff3e77a7c10dd0025158b0c388 --version v4 --run
+bash scripts/reproduce/verify.sh submissions/20261102T0516Z-d1-v4/manifest.json
+```
+
+Evidence: `outputs/mesh_extents/round3-job-b/job-b.md` (full tables and command ledger), `outputs/mesh_extents/rules-round3/summary.md` (development), `outputs/mesh_eval/pairs/mesh-round3-veto/summary.md` (exact veto), and `outputs/mesh_extents/round3-job-b/reproduction-checks.json` (identity checks). Reproduction archives are under `outputs/mesh_extents/round3-job-b/reproduction-v3/` and `reproduction-v4/`.
+
+These are development results from a third adaptive round on the same ten scans, with prior scan-render exposure. Cross-fitting covers declared parameters only; it does not remove family-selection optimism. This is not an independent performance estimate. No host/spoon score is claimed, no upload or Kaggle rules acceptance occurred.
+
+## Round 2 result (2026-11-02): R6/0.10 passed the exact veto
 
 **Adopt R6 peg-rack with wall/radius fraction 0.10.** The frozen round-2 loop selects 0.10 on
 both folds and on all ten scanned objects. It passes every development gate and the exact packed
