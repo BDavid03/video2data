@@ -167,6 +167,9 @@ PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THRE
 
 Writes `outputs/mesh_extents/proxy-insights/<run-id>/{run.json,summary.json,summary.md,pairs.json,pairs.md,replays/}`,
 plus stable `summary.{json,md}` and an identity-resumable `replay-ledger.jsonl` in that output root.
+Each run also writes labelled `pair-orders.{png,pdf}` figures; stable summaries name their paths.
+Both proxy operations enforce the project interpreter and redirect caches before numeric imports;
+`proxy-insights/verification.json` points to the latest critic-fix equivalence evidence.
 
 ## History
 

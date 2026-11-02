@@ -11,7 +11,6 @@ from track3.runs import (ROOT, artifact, authorize_episode, heavy_execution, new
                          read_json, recorded, runtime_flag, save_npz)
 from .measure import MeasureRequest
 from .proxy import read_ledger
-from .rules import append_ledger, identity
 
 FEATURE = Path(__file__).parent
 
@@ -45,7 +44,9 @@ def authorize(request: InsightsRequest) -> tuple[dict, list[dict], list[dict], l
         raise ValueError("Frozen package version changed")
     baseline, summary = read_json(data["baseline_request"]), read_json(data["baseline_summary"])
     producer = read_run(ROOT, data["baseline_run"], kind="mesh_extents.proxy")
-    manifest_sha = next(r["sha256"] for r in producer["inputs"] if r["path"] == producer["request"]["manifest"])
+    manifest_sha = next((r["sha256"] for r in producer["inputs"] if r["path"] == producer["request"]["manifest"]), None)
+    if manifest_sha is None:
+        raise ValueError("Baseline producer inputs do not record its request manifest")
     if manifest_sha != data["inputs"][data["baseline_request"]] or baseline["packages"] != data["packages"]:
         raise ValueError("Baseline request conflicts with the original producer")
     if producer["artifacts"]["summary.json"] != data["inputs"][data["baseline_summary"]]:
@@ -115,7 +116,11 @@ def proxy_insights(request: InsightsRequest) -> Path:
     """Replay the complete frozen panel before computing any conditional pair summary."""
     _, candidates, views, trials = authorize(request)
     import numpy as np
-    from ._insights import analyse_object, assemble, pair_markdown, replay_summary, summary_markdown
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from ._insights import analyse_object, assemble, pair_markdown, plot_pairs, replay_summary, summary_markdown
+    from .rules import append_ledger, identity
 
     data = request.data
     frozen_id = identity(data)
@@ -155,10 +160,16 @@ def proxy_insights(request: InsightsRequest) -> Path:
         summary.update(replay=replay_summary(trials, replayed, new),
                        run=(directory / "run.json").relative_to(ROOT).as_posix(),
                        frozen_identity=frozen_id, replay_records=replayed)
+        figure = plot_pairs(pairs, {(c["object"], c["sha256"]): c["cd_o_cm"] for c in candidates}, data["groups"]["failed"])
+        summary["figures"] = {suffix: (directory / f"pair-orders.{suffix}").relative_to(ROOT).as_posix() for suffix in ("png", "pdf")}
+        for suffix in summary["figures"]:
+            figure.savefig(directory / f"pair-orders.{suffix}", dpi=160)
+        plt.close(figure)
         write_json(directory / "pairs.json", pairs)
         (directory / "pairs.md").write_text(pair_markdown(pairs))
         write_json(directory / "summary.json", summary)
         (directory / "summary.md").write_text(summary_markdown(summary))
+    # Stable summaries are mirrors of the completed run.
     write_json(output / "summary.json", summary)
     (output / "summary.md").write_text(summary_markdown(summary))
     return directory / "run.json"

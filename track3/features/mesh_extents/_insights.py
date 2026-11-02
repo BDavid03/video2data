@@ -1,11 +1,15 @@
 """Pure selected-yaw replay and descriptive within-object projection comparisons."""
 
 from itertools import combinations
+from typing import TYPE_CHECKING
 
 import numpy as np
 from scipy.stats import kendalltau
 
 from ._proxy import place_vertices, silhouette
+
+if TYPE_CHECKING:
+    from matplotlib.figure import Figure
 
 CONDITION = ("All signatures remain conditional on recorded views, normalization and selected yaw; "
              "hidden geometry versus mask/placement error remains unproven.")
@@ -160,12 +164,12 @@ def summary_markdown(summary: dict) -> str:
              f"| {summary['replay']['trials']} | {fmt(summary['replay']['max_abs_iou_difference'])} | yes / yes | "
              f"{summary['replay']['new']} / {summary['replay']['resumed']} |", "",
              "## Recorded-view object signatures", "",
-             "| Object | Gap cm | Eligible | Outline | Near | All correct / reversed / tied | Outline correct / reversed / tied | Near correct / reversed / tied | Concordance | Outline concordance | Near concordance | H | Signature | B | T |",
-             "| --- | ---: | ---: | ---: | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: |"]
+             "| Object | Views | Candidates | Gap cm | Eligible | Outline | Near | All correct / reversed / tied | Outline correct / reversed / tied | Near correct / reversed / tied | Concordance | Outline concordance | Near concordance | H | Signature | B | T |",
+             "| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: |"]
     for row in summary["objects"]:
         for cutoff in ("at_003", "at_006"):
             m, a = row[cutoff], row[cutoff]["all"]
-            lines.append(f"| {row['object']} | {fmt(m['gap_cm'])} | {a['eligible_pairs']} | {m['outline']['eligible_pairs']} | "
+            lines.append(f"| {row['object']} | {row['views']} | {row['candidates']} | {fmt(m['gap_cm'])} | {a['eligible_pairs']} | {m['outline']['eligible_pairs']} | "
                          f"{m['near']['eligible_pairs']} | {a['correct']} / {a['reversed']} / {a['tied']} | "
                          f"{m['outline']['correct']} / {m['outline']['reversed']} / {m['outline']['tied']} | "
                          f"{m['near']['correct']} / {m['near']['reversed']} / {m['near']['tied']} | "
@@ -190,7 +194,43 @@ def summary_markdown(summary: dict) -> str:
     lines += ["", "Zero denominators are null; reasons and view-pair tau values are in summary.json.",
               "B/T flags do not change signatures or identify mask error. Pairs and views are not independent replicates.",
               "All pair distances, signed view gaps, extents and scales are retained in pairs.json and replay artifacts.", "", CONDITION]
+    lines += ["", "Figure PNG: `" + summary["figures"]["png"] + "`", "Figure PDF: `" + summary["figures"]["pdf"] + "`"]
     return "\n".join(lines) + "\n"
+
+
+def plot_pairs(pairs: list[dict], cd_o: dict[tuple[str, str], float], failed: list[str]) -> "Figure":
+    """Plot eligible-pair gaps against score differences oriented to make correct orders positive."""
+    import matplotlib.pyplot as plt
+    from matplotlib.lines import Line2D
+
+    names = sorted({p["object"] for p in pairs})
+    fig, axes = plt.subplots(2, 4, figsize=(14, 8), sharey=True)
+    for ax, name in zip(axes.flat, names):
+        rows = [p for p in pairs if p["object"] == name and p["eligible_003"]]
+        color = "#b64224" if name in failed else "#176b83"
+        for outline, marker in ((True, "o"), (False, "s")):
+            subset = [p for p in rows if p["outline_changing"] == outline]
+            x = [p["cd_o_gap_cm"] for p in subset]
+            y = [-np.sign(cd_o[(name, p["candidate_i"])] - cd_o[(name, p["candidate_j"])]) *
+                 p["signed_mean_iou_difference"] for p in subset]
+            ax.scatter(x, y, marker=marker, s=36, edgecolors=color,
+                       facecolors=color if outline else "none", alpha=.8)
+        ax.axhline(0, color="#555555", linewidth=.8)
+        ax.set_title(name.replace("_", " ") + (" [failed]" if name in failed else " [contrast]"), color=color, fontsize=10)
+        ax.set_xlim(left=0)
+        ax.grid(alpha=.2)
+        if name in failed:
+            ax.set_facecolor("#fff2ec")
+    fig.suptitle("Recorded-view proxy orders: eligible CD-O gap >= 0.03 cm", y=.98)
+    fig.supxlabel("Absolute recorded CD-O gap (cm)", y=.08)
+    fig.supylabel("Oriented equal-view mean IoU difference (positive = correct order)")
+    fig.legend(handles=[Line2D([], [], marker="o", linestyle="none", color="#555555", label="Outline-changing"),
+                        Line2D([], [], marker="s", linestyle="none", markerfacecolor="none", color="#555555", label="Near-projection")],
+               loc="upper center", bbox_to_anchor=(.5, .94), ncol=2, frameon=False)
+    fig.text(.5, .025, "Conditional on recorded views, normalization and selected yaw;\nhidden geometry versus mask/placement error remains unproven.",
+             ha="center", fontsize=9)
+    fig.tight_layout(rect=(.035, .105, 1, .89))
+    return fig
 
 
 def pair_markdown(pairs: list[dict]) -> str:

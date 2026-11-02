@@ -9,10 +9,8 @@ from typing import TYPE_CHECKING
 
 from track3.paths import output_path
 from track3.provenance import input_file, read_run, run_fields, sha256_file, write_json
-from track3.runs import ROOT, artifact, authorize_episode, checked_entry, new_run_id, read_json, recorded, runtime_flag
-from . import _proxy
+from track3.runs import ROOT, artifact, authorize_episode, checked_entry, heavy_execution, new_run_id, read_json, recorded, runtime_flag
 from .measure import MeasureRequest
-from .rules import append_ledger, identity
 
 FEATURE = Path(__file__).parent
 if TYPE_CHECKING:
@@ -66,6 +64,9 @@ def _post_result_scope(request: ProxyRequest) -> None:
 def _admit(request: ProxyRequest) -> tuple[str, list[dict]]:
     """Check frozen hashes, package versions, episode permissions and baseline scope."""
     runtime = runtime_flag(FEATURE, "proxy_authorized", "Spoon proxy diagnostic")
+    heavy_execution(runtime)
+    from .rules import identity
+
     data, missing = request.data, []
     for path, digest in {**data["inputs"], **data["sources"]}.items():
         if Path(path).is_absolute() or ".." in Path(path).parts or "/mesh/" in path:
@@ -92,6 +93,7 @@ def _admit(request: ProxyRequest) -> tuple[str, list[dict]]:
 def load_candidate(candidate: dict) -> "Trimesh":
     """Load a frozen mesh and enforce its construction axis convention."""
     import trimesh
+    from . import _proxy
 
     mesh = trimesh.load(ROOT / candidate["candidate"], force="mesh", process=False)
     if not _proxy.valid_extents(mesh.extents):
@@ -102,6 +104,7 @@ def load_candidate(candidate: dict) -> "Trimesh":
 def load_view(view: dict) -> dict:
     """Read frozen depth/mask inputs and reuse the measure slice's support-plane refit."""
     import numpy as np
+    from . import _proxy
 
     measure = read_json(view["measure_run"])
     with (np.load(ROOT / view["preprocessing"], allow_pickle=False) as prep,
@@ -115,6 +118,7 @@ def load_view(view: dict) -> dict:
 def _overlay(view: dict, loaded: dict, path: Path, projected: "ndarray | None" = None) -> None:
     """Read the recorded frame and persist its target/silhouette overlay."""
     import cv2
+    from . import _proxy
 
     image = cv2.imread(str(ROOT / view["overlay"]))
     if image is None:
@@ -127,6 +131,8 @@ def _overlay(view: dict, loaded: dict, path: Path, projected: "ndarray | None" =
 def _trial(candidate: dict, view: dict, loaded: dict, request: ProxyRequest,
            key: str, directory: Path, previous: dict | None) -> dict:
     """Admit a completed trial or record one candidate-view projection."""
+    from . import _proxy
+
     cache = directory / "cache" / f"{key}.json"
     previous = previous or (read_json(cache) if cache.exists() else None)
     if previous:
@@ -165,6 +171,8 @@ def read_ledger(path: Path) -> list[dict]:
         try:
             rows.append(json.loads(line))
         except json.JSONDecodeError as error:
+            from . import _proxy
+
             if index != len(lines) - 1 or line.endswith((b"\n", b"\r")) or not _proxy.truncated_tail(line.decode(), error):
                 raise ValueError(f"{path}:{index + 1}: undecodable ledger row") from error
             fragments = path.parent / "ledger-fragments"
@@ -179,6 +187,9 @@ def read_ledger(path: Path) -> list[dict]:
 def proxy(request: ProxyRequest, *, dry_run: bool = False) -> Path:
     """Run the frozen candidate queue or target-only preparation and write its report."""
     frozen_id, missing = _admit(request)
+    from . import _proxy
+    from .rules import append_ledger, identity
+
     data = request.data
     directory = output_path(ROOT, data["dry_output"] if dry_run else data["output"])
     directory.mkdir(parents=True, exist_ok=True)
@@ -224,8 +235,9 @@ def proxy(request: ProxyRequest, *, dry_run: bool = False) -> Path:
             summary = _proxy.summarize(data, results, missing)
             markdown = _proxy.summary_markdown(summary)
         write_json(run_directory / "summary.json", summary)
-        write_json(directory / "summary.json", summary)
-        (directory / "summary.md").write_text(markdown)
         if not dry_run or missing:
             (run_directory / "summary.md").write_text(markdown)
+    # Stable summaries are mirrors of the completed run.
+    write_json(directory / "summary.json", summary)
+    (directory / "summary.md").write_text(markdown)
     return run_directory / "run.json"

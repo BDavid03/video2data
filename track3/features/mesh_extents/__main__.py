@@ -3,7 +3,6 @@
 import argparse
 from pathlib import Path
 
-from .adopt import AdoptRequest, adopt
 from .build import BuildRequest, build
 from .measure import MeasureRequest, measure
 from .proxy import ProxyRequest, proxy
@@ -21,8 +20,13 @@ def main():
     if args.operation == "proxy":
         print(proxy(ProxyRequest.from_file(args.request), dry_run=args.dry_run))
         return
-    handler, request_type = {"measure": (measure, MeasureRequest), "build": (build, BuildRequest),
-                             "adopt": (adopt, AdoptRequest), "proxy-insights": (proxy_insights, InsightsRequest)}[args.operation]
+    if args.operation == "adopt":
+        from .adopt import AdoptRequest, adopt
+
+        handler, request_type = adopt, AdoptRequest
+    else:
+        handler, request_type = {"measure": (measure, MeasureRequest), "build": (build, BuildRequest),
+                                 "proxy-insights": (proxy_insights, InsightsRequest)}[args.operation]
     print(handler(request_type.from_file(args.request)))
 
 
