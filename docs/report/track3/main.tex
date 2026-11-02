@@ -27,8 +27,8 @@ are zero, providing no evidence of stereo-specific calibration benefit or manipu
 Track 3 scores reconstructed meshes (D1) and policy-rollout poses (D2)
 separately~\cite{challenge,faq}.
 A \emph{pair entry} is one (episode, object) slot scored by the leaderboard.
-CD-O rewards proportions and part structure, which a few
-video measurements can capture; we show how far primitive constructions go.
+CD-O rewards proportions and structure; we develop primitives from video-derived
+extents and manually chosen parts on inspected public scans.
 
 \noindent\begin{minipage}{\columnwidth}
 \centering
@@ -73,10 +73,10 @@ from video before third-round scoring; no parameters were tuned in that round.
 
 \subsection{Rule selection}
 \begin{samepage}
-Before third-round scoring, we fixed rack-only, tools-only and combined
-candidates (Table~\ref{tab:cdo}). The combined candidate became v4.
-Requiring tools-only to pass prevented rack gains from masking failure on the
-two scanned tools; it did not validate the spoon.
+Rack-only, tools-only and combined candidates were specified before
+third-round scoring (Table~\ref{tab:cdo}); the combined candidate became v4.
+Tools-only scoring separated the two scanned tools from rack gains;
+the spoon remained unmeasured.
 \par\end{samepage}
 
 \noindent\begin{minipage}{\columnwidth}
@@ -94,28 +94,28 @@ Peg-rack rule (v3) & 0.7711 & 0.8115 \\
 \textbf{Rack and tools (v4)} & \textbf{0.6534} & \textbf{0.6629} \\
 \midrule
 \multicolumn{3}{l}{Development: three surface-sampling seeds} \\
-Round 1 (cross-fitted) & 0.926 & 1.087 \\
-Round 2 (cross-fitted) & 0.773 & 0.817 \\
-Rack-only (fixed) & 0.720 & 0.715 \\
-Tools-only (fixed) & 0.706 & 0.765 \\
-Combined (fixed, v4) & 0.653 & 0.663 \\
+Round 1 & 0.926 & 1.087 \\
+Round 2 & 0.773 & 0.817 \\
+Rack-only & 0.720 & 0.715 \\
+Tools-only & 0.706 & 0.765 \\
+Combined (v4) & 0.653 & 0.663 \\
 \bottomrule
 \end{tabular}
-\captionof{table}{CD-O (cm, $\downarrow$). Pair means average the 26 measured
-entries; object means first average within each object, then over ten objects.
-Development pair means weight each object's three-seed mean by its entry count.
-The ten spoon entries are unmeasured.}
+\captionof{table}{CD-O (cm, $\downarrow$), on reused public scans.
+Top: packed pair-entry scores, averaged over 26 entries or first within
+then over ten objects. Bottom: three-seed object means, weighted by entry
+count for pair means. Ten spoon entries are unmeasured.}
 \label{tab:cdo}
 \end{minipage}\par
 
 \noindent\begin{minipage}{\columnwidth}
 \centering
 \includegraphics[width=\columnwidth]{figures/d1-v4-qualitative.pdf}
-\captionof{figure}{Rack and dust-pan meshes beside public scans: independently
-centred and uniformly normalised, with matched orthographic views. Spoon:
-identical crops of recorded evaluation-15 video overlays; green is the observed
-mask, magenta the projected mesh outline. Higher silhouette IoU does not
-establish better CD-O.}
+\captionof{figure}{Rack and dust pan: independently centred and uniformly
+normalised meshes in matched orthographic views; these are not registration
+overlays. Spoon: identical evaluation-15 opening-frame crops, with observed
+mask (green), projected outline (magenta), and single-frame IoU.
+Higher IoU does not establish better CD-O.}
 \label{fig:qualitative}
 \end{minipage}\par
 
@@ -141,10 +141,10 @@ optimism is unknown.
 handle without a scan, using medium-confidence video-read depth ratios.
 An average spoon regression of 0.39\,cm would cancel the measured gain:
 $26(0.8115-0.6629)/10$. Its leaderboard effect is unknown.
-A scan-free silhouette check fixed before scoring failed validation against
-recorded CD-O (5/8 objects passed; sweeper Spearman $\rho=-0.09$), so it cannot
-infer spoon CD-O. Descriptively, v4's outline fits the spoon's video mask better
-than the box (mean intersection-over-union $+0.23$); v4 is unchanged.
+Silhouette IoU was not validated as a CD-O proxy
+(sweeper Spearman $\rho=-0.09$).
+The spoon's mean IoU over three views increases by 0.23;
+Figure~\ref{fig:qualitative} shows one frame. This does not establish improved spoon CD-O.
 \par\end{samepage}
 
 
@@ -158,8 +158,8 @@ evaluate a second-object correction.
 
 \begin{samepage}
 Stereo shrinkage uses a stereo/MoGe-2 depth ratio; uniform uses its training
-mean. Both give nearly equal initial-placement error on all eight episodes and
-similar rollout errors (Table~\ref{tab:pose}), with zero success rates.
+mean. Their mean rollout metrics are similar on the eight training episodes
+(Table~\ref{tab:pose}); both success rates are zero.
 \par\end{samepage}
 
 \noindent\begin{minipage}{\columnwidth}

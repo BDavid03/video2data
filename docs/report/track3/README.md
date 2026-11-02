@@ -50,10 +50,13 @@ font family.
 
 Figure 2 shows v3, v4 and the public scan for the rack and dust pan. Each mesh
 is centred and uniformly scaled to unit longest side; a fixed orientation and
-orthographic camera match the earlier qualitative figure. Its spoon row uses
-identical crops of saved evaluation-15 opening-frame overlays: the green mask is
-observed, and the magenta outline is projected geometry. IoU is **0.56 box /
-0.70 bowl**, explicitly labelled as an unvalidated silhouette check.
+orthographic view direction match the earlier qualitative figure. V3 and v4
+use the same neutral material, lighting and edges, with reduced display margins.
+The spoon row restyles identical crops of saved evaluation-15 opening-frame
+overlays: the observed mask is translucent green and the projected outline is
+stronger magenta. Single-frame IoU is **0.56 box / 0.70 bowl**, labelled
+“IoU is not a validated CD-O proxy.” The prose's **+0.23** is the mean gain
+over three views, distinct from this single-frame comparison.
 
 The retained pose chart keeps all 24 recorded bar heights for centroid/stacking,
 stereo and uniform placement. Episodes 0 and 26 start stacked. Initial errors
@@ -96,7 +99,7 @@ episodes; their rollout MPPE is **20.84 / 20.80 cm**.
   and v4 build `outputs/mesh_extents/build/20261102T051416.149421Z-f377e0a1`,
   using their `objects.json` paths. Only `plastic_dish_rack` and `mini_dust_pan`
   public scans are loaded, from snapshot `5f68335f3acc802033d1e80728c1633197521de8`.
-  The fixed display rotation, bounding-box normalisation and camera are taken
+  The fixed display rotation, bounding-box normalisation and view direction are taken
   from the earlier qualitative generator (`a126c01`); no registration or scoring
   is rerun for the figure.
 - **Spoon overlay crops:** `outputs/mesh_extents/spoon-proxy/ledger.jsonl`,
@@ -104,7 +107,11 @@ episodes; their rollout MPPE is **20.84 / 20.80 cm**.
   view `evaluation-000015-wooden_spoon`, candidate labels `v3_box` / `v4_bowl`.
   The saved `overlay` PNGs are cropped identically to `(x0,y0,x1,y1) =
   (300,442,610,535)`. Recorded IoUs are **0.5559074635 / 0.7024841809**;
-  engineering reruns are excluded by the frozen identity.
+  they are read from each trial's `result.json` and checked against the ledger.
+  Engineering reruns are excluded by the frozen identity. Display styling
+  recovers the recorded green mask and magenta contour from the saved overlay,
+  blends the mask over its saved RGB source, and thickens the contour; no
+  projection or score is recomputed.
 - **Dimension estimator:** `track3/features/mesh_extents/measure.py:measure`
   divides per-frame extent triplets by their geometric mean, takes per-axis
   medians, then restores the median of the geometric means.

@@ -12,6 +12,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import cv2
 import numpy as np
 import trimesh
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
@@ -197,12 +198,26 @@ def draw_mesh(ax, vertices: np.ndarray, faces: np.ndarray, colour: str) -> None:
     """Use one orthographic camera and light for all normalised meshes."""
     surface = Poly3DCollection(vertices[faces], facecolors=colour, linewidths=0, shade=True)
     surface.set_rasterized(True)
+    surface.set_clip_on(False)
     ax.add_collection3d(surface)
     ax.set(xlim=(-0.55, 0.55), ylim=(-0.55, 0.55), zlim=(-0.55, 0.55))
-    ax.set_box_aspect((1, 1, 1), zoom=1.65)
+    ax.set_box_aspect((1, 1, 1), zoom=1.85)
     ax.set_proj_type("ortho")
     ax.view_init(elev=40, azim=-65)
     ax.set_axis_off()
+
+
+def restyle_overlay(rgb: np.ndarray, overlay: np.ndarray) -> np.ndarray:
+    """Restyle the recorded mask and outline without changing their geometry."""
+    source = np.rint(rgb[..., :3]*255).astype(np.uint8)
+    saved = np.rint(overlay[..., :3]*255).astype(np.uint8)
+    observed = np.all(saved == (source*0.5 + [0, 127, 0]).astype(np.uint8), axis=-1)
+    outline = np.all(saved == [255, 0, 255], axis=-1)
+    image = source.astype(float)/255
+    image[observed] = 0.70*image[observed] + 0.30*np.array([0, 0.8, 0])
+    outline = cv2.dilate(outline.astype(np.uint8), np.ones((3, 3), np.uint8)).astype(bool)
+    image[outline] = [0.82, 0, 0.65]
+    return image
 
 
 def qualitative_panel(rows: list[dict], spoon: list[dict]) -> plt.Figure:
@@ -216,19 +231,19 @@ def qualitative_panel(rows: list[dict], spoon: list[dict]) -> plt.Figure:
         bottom = 0.65 - i*0.27
         fig.text(0.035, bottom+0.13, LABELS[row["name"]], rotation=90,
                  ha="center", va="center", fontsize=8.5, weight="bold")
-        for j, key, colour in ((0, "previous", "#669BBC"),
-                               (1, "candidate", BLUE), (2, "scan", "#B5B5B5")):
+        for j, key, colour in ((0, "previous", "#B5B5B5"),
+                               (1, "candidate", "#B5B5B5"), (2, "scan", "#B5B5B5")):
             ax = fig.add_axes((0.10+j*0.30, bottom, 0.30, 0.26), projection="3d")
             draw_mesh(ax, *row[key], colour)
-    fig.text(0.5, 0.35, "Spoon: evaluation 15, opening frame", ha="center",
+    fig.text(0.5, 0.35, "Spoon: evaluation 15, single-frame IoU", ha="center",
              va="center", fontsize=8.5, weight="bold")
     for j, row in enumerate(spoon):
         ax = fig.add_axes((0.03+j*0.50, 0.15, 0.44, 0.16))
         ax.imshow(row["crop"])
         ax.set_axis_off()
-        fig.text(0.25+j*0.50, 0.12, f"{row['label']}: IoU {row['iou']:.2f}",
+        fig.text(0.25+j*0.50, 0.12, f"{row['label']}: {row['iou']:.2f}",
                  ha="center", va="top", fontsize=8.5)
-    fig.text(0.5, 0.035, "Silhouette check not validated", ha="center",
+    fig.text(0.5, 0.035, "IoU is not a validated CD-O proxy", ha="center",
              va="bottom", fontsize=8.5, weight="bold")
     return fig
 
@@ -254,18 +269,22 @@ def qualitative_chart(preview: Path | None, output_dir: Path = TARGET.parent) ->
     trials = [row for row in trials if row["frozen_identity"] == PROXY_IDENTITY
               and row["view"] == "evaluation-000015-wooden_spoon"]
     assert len(trials) == 2
+    recorded = {}
+    for row in trials:
+        run_path = ROOT / row["run"]
+        run = json.loads(run_path.read_text())
+        result = json.loads(run_path.with_name("result.json").read_text())
+        assert result["iou"] == row["iou"]
+        recorded[run["request"]["candidate"]["label"]] = (row, run, result)
     spoon = []
-    for label, candidate_label, expected_iou in (
-        ("v3 box", "v3_box", 0.56), ("v4 bowl", "v4_bowl", 0.70),
-    ):
-        row = next(row for row in trials
-                   if json.loads((ROOT / row["run"]).read_text())
-                   ["request"]["candidate"]["label"] == candidate_label)
-        assert round(row["iou"], 2) == expected_iou
-        image = plt.imread(ROOT / row["overlay"])
+    for label, candidate_label in (("v3 box", "v3_box"), ("v4 bowl", "v4_bowl")):
+        row, run, result = recorded[candidate_label]
+        overlay = plt.imread(ROOT / row["overlay"])
+        rgb = plt.imread(ROOT / run["request"]["view"]["overlay"])[:, :overlay.shape[1]]
         # Identical display crop in both 768x576 overlays; includes the whole spoon.
-        spoon.append({"label": label, "iou": row["iou"], "crop": image[442:535, 300:610]})
-        print(json.dumps({"label": label, "iou": row["iou"], "overlay": row["overlay"],
+        crop = restyle_overlay(rgb[442:535, 300:610], overlay[442:535, 300:610])
+        spoon.append({"label": label, "iou": result["iou"], "crop": crop})
+        print(json.dumps({"label": label, "iou": result["iou"], "overlay": row["overlay"],
                           "crop_xyxy": [300, 442, 610, 535]}))
     fig = qualitative_panel(rows, spoon)
     target = output_dir / "d1-v4-qualitative.pdf"
