@@ -1,5 +1,12 @@
 # Current user instructions
 
+- On 2026-11-03 (local; 2026-11-02 22:30 UTC, chain context 12) the user wrote, live in the session:
+  "needs-you now approved". Read as approval of `docs/chain/NEEDS-YOU.md` item 7, the only open
+  decision the chain itself can act on: build the stereo-placement pose candidate (slot-1 offset from
+  direct calibrated-stereo centroids) despite the unmeasurable episode 13, judged on the train
+  episodes under a new protocol before any policy run or repack. It does not change the 2026-11-03
+  line below: the user still pushes and uploads personally; MANO registration and the docker group
+  still need the user's own logins.
 - On 2026-11-03 the user wrote "all owner requirements approved", then: "i said id do the kaggle
   manually just get creative with the model and data / data manipulation". So:
   - The user pushes to GitHub and uploads to Kaggle personally. The chain never pushes or uploads; it

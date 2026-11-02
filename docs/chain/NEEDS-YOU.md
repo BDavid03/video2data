@@ -149,7 +149,7 @@ the real URL `https://github.com/BDavid03/video2data/commit/15060c13b07bda03b056
 6. [ ] **Docker group (optional).** `docker` is unusable for this user (`/var/run/docker.sock`
    permission denied; sudo needs a password). Not needed now: FlashCHORD runs natively. If the
    official container is ever wanted: `sudo usermod -aG docker ceolwolf`, then restart WSL.
-7. [ ] **Decision (optional, added by context 11): build a stereo-placement pose candidate?** On the
+7. [x] **Decision (optional, added by context 11): build a stereo-placement pose candidate?** *Approved by the owner 2026-11-03 ("needs-you now approved", AGENTS.md); context 12 is running it under `docs/chain/pose-stereo-placement-protocol.md`.* On the
    train episodes, slot 1's distance from slot 0 measured from calibrated stereo depth is 0.6 cm from
    the mocap distance (current D2 v3: 11.8 cm off), because MoGe-2 stretches the layout. The chain
    pre-registered a check on fresh public episodes and wrote "no candidate follows" unless it passed.
