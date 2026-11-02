@@ -149,6 +149,18 @@ the real URL `https://github.com/BDavid03/video2data/commit/15060c13b07bda03b056
 6. [ ] **Docker group (optional).** `docker` is unusable for this user (`/var/run/docker.sock`
    permission denied; sudo needs a password). Not needed now: FlashCHORD runs natively. If the
    official container is ever wanted: `sudo usermod -aG docker ceolwolf`, then restart WSL.
+7. [ ] **Decision (optional, added by context 11): build a stereo-placement pose candidate?** On the
+   train episodes, slot 1's distance from slot 0 measured from calibrated stereo depth is 0.6 cm from
+   the mocap distance (current D2 v3: 11.8 cm off), because MoGe-2 stretches the layout. The chain
+   pre-registered a check on fresh public episodes and wrote "no candidate follows" unless it passed.
+   It failed only because one of the four counted fresh episodes (13) shows the two objects as one
+   blob and cannot be measured; on the three that could be measured (22, 24, 27) stereo was 1.1 cm
+   off vs 7.2 cm, better on all three. (Both critics agreed declining was right; they also note the
+   check is small, n = 3, and that public validation episodes 2/13/22/24/27 are now used up.) The chain will not override its own rule. If you want the candidate
+   anyway (a D2 v4 with stereo slot-1 placement, judged on the train episodes under a new protocol
+   before any policy run or repack), add a line to `AGENTS.md`, e.g.
+   "2026-11-0x: stereo-placement pose candidate approved despite the unmeasurable episode 13".
+   Note: the direction of slot 1 is still unknown, so the expected gain is mainly RPE/MPPE, not AUC.
 3. [ ] **`coursework/` material** lost on 2026-10-29 (Week 1-12 notebooks, `data/`,
    `glove.6B.100d.txt`, `make_coursework.py`, `helper_funcs/`), if another copy exists. Only the
    hashed subset that `scratch_depth` needs is present. Not needed for the submission.
