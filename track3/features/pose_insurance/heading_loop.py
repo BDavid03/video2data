@@ -22,11 +22,11 @@ METRICS = ['AUC', 'RPE_cm', 'MPPE_cm', 'SP_SR', 'MP_SR']
 def validate_protocol(queue: dict) -> None:
     """Bind queue decisions to the reviewed protocol bytes and coverage extension."""
     contract = {key: queue[key] for key in
-                ('episodes', 'variants', 'descriptive_variants', 'gates', 'prior_consistency')}
+                ('episodes', 'variants', 'descriptive_variants', 'gates', 'prior_consistency', 'h2s')}
     binding = hashlib.sha256(project_path(ROOT, PROTOCOL).read_bytes() +
                              json.dumps(contract, sort_keys=True).encode()).hexdigest()
     # SHA-256(protocol bytes + sorted-key contract JSON); values live only in the queue.
-    if binding != '69f4311a980c5574e8eb5d756cc583e44bd66a283a664214a6f683604a660c21':
+    if binding != '326a5e10faee6cf00cce64bdd722bbe0c60367c75c740e7037d5f3e7ce5e052b':
         raise ValueError('Queue or committed heading protocol differs from the frozen decisions')
 
 
@@ -80,7 +80,43 @@ def trial_inputs(request: HeadingRequest, queue: dict, queue_path: Path, build: 
     if request.variant.startswith('U1') or request.variant == 'O2-cups-up':
         fitting = [ep for ep in queue['episodes'] if request.variant != 'U1-LOO' or ep != request.episode_index]
         paths.extend(path for ep in fitting for path in label_paths(ep))
+    if request.variant == 'H2S-desc':
+        paths.extend(registration_pair(request.episode_index)[1])
     return list(dict.fromkeys(map(str, paths)))
+
+
+@cache
+def registration_pair(episode: int) -> tuple:
+    """Admit the two pinned search-zero selections and re-hash their NPZ artifacts."""
+    import numpy as np
+    from scipy.spatial.transform import Rotation
+    from .placement_diagnostic import ROSTER
+    queue = protocol_queue()['h2s']
+    if str(episode) not in queue['registrations']:
+        return None, []
+    inputs = [checked_entry(queue[key], {'inputs': []}) for key in ('method', 'protocol')]
+    registered = []
+    for slot, entry in enumerate(queue['registrations'][str(episode)]):
+        path = checked_entry(entry, {'inputs': []})
+        parent = producer(path, 'pose_insurance.registration_trial', HeadingRequest(episode, 'H2S-desc'),
+                          allowed=('public_asset_diagnostic',))
+        expected = dict(episode=episode, slot=slot, name=ROSTER[episode][slot])
+        if (parent[1]['request']['trial'] != expected
+                or parent[1]['method_sha256'] != queue['method']['sha256']):
+            raise ValueError('HR2 trial does not match its train slot or frozen method')
+        prediction = artifact(parent, 'prediction.json', {'inputs': []})
+        arrays = artifact(parent, 'registrations.npz', {'inputs': []})
+        row = read_json(prediction)
+        with np.load(arrays, allow_pickle=False) as data:
+            best = int(np.argmin(data['search_0_losses_m']))
+            rotation = data['search_0_rotations'][best]
+            translation = data['search_0_translations'][best]
+            if (best != row['best_index'] or not np.array_equal(rotation, row['rotation'])
+                    or not np.array_equal(translation, row['translation_m'])):
+                raise ValueError('HR2 saved selection differs from the search-zero winner')
+            registered.append(np.r_[translation, Rotation.from_matrix(rotation).as_quat()])
+        inputs.extend((path, prediction, arrays))
+    return np.array(registered), inputs
 
 
 def resume_result(row: dict, replacements: dict | None = None) -> dict:
@@ -101,13 +137,14 @@ def diagnose(request: HeadingRequest, build: tuple, paths: list, priors: dict, i
     os.environ['CUDA_VISIBLE_DEVICES'] = ''
     heavy_execution(dict(runtime, python=runtime['diagnostic_python']))
     import numpy as np
-    from ._heading import oracle, apply_priors, cup_oracle, frame0_checks
+    from ._heading import oracle, apply_priors, cup_oracle, frame0_checks, selected_registration
     from ._stereo_placement import start_poses
     from .stereo_placement_loop import scoring_data
     from .placement_diagnostic import baseline_module
     parent, plan, _ = build
     record = run_fields(ROOT, 'pose_insurance', 'heading_trial', asdict(request), inputs=paths,
-                        parents=[parent[0]], provenance='public_label_diagnostic')
+                        parents=[parent[0], *[p for p in paths if '/registration-hr2/trials/' in str(p)
+                                 and str(p).endswith('/run.json')]], provenance='public_label_diagnostic')
     record.update(split='public', episode_index=request.episode_index, identity=identity,
                   object_names=plan['names'])
     artifact(parent, 'construction.json', record)
@@ -115,7 +152,10 @@ def diagnose(request: HeadingRequest, build: tuple, paths: list, priors: dict, i
     with recorded(directory, record):
         start = start_poses({key: np.array(value) for key, value in plan['scenes']['T1'].items()})
         ref, vertices = scoring_data(request.episode_index, tuple(plan['names']))
-        if request.variant in protocol_queue()['descriptive_variants']:
+        if request.variant == 'H2S-desc':
+            registered, _ = registration_pair(request.episode_index)
+            result = start.copy() if registered is None else selected_registration(start, registered)
+        elif request.variant in protocol_queue()['descriptive_variants']:
             result = cup_oracle(start, ref[0, 0], plan['names'], priors if request.variant == 'O2-cups-up' else None)
         else:
             result = (apply_priors(start, plan['names'], priors) if request.variant.startswith('U1')
@@ -140,7 +180,8 @@ def diagnose(request: HeadingRequest, build: tuple, paths: list, priors: dict, i
                    names=plan['names'], metrics=metrics, frames=len(ref), frame0=checks,
                    start_poses=result.tolist(), priors=priors if request.variant.startswith('U1') or request.variant == 'O2-cups-up' else None,
                    descriptive=request.variant in protocol_queue()['descriptive_variants'],
-                   covered_slots=[i for i, name in enumerate(plan['names']) if name in ('blue_cup', 'beige_cup')]))
+                   covered_slots=([0, 1] if registered is not None else []) if request.variant == 'H2S-desc'
+                   else [i for i, name in enumerate(plan['names']) if name in ('blue_cup', 'beige_cup')]))
     return directory / 'run.json'
 
 
@@ -158,34 +199,48 @@ def fit_folds(episodes: list, consistency: dict) -> tuple:
 
 
 def recorded_trials(queue: dict) -> dict:
-    """Admit the pinned historical report supplying the original 48 completed trials."""
+    """Admit the pinned historical report supplying the original 64 completed trials."""
     path = checked_entry(queue['recorded_report'], {'inputs': []})
     report = producer(path, 'pose_insurance.heading_report', allowed=('public_label_diagnostic',))
     summary = read_json(artifact(report, 'summary.json', {'inputs': []}))
     trials = {(row['variant'], row['episode']): row for row in summary['selected']}
-    if set(trials) != {(v, ep) for v in queue['variants'] if v not in queue['descriptive_variants'] for ep in queue['episodes']}:
-        raise ValueError('Historical report must contain exactly the original 48 trials')
+    if set(trials) != {(v, ep) for v in queue['variants'] if v != 'H2S-desc' for ep in queue['episodes']}:
+        raise ValueError('Historical report must contain exactly the original 64 trials')
     return trials
 
 
 def resume_recorded(request: HeadingRequest, row: dict, build: tuple, priors: dict) -> tuple:
     """Admit an additive extension only when the historical scored poses are identical."""
     import numpy as np
-    from ._heading import oracle, apply_priors
+    from ._heading import oracle, apply_priors, cup_oracle
     from ._stereo_placement import start_poses
     from .placement_diagnostic import reference
     replacements = {path: [] for path in (PROTOCOL, 'track3/features/pose_insurance/heading_queue.json',
-                    'track3/features/pose_insurance/_heading.py', 'track3/features/pose_insurance/heading_loop.py')}
-    result = resume_result(row, replacements)
+                    'track3/features/pose_insurance/_heading.py', 'track3/features/pose_insurance/heading_loop.py',
+                    'track3/features/pose_insurance/_heading_render.py', 'track3/features/pose_insurance/runtime.json')}
     record = read_run(ROOT, row['run'], kind='pose_insurance.heading_trial')
+    runtime_path = 'track3/features/pose_insurance/runtime.json'
+    current = read_json(runtime_path)
+    current['execution'].pop('registration_authorized', None)
+    legacy_hash = hashlib.sha256((json.dumps(current, indent=2) + '\n').encode()).hexdigest()
+    runtime_hash = input_file(ROOT, runtime_path)['sha256']
+    if any(e['path'] == runtime_path and e['sha256'] not in (legacy_hash, runtime_hash)
+           for e in record['inputs']):
+        raise ValueError('Historical runtime differs beyond the added registration flag')
+    result = resume_result(row, replacements)
     if record['request'] != asdict(request) or record['identity'] != row['identity'] or result['names'] != build[1]['names']:
         raise ValueError('Historical trial does not match its selected request')
     start = start_poses({key: np.array(value) for key, value in build[1]['scenes']['T1'].items()})
-    constructed = (apply_priors(start, result['names'], priors) if request.variant.startswith('U1')
-                   else oracle(start, reference(request.episode_index)[0, 0], request.variant))
+    if request.variant.startswith('U1'):
+        constructed = apply_priors(start, result['names'], priors)
+    elif request.variant.startswith('O2-cups'):
+        constructed = cup_oracle(start, reference(request.episode_index)[0, 0], result['names'],
+                                 priors if request.variant == 'O2-cups-up' else None)
+    else:
+        constructed = oracle(start, reference(request.episode_index)[0, 0], request.variant)
     if not np.array_equal(constructed, result['start_poses']):
         raise ValueError('Historical scored poses differ under the additive extension')
-    if request.variant.startswith('U1') and result['priors'] != priors:
+    if (request.variant.startswith('U1') or request.variant == 'O2-cups-up') and result['priors'] != priors:
         raise ValueError('Historical fitting priors differ')
     admission = dict(run=row['run'], identical_scored_poses=True,
                      replacements={path: dict(recorded_sha256=sorted(set(hashes)),

@@ -15,11 +15,12 @@ def render(summary: dict, directory: Path, queue: dict, metric_names: list) -> N
              'Stage B registration failed under the frozen protocol; the historical Stage A trigger below is not a new authorization.', '',
              f"Executed {summary['executed']}; resumed {summary['resumed']}. "
              f"T1 reproduction: {summary['reproduction']['passed']}. "
-             f"Stage A passes: {summary['stage_a']['passed']}. U1-LOO passes: {summary['u1_gate']['passed']}.", '',
+             f"Historical Stage A passes: {summary['stage_a']['passed']}. U1-LOO passes: {summary['u1_gate']['passed']}.", '',
              f"Changes since previous report: `{json.dumps(summary['mean_changes_since_previous'], sort_keys=True)}`.", '',
              '| Variant | AUC | RPE cm | MPPE cm | SP-SR | MP-SR |', '|---|---:|---:|---:|---:|---:|']
     for variant in summary['ranking']:
         lines.append('| ' + variant + ' | ' + ' | '.join(f'{summary["means"][variant][k]:.9f}' for k in metric_names) + ' |')
+    lines += selected_tables(summary, metric_names)
     lines += ['', '## Per-episode metrics', '', '| Episode | Variant | AUC | RPE cm | MPPE cm | SP-SR | MP-SR |',
               '|---:|---|---:|---:|---:|---:|---:|']
     for ep in episodes:
@@ -42,6 +43,28 @@ def render(summary: dict, directory: Path, queue: dict, metric_names: list) -> N
               'No scored policy, geometry counter-rotation, physical check or pack is part of this diagnostic.', '',
               '![Per-episode AUC](auc.png)', '']
     (directory / 'summary.md').write_text('\n'.join(lines))
+
+
+def selected_tables(summary: dict, metric_names: list) -> list:
+    """Format post-hoc HR2 means and each changed episode's separate effects."""
+    selected = summary['h2s_descriptive']
+    lines = ['', '## H2S-desc: descriptive selected HR2 rotations', '',
+             '**' + selected['label'] + '.** This is not a candidate evaluation; no adoption gate is applied.', '',
+             'Search 0 winners are used ignoring declines on train 18/23 only; all other episodes equal T1. '
+             'T1 positions and offset length are unchanged.', '', selected['identity_caveat'], '',
+             '| Variant | Mean AUC | RPE cm | MPPE cm | SP-SR | MP-SR |',
+             '|---|---:|---:|---:|---:|---:|']
+    for variant in ('T1', 'O2', 'H2S-desc'):
+        lines.append('| ' + variant + ' | ' + ' | '.join(f'{summary["means"][variant][k]:.9f}' for k in metric_names) + ' |')
+    lines += ['', 'Effects below are H2S-desc minus T1; lower RPE/MPPE is better.', '',
+              '| Effect | AUC change | RPE cm change | MPPE cm change | SP-SR change | MP-SR change |',
+              '|---|---:|---:|---:|---:|---:|']
+    for episode, effect in selected['effects'].items():
+        for key, label in (('episode_changes', f'{episode}-only: episode'),
+                           ('eight_episode_mean_changes', f'{episode}-only: eight-episode mean')):
+            lines.append('| ' + label + ' | ' + ' | '.join(f'{effect[key][k]:+.9f}' for k in metric_names) + ' |')
+    lines.append('| Both: eight-episode mean | ' + ' | '.join(f'{selected["mean_changes"][k]:+.9f}' for k in metric_names) + ' |')
+    return lines + ['']
 
 
 def figure(summary: dict, directory: Path, queue: dict) -> None:

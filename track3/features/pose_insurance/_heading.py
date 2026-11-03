@@ -79,6 +79,21 @@ def cup_oracle(start: np.ndarray, reference: np.ndarray, names: list,
     return result
 
 
+def selected_registration(start: np.ndarray, registered: np.ndarray) -> np.ndarray:
+    """Map registered b direction and C into T1 while retaining every position."""
+    relative, offset = relative_transform(registered)
+    delta = start[1, :3] - start[0, :3]
+    anchor, _ = Rotation.align_vectors([delta / np.linalg.norm(delta)],
+                                       [offset / np.linalg.norm(offset)])
+    result = start.copy()
+    result[:, 3:] = Rotation.concatenate([anchor, anchor * relative]).as_quat()
+    actual_c, actual_b = relative_transform(result)
+    if (np.linalg.norm(actual_b / np.linalg.norm(actual_b) - offset / np.linalg.norm(offset)) > 1e-12
+            or (actual_c.inv() * relative).magnitude() > 1e-12):
+        raise ValueError('Selected-registration mapping changed its relative pose')
+    return result
+
+
 def frame0_checks(start: np.ndarray, result: np.ndarray, reference: np.ndarray) -> dict:
     """Measure invariant residuals and reference-relative errors at the first frame."""
     old_c, old_b = relative_transform(start)
@@ -116,8 +131,24 @@ def analyze(results: dict, queue: dict, reproduction: dict, metric_names: list) 
     return dict(means=means, ranking=sorted(variants, key=lambda v: means[v]['AUC'], reverse=True),
                 descriptive_variants=descriptive, cup_coverage=coverage,
                 cup_coverage_episodes=[ep for ep, names in coverage.items() if names],
-                cup_auc_gains={v: means[v]['AUC'] - t1['AUC'] for v in descriptive},
+                cup_auc_gains={v: means[v]['AUC'] - t1['AUC'] for v in descriptive if v.startswith('O2-cups')},
                 reproduction=reproduction,
                 stage_a=dict(auc_gain=stage_a_gain, passed=stage_a_gain >= gates['auc_gain_min']),
                 u1_gate=dict(changes=changes, worst_auc_loss=worst_loss, checks=checks,
-                             passed=all(checks.values())))
+                             passed=all(checks.values())),
+                h2s_descriptive=selected_effects(results, queue, means, metric_names))
+
+
+def selected_effects(results: dict, queue: dict, means: dict, metric_names: list) -> dict:
+    """Describe selected-only HR2 effects without applying any adoption rule."""
+    effects = {}
+    for key in queue['h2s']['registrations']:
+        ep = int(key)
+        delta = {k: results['H2S-desc'][ep]['metrics'][k] - results['T1'][ep]['metrics'][k]
+                 for k in metric_names}
+        effects[ep] = dict(episode_changes=delta,
+                           eight_episode_mean_changes={k: v / len(queue['episodes']) for k, v in delta.items()})
+    return dict(label=queue['h2s']['label'], hr2_rule='failed', candidate_evaluation=False,
+                changed_episodes=list(effects), effects=effects,
+                mean_changes={k: means['H2S-desc'][k] - means['T1'][k] for k in metric_names},
+                identity_caveat='Episode 23 wooden-piece identity is documented as arbitrary; no swaps performed.')

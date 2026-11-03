@@ -17,9 +17,10 @@
     "U1-LOO",
     "U1-full",
     "O2-cups",
-    "O2-cups-up"
+    "O2-cups-up",
+    "H2S-desc"
   ],
-  "max_trials": 64,
+  "max_trials": 8,
   "max_seconds": 7200,
   "builds": {
     "0": "outputs/pose_insurance/stereo-placement/builds/20261103T001807.996054Z-c922133b/run.json",
@@ -42,12 +43,13 @@
     "31": "outputs/pose_insurance/stereo-placement/runs/20261103T001812.616052Z-e8facfe8/run.json"
   },
   "recorded_report": {
-    "path": "outputs/pose_insurance/heading/reports/20261103T081438.443926Z-e4aba625/run.json",
-    "sha256": "81c6817f12a31646752fa7c7da46d1b8eb503b94e1db0f8f7a4ca2f4cc98fbec"
+    "path": "outputs/pose_insurance/heading/reports/20261103T082440.672515Z-556303a2/run.json",
+    "sha256": "11013e71147f124407ddfd39f4984c8733f6ac2b9d6fe15d73007fcc408df7ee"
   },
   "descriptive_variants": [
     "O2-cups",
-    "O2-cups-up"
+    "O2-cups-up",
+    "H2S-desc"
   ],
   "gates": {
     "auc_gain_min": 0.01,
@@ -56,5 +58,38 @@
   "prior_consistency": {
     "max_pairwise_angle_deg": 30.0,
     "min_mean_norm": 0.8
+  },
+  "h2s": {
+    "label": "descriptive, post-hoc, HR2 failed its rule",
+    "method": {
+      "path": "docs/chain/pose-heading-method-hr2.json",
+      "sha256": "c1fd86776f0a5e39eaf0f79273cbb8c6098ef585b59783b00a30ef1d65772e25"
+    },
+    "protocol": {
+      "path": "docs/chain/pose-heading-hr2-protocol.md",
+      "sha256": "27333b23f8909d9d3a525d33b05f3902036cab748a96ed4452511b9cb590fb60"
+    },
+    "registrations": {
+      "18": [
+        {
+          "path": "outputs/pose_insurance/registration-hr2/trials/20261103T112911.312560Z-c6cf948f/run.json",
+          "sha256": "544c688e03e6232e11f262f6a9aca2c6fb439e52d4bf2e8719bbfcfbf484d6c5"
+        },
+        {
+          "path": "outputs/pose_insurance/registration-hr2/trials/20261103T113226.572792Z-041aa9e0/run.json",
+          "sha256": "70ec5be7f7d43dbb4786b3aa9b5983b6b36343a8012cfa86ae93f99383b60491"
+        }
+      ],
+      "23": [
+        {
+          "path": "outputs/pose_insurance/registration-hr2/trials/20261103T115050.799956Z-3bcea8bd/run.json",
+          "sha256": "6bbec5cb4632b2567432136076ee5583e75215c66db280dad57f84fb8de50fed"
+        },
+        {
+          "path": "outputs/pose_insurance/registration-hr2/trials/20261103T115403.973957Z-3ca3b440/run.json",
+          "sha256": "8e640abdc7f4a024970209202a0ea9c7b08d113375fb45f4abd125fe0a232e5b"
+        }
+      ]
+    }
   }
 }

@@ -565,7 +565,7 @@ PYTHONPATH=. CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 .runtime/linux-cu
 
 `heading_loop.py` implements `docs/chain/pose-heading-protocol.md` Stage A and Amendment 1.
 It reads the recorded T1 constructions, then scores T1/O1/O2/O3/U1-LOO/U1-full and the
-descriptive O2-cups/O2-cups-up coverage ceilings on train
+descriptive O2-cups/O2-cups-up coverage ceilings and H2S-desc selections on train
 episodes **0/11/12/18/21/23/26/31** only. `_heading.py` owns the pure rotation/oracle
 calculations, signed body-up fitting and numerical aggregation. `_heading_render.py` owns
 Markdown tables and figures. The handler admits producers, enforces the
@@ -577,11 +577,11 @@ CUDA_VISIBLE_DEVICES='' PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 .runtime/linux-cu
 ```
 
 The editable queue names the fixed variants, train roster, exact build/scoring records and
-64-trial / 7,200-second budget. It also supplies the +0.010 AUC floor, 0.02 worst-episode
+8-new-trial / 7,200-second budget, resuming the pinned 64 historical trials. It also supplies the +0.010 AUC floor, 0.02 worst-episode
 AUC loss limit and 30-degree / 0.8 prior-consistency thresholds. These values occur only
 in the queue and are passed to the numerical functions. `validate_protocol` checks one
 frozen SHA-256 binding of the committed protocol bytes followed by sorted-key JSON for
-`episodes`, `variants`, `descriptive_variants`, `gates` and `prior_consistency`. A roster,
+`episodes`, `variants`, `descriptive_variants`, `gates`, `prior_consistency` and `h2s`. A roster,
 order, threshold or protocol mismatch fails closed.
 The binding includes the descriptive cup extension; the protocol's U1 and Stage A
 verdicts are unchanged. Trial identities hash inputs and sources; repeating the
@@ -680,3 +680,45 @@ comparison restored only these historical metadata/schema fields; its `summary.j
 and `summary.md` matched the historical files byte for byte. This is report-content
 preservation, not raw invocation byte identity. The historical heading directory was
 left unchanged.
+
+### H2S-desc: descriptive, post-hoc, HR2 failed its rule
+
+HR2 declined every pair under its frozen rule. This additional measurement ignores
+those declines and uses the already saved search-0 winners for both slots on train
+**18** and **23** only. Every other train episode equals T1. It is **not a candidate
+evaluation**, has no adoption gate and does not change HR2's failed verdict.
+Episode 23's wooden-piece identities are documented as arbitrary; no identity swap
+or new basin selection was performed.
+
+The queue pins four completed HR2 trial `run.json` records, the method and the HR2
+protocol. The handler checks each trial's episode/slot/name and method hash, re-hashes
+its `prediction.json` and `registrations.npz`, and checks the selected search-0 arrays
+against the prediction. The pure construction maps registered full-3D b direction and
+relative rotation C into the T1 world while keeping all T1 positions and offset length.
+An independent common-world rotation construction gives the same relative pose;
+maximum direction residual is **6.31e-16**, C residual **1.50e-16 rad**. Mapped frame-zero
+b/C errors remain **4.201/5.631 degrees** on 18 and **9.461/13.689 degrees** on 23.
+
+| Variant | Mean AUC | RPE cm | MPPE cm | SP-SR | MP-SR |
+|---|---:|---:|---:|---:|---:|
+| T1 | 0.276704640 | 29.013682158 | 17.678603332 | 0.000000000 | 0.000000000 |
+| O2 | 0.352712560 | 20.266692973 | 11.352044754 | 0.250000000 | 0.000000000 |
+| H2S-desc | 0.322286160 | 26.451659051 | 15.712129126 | 0.125000000 | 0.000000000 |
+
+Effects on the eight-episode mean, relative to T1:
+
+| Changed episode | AUC change | RPE cm change | MPPE cm change | SP-SR change | MP-SR change |
+|---|---:|---:|---:|---:|---:|
+| 18 only | +0.039427674 | -2.500615255 | -1.919322692 | +0.125000000 | +0.000000000 |
+| 23 only | +0.006153846 | -0.061407852 | -0.047151515 | +0.000000000 | +0.000000000 |
+| Both | +0.045581520 | -2.562023108 | -1.966474206 | +0.125000000 | +0.000000000 |
+
+The loop executed **8** new trials and resumed **64**. Every original result object,
+all **320** original metric values and all **144** pre-existing immutable trial/report
+files remained byte-identical. Historical runtime admission permits only the isolated
+addition of `registration_authorized`; current heading authorization is still enforced.
+The queue now pins the complete 64-trial historical report, and cup constructions and
+priors are checked during admission too. `outputs/pose_insurance/heading/summary.md`
+and `summary.json` contain all per-episode metrics, these separate effects, explicit
+post-hoc labels and the registration artifact provenance in each affected trial record.
+No scored/evaluation episode, policy run, physical check or pack is part of this job.
