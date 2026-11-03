@@ -1,0 +1,44 @@
+{
+  "protocol": "docs/chain/dynamic-feasibility-protocol.md",
+  "protocol_commit": "c287d5e",
+  "task_directory": ".runtime/flashchord/video_to_data/robotic_grounding/source/robotic_grounding/robotic_grounding/assets/human_motion_data/ego_recon/processed/sequence_id=tissue_box_simple/robot_name=sharpa_wave",
+  "total_gpu_seconds": 4500,
+  "initial_trial_seconds": 900,
+  "evaluation_reserve_seconds": 90,
+  "headroom_mib": 1024,
+  "admission_allowance_mib": 4096,
+  "surface_point_count": 1000,
+  "surface_seed": 0,
+  "metrics": "Raw world-frame position/orientation; kit ADD-AUC after slot-0 initial rigid alignment; raw ADD-AUC also reported",
+  "Z": {
+    "world_count": 64,
+    "total_environment_steps": 64,
+    "curriculum_thresholds": [19660800,34406400,49152000,63897600,78643200,93388800,108134400,122880000,137625600,200007680,250003456],
+    "updates_per_collection": 1.0,
+    "minimum_size": 64,
+    "capacity": 2048,
+    "checkpoint_interval": 64,
+    "observation_storage_dtype": "float16",
+    "save_replay": false,
+    "seeds": [0]
+  },
+  "L1": {
+    "world_count": 64,
+    "total_environment_steps": 128000,
+    "curriculum_thresholds": [10048,17600,25152,32704,40256,47808,55360,62912,70464,102400,128000],
+    "updates_per_collection": 0.125,
+    "minimum_size": 6400,
+    "capacity": 16384,
+    "checkpoint_interval": 5120,
+    "observation_storage_dtype": "float16",
+    "save_replay": false,
+    "seeds": [0,1]
+  },
+  "L2": {
+    "seeds": [0,1],
+    "maximum_pair_seconds": 2700,
+    "minimum_relative_improvement": 0.2,
+    "time_safety_factor": 1.1,
+    "rule": "Keep L1 memory/model settings. Split min(2700, remaining GPU seconds) equally between seeds. Reserve max(90, twice slowest observed evaluation seconds) per seed. Largest multiple of 64 predicted to fit using slower L1 training seconds/transition times 1.1. Scale L1 curriculum and checkpoint intervals by transition budget. No retry."
+  }
+}
