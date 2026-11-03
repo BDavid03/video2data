@@ -44,8 +44,10 @@ def append_ledger(path, row):
 
 
 def summary(rows, directory):
-    lines = ['# F1 Stage A — video-only feasibility', '',
-             'Frozen protocol: docs/chain/mesh-fusion-protocol.md (277c7df). CPU only; no scan or CD-O.', '',
+    variant = rows[0].get('variant', 'F1') if rows else 'F1'
+    revision = 'amendment 1, 3db3325' if variant == 'F1b' else '277c7df'
+    lines = [f'# {variant} Stage A — video-only feasibility', '',
+             f'Frozen protocol: docs/chain/mesh-fusion-protocol.md ({revision}). CPU only; no scan or CD-O.', '',
              '| Object / public episode | Pre-contact interval | Candidates | Accepted | Angle deg | Additional 3 mm support % | Verdict |',
              '| --- | --- | --- | --- | ---: | ---: | --- |']
     for row in sorted(rows, key=lambda r: (r['result']['verdict'] != 'PASS', r['episode'])):
@@ -65,7 +67,7 @@ def summary(rows, directory):
                   f"[acceptance table]({relative}/summary.md), [contact sheet]({relative}/contact-refined.png), "
                   f"[camera centres]({relative}/camera-centres.png)."]
     if rows and all(row['result']['verdict'] == 'KILL' for row in rows):
-        lines += ['', '**F1 ends under this protocol. Both objects keep v4; no Stage B run is authorized by these results.**']
+        lines += ['', f'**{variant} ends under this protocol. Both objects keep v4; no Stage B run is authorized by these results.**']
     else:
         lines += ['', 'Stage B remains unrun; any passing object needs one written recipe committed by the lead before scoring.']
     return '\n'.join(lines) + '\n'
@@ -78,13 +80,15 @@ def run_queue(queue='track3/features/mesh_fusion/queue.json'):
     if spec['protocol'] != PROTOCOL:
         raise ValueError('The queue must name the committed F1 protocol')
     requests = [StageARequest(**trial) for trial in spec['trials']]
+    if len({request.registration for request in requests}) != 1:
+        raise ValueError('Keep F1 and F1b in separate queues')
     for request in requests:
         authorize_episode(runtime, request, 'F1 Stage A')
     sources = source_hashes(FEATURE, [*REUSED, PROTOCOL, FEATURE / 'runtime.json'])
     record = run_fields(ROOT, 'mesh_fusion', 'queue', spec,
                         inputs=[queue_path, PROTOCOL, FEATURE / 'runtime.json'])
     record.update(run_id=new_run_id(), gpu=None, trials=[], source_hashes=sources)
-    base = output_path(ROOT, 'outputs/mesh_fusion')
+    base = output_path(ROOT, 'outputs/mesh_fusion/f1b' if requests[0].registration == 'pnp' else 'outputs/mesh_fusion')
     directory = base / 'queues' / record['run_id']
     ledger = base / 'ledger.jsonl'
     previous = load_ledger(ledger)
@@ -102,6 +106,7 @@ def run_queue(queue='track3/features/mesh_fusion/queue.json'):
                 run_path = stage_a(request, identity)
                 completed = read_json(run_path)
                 row = dict(identity=identity, status='completed', episode=request.episode_index,
+                           variant=request.variant, registration=request.registration,
                            contact=request.first_contact_frame, candidates=request.candidate_frames,
                            run=run_path.relative_to(ROOT).as_posix(), result=completed['result'])
                 append_ledger(ledger, row)

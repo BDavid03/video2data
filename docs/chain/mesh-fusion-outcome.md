@@ -33,3 +33,20 @@ hand; that needs per-frame object masks and object-motion compensation, which th
 opening-frame clusters; SAM2 through the clip is one option, an unapproved install, `NEEDS-YOU.md`). The deformation
 alternative (IDEAS 56) would face the same shortage of registered views. D1 v4 stays the mesh file. A learned shape prior (G1, Hunyuan3D-2mini, awaiting approval) is the remaining structural mesh
 route that does not need more viewpoints.
+
+## F1b (amendment 1: PnP-only poses): KILL for both objects; the fusion route ends for this deadline
+
+Records: `outputs/mesh_fusion/f1b/summary.md`, `outputs/mesh_fusion/f1b/stage_a/public12/20261103T163005.973229Z-3b73d81d/`
+and `.../public42/20261103T163009.146090Z-830c4f0c/`. F1 records are unchanged (46 files re-hashed).
+
+| Object | Frame 5 / 10 / 15 reprojection (px) | Background disagreement (mm) | Accepted | Verdict |
+| --- | --- | --- | --- | --- |
+| Dish rack, train 12 | 0.68 / 0.94 / 0.91 | 30 / 48 / 63 | 0 only | KILL |
+| White pot, tuning 42 | 0.85 / 0.90 / 0.94 | 38 / 61 / 79 | 0 only | KILL |
+
+Without ICP every later frame passes the 1 px reprojection limit, and every one fails the independent 3 mm background
+check. Sub-pixel reprojection together with centimetre 3D disagreement that grows with time suggests the 3 mm check
+mostly measures something other than the pose: background stereo depth error at range, or matches on moving arms and
+hands. The 3 mm limit was proposed without measuring the stereo noise floor, so it was never shown to be achievable.
+That is a lesson for a later attempt (measure the check's floor on frame-0 self-matches first), not a reason to amend
+again: the amendment said a second kill ends the route. D1 v4 stands.

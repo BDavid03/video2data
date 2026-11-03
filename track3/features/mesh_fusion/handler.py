@@ -77,7 +77,8 @@ def measure_frames(request, opening, directory, record):
     clouds, centres = [], []
     for index in request.candidate_frames:
         stereo, parent, pts = stereo_frame(request, opening, index, record)
-        pose, row = register(reference, opening['rgb'][index], stereo, k, boxes, grid['input_valid'])
+        pose, row = register(reference, opening['rgb'][index], stereo, k, boxes, grid['input_valid'],
+                             registration=request.registration)
         row.update(frame_index=index, pts=pts, status='completed', stereo_run=parent,
                    reference_identity=index == 0)
         if pose is not None:
@@ -115,10 +116,12 @@ def stage_a(request, trial_identity=None):
                         allowed=('video_only',), inputs=[PROTOCOL, FEATURE / 'runtime.json'])
     record.update(run_id=new_run_id(), split='public', episode_index=request.episode_index,
                   dataset_revision=dataset_revision(), gpu=None, frames=[], artifacts={},
+                  variant=request.variant, registration=request.registration,
                   trial_identity=trial_identity, source_hashes=source_hashes(FEATURE, REUSED),
                   interval=dict(start_frame=0, stop_frame_exclusive=request.first_contact_frame,
                                 candidates=request.candidate_frames, annotation=request.contact_annotation))
-    directory = output_path(ROOT, f"outputs/mesh_fusion/stage_a/public{request.episode_index}/{record['run_id']}")
+    base = 'outputs/mesh_fusion/f1b' if request.registration == 'pnp' else 'outputs/mesh_fusion'
+    directory = output_path(ROOT, f"{base}/stage_a/public{request.episode_index}/{record['run_id']}")
     with recorded(directory, record):
         opening = load_opening(request, record)
         opening['request'] = request
@@ -144,7 +147,10 @@ def stage_a(request, trial_identity=None):
 
 def object_summary(record):
     result, interval = record['result'], record['interval']
-    lines = [f"# F1 Stage A: {result['object']} — {result['verdict']}", '',
+    variant = record.get('variant', 'F1')
+    method = 'PnP only' if record.get('registration') == 'pnp' else 'PnP + ICP'
+    lines = [f"# {variant} Stage A: {result['object']} — {result['verdict']}", '',
+             f'Registration: {method}.', '',
              f"Pre-contact interval: [0, {interval['stop_frame_exclusive']}); candidates {interval['candidates']}.",
              interval['annotation']['method'], interval['annotation']['interpretation'], '',
              f"Accepted: {result['accepted_frames']}; angular span {result['angular_span_deg']:.6f} deg; "
@@ -161,7 +167,7 @@ def object_summary(record):
     lines += ['', 'Frame 0 uses identity correspondences to the opening reference; it is not a second view.',
               'Independent = descriptor correspondences at reference landmark index modulo five == zero; excluded from PnP and 8 px ICP patches.',
               'Disagreement is median Euclidean 3D distance on those unused matches, without residual trimming; >=10 matches required.',
-              'Reprojection is measured after ICP on the original PnP-consistent training matches (<=3 px before ICP).',
+              f'Reprojection uses the selected {method} pose on the unchanged PnP-consistent training matches (<=3 px before refinement).',
               'Exact voxel novelty is sampling/noise sensitive and is not evidence that an unseen backside was reconstructed.',
               'Only accepted poses contribute to angular span and fused support. The opening cloud is the fixed coverage reference.',
               'No scan or CD-O used. No Stage B geometry or completion was built.', '',

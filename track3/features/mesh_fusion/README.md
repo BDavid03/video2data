@@ -74,3 +74,43 @@ See `outputs/mesh_fusion/summary.md` and the per-object summaries for figures, a
 voxel-set calculation, camera feature outputs exactly equal, ICP adapter/direct-call error 0, angular formula
 agreement within 1.54e-13 degrees, and all 20 final per-object artifact hashes matching. All nine modules compile
 and import on CPU. A second invocation reused both completed trial identities without adding ledger rows.
+
+## F1b: PnP-only amendment 1
+
+Amendment 1 (`3db3325`) changes only the pose refinement: `registration: "pnp"` skips ICP.
+The request default is `"pnp_icp"` for F1. The original F1 records, ledger and root summary are
+unchanged; F1b owns `outputs/mesh_fusion/f1b/`, including its own ledger and per-object records.
+The existing torn-ledger recovery and `.runtime/tmp/mesh-fusion/cache/` path are retained.
+
+```bash
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+  .runtime/linux-cuda/bin/python -B -m track3.features.mesh_fusion stage-a \
+  --request track3/features/mesh_fusion/queue_f1b.json
+```
+
+The same frames 0/5/10/15 were rerun with the same masks, independent correspondences, region,
+coverage definition and acceptance thresholds. All later PnP counts and raw PnP reprojection
+statistics exactly match F1. Recomputed gate reprojection uses the unchanged PnP-consistent
+training correspondence set, so it differs slightly from the PnP solver's own inlier median.
+
+| Object / episode | Frame | Inliers | Gate reprojection px | Independent error mm | Accepted |
+| --- | ---: | ---: | ---: | ---: | --- |
+| Rack / 12 | 0 | 1281 | 0.000000 | 0.000000 | yes (identity) |
+| Rack / 12 | 5 | 455 | 0.681745 | 29.625675 | no |
+| Rack / 12 | 10 | 265 | 0.944408 | 47.516520 | no |
+| Rack / 12 | 15 | 273 | 0.906566 | 63.472658 | no |
+| Pot / 42 | 0 | 888 | 0.000000 | 0.000000 | yes (identity) |
+| Pot / 42 | 5 | 224 | 0.845983 | 37.513348 | no |
+| Pot / 42 | 10 | 150 | 0.898393 | 60.583652 | no |
+| Pot / 42 | 15 | 121 | 0.940500 | 79.271350 | no |
+
+Every later frame passes the inlier/reprojection gates but fails independent agreement <=3 mm.
+Both objects accept only [0], with accepted-view angular span 0 degrees and additional supported
+surface 0%; both are **KILL** under the unchanged rule. These zero diversity measurements reflect
+the absence of accepted additional views, not a claim of zero true camera motion. Under amendment 1,
+the fusion route ends for this deadline; no Stage B recipe is proposed or run, and v4 remains.
+
+`outputs/mesh_fusion/f1b/summary.md` links both real-data run records and figures. The completed
+object operations took 3.152 s (rack) and 2.878 s (pot); all stereo inputs reused existing producers.
+`verification.json` confirms 46 original F1 files byte-identical, matching PnP statistics, no ICP
+refinement, and all 20 F1b artifacts matching their hashes. Reinvoking the queue resumes both identities.

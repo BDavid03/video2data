@@ -103,8 +103,8 @@ def reprojection(pose, reference, current, pairs, intrinsics):
     return np.linalg.norm(xy[:, :2] / xy[:, 2:] - current['pixels'][pairs[:, 0]], axis=1)
 
 
-def register(reference, image, stereo, intrinsics, boxes, input_valid):
-    """Mask, solve, remask, refine on background, then assess unused correspondences."""
+def register(reference, image, stereo, intrinsics, boxes, input_valid, registration='pnp_icp'):
+    """Mask, solve, remask, optionally refine, then assess unused correspondences."""
     cv2.setRNGSeed(31)
     pose = np.eye(4)
     for _ in range(2):
@@ -120,20 +120,22 @@ def register(reference, image, stereo, intrinsics, boxes, input_valid):
     train_pairs = pairs[pairs[:, 1] % 5 != 0]
     initial_residual = reprojection(pose, reference['features'], current, train_pairs, intrinsics)
     consensus = train_pairs[initial_residual <= PNP.reprojection_limit_px]
-    reserved = np.arange(len(reference['features']['pixels'])) % 5 == 0
-    rmask = without_patches(reference['static'], reference['features']['pixels'][reserved])
-    cmask = without_patches(static, current['pixels'][held[:, 0]])
-    rpoints = dense_background(reference['stereo'], intrinsics, rmask)
-    cpoints = dense_background(stereo, intrinsics, cmask)
-    if min(len(rpoints), len(cpoints)) < 30:
-        return None, dict(accepted=False, reasons=['fewer than 30 independent ICP background points'])
-    pose, loss = refine(pose, rpoints, cpoints)
+    loss, rpoints, cpoints = None, [], []
+    if registration == 'pnp_icp':
+        reserved = np.arange(len(reference['features']['pixels'])) % 5 == 0
+        rmask = without_patches(reference['static'], reference['features']['pixels'][reserved])
+        cmask = without_patches(static, current['pixels'][held[:, 0]])
+        rpoints = dense_background(reference['stereo'], intrinsics, rmask)
+        cpoints = dense_background(stereo, intrinsics, cmask)
+        if min(len(rpoints), len(cpoints)) < 30:
+            return None, dict(accepted=False, reasons=['fewer than 30 independent ICP background points'])
+        pose, loss = refine(pose, rpoints, cpoints)
     final_residual = float(np.median(reprojection(pose, reference['features'], current, consensus, intrinsics)))
     observed = current['points'][held[:, 0]]
     expected = reference['features']['points'][held[:, 1]]
     errors = np.linalg.norm(observed @ pose[:3, :3].T + pose[:3, 3] - expected, axis=1)
     disagreement = float(np.median(errors)) if len(errors) else None
-    # Paired Kabsch is descriptive only; it does not replace the fixed PnP + ICP estimate.
+    # Paired Kabsch is descriptive only; it does not replace the selected pose.
     metric_rotation = kabsch(reference['features']['points'][train_pairs[:, 1]],
                              current['points'][train_pairs[:, 0]])[0]
     reasons = []
@@ -149,7 +151,8 @@ def register(reference, image, stereo, intrinsics, boxes, input_valid):
                       pnp_reprojection_px=float(residual), reprojection_px=final_residual,
                       independent_correspondences=len(errors), independent_disagreement_m=disagreement,
                       independent_p90_m=float(np.percentile(errors, 90)) if len(errors) else None,
-                      icp_trimmed_residual_m=float(loss), icp_reference_points=len(rpoints),
+                      registration=registration,
+                      icp_trimmed_residual_m=None if loss is None else float(loss), icp_reference_points=len(rpoints),
                       icp_current_points=len(cpoints), descriptor_pairs=len(pairs),
                       paired_kabsch_rotation=metric_rotation.tolist(),
                       camera_centre_m=pose[:3, 3].tolist())

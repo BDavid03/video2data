@@ -1,0 +1,106 @@
+{
+  "protocol": "docs/chain/mesh-fusion-protocol.md",
+  "budget_seconds": 5400,
+  "trials": [
+    {
+      "episode_index": 12,
+      "object_name": "plastic_dish_rack",
+      "cluster_ids": [
+        0,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "depth_run": "outputs/depth/public/episode_000012/20261029T020937.002419Z/run.json",
+      "measure_run": "outputs/mesh_extents/public/episode_000012/20261101T150517.961678Z-74eac32d/run.json",
+      "stereo_reference_run": "outputs/stereo_depth/public/episode_000012/20261102T001021.465628Z-6bed174e/run.json",
+      "first_contact_frame": 18,
+      "contact_annotation": {
+        "method": "Visual camera-A RGB inspection every fifth frame 0..60, then every frame 14..25; annotation fixed before registration or coverage measurement.",
+        "coarse_frames": [
+          0,
+          5,
+          10,
+          15,
+          20,
+          25,
+          30,
+          35,
+          40,
+          45,
+          50,
+          55,
+          60
+        ],
+        "refined_frames": [
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25
+        ],
+        "possible_contact_frame": 18,
+        "clear_contact_frame": 20,
+        "interpretation": "Conservative scene-static boundary: the right hand approaches the blue cup beside the rack; first possible overlap/contact at 18 (motion blur), clearly grasping by 20. Exclude 18 onward rather than using later rack-static frames while the cup moves. Safe interval frames 0..17; the rack itself is untouched in this interval. Boundary uncertainty does not change every-fifth candidate identities 0/5/10/15."
+      },
+      "registration": "pnp"
+    },
+    {
+      "episode_index": 42,
+      "object_name": "white_pot",
+      "cluster_ids": [
+        0
+      ],
+      "depth_run": "outputs/depth/public/episode_000042/20261029T021042.911743Z/run.json",
+      "measure_run": "outputs/mesh_extents/public/episode_000042/20261101T150535.525988Z-843fc990/run.json",
+      "stereo_reference_run": "outputs/stereo_depth/public/episode_000042/20261102T001204.835858Z-73427c2e/run.json",
+      "first_contact_frame": 19,
+      "contact_annotation": {
+        "method": "Visual camera-A RGB inspection every fifth frame 0..60, then every frame 14..25; annotation fixed before registration or coverage measurement.",
+        "coarse_frames": [
+          0,
+          5,
+          10,
+          15,
+          20,
+          25,
+          30,
+          35,
+          40,
+          45,
+          50,
+          55,
+          60
+        ],
+        "refined_frames": [
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25
+        ],
+        "possible_contact_frame": 19,
+        "clear_contact_frame": 20,
+        "interpretation": "The right hand reaches the pot handle. First possible finger/handle overlap at 19, clear contact by 20; exclude 19 onward conservatively. Safe interval frames 0..18. Boundary uncertainty does not change every-fifth candidate identities 0/5/10/15."
+      },
+      "registration": "pnp"
+    }
+  ],
+  "protocol_revision": "3db3325"
+}
