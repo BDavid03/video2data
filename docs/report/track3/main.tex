@@ -156,13 +156,12 @@ Figure~\ref{fig:qualitative} shows one frame. This does not establish improved \
 
 \setlength{\parskip}{0pt}
 \section{Static poses: stereo placement}
-Stereo places only the second box horizontally, by calibrated
-3D mask centroids pushed out to 1\,cm footprint clearance;
-v3 is kept without separate frame-0 masks (train 0/26/31, scored 30);
-hands stay inactive~\cite{flashchord}. The scorer
-rigidly aligns each world to the first object's initial pose; we correct
-the second object's offset length and direction; first-object
-heading is unobserved.
+Stereo 3D mask centroids set only the second box's horizontal offset at
+1\,cm footprint clearance. Calibrated stereo fixes camera/world length and
+direction; rigid scoring alignment to the first object's initial pose makes
+scored direction depend on its unknown heading. V3 stays where frame-0
+objects lack separate masks (train episodes 0/26/31; evaluation episode 30);
+hands inactive~\cite{flashchord}.
 
 \noindent\begin{minipage}{\columnwidth}
 \centering
@@ -179,33 +178,32 @@ Uniform shrinkage & 0.2690 & 35.28 & 20.80 \\
 \textbf{Stereo placement (v4)} & \textbf{0.2767} & \textbf{29.01} & \textbf{17.68} \\
 \bottomrule
 \end{tabular}
-\captionof{table}{Equal-episode kit kinematics~\cite{challenge}: eight train episodes,
-one seed, public motion capture. Bold: final pose v4.
-AUC (area under curve): normalised surface-point accuracy, 1--9\,cm.
-RPE (cm): relative-position error. MPPE (cm): mean per-point error
-(six body points, $\pm$5\,cm). Success rates: SP-SR, mean
+\captionof{table}{Kit kinematics~\cite{challenge}: eight equal-weight train episodes,
+one seed, public mocap.
+AUC: normalised surface-point accuracy integral (1--9\,cm).
+Errors (cm): RPE, relative position; MPPE, mean over
+six body points ($\pm$5\,cm). Success: SP-SR, mean
 position/orientation errors $\leq$10\,cm/0.5\,rad;
 MP-SR, every object $<$3\,cm/30$^\circ$.}
 \label{tab:pose}
 \end{minipage}\par
 
-No training episode worsens; the AUC gain comes from one episode
-(second-object error 8.2 to 0.8\,cm); another, also reassigning the first
-object's mask, supplies about half the RPE gain. Four changed training episodes retain
-51--130$^\circ$ horizontal direction errors; their AUC is unchanged despite lower RPE/MPPE.
-Known first-frame training errors informed idea and selection; fresh
-pre-registered confirmation on validation 2/13/22/24/27 failed by rule
-(2 and required 13 had merged masks; 22/24/27 favoured stereo,
-1.14 versus 7.21\,cm offset-length error), but we adopted it,
-with no leaderboard score.
-
-Twelve of 20 evaluation episodes change (the rest keep v3); their rollouts
-hold prescribed initial positions within 0.049\,cm and drift at most
-0.048\,cm: simulation consistency, not reference accuracy.
-
-\paragraph{Conclusion.} V4 improves measured shape scores (Table~\ref{tab:cdo}), without
-isolating a cause. Spoon accuracy and manipulation remain unverified.
-D2 v4 cuts train errors; SP-SR/MP-SR stay zero.
+Train: none worsen; one gives the AUC gain (second-object error
+8.2 to 0.8\,cm), another about half the RPE gain with first-object
+mask reassignment. Four changed episodes retain 51--130$^\circ$ horizontal
+direction errors and unchanged AUC despite lower RPE/MPPE. First-frame train
+errors informed choices; we adopted without a leaderboard score despite
+fresh pre-registered validation failing by rule: 2 and required 13 had
+merged masks; 22/24/27 favoured stereo (1.14 versus 7.21\,cm offset-length error).
+True first-frame relative poses (train labels, an oracle) lift AUC
+0.277 to 0.353, mainly via unknown heading; frozen scan-to-stereo
+registration recovered it on 0/4 held-out train episodes (cup markers
+below stereo noise; asymmetric objects unrepresentable).
+Twelve of 20 evaluation episodes change; rollouts hold
+initial targets within 0.049\,cm and drift $\leq$0.048\,cm:
+simulation consistency, not reference accuracy.
+In sum, v4 improves shape scores and train pose errors; SP-SR/MP-SR stay
+zero; shape-gain causes, spoon accuracy and manipulation are unverified.
 
 \typeout{TRACK3-MAIN-TEXT-END-PAGE: \thepage}
 \typeout{TRACK3-TABLE-PAGE: \getpagerefnumber{tab:cdo}}
