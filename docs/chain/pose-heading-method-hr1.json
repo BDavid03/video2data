@@ -1,0 +1,258 @@
+{
+ "name": "HR1 gravity-constrained scan-to-stereo yaw registration",
+ "frozen_utc": "2026-11-03 (episode-11 development only, label-blind; mocap not read before this file)",
+ "inputs": {
+  "observed": "frame-0 calibrated stereo rgb_depth_m points inside the recorded object mask (assignments.json clusters), valid & finite & >0",
+  "table": "RANSAC (400 iters, 4 mm inlier, within 0.35 m of objects, normal within 20 deg of recorded MoGe plane normal) + SVD refit on stereo background pixels; normal oriented toward the camera",
+  "scan": "trimesh.load(force=mesh, process=False); trimesh.sample.sample_surface 20000 points, seed 0"
+ },
+ "prefilter": {
+  "min_height_above_table_m": 0.005,
+  "max_horizontal_radius_from_median_m": 0.09,
+  "max_observed_points": 4000,
+  "seed": 0
+ },
+ "candidates": {
+  "up_axis_candidates": [
+   "scan +z",
+   "scan -z"
+  ],
+  "yaw_step_deg": 5,
+  "yaw_range_deg": [
+   0,
+   360
+  ],
+  "rotation": "R = B^T Rz(yaw) A_up, B = table_basis(normal) rows (x, y, n), A_up = I or diag(1,-1,-1)",
+  "init_translation": "observed centroid, pushed 0.02 m horizontally away from camera, lowest model point on the table plane"
+ },
+ "icp": {
+  "pairs": "observed -> nearest scan sample (cKDTree in scan frame)",
+  "keep_fraction": 0.8,
+  "translation_only_iters": 10,
+  "rigid_iters": 25,
+  "rigid_update": "Kabsch on kept pairs (unconstrained small rotation; observed drift < 3 deg yaw, tilt 2-7 deg)"
+ },
+ "loss": "trimmed mean (80 %) observed->scan nearest-sample distance at the final pose (mm)",
+ "selection": {
+  "up_axis": "the sign whose curve minimum is lower; declined if the other sign is within 5%",
+  "yaw": "final ICP pose of the lowest-loss start on the 5-degree grid",
+  "confidence": "declined (object treated as yaw-ambiguous) if any other local minimum whose final yaw differs by more than 30 deg from the best has loss within 3% of the best",
+  "margin": 0.03,
+  "separation_deg": 30.0,
+  "up_margin": 0.05,
+  "rationale": "On episode 11, four parameter perturbations (keep 0.6/0.9, no push-back, longer ICP) move the best basin by up to the spreads below at relative loss changes of 1-2 %; a 3 % margin is the smallest that exceeds that parameter-induced noise. Under this rule both episode-11 cups are declined."
+ },
+ "episode11": {
+  "blue_cup": {
+   "_default_up1": {
+    "best_final_yaw_deg": 109.6,
+    "best_mm": 3.3767,
+    "rival_final_yaw_deg": 71.0,
+    "rival_mm": 3.4603,
+    "rival_margin": 0.0248,
+    "spread_rel": 0.1829,
+    "median_mm": 3.6998,
+    "n_local_minima": 11,
+    "distinct_basins_within_margin": [
+     71.0
+    ]
+   },
+   "_default_up-1": {
+    "best_final_yaw_deg": -90.2,
+    "best_mm": 3.0314,
+    "rival_final_yaw_deg": 49.0,
+    "rival_mm": 3.0565,
+    "rival_margin": 0.0083,
+    "spread_rel": 0.0909,
+    "median_mm": 3.1481,
+    "n_local_minima": 12,
+    "distinct_basins_within_margin": [
+     49.0,
+     -50.6
+    ]
+   },
+   "_keep0.6_up-1": {
+    "best_final_yaw_deg": -94.9,
+    "best_mm": 1.99,
+    "rival_final_yaw_deg": 54.2,
+    "rival_mm": 2.0004,
+    "rival_margin": 0.0052,
+    "spread_rel": 0.1032,
+    "median_mm": 2.0607,
+    "n_local_minima": 14,
+    "distinct_basins_within_margin": [
+     54.2,
+     99.3,
+     -135.1,
+     39.7,
+     -46.0,
+     125.1
+    ]
+   },
+   "_keep0.9_up-1": {
+    "best_final_yaw_deg": -51.1,
+    "best_mm": 3.8187,
+    "rival_final_yaw_deg": -110.1,
+    "rival_mm": 3.8397,
+    "rival_margin": 0.0055,
+    "spread_rel": 0.0848,
+    "median_mm": 3.955,
+    "n_local_minima": 8,
+    "distinct_basins_within_margin": [
+     -110.1,
+     44.6
+    ]
+   },
+   "_push0_up-1": {
+    "best_final_yaw_deg": -114.6,
+    "best_mm": 3.0055,
+    "rival_final_yaw_deg": 48.8,
+    "rival_mm": 3.0528,
+    "rival_margin": 0.0157,
+    "spread_rel": 0.0823,
+    "median_mm": 3.1332,
+    "n_local_minima": 13,
+    "distinct_basins_within_margin": [
+     48.8,
+     39.6,
+     -51.0,
+     -60.5,
+     30.5
+    ]
+   },
+   "_long_up-1": {
+    "best_final_yaw_deg": -111.4,
+    "best_mm": 2.9964,
+    "rival_final_yaw_deg": -51.2,
+    "rival_mm": 3.0557,
+    "rival_margin": 0.0198,
+    "spread_rel": 0.1063,
+    "median_mm": 3.1352,
+    "n_local_minima": 10,
+    "distinct_basins_within_margin": [
+     -51.2,
+     48.5,
+     -60.5
+    ]
+   },
+   "up_sign_gap_rel(+z over -z)": 0.1139,
+   "best_yaw_across_param_variants_deg": [
+    -90.2,
+    -94.9,
+    -51.1,
+    -114.6,
+    -111.4
+   ],
+   "best_yaw_max_circular_spread_deg": 63.5
+  },
+  "beige_cup": {
+   "_default_up1": {
+    "best_final_yaw_deg": 81.5,
+    "best_mm": 3.8459,
+    "rival_final_yaw_deg": 6.7,
+    "rival_mm": 3.8782,
+    "rival_margin": 0.0084,
+    "spread_rel": 0.0538,
+    "median_mm": 3.9209,
+    "n_local_minima": 16,
+    "distinct_basins_within_margin": [
+     6.7,
+     -4.0,
+     -29.1,
+     25.5,
+     -44.2,
+     116.5,
+     132.5,
+     40.8,
+     -67.8,
+     -77.9,
+     -88.8,
+     161.5,
+     -107.1
+    ]
+   },
+   "_default_up-1": {
+    "best_final_yaw_deg": -154.7,
+    "best_mm": 2.6787,
+    "rival_final_yaw_deg": -38.8,
+    "rival_mm": 2.7205,
+    "rival_margin": 0.0156,
+    "spread_rel": 0.1037,
+    "median_mm": 2.8144,
+    "n_local_minima": 13,
+    "distinct_basins_within_margin": [
+     -38.8,
+     -99.8
+    ]
+   },
+   "_keep0.6_up-1": {
+    "best_final_yaw_deg": -148.4,
+    "best_mm": 1.942,
+    "rival_final_yaw_deg": -42.9,
+    "rival_mm": 1.9438,
+    "rival_margin": 0.0009,
+    "spread_rel": 0.1229,
+    "median_mm": 2.0827,
+    "n_local_minima": 17,
+    "distinct_basins_within_margin": [
+     -42.9,
+     -113.6,
+     -99.8,
+     92.1
+    ]
+   },
+   "_keep0.9_up-1": {
+    "best_final_yaw_deg": -164.4,
+    "best_mm": 3.2044,
+    "rival_final_yaw_deg": -34.2,
+    "rival_mm": 3.281,
+    "rival_margin": 0.0239,
+    "spread_rel": 0.1056,
+    "median_mm": 3.3863,
+    "n_local_minima": 14,
+    "distinct_basins_within_margin": [
+     -34.2
+    ]
+   },
+   "_push0_up-1": {
+    "best_final_yaw_deg": -154.8,
+    "best_mm": 2.6711,
+    "rival_final_yaw_deg": -34.2,
+    "rival_mm": 2.7015,
+    "rival_margin": 0.0114,
+    "spread_rel": 0.103,
+    "median_mm": 2.7985,
+    "n_local_minima": 14,
+    "distinct_basins_within_margin": [
+     -34.2,
+     -104.2,
+     99.8
+    ]
+   },
+   "_long_up-1": {
+    "best_final_yaw_deg": -158.6,
+    "best_mm": 2.6331,
+    "rival_final_yaw_deg": -34.1,
+    "rival_mm": 2.6671,
+    "rival_margin": 0.0129,
+    "spread_rel": 0.1039,
+    "median_mm": 2.7759,
+    "n_local_minima": 13,
+    "distinct_basins_within_margin": [
+     -34.1,
+     -99.0,
+     -46.9
+    ]
+   },
+   "up_sign_gap_rel(+z over -z)": 0.4357,
+   "best_yaw_across_param_variants_deg": [
+    -154.7,
+    -148.4,
+    -164.4,
+    -154.8,
+    -158.6
+   ],
+   "best_yaw_max_circular_spread_deg": 16.0
+  }
+ }
+}

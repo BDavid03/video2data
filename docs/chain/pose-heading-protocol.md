@@ -96,3 +96,19 @@ type's train-episode occurrences, of world +z expressed in the object's frame-0 
 - If Stage B (registration) also passes, the lead chooses between U1 and H1 on the train LOO numbers, disclosed.
 
 Stage B (registration kill test) is unchanged and continues independently.
+
+## Amendment 2 (2026-11-03 08:14 UTC, context 16): U1 outcome, and Stage B method HR1 frozen before any held-out error
+
+**U1 (scratch `.runtime/tmp/heading-ceiling/summary_u1.md`, T1 reproduced exactly): FAILS.** Leave-one-episode-out
+train means vs T1: AUC +0.000000 (needs +0.010), RPE -0.236 cm, MPPE +0.292 cm (worse), SP-SR/MP-SR 0. The prior
+fixes the up axis (errors < 1 degree; mini_sweeper 4-8) but slot 1's relative rotation stays 92-180 degrees wrong
+because the heading about up is still arbitrary; the inverted pot (0 vs 26) makes each leave-one-out pot prior
+179 degrees wrong. In-sample U1 is 0.268844 (lower). Per Amendment 1, U1 is closed; no rule is re-tuned. A recorded
+re-run of these numbers (`heading_loop.py`) is an independent implementation, not a new test.
+
+**Stage B method HR1 frozen** as `docs/chain/pose-heading-method-hr1.json` (sha256
+ef2fdfc3ff8718657ff2dcb2f2c151f177a54bdf9224a0fea25bbbeadf99ba15), developed on episode 11 only, label-blind (mocap
+read only after the freeze): gravity-constrained scan-to-stereo registration, both up signs x 5-degree yaw starts,
+trimmed ICP, decline if another basin > 30 degrees away is within 3 % of the best. On episode 11 it declines both cups
+(flat multi-basin curves, rival basins 0.8-1.6 % worse). It is now run once, unchanged, on 12/18/21/23; a declined
+slot fails the b test as the protocol says.
