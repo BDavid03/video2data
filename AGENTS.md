@@ -1,5 +1,12 @@
 # Current user instructions
 
+- On 2026-11-03 07:35 UTC (chain context 15) the user wrote, live: "deadline is 12pm EST November 4th, im aest
+  so we got some more time". 12:00 EST on 4 November is 17:00 UTC (04:00 AEDT 5 November), five hours EARLIER
+  than the 22:00 UTC freeze in `docs/chain/PROGRAM.md` and the kit's `config/tracks.json` ("5:00 p.m. EST",
+  whose comment says Kaggle deadlines may differ). Until the user says otherwise, every context treats
+  **17:00 UTC on 4 November 2026** as the hard deadline for anything the user must upload: any new pack is
+  finished, with its NEEDS-YOU commands, by 12:00 UTC on 4 November so the user has time to push and upload.
+  The chain driver still prints 22:00 UTC; ignore that figure for planning.
 - On 2026-11-03 (local; 2026-11-02 22:30 UTC, chain context 12) the user wrote, live in the session:
   "needs-you now approved". Read as approval of `docs/chain/NEEDS-YOU.md` item 7, the only open
   decision the chain itself can act on: build the stereo-placement pose candidate (slot-1 offset from
