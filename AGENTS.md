@@ -1,5 +1,13 @@
 # Current user instructions
 
+- On 2026-11-03 at about 19:40 UTC (chain context 20, resumed after its `CHAIN: STOP` hand-off) the user wrote, live:
+  "all approved". Read as approval of every open item in `docs/chain/NEEDS-YOU.md`:
+  "2026-11-03: approve Hunyuan3D-2mini install for the mesh pilot" (own venv `.runtime/hunyuan-mesh/`, weights
+  `tencent/Hunyuan3D-2mini` revision `bdaa271f`, licence as stated there); "2026-11-03: approve D2 v5 heading for
+  episode 19" (`docs/chain/d2-v5-plan.md`); and the conditional moving-object installs (MediaPipe Hands, SAM2.1
+  Hiera-Large, grounding-dino-tiny, each in its own environment under `.runtime/`, never the main venv). MANO still needs
+  the user's own registration and download. Pushing and uploading remain the user's own; research integrity
+  (`PROGRAM.md` section 4) is unchanged.
 - On 2026-11-03 at about 13:58 UTC (chain context 19) the user wrote, live: "HOWS CURRENT FIRST PLACE GOT A .99 AUC,
   please take bigger structural improvements before really refining the details", then "e.g. pretraining models,
   synthetic data generation, we're talking substantial improvements to the fundamentals, put this in the docs as a

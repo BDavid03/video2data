@@ -6,7 +6,11 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
 
 ## Open
 
-**Status (2026-11-03 ~16:45 UTC, context 20): the chain has stopped (`CHAIN: STOP` in hand-off 20); it is waiting on
+**Update 2026-11-03 19:40 UTC: you replied "all approved" (recorded in AGENTS.md).** The Hunyuan3D-2mini install +
+G1 pilot and the D2 v5 build are running now; any new file to upload will be listed here by 12:00 UTC 4 Nov. Until
+then D1 v4 and D2 v4 stay the files. The items below are kept for the record.
+
+**Status (2026-11-03 ~16:45 UTC, context 20): the chain had stopped (`CHAIN: STOP` in hand-off 20), waiting on
 you.** Without a new install, the mesh route is used up for this deadline. Fusing the stereo frames from before the hand
 touches the object failed its pre-registered test for the pot and the rack: our registration could not add a second
 view in the 0.6 s before contact, and the camera seems to move only a few degrees there (`docs/chain/mesh-fusion-outcome.md`). D1 v4 and D2 v4 below stay
