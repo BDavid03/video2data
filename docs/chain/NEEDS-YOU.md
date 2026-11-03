@@ -6,6 +6,18 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
 
 ## Open
 
+**Proposal (2026-11-03 14:45 UTC, context 19): install Hunyuan3D-2mini for a mesh pilot (pretrained image-to-3D).**
+Our meshes are measured primitives (CD-O 0.663 cm on the public-scan pairs); the pot, rack and pitcher hold 64 % of
+that error. The pilot generates one shape-only mesh per object from our own video crops for rack (train 12), pitcher
+(train 21) and pot (tuning 42), scored against the public scans under a protocol written first; any adoption goes
+through the existing cross-fitted, no-regression gates against v4, otherwise v4 stays. Install: its own venv
+`.runtime/hunyuan-mesh/` (Python 3.10, torch 2.7.1+cu128), upstream `Tencent-Hunyuan/Hunyuan3D-2` code, weights
+`tencent/Hunyuan3D-2mini` (`hunyuan3d-dit-v2-mini`, FP16, 3.82 GB, revision `bdaa271f`). Licence: Tencent Hunyuan 3D
+2.0 Community Licence (not usable in the EU, UK or South Korea; generated outputs are not model derivatives). Route and
+exact commands: `outputs/chain/codex/*route-mesh-19.answer.md`. **To approve, add to AGENTS.md: "2026-11-03: approve
+Hunyuan3D-2mini install for the mesh pilot"** (or say so in the session). Decision needed by about 20:00 UTC 3 Nov to
+leave time to pack by 12:00 UTC 4 Nov.
+
 **Proposal (2026-11-03 14:20 UTC, context 19): installs for moving objects, only needed if test D0 says GO.** In
 the evaluator, objects move only when simulated hands push them, and the dataset has no hand references. So a moving
 entry needs hand motion estimated from the video. D0 (`docs/chain/dynamic-feasibility-protocol.md`, running now)
