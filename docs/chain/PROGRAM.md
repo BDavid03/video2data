@@ -9,6 +9,24 @@ The owner may edit this file at any time. Every context re-reads it, so an edit 
 the next launch. The owner grants new permissions the way `AGENTS.md` already records them: a
 dated line in `AGENTS.md`. Check `AGENTS.md` for new lines at the start of every context.
 
+## 0. Short-term focus (owner, 2026-11-03 13:58 UTC): fundamentals before details
+
+Until the 4 November deadline, **structural improvements to the fundamentals come before refining the current
+entry.** The owner's words: "please take bigger structural improvements before really refining the details", "e.g.
+pretraining models, synthetic data generation, we're talking substantial improvements to the fundamentals". The
+prompt was a leaderboard leader at pose AUC 0.99 against our static entry (train AUC 0.277; the oracle with true
+frame-0 poses held static reaches only 0.532, so about half of AUC is lost to object motion we never reproduce).
+
+- **Prefer:** objects that move along video-derived trajectories in the policy rollouts (per-frame tracking, hand
+  motion, policies trained on moving references); whole-clip reconstruction instead of primitive meshes; pretrained
+  foundation models (trackers, segmenters, image-to-3D) used as tools; synthetic data generated from our own
+  reconstructions to train or adapt models; pretraining or adapting our own models on that data.
+- **Defer:** tie-breakers, wording polish, further static-placement variants, unless they finish a pack.
+- **Order of work:** the cheapest decisive experiment first (an upper bound that says whether a lever can pay at all),
+  then the build. Go/no-go is measured on train/tuning under a protocol written first (section 4 unchanged).
+- New packages or model weights still need a one-line proposal in `NEEDS-YOU.md` and a dated owner line in
+  `AGENTS.md`; until then use what is installed or approved (section 6). Packs still finish by 12:00 UTC 4 Nov.
+
 ## 1. The finish line
 
 The goal is the best honest Track 3 entry that can be submitted before the leaderboard freezes,

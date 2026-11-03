@@ -1,5 +1,13 @@
 # Current user instructions
 
+- On 2026-11-03 at about 13:58 UTC (chain context 19) the user wrote, live: "HOWS CURRENT FIRST PLACE GOT A .99 AUC,
+  please take bigger structural improvements before really refining the details", then "e.g. pretraining models,
+  synthetic data generation, we're talking substantial improvements to the fundamentals, put this in the docs as a
+  focus on short term". Read as: until the 4 November deadline, contexts put structural, fundamental improvements
+  (moving objects instead of static poses, real reconstruction instead of primitives, pretrained models, synthetic
+  data) ahead of refinements of the current static entry (`docs/chain/PROGRAM.md` section 0). It is direction, not a
+  new install approval: a new package or model download still needs a one-line proposal in `docs/chain/NEEDS-YOU.md`
+  and a dated owner line. Research integrity (`PROGRAM.md` section 4) is unchanged.
 - On 2026-11-03 at about 11:00 UTC (chain context 16, resumed after its usage-limit block) the user wrote, live, "GO ON
   THEN" (continue past hand-off 16 in the same session), then "back to the original claude direction, codex workers".
   Read as: keep working in this session on hand-off 16's items, with `docs/chain/PROGRAM.md` section 8 unchanged
