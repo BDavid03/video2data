@@ -19,9 +19,11 @@ SUMMARY = ROOT / "outputs/mesh_eval/rules/summary.json"
 POSE_SHRINK = ROOT / "outputs/pose_insurance/shrink/summary.json"
 SCORES = ROOT / "outputs/mesh_eval/pairs/mesh-round3-veto/summary.json"
 GENERATIVE = ROOT / "outputs/mesh_generative/g1-pilot"
-TARGET = Path(__file__).with_name("d1-v4-objects.pdf")
+PACKED_V5 = ROOT / "outputs/mesh_generative/g2-packed-check"
+TARGET = Path(__file__).with_name("d1-objects.pdf")
 BLUE = "#0072B2"
 ORANGE = "#D55E00"
+GREEN = "#009E73"
 LABELS = {
     "beige_cup": "Beige cup", "blue_cup": "Blue cup",
     "mini_dust_pan": "Dust pan", "mini_sweeper": "Sweeper",
@@ -111,19 +113,30 @@ def score_chart(output_dir: Path = TARGET.parent) -> None:
 
 
 def object_score_panel(rows: list[dict]) -> plt.Figure:
-    """Join v3/v4 per-object means on one axis, with an unmeasured spoon row."""
+    """Compare three packed versions, highlighting the two objects changed by v5."""
     plt.rcParams.update({"font.size": 9, "pdf.fonttype": 42})
-    fig, ax = plt.subplots(figsize=(3.18, 3.40))
-    fig.subplots_adjust(left=0.39, right=0.98, bottom=0.27, top=0.86)
+    fig, ax = plt.subplots(figsize=(3.18, 3.05))
+    fig.subplots_adjust(left=0.36, right=0.98, bottom=0.22, top=0.86)
     y = np.arange(len(rows))
     before = [row["v3"] for row in rows]
     after = [row["v4"] for row in rows]
-    ax.hlines(y, after, before, color="#777777", linewidth=1.3, zorder=2)
-    ax.plot(before, y, linestyle="none", marker="o", markersize=6,
-            markerfacecolor="none", markeredgewidth=1.2, color=BLUE,
+    current = [row["v5"] for row in rows]
+    for i, row in enumerate(rows):
+        ax.plot([row["v3"], row["v4"], row["v5"]],
+                [i-0.22, i, i+0.22], color="#aaaaaa", linewidth=0.8, zorder=2)
+        if row["v5"] != row["v4"]:
+            ax.axhspan(i-0.48, i+0.48, color=GREEN, alpha=0.08, zorder=0)
+            ax.plot([row["v4"], row["v5"]], [i, i+0.22],
+                    color=GREEN, linewidth=1.4, zorder=2)
+            ax.text(1.59, i+0.43, f"{row['v4']:.3f} → {row['v5']:.3f}",
+                    ha="right", va="center", fontsize=7.5, color="#00664c")
+    ax.plot(before, y-0.22, linestyle="none", marker="o", markersize=4,
+            markerfacecolor="none", markeredgewidth=1, color=BLUE,
             label="v3", zorder=3)
-    ax.plot(after, y, linestyle="none", marker="x", markersize=4.5,
-            markeredgewidth=1.3, color=ORANGE, label="v4", zorder=4)
+    ax.plot(after, y, linestyle="none", marker="x", markersize=4,
+            markeredgewidth=1.1, color=ORANGE, label="v4", zorder=4)
+    ax.plot(current, y+0.22, linestyle="none", marker="D", markersize=3.5,
+            color=GREEN, label="v5", zorder=5)
     ax.set(yticks=y,
            yticklabels=[f"{LABELS[row['object']]} ({row['pairs']})" for row in rows],
            xlim=(0, 1.6), xticks=[0, 0.5, 1.0, 1.5], ylim=(len(rows)-0.3, -0.7),
@@ -135,12 +148,11 @@ def object_score_panel(rows: list[dict]) -> plt.Figure:
     ax.spines[["top", "right", "left"]].set_visible(False)
     fig.text(0.01, 0.97, "Object (pairs)", va="top", fontsize=9)
     fig.legend(*ax.get_legend_handles_labels(), loc="upper right",
-               bbox_to_anchor=(0.99, 0.995), ncol=2, frameon=False, fontsize=9,
-               handlelength=1, columnspacing=0.8, handletextpad=0.4)
-    fig.add_artist(plt.Line2D([0.02, 0.98], [0.145, 0.145],
+               bbox_to_anchor=(1.01, 0.995), ncol=3, frameon=False, fontsize=9,
+               handlelength=0.6, columnspacing=0.6, handletextpad=0.3)
+    fig.add_artist(plt.Line2D([0.02, 0.98], [0.075, 0.075],
                              transform=fig.transFigure, color="#bbbbbb", linewidth=0.6))
-    fig.text(0.02, 0.12, "Spoon", va="top", fontsize=9, weight="bold")
-    fig.text(0.02, 0.065, "unmeasured: 10/36 pair entries, no public scan",
+    fig.text(0.02, 0.055, "Spoon: 10/36 entries unmeasured (no public scan)",
              va="top", fontsize=8)
     return fig
 
@@ -148,6 +160,22 @@ def object_score_panel(rows: list[dict]) -> plt.Figure:
 def object_score_chart(preview: Path | None, output_dir: Path = TARGET.parent) -> None:
     """Aggregate recorded pair scores, assert the published means, and draw all objects."""
     summary = json.loads(SCORES.read_text())
+    packed = json.loads((PACKED_V5 / "pairs/summary.json").read_text())
+    veto = json.loads((PACKED_V5 / "veto.json").read_text())
+    ledger = [json.loads(line) for line in
+              (PACKED_V5 / "pairs/ledger.jsonl").read_text().splitlines()]
+    exact_pairs = {(row["episode"], row["slot"], row["object"], row["seed"], row["file"]): row
+                   for row in ledger if row["status"] == "completed"}
+    assert len(exact_pairs) == 52
+    for pair in summary["pairs"]:
+        key = (pair["episode"], pair["slot"], pair["object"], pair["seed"])
+        assert np.isclose(pair["candidate"], exact_pairs[(*key, "v4")]["cd_o_cm"],
+                          rtol=0, atol=1e-12)
+    for pair in packed["pairs"]:
+        key = (pair["episode"], pair["slot"], pair["object"], pair["seed"])
+        for name in ("v4", "candidate"):
+            assert np.isclose(pair[name], exact_pairs[(*key, name)]["cd_o_cm"],
+                              rtol=0, atol=1e-12)
     rows = []
     for saved in summary["objects"]:
         pairs = [row for row in summary["pairs"] if row["object"] == saved["object"]]
@@ -156,10 +184,16 @@ def object_score_chart(preview: Path | None, output_dir: Path = TARGET.parent) -
         assert len(pairs) == saved["pairs"]
         assert np.isclose(before, saved["v3"], rtol=0, atol=1e-12)
         assert np.isclose(after, saved["candidate"], rtol=0, atol=1e-12)
+        current = [row["cd_o_cm"] for row in exact_pairs.values()
+                   if row["object"] == saved["object"] and row["file"] == "candidate"]
+        recorded = next(row for row in veto["objects"] if row["object"] == saved["object"])
+        assert len(current) == len(pairs) == recorded["pairs"]
+        assert np.isclose(np.mean(current), recorded["candidate"], rtol=0, atol=1e-12)
         rows.append({"object": saved["object"], "pairs": len(pairs),
-                     "v3": before, "v4": after})
-    rows.sort(key=lambda row: (row["v4"]-row["v3"], LABELS[row["object"]]))
-    means = {name: float(np.mean([row[name] for row in rows])) for name in ("v3", "v4")}
+                     "v3": before, "v4": after, "v5": float(np.mean(current))})
+    rows.sort(key=lambda row: (row["v5"]-row["v4"], row["v4"]-row["v3"], LABELS[row["object"]]))
+    versions = ("v3", "v4", "v5")
+    means = {name: float(np.mean([row[name] for row in rows])) for name in versions}
     assert len(rows) == 10 and sum(row["pairs"] for row in rows) == 26
     assert f"{means['v3']:.4f}" == "0.7711"
     assert f"{means['v4']:.4f}" == "0.6534"
@@ -167,10 +201,15 @@ def object_score_chart(preview: Path | None, output_dir: Path = TARGET.parent) -
     assert np.isclose(means["v4"], summary["means"]["candidate"]["per_object_cm"], rtol=0, atol=1e-12)
     assert summary["total_pairs"] == 36 and len(summary["unscored"]) == 10
     assert all(row["object"] == "wooden_spoon" for row in summary["unscored"])
-    pair_means = {name: sum(row[name]*row["pairs"] for row in rows)/26 for name in ("v3", "v4")}
+    pair_means = {name: sum(row[name]*row["pairs"] for row in rows)/26 for name in versions}
+    assert f"{means['v5']:.4f}" == "0.5644"
+    assert f"{pair_means['v5']:.4f}" == "0.6208"
+    assert np.isclose(means["v5"], veto["means"]["per_object_cm"], rtol=0, atol=1e-12)
+    assert np.isclose(pair_means["v5"], veto["means"]["pair_weighted_cm"], rtol=0, atol=1e-12)
+    assert {row["object"] for row in rows if row["v5"] != row["v4"]} == {"white_pot", "water_pitcher"}
     fig = object_score_panel(rows)
     target = output_dir / TARGET.name
-    fig.savefig(target, metadata={"Title": "Packed v3/v4 CD-O on all ten scanned objects",
+    fig.savefig(target, metadata={"Title": "Packed v3/v4/v5 CD-O on all ten scanned objects",
                                   "Author": "", "Creator": "", "CreationDate": None,
                                   "ModDate": None})
     if preview:
