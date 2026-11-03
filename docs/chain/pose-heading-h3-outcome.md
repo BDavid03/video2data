@@ -27,9 +27,14 @@ episode-19 masks (870 / 3,212 stereo pixels) and scans admitted, stability shift
 away (HR2 would decline it; this is why G2 was required); dust pan rival 76 % worse (accepted). TW changes the episode-19
 relative rotation by 118.2 degrees and the body-frame offset by 32.5 cm from D2 v4 (world positions unchanged).
 
-**Reading:** the expected gain on scored episode 19 is one coin-flip-weighted pair. If the selected sweeper basin is
-right, train suggests a large gain on that episode; if the flip is right, AUC stays at T1's level but RPE/MPPE get
-worse. Checks: lead re-ran the independent raw-NPZ/raw-mocap recomputation (b 9.3229, C 5.6309 deg, agrees);
+**Reading (critic-18 corrections applied):** G2's equal weighting is the protocol's stipulated stress scenario, not a
+calibrated probability; the break-even selected-basin weight for the AUC gate is 46.4 % (0.010 / 0.021534), conditional
+on train outcomes transferring. The flip's zero episode-18 AUC loss was guaranteed in advance: T1's slot 1 on episode 18
+is already beyond the AUC thresholds (AUC floor), so the flip arm could not lose AUC there; on episode 19, where D2 v4's
+state relative to that floor is unknown, a wrong basin could lower AUC. G1 carried little new information (A and B had
+already cleared it; C error is construction-invariant). All of this rests on one train pair (episode 18) and one
+sampling seed. No extrinsic was needed in TW: route-h3-18 and review-h3-18 both found that HR2 and the T1 build work
+in ego camera A (stereo transferred by `A_T_C`), with no code path for another camera. Checks: lead re-ran the independent raw-NPZ/raw-mocap recomputation (b 9.3229, C 5.6309 deg, agrees);
 A reproduces H2S-desc's five metrics exactly; G2 arithmetic re-derived by the lead.
 
 **Decision state:** D2 v5 needs the owner line "2026-11-03: approve D2 v5 heading for episode 19" in `AGENTS.md` by

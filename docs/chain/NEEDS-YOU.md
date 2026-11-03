@@ -6,34 +6,31 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
 
 ## Open
 
-**Update 2026-11-03 13:25 UTC (context 18): the pre-checks below are done, and they pass. Still your call.**
-The placement rule was fixed in writing before any number (`docs/chain/pose-heading-h3-protocol.md`). Under it, on
-train episode 18: AUC 0.30 -> 0.47, RPE 29.6 -> 10.2 cm, MPPE 19.5 -> 5.6 cm (eight-episode mean AUC 0.2767 -> 0.2982).
-That is less than the 0.56-0.62 quoted below, because the fixed rule keeps the stereo-measured positions. If the method
-picks the sweeper's upside-down alternative instead, AUC stays where it is now but RPE gets worse (29.6 -> 41.7 cm).
-On scored episode 19 itself (registered without labels), the sweeper is again nearly a coin flip: its upside-down
-alternative fits only 3.4 % worse. So the pre-registered rule counted both outcomes equally. The expected gain is
-+0.0108 mean AUC against a required +0.010: it passes, but only just. The dust pan's heading is clear-cut. Full
-numbers: `docs/chain/pose-heading-h3-outcome.md`. The approval line and deadline below are unchanged (add it by about
-06:00 UTC 4 Nov). Without it, D2 v4 stays.
+**Decision (updated 2026-11-03 13:50 UTC, context 18): change the object headings in one scored episode (19)?**
+What it is: a method fits each object's 3D scan to the stereo points in the first frame. That gives the object's heading
+(which way it faces). It failed its own pre-registered test: its "decline when unsure" rule rejected every pair. But on
+the asymmetric train pairs, the headings it picked were accurate. The only scored episode it can change is 19 (sweeper and
+dust pan). Every other scored pair has a cup (heading not visible), the spoon (no scan), merged masks, or wooden pieces
+whose identity is ambiguous.
 
-**Decision 2026-11-03 12:45 UTC (context 16): adopt object heading from scan registration for one scored episode?**
-A new method registers each object's 3D scan to the calibrated-stereo points at the first frame, which gives the
-object's heading (which way it faces). It failed its own pre-registered test, because its "decline when unsure" rule
-rejected every pair. But the headings it picked are accurate on the asymmetric objects. On train episode 18
-(sweeper and dust pan) the error is 4 / 6 degrees, and AUC goes 0.30 -> 0.56 to 0.62 (depending on how the measured
-rotation is placed in the scene; not yet fixed), RPE 29.6 -> about 9.6 cm, MPPE 19.5 -> about 4.1 cm. Over the eight
-train episodes with only episode 18 changed (what this proposal would do): mean AUC 0.2767 -> 0.309 to 0.316; no
-episode worse. The same objects appear in one scored episode (19), so a D2 v5 would change only that episode. All other
-scored pairs involve a cup (heading not visible), the spoon (no scan) or merged masks; the wooden pieces (25) are left
-out because which piece is which is ambiguous. Caveats: chosen after seeing train results, not blind; the evidence for
-these two objects is one episode; the sweeper's second-best heading (upside down) was only 2 % worse, which is exactly
-why the method declined, and episode 19 has no labels to settle it; the cost of picking the flipped one is not yet
-measured (the next context measures it on train first).
-**If you want it, add to AGENTS.md: "2026-11-03: approve D2 v5 heading for episode 19".** The next context then fixes
-the placement rule in advance, measures the flip cost, and (if the train gates pass by 06:00 UTC 4 Nov) runs the
-simulation check and packs by 12:00 UTC 4 Nov. Without that line D2 v4 stays the pose file. Evidence:
-`docs/chain/pose-heading-hr2-outcome.md`, `outputs/pose_insurance/heading/summary.md` (H2S-desc).
+The checks you asked for are done (rule fixed in writing before any number: `docs/chain/pose-heading-h3-protocol.md`):
+- **Train episode 18** (the same two objects, labels known): AUC 0.30 -> 0.47, RPE 29.6 -> 10.2 cm, MPPE 19.5 -> 5.6 cm.
+  The eight-episode mean AUC goes 0.2767 -> 0.2982, and no other episode changes. The fixed rule scores below the two
+  variants seen earlier (0.56-0.62). The reason: it keeps each object's measured orientation, so the offset between the
+  objects inherits the stereo direction error (9 degrees here).
+- **If the sweeper is placed upside down** (its near-tied alternative), episode-18 RPE gets worse (29.6 -> 41.7 cm). AUC
+  does not fall, but only because episode 18 is already at the lowest AUC this placement can get. On episode 19 a wrong
+  pick could lower AUC; that cannot be measured without labels.
+- **Episode 19** (no labels): the dust pan's heading is clear-cut. The sweeper's upside-down alternative fits only 3.4 %
+  worse, so which one is right is uncertain. The pre-registered rule weighed both outcomes equally, as a stress test
+  rather than a probability. On train numbers that gives +0.0108 mean AUC against a required +0.010: a pass, but only
+  just (break-even if the selected heading is right at least 46 % of the time). Evidence for these objects is one train
+  episode.
+
+**If you want it, add to AGENTS.md: "2026-11-03: approve D2 v5 heading for episode 19"** by about 06:00 UTC 4 Nov. The
+chain then builds, simulation-checks and packs D2 v5 (only episode 19 changed) by 12:00 UTC 4 Nov, following
+`docs/chain/d2-v5-plan.md`. Without that line, D2 v4 stays the pose file. Evidence: `docs/chain/pose-heading-h3-outcome.md`,
+`docs/chain/pose-heading-hr2-outcome.md`.
 
 **Deadline (2026-11-03 07:35 UTC, context 15): planned to your "12pm EST November 4th" = 17:00 UTC 4 Nov
 (04:00 AEDT 5 Nov).** That is five hours *earlier* than the 5:00 p.m. EST (22:00 UTC) in the kit's

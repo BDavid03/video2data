@@ -196,11 +196,11 @@ errors informed choices; we adopted without a leaderboard score despite
 fresh pre-registered validation failing by rule: 2 and required 13 had
 merged masks; 22/24/27 favoured stereo (1.14 vs 7.21\,cm length error).
 Oracle (train-label) first-frame relative poses lift AUC
-0.277 to 0.353 via heading; frozen scan-to-stereo
-registration recovered it on 0/4 held-out train episodes (cup markers
-below stereo noise); a second chose accurate asymmetric poses but
-failed its decline rule.
-12 of 20 evaluation episodes change; rollouts hold
+0.277 to 0.353, mainly via heading; frozen scan-to-stereo
+registration recovered it on 0/4 unseen train episodes (cup markers
+below stereo noise); a second placed two asymmetric pairs within
+9$^\circ$ yet declined them.
+Twelve of 20 evaluation episodes change; rollouts hold
 initial targets within 0.049\,cm and drift $\leq$0.048\,cm:
 simulation consistency, not reference accuracy.
 In sum, v4 improves shape scores and train pose errors; SP-SR/MP-SR stay
