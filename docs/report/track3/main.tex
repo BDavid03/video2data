@@ -194,13 +194,13 @@ No training episode worsens; the AUC gain comes from one episode
 Known first-frame training errors informed the idea and selection: no independent
 confirmation. Fresh pre-registered public confirmation was incomplete:
 one of four episodes had merged object masks; three measurable episodes favoured stereo
-(1.14 versus 7.21\,cm offset-length error). We adopted the method anyway.
-Five public validation episodes were examined; no leaderboard score was used.
+(1.14 versus 7.21\,cm offset-length error). We adopted it anyway;
+five validation episodes were examined, no leaderboard score.
 
 One of five changed training episodes also reassigns the first object's mask.
-Twelve of 20 evaluation episodes change; the rest keep v3. Their new rollouts reproduce prescribed initial
-positions within 0.049\,cm and drift at most 0.048\,cm; these checks measure
-simulation consistency, not accuracy against reference poses.
+Twelve of 20 evaluation episodes change (the rest keep v3); their rollouts
+hold prescribed initial positions within 0.049\,cm and drift at most
+0.048\,cm: simulation consistency, not reference accuracy.
 
 \paragraph{Conclusion.} V4 improves measured shape scores (Table~\ref{tab:cdo}), without
 isolating a cause. Spoon accuracy and manipulation remain unverified.
