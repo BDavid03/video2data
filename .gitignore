@@ -11,3 +11,14 @@ submissions/*
 *.tmp
 .runtime/
 .cache/
+.claude/worktrees/
+.scratch/
+recycle/*/untracked/
+docs/report/track3/.tectonic/
+docs/report/track3/.matplotlib/
+docs/report/track3/.build-tmp/
+docs/report/track3/build-files.txt
+docs/report/track3/build.stdout.log
+docs/report/track3/main.log
+docs/report/track3/main.blg
+docs/report/track3/main.pdf
