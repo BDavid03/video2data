@@ -25,6 +25,8 @@ The chain stops, with the reason on the last line, when:
             prompt section, or two contexts in a row ended inside --min-minutes
   STOPPED   the file outputs/chain/STOP exists
 The file outputs/chain/PAUSE holds the next launch until it is deleted; use it to read or edit a hand-off first.
+Hand-offs are read from this checkout and from every worktree under .claude/worktrees/ (contexts commit on a
+worktree branch), so the chain never waits for a merge; merging that branch into main is the owner's housekeeping.
 
 A blocked context that is not a usage limit (for example a permission prompt) is reported and waited on: answer it
 with `claude attach <id>` and the chain carries on.
@@ -99,6 +101,7 @@ class Chain:
         self.name_re = re.compile(r"^\W*" + re.escape(pre) + r"(\d+)" + re.escape(post) + r"$")
         self.deadline = datetime.datetime.fromisoformat(a.deadline.replace("Z", "+00:00"))
         self.launched = []  # job ids this run started
+        self.noted = set()  # worktree-only hand-offs already reported
 
     # ---- output -------------------------------------------------------------------------------------------
     def say(self, message, /, **event):
@@ -114,23 +117,31 @@ class Chain:
         alert(f"chain {reason}: {text}")
         sys.exit(EXIT[reason])
 
-    def stranded(self, newest):
-        """A newer hand-off that exists only in a worktree (the edit guard kept it out of this checkout)."""
-        for path in sorted(glob.glob(os.path.join(ROOT, ".claude/worktrees/*", self.a.handoffs, "HANDOFF-*.md"))):
-            if os.path.basename(path) > os.path.basename(newest):
-                tree = path.split(os.sep + self.a.handoffs.replace("/", os.sep))[0]
-                branch = subprocess.run(["git", "-C", tree, "branch", "--show-current"], capture_output=True,
-                                        text=True).stdout.strip() or "?"
-                return os.path.basename(path), branch
-        return None
+    def note_branch(self, path):
+        """Say once that a hand-off lives only on a worktree branch; the chain uses it anyway, merging is optional."""
+        if not path.startswith(os.path.join(ROOT, ".claude", "worktrees") + os.sep) or path in self.noted:
+            return
+        self.noted.add(path)
+        tree = path.split(os.sep + self.a.handoffs.replace("/", os.sep))[0]
+        branch = subprocess.run(["git", "-C", tree, "branch", "--show-current"], capture_output=True,
+                                text=True).stdout.strip() or "?"
+        self.say(f"using {os.path.basename(path)} from branch {branch} (not yet in {ROOT}; merge it there when "
+                 f"convenient: git merge --ff-only {branch})", event="worktree_handoff",
+                 handoff=os.path.basename(path), branch=branch)
 
     # ---- hand-offs ----------------------------------------------------------------------------------------
     def newest_handoff(self):
-        """(path, text, age_seconds) of the newest hand-off. Names sort by their UTC stamp, so the name decides."""
+        """(path, text, age_seconds) of the newest hand-off in this checkout or any of its worktrees.
+
+        Contexts work on a worktree branch, so their hand-offs land there first; reading the worktrees too means
+        the chain never waits on a manual merge. Names sort by their UTC stamp, so the name decides; on a tie the
+        copy in this checkout wins."""
         files = sorted(glob.glob(os.path.join(self.handoff_dir, "HANDOFF-*.md")))
+        files += sorted(glob.glob(os.path.join(ROOT, ".claude", "worktrees", "*", self.a.handoffs, "HANDOFF-*.md")))
         if not files:
-            raise RuntimeError(f"no HANDOFF-*.md in {self.handoff_dir}")
-        path = files[-1]
+            raise RuntimeError(f"no HANDOFF-*.md in {self.handoff_dir} or its worktrees")
+        path = max(files, key=os.path.basename)  # max keeps the first of equal names: this checkout's copy
+        self.note_branch(path)
         with open(path, encoding="utf-8") as fh:
             text = fh.read()
         return path, text, now() - os.path.getmtime(path)
@@ -280,7 +291,7 @@ class Chain:
     def watch(self, job_id, handoff_path):
         """Wait until the context writes a newer hand-off and goes quiet. Returns the job's final state."""
         a = self.a
-        last_line, seen_new_at, quiet_since, blocked_said, stranded_said = None, None, None, False, False
+        last_line, seen_new_at, quiet_since, blocked_said = None, None, None, False
         while True:
             self.check_stop()
             d = self.job(job_id)
@@ -307,7 +318,7 @@ class Chain:
 
             newest, _, age = self.newest_handoff()
             quiet = not self.busy(d)
-            if newest != handoff_path:
+            if os.path.basename(newest) != os.path.basename(handoff_path):  # a merge moves the file, not the name
                 seen_new_at = seen_new_at or now()
                 settled = age >= a.settle and now() - seen_new_at >= a.settle
                 tasks_ok = self.tasks(d) == 0 or now() - seen_new_at >= a.grace_minutes * 60
@@ -317,13 +328,6 @@ class Chain:
                     return d
             elif quiet and self.tasks(d) == 0:
                 quiet_since = quiet_since or now()
-                lost = None if stranded_said else self.stranded(newest)
-                if lost:
-                    text = (f"STRANDED {name}: {lost[0]} is only on branch {lost[1]}; the chain stalls in "
-                            f"{a.stall_minutes} min unless you run: cd {ROOT} && git merge {lost[1]}")
-                    self.say(text, event="stranded", job=job_id, handoff=lost[0], branch=lost[1])
-                    alert(text)
-                    stranded_said = True
                 if now() - quiet_since >= a.stall_minutes * 60:
                     self.finish("STALLED", f"{name} ({job_id}) has been idle {a.stall_minutes} min with nothing in "
                                            f"flight and no new hand-off; read it with `claude attach {job_id}`")
