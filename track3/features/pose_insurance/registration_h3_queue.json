@@ -25,5 +25,10 @@
   "scored_plan": {
     "path": "outputs/pose_insurance/stereo-placement-scored/plans/episode_000019.json",
     "sha256": "73565e201bca10f0a5c71e10a7dc7f72836943e12a8c581c73d9b5274992fdf5"
+  },
+  "thresholds": {
+    "relative_loss_margin": 0.05,
+    "basin_separation_deg": 30,
+    "stability_max_deg": 10
   }
 }

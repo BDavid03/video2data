@@ -11,6 +11,7 @@ Run in this order from the repository root:
 ```bash
 PYTHONPATH=. OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/linux-cuda/bin/python -B -m track3.features.pose_insurance.registration_h3_loop
 PYTHONPATH=. OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/linux-cuda/bin/python -B -m track3.features.pose_insurance.heading_h3_loop
+PYTHONPATH=. OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .runtime/linux-cuda/bin/python -B -m track3.features.pose_insurance.heading_h3_check
 ```
 
 Queues live beside the handlers. Each loop has a trial/time budget, immutable per-trial
@@ -21,6 +22,11 @@ acceptance is retained; H3's G3 separately admits stable fits, and episode-19 am
 G2 required. All qualifying recorded-rival combinations enter G2 with the selected pair at
 equal weight. Missing registration fails closed.
 
+Rosters and gate thresholds live in the queues. Contract hashes bind those decisions to
+the fixed protocol, and registration thresholds must also match the frozen HR2 method.
+Handlers admit the runtime before importing numerical code. `_registration_h3.py` owns
+the pure mask, validity and point-cloud extraction.
+
 Outputs: `outputs/pose_insurance/registration-h3/latest.json`,
 `outputs/pose_insurance/heading-h3/summary.md` and `summary.json`; immutable reports and
 per-trial artifacts remain in their corresponding output directories. The summary includes
@@ -28,10 +34,13 @@ all five kinematic metrics, full 3D frame-zero b/C errors, A reproduction, signe
 quaternion checks, G1/G2/G3, and the episode-19 relative-pose change. Historical H2S protocol
 hash differences are disclosed without modifying old files. Existing runtime flags are reused.
 
-The report hashes the pre-job inventory at `.runtime/tmp/h3/before.json` and compares the old
-heading and HR2 inventories and bytes. The independent raw-NPZ/raw-mocap recomputation is
-`.runtime/tmp/h3/independent_check.py` and writes `independent_result.json` there; it imports
-no H3 module. Scratch compilation and logs also stay under `.runtime/tmp/h3/`.
+The queue pins the durable pre-job inventory at
+`outputs/pose_insurance/heading-h3/integrity-before.json`; the report compares the old
+heading and HR2 inventories and bytes against it. The maintained `heading_h3_check.py`
+entry point independently recomputes geometry from raw NPZ/mocap, imports no H3 module,
+and reads the same durable inventory. Its command above writes
+`outputs/pose_insurance/heading-h3/independent-check.json`. Scratch compilation and logs
+stay under `.runtime/tmp/h3/`.
 
 This operation stops at evidence. A D2 v5 build additionally requires the protocol's owner
 approval, all required gates and the specified physical checks.

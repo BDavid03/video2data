@@ -41,15 +41,16 @@ def descriptive_b(start: np.ndarray, registered: np.ndarray) -> np.ndarray:
     return oracle(start, registered, 'O2')
 
 
-def has_rival(row: dict) -> bool:
-    """Select the recorded distant rival only within the fixed five-percent margin."""
-    return (row.get('rival_index') is not None and row['rival_relative_margin'] <= .05
-            and row['rival_separation_deg'] > 30)
+def has_rival(row: dict, thresholds: dict) -> bool:
+    """Select a recorded rival within the configured margin and beyond the separation."""
+    return (row.get('rival_index') is not None
+            and row['rival_relative_margin'] <= thresholds['relative_loss_margin']
+            and row['rival_separation_deg'] > thresholds['basin_separation_deg'])
 
 
-def combinations(predictions: list) -> list:
+def combinations(predictions: list, thresholds: dict) -> list:
     """Enumerate selected and all nonempty combinations of qualifying recorded rivals."""
-    choices = [[row['best_index'], row['rival_index']] if has_rival(row)
+    choices = [[row['best_index'], row['rival_index']] if has_rival(row, thresholds)
                else [row['best_index']] for row in predictions]
     return [dict(variant='H3-sel' if index == 0 else ('H3-flip' if index == 1 else f'H3-flip-{index}'),
                  indices=list(indices)) for index, indices in enumerate(product(*choices))]
@@ -77,36 +78,38 @@ def relative_change(start: np.ndarray, result: np.ndarray) -> dict:
                             b_m=(new_b - old_b).tolist(), b_norm_m=float(np.linalg.norm(new_b - old_b))))
 
 
-def assess(results: dict, baseline: dict, predictions: list) -> dict:
+def assess(results: dict, baseline: dict, predictions: list, spec: dict) -> dict:
     """Apply H3's fixed G1/G2/G3 arithmetic with equal episode and basin weights."""
+    episode, gates, thresholds = str(spec['episode']), spec['gates'], spec['thresholds']
     means = {'T1': {key: float(np.mean([r[key] for r in baseline.values()])) for key in METRICS}}
     for name, row in results.items():
-        means[name] = {key: float(np.mean([row['metrics'][key] if ep == '18' else values[key]
+        means[name] = {key: float(np.mean([row['metrics'][key] if ep == episode else values[key]
                                            for ep, values in baseline.items()])) for key in METRICS}
     t1, selected = means['T1'], means['H3-sel']
     delta = {key: selected[key] - t1[key] for key in METRICS}
-    worst = max(0., baseline['18']['AUC'] - results['H3-sel']['metrics']['AUC'])
-    g1 = dict(auc_gain=delta['AUC'] >= .010, rpe_not_worse=delta['RPE_cm'] <= 0,
+    worst = max(0., baseline[episode]['AUC'] - results['H3-sel']['metrics']['AUC'])
+    g1 = dict(auc_gain=delta['AUC'] >= gates['auc_gain_min'], rpe_not_worse=delta['RPE_cm'] <= 0,
               mppe_not_worse=delta['MPPE_cm'] <= 0, sp_sr_not_lower=delta['SP_SR'] >= 0,
-              mp_sr_not_lower=delta['MP_SR'] >= 0, worst_episode_loss=worst <= .02)
+              mp_sr_not_lower=delta['MP_SR'] >= 0, worst_episode_loss=worst <= gates['worst_episode_auc_loss_max'])
     variants = [name for name in results if name.startswith('H3-')]
     expected = {key: float(np.mean([means[name][key] for name in variants])) for key in METRICS}
     expected_delta = {key: expected[key] - t1[key] for key in METRICS}
-    flip_losses = {name: baseline['18']['AUC'] - results[name]['metrics']['AUC']
+    flip_losses = {name: baseline[episode]['AUC'] - results[name]['metrics']['AUC']
                    for name in variants if name != 'H3-sel'}
-    g2 = dict(expected_auc_gain=expected_delta['AUC'] >= .010,
+    g2 = dict(expected_auc_gain=expected_delta['AUC'] >= gates['auc_gain_min'],
               expected_rpe_not_worse=expected_delta['RPE_cm'] <= 0,
               expected_mppe_not_worse=expected_delta['MPPE_cm'] <= 0,
-              every_flip_episode_loss=all(value <= .02 for value in flip_losses.values()))
+              every_flip_episode_loss=all(value <= gates['worst_episode_auc_loss_max'] for value in flip_losses.values()))
     slots = []
     for row in predictions:
         stability = row.get('stability_deg', [])
         slots.append(dict(slot=row['slot'], mask=row.get('stereo_valid_points', 0) > 0,
                           loadable_scan='rotation' in row, completed_registration='rotation' in row,
-                          stable=len(stability) == 3 and bool(np.isfinite(stability).all())
-                          and max(stability) <= 10))
-    g3 = len(slots) == 2 and all(all(value for key, value in slot.items() if key != 'slot') for slot in slots)
-    required = any(has_rival(row) for row in predictions) or not g3
+                          stable=len(stability) == spec['stability_repeats'] and bool(np.isfinite(stability).all())
+                          and max(stability) <= thresholds['stability_max_deg']))
+    g3 = ([slot['slot'] for slot in slots] == spec['slots']
+          and all(all(value for key, value in slot.items() if key != 'slot') for slot in slots))
+    required = any(has_rival(row, thresholds) for row in predictions) or not g3
     passed = all(g1.values()) and g3 and (not required or all(g2.values()))
     return dict(means=means, G1=dict(checks=g1, changes=delta, worst_auc_loss=worst, passed=all(g1.values())),
                 G2=dict(checks=g2, expected_means=expected, changes=expected_delta,

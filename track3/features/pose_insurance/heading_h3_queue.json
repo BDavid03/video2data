@@ -24,7 +24,7 @@
   },
   "registration_queue": {
     "path": "track3/features/pose_insurance/registration_h3_queue.json",
-    "sha256": "1c8b1ad94e65f51bb9980e8dd7fa617b7296027b3ad7d5d0f8ac41436266d362"
+    "sha256": "f1c7b43f4e1b543ca3a5a95f4d5191fca6364ed5e048ba7665175bbfee227a12"
   },
   "build": {
     "path": "outputs/pose_insurance/stereo-placement/builds/20261103T001808.390849Z-755aa1d7/run.json",
@@ -51,5 +51,10 @@
   "integrity_snapshot": {
     "path": "outputs/pose_insurance/heading-h3/integrity-before.json",
     "sha256": "830e320348f227ac5041c840a169fad5e70de952c9ec6ee3f044144b960540f4"
+  },
+  "source_split": "public",
+  "gates": {
+    "auc_gain_min": 0.01,
+    "worst_episode_auc_loss_max": 0.02
   }
 }

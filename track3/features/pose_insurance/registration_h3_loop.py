@@ -20,7 +20,7 @@ OUTPUT = 'outputs/pose_insurance/registration-h3'
 QUEUE = 'track3/features/pose_insurance/registration_h3_queue.json'
 PROTOCOL = 'docs/chain/pose-heading-h3-protocol.md'
 METHOD_HASH = 'c1fd86776f0a5e39eaf0f79273cbb8c6098ef585b59783b00a30ef1d65772e25'
-SLOTS = [(19, 0, 'mini_sweeper'), (19, 1, 'mini_dust_pan')]
+CONTRACT_HASH = 'ea2ff14f1fffd0a00d7bb91208d0bcd12b8affb15d0642d1dc9b3451e8b176f6'
 
 
 def environment(flag: str) -> dict:
@@ -66,10 +66,11 @@ def resume(path: str, kind: str) -> tuple:
 def contract(queue_path: str) -> tuple:
     """Admit exactly the scored pair with the unchanged frozen HR2 implementation."""
     queue = read_json(queue_path)
-    roster = [(r['episode'], r['slot'], r['name']) for r in queue['trials']]
-    if queue['source_split'] != 'evaluation' or roster != SLOTS or 'parameters' in queue:
-        raise PermissionError('H3 registration admits only evaluation 19 sweeper and dust pan')
-    if not 1 <= queue['max_trials'] <= 2 or not 1 <= queue['max_seconds'] <= 7200:
+    spec = {key: queue[key] for key in ('source_split', 'trials', 'thresholds')}
+    binding = hashlib.sha256(json.dumps(spec, sort_keys=True).encode()).hexdigest()
+    if binding != CONTRACT_HASH or 'parameters' in queue:
+        raise PermissionError('H3 registration roster or thresholds differ from the fixed protocol')
+    if not 1 <= queue['max_trials'] <= len(queue['trials']) or not 1 <= queue['max_seconds'] <= 7200:
         raise ValueError('H3 registration requires a bounded two-slot queue')
     method_path = checked_entry(queue['method'], {'inputs': []})
     method = read_json(method_path)
@@ -77,6 +78,8 @@ def contract(queue_path: str) -> tuple:
         raise PermissionError('H3 requires the frozen HR2 method')
     if method['code_sha256'] != code_hashes():
         raise PermissionError('Frozen HR2 implementation changed')
+    if queue['thresholds'] != {key: method['parameters'][key] for key in queue['thresholds']}:
+        raise PermissionError('H3 thresholds differ from the frozen HR2 method')
     checked_entry(queue['protocol'], {'inputs': []})
     if queue['protocol']['path'] != PROTOCOL:
         raise PermissionError('H3 protocol required')
@@ -90,19 +93,20 @@ def base_record(operation: str, request: dict, paths: list) -> dict:
                         provenance='public_asset_diagnostic')
     record['sources'] = [input_file(ROOT, p) for p in (*CODE_FILES,
         'track3/features/pose_insurance/registration_h3_loop.py',
+        'track3/features/pose_insurance/_registration_h3.py',
         'track3/features/pose_insurance/request.py', 'configs/sources.lock.json')]
     return record
 
 
-def video_inputs(queue: dict, record: dict, request: Request) -> dict:
+def video_inputs(queue: dict, method: dict, record: dict, request: Request) -> dict:
     """Load the exact frame-zero masks, grid and stereo named in D2 v4's plan."""
     import numpy as np
-    from ._length import stereo_clusters
-    from ._scene import camera_points
+    from ._registration_h3 import observations
     from .length_diagnostic import frame_arrays
     plan_path = checked_entry(queue['scored_plan'], record)
     plan = read_json(plan_path)
-    if plan['episode'] != 19 or [r['name'] for r in plan['scene']] != [s[2] for s in SLOTS]:
+    names = [trial['name'] for trial in queue['trials']]
+    if plan['episode'] != request.episode_index or [r['name'] for r in plan['scene']] != names:
         raise ValueError('Scored plan differs from the episode-19 roster')
     for entry in plan['inputs']:
         checked_entry(entry, record)
@@ -113,7 +117,7 @@ def video_inputs(queue: dict, record: dict, request: Request) -> dict:
     for parent in (measure, stereo, depth):
         if input_file(ROOT, parent[0]) not in record['inputs']:
             raise ValueError('Scored plan did not admit the requested video producer')
-    original = read_json('outputs/pose_insurance/v3/plans/episode_000019.json')
+    original = read_json(next(e['path'] for e in plan['inputs'] if '/v3/plans/' in e['path']))
     old_build = producer(original['base_build'], 'pose_insurance.build', request)
     if input_file(ROOT, measure[0]) not in old_build[1]['inputs']:
         raise ValueError('T1 original scene did not consume this plane measurement')
@@ -127,15 +131,12 @@ def video_inputs(queue: dict, record: dict, request: Request) -> dict:
             or stereo[1]['grid'] != depth[1]['preprocessing_artifact_sha256']
             or measure[1]['frames'][0]['frame_index'] != 0):
         raise ValueError('Expected exact frame-zero colour-camera grid')
-    masks = [np.isin(labels, np.array(ids) + 1) for ids in observation['cluster_ids']]
-    clusters, counts = stereo_clusters(stereo_arrays, masks, labels, intrinsics, 3)
-    if counts != observation['stereo_valid_pixels']:
+    data = observations(stereo_arrays, labels, intrinsics, observation['cluster_ids'],
+                        measure[1]['frames'][0]['plane']['normal'],
+                        method['computation']['extraction_minimum_points'])
+    if data['counts'] != observation['stereo_valid_pixels']:
         raise ValueError('Stereo counts differ from the scored placement stage')
-    valid = (stereo_arrays['rgb_valid'] & np.isfinite(stereo_arrays['rgb_depth_m'])
-             & (stereo_arrays['rgb_depth_m'] > 0))
-    return dict(names=[s[2] for s in SLOTS], clusters=clusters, counts=counts, labels=labels,
-                valid=valid, points=camera_points(stereo_arrays['rgb_depth_m'].astype(float), intrinsics),
-                normal_hint=np.array(measure[1]['frames'][0]['plane']['normal']))
+    return dict(data, names=names)
 
 
 def predict(queue_path: str = QUEUE) -> Path:
@@ -143,7 +144,7 @@ def predict(queue_path: str = QUEUE) -> Path:
     started = time.monotonic()
     runtime = environment('registration_authorized')
     queue, method = contract(queue_path)
-    request = Request(source_split='evaluation', episode_index=19)
+    request = Request(source_split=queue['source_split'], episode_index=queue['trials'][0]['episode'])
     authorize_episode(runtime, request, 'H3 registration')
     root = output_path(ROOT, OUTPUT)
     root.mkdir(parents=True, exist_ok=True)
@@ -153,7 +154,7 @@ def predict(queue_path: str = QUEUE) -> Path:
     directory = root / 'reports' / new_run_id()
     with recorded(directory, report):
         data_record = {'inputs': []}
-        data = video_inputs(queue, data_record, request)
+        data = video_inputs(queue, method, data_record, request)
         rows, executed, reused = [], 0, 0
         for trial in queue['trials']:
             if time.monotonic() - started > queue['max_seconds']:
@@ -164,7 +165,7 @@ def predict(queue_path: str = QUEUE) -> Path:
             if scan is not None:
                 record['inputs'].append(input_file(ROOT, scan))
             key = identity(record)
-            record.update(identity=key, split='evaluation', episode_index=19, slot=trial['slot'],
+            record.update(identity=key, split=request.source_split, episode_index=request.episode_index, slot=trial['slot'],
                           method_sha256=METHOD_HASH)
             old = next((r for r in reversed(prior) if r['identity'] == key and r['status'] == 'completed'), None)
             if old:
@@ -186,7 +187,7 @@ def predict(queue_path: str = QUEUE) -> Path:
                                   seconds=row['wall_seconds'], resumed=bool(old))), flush=True)
         summary = dict(predictions=rows, executed=executed, resumed=reused,
                        method_sha256=METHOD_HASH, wall_seconds=time.monotonic() - started,
-                       label_free=True, source_split='evaluation', episode=19)
+                       label_free=True, source_split=request.source_split, episode=request.episode_index)
         write_json(directory / 'summary.json', summary)
     write_json(root / 'latest.json', dict(report=str((directory / 'run.json').relative_to(ROOT))))
     print(json.dumps(summary), flush=True)
