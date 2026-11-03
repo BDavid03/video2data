@@ -8,6 +8,10 @@
   data) ahead of refinements of the current static entry (`docs/chain/PROGRAM.md` section 0). It is direction, not a
   new install approval: a new package or model download still needs a one-line proposal in `docs/chain/NEEDS-YOU.md`
   and a dated owner line. Research integrity (`PROGRAM.md` section 4) is unchanged.
+  Then "also maybe worth looking at research on the subject to see if there is any meaningful academic literature"
+  (done: `docs/chain/literature-structural.md`), and at about 14:15 UTC "also in the todo list, add reformatted of
+  file system structure to be less all over the shop + removing irrelevant components": `PROGRAM.md` section 0,
+  to-do item 5 (inventory first, `git mv`/`git rm` only, pinned pack files after the 12:00 UTC 4 Nov cut-off).
 - On 2026-11-03 at about 11:00 UTC (chain context 16, resumed after its usage-limit block) the user wrote, live, "GO ON
   THEN" (continue past hand-off 16 in the same session), then "back to the original claude direction, codex workers".
   Read as: keep working in this session on hand-off 16's items, with `docs/chain/PROGRAM.md` section 8 unchanged

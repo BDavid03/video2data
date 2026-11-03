@@ -27,6 +27,23 @@ frame-0 poses held static reaches only 0.532, so about half of AUC is lost to ob
 - New packages or model weights still need a one-line proposal in `NEEDS-YOU.md` and a dated owner line in
   `AGENTS.md`; until then use what is installed or approved (section 6). Packs still finish by 12:00 UTC 4 Nov.
 
+**Short-term to-do (owner list; tick here when done, with the commit):**
+
+1. [ ] Decisive upper bound: can our FlashCHORD policy follow a moving reference (train mocap, one train episode,
+   16 GB GPU)? Evidence so far: `docs/chain/literature-structural.md`.
+2. [ ] If yes: per-frame object trajectories from released video (stereo depth + masks + own reconstruction), then
+   policies on moving references for the scored episodes. If no: record the measured finding and move to item 3.
+3. [ ] Whole-clip mesh reconstruction (multi-frame fusion) in place of primitives, judged on CD-O train/tuning.
+4. [ ] Pretrained models and synthetic data where they serve 1-3 (proposals in `NEEDS-YOU.md` for any new install).
+5. [ ] **Restructure the file system to be less scattered, and remove irrelevant components** (owner, 2026-11-03
+   14:15 UTC). Order: (a) a written inventory first (each top-level directory, each slice, each script: used by a
+   deliverable, by a recorded result, or by nothing), committed as a plan with the target layout; (b) moves with
+   `git mv` and removals with `git rm` only, never `rm -rf`, so history keeps everything; (c) imports, READMEs,
+   reproduction scripts and request paths updated in the same commit, and `py_compile` plus a CPU import of every
+   slice afterwards. Files pinned by a pack manifest (`submissions/*/…manifest.json`) are moved only after the
+   12:00 UTC 4 Nov pack cut-off or as part of a new pack; the packed commits keep reproducing at their URLs either
+   way. Historical `outputs/` run records are never rewritten.
+
 ## 1. The finish line
 
 The goal is the best honest Track 3 entry that can be submitted before the leaderboard freezes,
