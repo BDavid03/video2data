@@ -63,3 +63,19 @@ c1fd86776f0a5e39eaf0f79273cbb8c6098ef585b59783b00a30ef1d65772e25); code `_regist
 (11 slots: 12 rack; 18 sweeper, dust pan; 21 pitcher; 23 and 24 wooden pieces; 27 rack, pot; 42 pot). Phase 2 runs it
 once, predictions saved before any label is read, then applies the pass rules above unchanged. Note: the pair panel's
 wooden-piece identities in 24 follow the recorded confirmation assignments.
+
+## Outcome (context 16, 12:32 UTC 3 Nov): HR2 FAILS both panels; D2 v4 stands
+
+Frozen evaluation run once (`outputs/pose_insurance/registration-hr2/phase2-report.md`; predictions saved 12:30:29 UTC
+before labels were read at 12:30:37; 11 trials, 67 min CPU; code and method hashes unchanged). **Pair panel FAIL:** 0/4
+pairs accepted (18: sweeper declined, rival basin 179 degrees away within 2.06 %; 23 and 24: all wooden pieces declined,
+rivals within 1.7-3.5 %; 27: rack declined, subsampling shift 11.9 degrees). **Up panel FAIL:** 5/11 accepted (needs 6),
+all accepted up errors < 5.4 degrees.
+
+**Descriptive only (selected rotations, ignoring declines; lead re-derived from the saved NPZ and raw parquet frame 0,
+all objects visible at frame 0):** 18 b 4.2 / C 5.6 degrees (offset length 22.55 vs 22.56 cm); 23 b 9.5 / C 13.7;
+24 b 172.6 / C 11.7 (consistent with the documented arbitrary wooden-piece identity); 27 b 8.5 / C 3.0. The declined
+wooden-piece selections are inverted in absolute up (about 179 degrees) while their relative pose is close. So the
+registration itself is accurate on the asymmetric pairs; the pre-registered decline rule was too strict for them. The
+rule is not relaxed after the fact: adopting the selected rotations would override a failed rule and is put to the owner
+(`docs/chain/NEEDS-YOU.md`), as the stereo placement was.
