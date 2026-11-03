@@ -15,9 +15,10 @@ all reported mesh scores are adaptive development results on reused scans.
 On ten scanned objects covering 26/36 pair entries, v4 reduces object-mean
 Chamfer distance (CD-O) from 0.7711 to 0.6534\,cm and pair-mean CD-O from
 0.8115 to 0.6629\,cm. The ten spoon entries remain unmeasured.
-On eight public training episodes, stereo shrinkage gives mean point error
-20.84\,cm versus 20.80\,cm for uniform shrinkage. Both trajectory success rates
-are zero, providing no evidence of stereo-specific calibration benefit or manipulation.
+On eight public training episodes with one seed, direct stereo slot-1 placement
+(D2 v4) lowers RPE/MPPE from 35.34/20.84 to 29.01/17.68\,cm versus v3;
+AUC rises from 0.2690 to 0.2767. Both success rates remain zero;
+these train-informed results are not independent confirmation.
 \end{abstract}
 
 \begin{document}
@@ -154,19 +155,12 @@ Figure~\ref{fig:qualitative} shows one frame. This does not establish improved \
 \par\end{samepage}
 
 
-\section{Static poses: a negative result}
-\begin{samepage}
-FlashCHORD~\cite{flashchord} evaluates static video-sized boxes with parked
-hands. The baseline uses video centroids, preset fallbacks and shared-cluster
-stacking. Selection was exploratory: single-object tuning episodes cannot
-evaluate a second-object correction.
-\par\end{samepage}
-
-\begin{samepage}
-Stereo shrinkage uses a stereo/MoGe-2 depth ratio; uniform uses its training
-mean. Their mean rollout metrics are similar on the eight training episodes
-(Table~\ref{tab:pose}); both success rates are zero.
-\par\end{samepage}
+\section{Static poses: stereo placement}
+Static boxes have parked hands~\cite{flashchord}. T1 (D2 v4) replaces
+v3's scaled MoGe-2 offset with the frame-0 table-plane offset between
+calibrated-stereo 3D mask centroids (valid depth), keeping slot 0 fixed.
+Frozen $c\geq1$ expands it for 1\,cm footprint clearance, up to v3's length;
+missing independent clusters/depth or infeasible clearance keep v3.
 
 \noindent\begin{minipage}{\columnwidth}
 \centering
@@ -176,26 +170,36 @@ mean. Their mean rollout metrics are similar on the eight training episodes
 \toprule
 Placement & AUC $\uparrow$ & \shortstack{RPE\\cm $\downarrow$} & \shortstack{MPPE\\cm $\downarrow$} \\
 \midrule
-\multicolumn{4}{l}{Eight training episodes (equal-episode means)} \\
 Centroids + stacking & 0.2688 & 39.36 & 22.82 \\
-Stereo shrinkage & 0.2690 & 35.34 & 20.84 \\
+Stereo shrinkage (v3) & 0.2690 & 35.34 & 20.84 \\
 Uniform shrinkage & 0.2690 & 35.28 & 20.80 \\
+\textbf{Stereo slot-1 (v4)} & \textbf{0.2767} & \textbf{29.01} & \textbf{17.68} \\
 \bottomrule
 \end{tabular}
-\captionof{table}{Kit rollout metrics~\cite{challenge}. AUC integrates
-surface-point accuracy at 1--9\,cm, normalised. SP-SR requires mean position
-error $\leq$10\,cm and mean rotation error $\leq$0.5\,rad; MP-SR requires every
-object $<$3\,cm and $<$30$^\circ$. SP-SR and MP-SR are zero for every row.
-RPE: relative-position error. MPPE: mean error of six body-fixed points at
-$\pm$5\,cm on the three coordinate axes.}
+\captionof{table}{Kinematic kit metrics~\cite{challenge}, public mocap;
+equal-episode means over eight training episodes, one seed.
+Bold: packed D2 v4.}
 \label{tab:pose}
 \end{minipage}\par
 
-\section{Conclusion}
-\noindent V4 improves measured shape scores (Table~\ref{tab:cdo}), without
+No train episode worsens. Only 23 raises AUC (slot-1 error 8.2 to 0.8\,cm).
+On 11/12/18/21 (four of five changes), 51--130$^\circ$ direction errors
+miss AUC thresholds despite RPE/MPPE gains.
+
+Known train frame-0 errors informed the idea and gates: no independent
+confirmation. Fresh public validation failed: 13's masks merged.
+Measurable 22/24/27 favoured stereo (mean offset-length error 1.14 versus
+7.21\,cm); the owner approved T1 anyway. Validation 2/13/22/24/27 is spent;
+no leaderboard score was used.
+
+Without references, 12/20 scored episodes change (12/13 v3-affected;
+30 lacks a slot-0 cluster). All 12 pass physical checks: initial error
+$\leq$0.049\,cm, drift $\leq$0.048\,cm (limits 1\,cm/2$^\circ$).
+Slot 0 is numerically unchanged; eight exports are byte-identical to v3.
+
+\paragraph{Conclusion.} V4 improves measured shape scores (Table~\ref{tab:cdo}), without
 isolating a cause. Spoon accuracy and manipulation remain unverified.
-Static placement has zero success rates, with stereo and uniform shrinkage
-indistinguishable on rollout metrics (Table~\ref{tab:pose}).
+D2 v4 cuts train errors; SP-SR/MP-SR stay zero.
 
 \typeout{TRACK3-MAIN-TEXT-END-PAGE: \thepage}
 \typeout{TRACK3-TABLE-PAGE: \getpagerefnumber{tab:cdo}}
