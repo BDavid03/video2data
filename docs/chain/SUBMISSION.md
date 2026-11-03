@@ -156,6 +156,21 @@ depth runs and update those paths (the run ids are timestamps).
 
 ## Packed files
 
+### D2 v5 (2026-11-03 20:24 UTC, context 20; supersedes D2 v4 for upload; owner approval 19:40 UTC)
+
+Only episode 19 changes: the sweeper and dust pan take the H3 table-world headings (`docs/chain/pose-heading-h3-outcome.md`;
+train evidence on episode 18 alone, AUC +0.0108 mean under the pre-registered equal-weight stress test, break-even if
+the sweeper heading is right at least 46 % of the time). One GPU policy attempt (222 s), physical check first pose
+0.041 cm / 0.11 deg, drift 0.040 cm / 0.11 deg. 19 of 20 exports SHA-256 identical to v4; 8,650 non-19 rows equal to v4
+except `code_commit_url` (re-checked by the lead). Code commit `db7b13f`; URL
+`https://github.com/BDavid03/video2data/commit/db7b13fc196785e9bf10714cd6e8231d808d06b8` (the owner must push it).
+Kit preflight "Ready to submit" with Kaggle checks skipped; full preflight fails only on the missing Kaggle token.
+Not uploaded.
+
+| File | SHA-256 | Command | Identity |
+| --- | --- | --- | --- |
+| `submissions/20261103T2024Z-d2-v5/track3_poses_v5_final.csv` | 0b2606aed015fe0a64e31037ff790b5483680c3da7e7a5ae2d503edeb8261035 | `bash scripts/reproduce/d2_poses_v5.sh --run --code-commit <URL> --out <csv>` | 9,120 rows; manifest `track3_poses_v5_final.manifest.json` |
+
 ### D2 v4 (2026-11-03 06:28 UTC, context 12; supersedes D2 v3 for upload)
 
 Code commit `d1d1da5`; URL `https://github.com/BDavid03/video2data/commit/d1d1da5880eca24413e43965bc78599cb4e9c648`
