@@ -40,5 +40,48 @@
       "template_episode": 26
     }
   ],
-  "assignments": "track3/features/pose_insurance/length_confirm_assignments.json"
+  "assignments": "track3/features/pose_insurance/length_confirm_assignments.json",
+  "counted_episodes": [
+    13,
+    22,
+    24,
+    27
+  ],
+  "video": [
+    "V_inc",
+    "V_moge",
+    "V_s",
+    "V_stereo"
+  ],
+  "minimum_pixels": 300,
+  "minimum_gain_cm": 5,
+  "maximum_mae_cm": 3,
+  "preparation_state": "track3/features/pose_insurance/length_confirm_preparation.json",
+  "presentation": {
+    "ray_errors": false,
+    "quantities": [
+      "M_o",
+      "M_c",
+      "V_moge",
+      "V_s",
+      "V_stereo"
+    ],
+    "video": [
+      "V_moge",
+      "V_s",
+      "V_stereo"
+    ],
+    "titles": [
+      "Frame-0 horizontal lengths; absent video bars = merged cluster",
+      "Absolute horizontal length error vs mocap origins"
+    ],
+    "xlabel": "Public validation episode",
+    "heading": "# Pose length confirmation \u2014 Amendment 1",
+    "introduction": [
+      "Counted episodes: {counted_episodes}; measured offsets: {measured_episodes}.",
+      "Mandatory episode 13 stays counted even though its clusters merge. Optional merged episode 2 is excluded."
+    ],
+    "length_header": "| Episode | Counted | Merged | M_o cm | M_c cm | V_moge cm | V_s cm | V_stereo cm | Cluster pixels 0/1 | Stereo valid 0/1 | s |",
+    "length_separator": "|---|---|---|---:|---:|---:|---:|---:|---|---|---:|"
+  }
 }

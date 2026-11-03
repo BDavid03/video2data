@@ -1,0 +1,26 @@
+{
+  "2": {
+    "depth": "outputs/depth/public/episode_000002/20261101T225750.231700Z/run.json",
+    "measure": "outputs/mesh_extents/public/episode_000002/20261101T225804.589153Z-e6d3b35f/run.json"
+  },
+  "13": {
+    "depth": "outputs/depth/public/episode_000013/20261102T163420.539542Z/run.json",
+    "measure": "outputs/mesh_extents/public/episode_000013/20261102T163435.368949Z-06794bce/run.json",
+    "scale": "outputs/pose_insurance/length-confirm/scale-000013-3bff13527fd2/run.json"
+  },
+  "22": {
+    "depth": "outputs/depth/public/episode_000022/20261102T163436.427079Z/run.json",
+    "measure": "outputs/mesh_extents/public/episode_000022/20261102T163445.927917Z-d36d08b3/run.json",
+    "scale": "outputs/pose_insurance/length-confirm/scale-000022-e6a8247dd187/run.json"
+  },
+  "24": {
+    "depth": "outputs/depth/public/episode_000024/20261102T163447.053558Z/run.json",
+    "measure": "outputs/mesh_extents/public/episode_000024/20261102T163458.120337Z-abdb6d9b/run.json",
+    "scale": "outputs/pose_insurance/length-confirm/scale-000024-8b1acd6bcf7c/run.json"
+  },
+  "27": {
+    "depth": "outputs/depth/public/episode_000027/20261101T225805.331133Z/run.json",
+    "measure": "outputs/mesh_extents/public/episode_000027/20261101T225816.131017Z-ebd30c8f/run.json",
+    "scale": "outputs/pose_insurance/length-confirm/scale-000027-3ee303879b16/run.json"
+  }
+}

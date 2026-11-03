@@ -315,3 +315,5 @@ recorded JSON/Markdown artifacts. Earlier shorthand paths are retained with thei
 - `submissions/20261102T0516Z-d1-v4/manifest.json`; `track3/features/mesh_extents/rules-round2.json`; `track3/features/mesh_extents/rules.json`
 
 Additional indexed evidence: `outputs/mesh_eval/rules-round2/job-a-files.txt`; `outputs/mesh_extents/maintenance/20261102T055350Z/round2/summary.md`; `outputs/mesh_extents/round3-job-b/reproduction-v4/`.
+
+R10 video-only kill test: `PYTHONPATH=. CUDA_VISIBLE_DEVICES='' .runtime/linux-cuda/bin/python -B -m track3.features.mesh_extents.profiles_diagnostic --output outputs/mesh_extents/round4-profiles-rerun` (`--verify` rechecks saved arithmetic; the report retains its historical reproduction text).

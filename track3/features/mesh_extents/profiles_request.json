@@ -1,0 +1,87 @@
+{
+  "recipe": {
+    "height_knots": [
+      0.0,
+      0.5,
+      1.0
+    ],
+    "interpolation": "piecewise_linear",
+    "radius_gauge": "arithmetic mean of three shared knot radii equals one; two softmax logits",
+    "frame_scale": "height=98th percentile above local plane; independent fitted radial scale and centre",
+    "height_percentile": 98,
+    "footprint_percentiles": [
+      2,
+      98
+    ],
+    "handle_rule": "PCA long-axis sign from third moment about median; centre at long-axis p2 plus short radius; exclude +/-45 degree sector about positive long axis before fitting or scoring",
+    "handle_half_angle_degrees": 45,
+    "unhandled_rule": "de-ellipse PCA long coordinate by short/long 2-98 percentile span before fitting",
+    "frame_admission": "v4 extents frames_used; finite positive valid depth; successful local ring refit; mask and extents match recorded measurement; >=300 retained points",
+    "minimum_retained_points": 300,
+    "height_range": [
+      0,
+      1
+    ],
+    "loss": "soft_l1",
+    "loss_scale_radius": 0.05,
+    "residual": "signed in-plane radial distance minus fitted scale times interpolated profile, divided by fixed frame reference radius (half short footprint span); equal-frame mean absolute value for evaluation",
+    "fit_points_per_frame": 1500,
+    "fit_sampling": "equal per-frame count=min(1500, smallest frame), uniformly spaced raster-ordered point indices, deterministic",
+    "radius_lower_factor": 0.25,
+    "radius_upper_factor": 2.0,
+    "centre_bounds": "plus/minus one reference radius from provisional body centre in each in-plane coordinate",
+    "logit_bound": 1.5,
+    "max_nfev": 400,
+    "optimizer_tolerance": 1e-08,
+    "split": "frames ordered by split, episode and frame; alternating even/odd positions; each profile predicts opposite subset",
+    "heldout_nuisance": "even raster-ordered retained pixels calibrate centre and radial scale with fixed shared profile; odd pixels scored; constant calibrated identically",
+    "coverage_definition": "fraction of all scored heldout retained body-sector points with absolute radial residual <=0.10 fixed reference radius; no residual-tail filtering",
+    "coverage_tolerance_radius": 0.1,
+    "height_bins": 10,
+    "minimum_bin_points": 20,
+    "minimum_bin_fraction": 0.01,
+    "knot_support_windows": [
+      [
+        0,
+        0.25
+      ],
+      [
+        0.375,
+        0.625
+      ],
+      [
+        0.75,
+        1
+      ]
+    ],
+    "minimum_height_span": 0.6,
+    "minimum_occupied_height_fraction": 0.6,
+    "height_support_definition": "each disjoint subset needs 2-98 percentile height span >=0.60, >=6/10 occupied bins, and all three knot windows supported; occupied means >=max(20,ceil(1% subset points))",
+    "maximum_subset_difference_radius": 0.05,
+    "minimum_residual_reduction": 0.1,
+    "coverage_gate": "equal-frame heldout mean profile coverage >= constant coverage",
+    "wall_radius_fraction": 0.1,
+    "revolve_sections": 64,
+    "bounds_relative_tolerance": 1e-06,
+    "selection_data": "public 42 video overlay and recorded measures, public 39 negative control only; no scan or CD-O data",
+    "choice_policy": "single predeclared recipe; no search or post-result repair; failure drops R10"
+  },
+  "queue": [
+    {
+      "name": "kill-public42",
+      "role": "kill",
+      "object": "white_pot",
+      "runs": [
+        "outputs/mesh_extents/public/episode_000042/20261101T103715.090424Z-d410dfac/run.json"
+      ]
+    },
+    {
+      "name": "control-public39",
+      "role": "negative_control",
+      "object": "mini_dust_pan",
+      "runs": [
+        "outputs/mesh_extents/public/episode_000039/20261101T103712.508161Z-a07ab7a6/run.json"
+      ]
+    }
+  ]
+}

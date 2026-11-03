@@ -165,3 +165,56 @@ def profile_shell(extents: np.ndarray, radii: np.ndarray, handle: str = 'none'):
         body.apply_scale((long / short, 1, 1))
         return body
     return _attach_vessel_handle(body, extents, rim_flat=handle == 'rim_flat')
+
+
+def reconstruct_frame(z, valid, intrinsics, masks, name, plane, original, request,
+                      recipe, admitted, frame_id):
+    """Reconstruct one cached video frame and require its original mask/extent geometry."""
+    from ._geometry import camera_points, table_component, _local_plane, extents
+    handled = name in ('white_pot', 'water_pitcher')
+    shared = sum(m.astype(np.int8) for m in masks.values()) > 1
+    mask = masks[name] & ~shared
+    pts = camera_points(z, intrinsics)
+    ok = valid & np.isfinite(pts).all(-1) & (z > 0)
+    normal, offset = np.array(plane['normal']), plane['offset_m']
+    table = table_component(pts @ normal + offset, ok, request['table_band_m'])
+    _, normal, offset, local = _local_plane(pts, table, mask, normal, offset, request['ring_pixels'])
+    points = pts[mask & ok]
+    geometry = extents(points, points @ normal + offset, normal)
+    error = max(abs(geometry['height_m'] - original['height_m']),
+                float(np.max(np.abs(np.array(geometry['in_plane_m']) - original['in_plane_m']))))
+    equal = len(points) == original['pixels'] and error < 1e-10
+    if not equal:
+        raise ValueError(f'Reconstructed geometry differs from original: {frame_id} error={error}')
+    prepared = prepare_frame(table_coordinates(points, normal, offset), handled, recipe)
+    accept = admitted and local and prepared['retained_points'] >= recipe['minimum_retained_points']
+    diagnostic = {'id': frame_id, 'frame': int(frame_id.rsplit(':', 1)[1]), 'admitted': accept, 'mask_pixels': int(mask.sum()),
+                  'local_plane': bool(local), 'geometry_max_abs_error_m': error,
+                  'table_pixels': int(table.sum()), 'mask_table_overlap': int((mask & table).sum()),
+                  'below_plane_points': int(((points @ normal + offset) < 0).sum()),
+                  **{key: value for key, value in prepared.items() if key != 'points'}}
+    return prepared, diagnostic
+
+
+def saved_checks(document):
+    """Recompute the frozen gate arithmetic and geometry equivalence from saved values."""
+    kill, control = document['results']
+    gate = kill['gate']
+    differences = np.abs(np.array(gate['subset_fits'][0]['radii'])-gate['subset_fits'][1]['radii'])
+    residuals = {model: float(np.mean([row[model]['mean_absolute_residual_radius'] for row in gate['predictions']]))
+                 for model in ('profile', 'constant')}
+    coverage = {model: float(np.mean([row[model]['coverage'] for row in gate['predictions']]))
+                for model in ('profile', 'constant')}
+    reduction = 1-residuals['profile']/residuals['constant']
+    assert np.allclose(differences, gate['knot_differences_radius'], rtol=0, atol=1e-15)
+    assert abs(reduction-gate['residual_reduction']) < 1e-15
+    assert coverage == gate['coverage']
+    assert document['decision'] == 'R10 dropped' and not gate['checks']['a']
+    assert control['fit_performed'] is False
+    frames = [row for result in document['results'] for row in result['frames']]
+    assert len(frames) == 9 and max(row['geometry_max_abs_error_m'] for row in frames) == 0
+    assert all(row['below_plane_points'] == 0 for row in frames)
+    result = dict(geometry_equivalence_frames=len(frames), geometry_max_abs_error_m=0.,
+                  maximum_subset_difference_radius=float(max(differences)), residual_reduction=reduction,
+                  coverage=coverage, candidate_plys=0, fitting_repeated=False)
+    return result

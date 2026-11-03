@@ -1,5 +1,94 @@
 {
-  "episodes": [0, 11, 12, 18, 21, 23, 26, 31],
+  "episodes": [
+    0,
+    11,
+    12,
+    18,
+    21,
+    23,
+    26,
+    31
+  ],
   "source_split": "public",
-  "max_seconds": 600
+  "max_seconds": 600,
+  "groups": {
+    "clean": [
+      11,
+      12,
+      18,
+      21,
+      23
+    ],
+    "merged_or_default": [
+      0,
+      26,
+      31
+    ],
+    "pooled": [
+      0,
+      26,
+      31,
+      11,
+      12,
+      18,
+      21,
+      23
+    ],
+    "changed_six": [
+      11,
+      12,
+      18,
+      21,
+      23,
+      31
+    ]
+  },
+  "video": [
+    "V_inc",
+    "V_moge",
+    "V_stereo",
+    "V_hull",
+    "V_stereo_hull"
+  ],
+  "candidates": [
+    "V_stereo",
+    "V_hull",
+    "V_stereo_hull"
+  ],
+  "default_offset_episodes": [
+    31
+  ],
+  "minimum_pixels": 300,
+  "minimum_gain_cm": 5,
+  "minimum_lower": 4,
+  "presentation": {
+    "ray_errors": true,
+    "quantities": [
+      "M_o",
+      "M_c",
+      "V_inc",
+      "V_moge",
+      "V_stereo",
+      "V_hull",
+      "V_stereo_hull"
+    ],
+    "video": [
+      "V_inc",
+      "V_moge",
+      "V_stereo",
+      "V_hull",
+      "V_stereo_hull"
+    ],
+    "titles": [
+      "Frame-zero horizontal lengths (zero/missing cases detailed in report)",
+      "Absolute horizontal offset-error components vs M_o; slot-0 rigid alignment"
+    ],
+    "xlabel": "Train episode",
+    "heading": "# Train pose length diagnostic",
+    "introduction": [
+      "Frame 0 only; all lengths are horizontal table-plane distances in cm. Public mocap and scans are measurement only."
+    ],
+    "length_header": "| Episode | M_o | M_c | V_inc | V_moge | V_stereo | V_hull | V_stereo_hull |",
+    "length_separator": "|---|---:|---:|---:|---:|---:|---:|---:|"
+  }
 }
