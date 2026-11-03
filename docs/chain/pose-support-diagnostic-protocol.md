@@ -222,3 +222,12 @@ Record reproduction command, hashes, failures, eligibility counts and limitation
 No GPU run, package change, upload or model choice is authorized by this protocol.
 
 ## Amendments
+
+### Amendment 1 (2026-11-03 07:24 UTC, before any array was loaded or offset computed)
+
+The S1 selector named above is wrong: `outputs/pose_insurance/scale/summary.json` stores scenes under
+`episodes.S1` and holds no producer run paths. Select recorded S1 producer runs from
+`outputs/pose_insurance/scale/finished.json`, using `selected` entries with candidate `S1` and an episode in the
+frozen train roster. Admit each completed producer and re-hash its `metrics.json`. Require its scene to equal
+`outputs/pose_insurance/scale/summary.json`, `episodes.S1[episode].scene`. Hash both selector files. Do not resolve
+producers outside the frozen roster. Nothing else changes.
