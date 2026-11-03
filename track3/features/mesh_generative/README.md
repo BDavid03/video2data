@@ -112,3 +112,76 @@ The placeholder file is
 `8545628a8cfc3a23639942f37fbafb0aaebdc5070b3c5038cb0829c9d23eaa9b`.
 The real-URL repack command above must run **after the lead commits the new G2 sources**.
 A dry plan was checked; no real-URL file, commit, push or upload was created by this job.
+
+## G3: automatic frame-zero pot masks
+
+The committed [G3 protocol](../../../docs/chain/mesh-generative-g3-protocol.md) freezes six
+new pot pairs, three recorded-mask controls and every threshold. Run once or resume with:
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. .runtime/linux-cuda/bin/python -m track3.features.mesh_generative g3 > outputs/mesh_generative/g3-handler.log 2>&1
+```
+
+`g3_queue.json` pins the inputs. `.runtime/grounding-dino/` and `.runtime/sam2/` contain
+separate Python 3.10 environments, immutable weights, install records and complete package
+locks. DINO uses revision `a2bb814`, Transformers 4.48.3, the exact prompt
+`white cooking pot.`, box threshold 0.4 and text threshold 0.3. SAM2.1 Hiera-Large uses
+source `2b90b9f5ceec907a1c18123530e92e794ad901a4`, the official checkpoint, a box-only
+prompt and the highest predicted-IoU mask. Both use torch 2.7.1+cu128 / torchvision
+0.22.1+cu128. Optional SAM CUDA extensions, compilation and mask postprocessing are disabled;
+only the largest eight-connected component is retained.
+
+The lid rule runs first. The first control below IoU 0.70 stops the campaign before candidate
+inference, generation or scan scoring. Candidate masks must have 10,000–45,000 pixels,
+at most 10% of their inner boundary within Euclidean distance 2 pixels of the image border
+or remap-invalid pixels, and at least 2,000 observed depth points. Boundaries use
+eight-neighbour erosion. Each surviving pair reuses G2's exact crop, generation worker,
+mesh budget and Sim(3) residual fitting; generated median residual must be at most 1.5 × v4.
+No completed prediction is rerun. Incomplete inference/generation markers refuse retries.
+
+All video-only choices enter `ledger.jsonl`, then immutable `admissions.json`, before any
+new scan score. G2's public 42/pitcher 21 and evaluation 5/8/20 decisions remain intact.
+Development reuses G2's view/seed aggregation and folds, with G3's strict limits and at least
+one newly admitted public pair. Only a PASS builds `g3-packed-check/` from v5's exact PLY
+bytes plus newly admitted evaluation pairs, compares against real-URL v5, and runs the
+existing `mesh_eval.pairs` loop. Numeric packed failure stops before kit preflight.
+
+`outputs/mesh_generative/g3/` contains the input/model/source hashes, frame inputs, masks,
+mask checks, crops, observed clouds, generated meshes, admissions, gate results,
+`summary.md`, `summary.json` and a labelled `comparison.png` for all six candidates.
+`run.json` records wall time and artifact inventories; each GPU subprocess records torch
+peaks and cooperative lease telemetry. Logs sit beside the run directories, outside their
+artifact inventories. The v6 reproduction script refuses unless control, development and
+packed veto all passed. This worker never executes a real-URL pack.
+
+G3 retains G1's rack-failure disclosure and G2's post-pilot object selection: every score is
+development evidence on reused public scans. Existing G1/G2 run records and the v5 script
+remain untouched. The v5 dry repack still works at HEAD; a G2 campaign rerun refuses the
+changed slice source inventory, as intended. V5 itself reproduces at URL commit `b161723`.
+
+Latest G3 result (2026-11-03 UTC): **control PASS; development PASS; packed veto FAIL;
+v5 stands**. Control IoUs were **0.91397899 / 0.74798665 / 0.75204068** (public 42,
+evaluation 5/8). Public 0 and evaluation 1 kept v4 under the lid rule. All four inferred
+candidate masks passed area, border and depth checks. Public 26 and evaluation 6 were
+admitted at residual ratios **1.33446 / 0.96201**; evaluation 3/28 were rejected at
+**1.68157 / 1.56437**. No completed prediction or generation was repeated.
+
+Development equal-object / pair-weighted means were **0.56084957 / 0.61604065 cm**
+(limits **0.56244822 / 0.61972984**), with one newly admitted public pair. The packed
+candidate changed only evaluation pot 6. Exact packed means regressed to
+**0.56702215 / 0.62678221 cm** against v5 **0.56443301 / 0.62080727 cm**. Pot mean
+regressed **0.81727092 → 0.84316233 cm** (+0.02589141); all other object means matched.
+This fails both strict mean gates, despite meeting the 0.15 cm object-regression cap.
+All **35** unchanged production PLY files and **286,720** unchanged packed coordinate
+rows match v5. Kit preflights and real-URL repacking were not run after the numeric veto.
+
+The placeholder is `outputs/mesh_generative/g3-packed-check/track3_meshes_v6_placeholder.parquet`,
+SHA256 `54939f3d5dfd326b18e593e722fb01732f1a41ebdcc2b5ffe1e44abf83e3a481`.
+Final run wall time was **583.00 s**; torch allocation/reservation peaked at
+**4620.69 / 5142 MiB**, with device-wide sampled peak **7058 MiB**. See
+[summary.md](../../../outputs/mesh_generative/g3/summary.md) and
+[comparison.png](../../../outputs/mesh_generative/g3/comparison.png) for every candidate,
+mask measurement, fit ratio, gate and resource row. The sealed `admissions.json` predates
+development scoring. Two preparation-only failures (inherited video provenance and a
+nonzero-frame measurement reference) were corrected before any model inference; their
+logs are preserved under `.runtime/tmp/g3/`.

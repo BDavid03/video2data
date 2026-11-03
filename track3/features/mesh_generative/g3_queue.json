@@ -1,0 +1,119 @@
+{
+  "roster": "upstream/v2d_submission_kit/v2d_submission_kit/data/track_3_evaluation_objects.json",
+  "v4_manifest": "submissions/20261102T0516Z-d1-v4/manifest.json",
+  "development_baseline": "track3/features/mesh_extents/rules-round4.json",
+  "fit": {
+    "surface_samples": 8192,
+    "observed_fit_points": 4096,
+    "seed": 12345,
+    "max_iterations": 40,
+    "threshold": 1e-07,
+    "initialization": "PCA frames with dominant-axis positive signs and proper handedness; RMS-radius scale",
+    "direction": "observed points to sampled mesh surface; inverse places mesh in observed coordinates",
+    "residual": "exact closest triangle over every valid observed mask point; chunks of 64",
+    "reflection": false
+  },
+  "protocol": "docs/chain/mesh-generative-g3-protocol.md",
+  "protocol_commit": "7bc865bb60bbdcd50ac931e239871ba989d470ce",
+  "g2_admissions": "outputs/mesh_generative/g2/admissions.json",
+  "g2_development": "outputs/mesh_generative/g2/development.json",
+  "v5_manifest": "outputs/mesh_generative/g2-real-pack/track3_meshes_v5_final.manifest.json",
+  "v5_veto": "outputs/mesh_generative/g2-packed-check/veto.json",
+  "controls": [
+    {
+      "source_split": "public",
+      "episode": 42,
+      "object": "white_pot",
+      "measurement": "outputs/mesh_extents/public/episode_000042/20261101T150535.525988Z-843fc990/run.json",
+      "reuse_pilot": "outputs/mesh_generative/g1-pilot/white_pot/raw.ply"
+    },
+    {
+      "source_split": "evaluation",
+      "episode": 5,
+      "object": "white_pot",
+      "slot": 0,
+      "measurement": "outputs/mesh_extents/evaluation/episode_000005/20261101T150546.271456Z-c9daeaa6/run.json"
+    },
+    {
+      "source_split": "evaluation",
+      "episode": 8,
+      "object": "white_pot",
+      "slot": 1,
+      "measurement": "outputs/mesh_extents/evaluation/episode_000008/20261101T150554.830417Z-c9dce012/run.json"
+    }
+  ],
+  "pairs": [
+    {
+      "source_split": "public",
+      "episode": 0,
+      "object": "white_pot",
+      "measurement": "outputs/mesh_extents/public/episode_000000/20261101T102057.837211Z-d5106f4e/run.json"
+    },
+    {
+      "source_split": "public",
+      "episode": 26,
+      "object": "white_pot",
+      "measurement": "outputs/mesh_extents/public/episode_000026/20261101T102251.412531Z-e7ed3744/run.json"
+    },
+    {
+      "source_split": "evaluation",
+      "episode": 1,
+      "object": "white_pot",
+      "measurement": "outputs/mesh_extents/evaluation/episode_000001/20261101T100622.518004Z-c49e3a40/run.json",
+      "slot": 0
+    },
+    {
+      "source_split": "evaluation",
+      "episode": 3,
+      "object": "white_pot",
+      "measurement": "outputs/mesh_extents/evaluation/episode_000003/20261101T102441.891613Z-be3be280/run.json",
+      "slot": 0
+    },
+    {
+      "source_split": "evaluation",
+      "episode": 6,
+      "object": "white_pot",
+      "measurement": "outputs/mesh_extents/evaluation/episode_000006/20261101T103724.693338Z-7fe489fb/run.json",
+      "slot": 0
+    },
+    {
+      "source_split": "evaluation",
+      "episode": 28,
+      "object": "white_pot",
+      "measurement": "outputs/mesh_extents/evaluation/episode_000028/20261101T150649.595967Z-af6e54aa/run.json",
+      "slot": 1
+    }
+  ],
+  "detector": {
+    "prompt": "white cooking pot.",
+    "revision": "a2bb814dd30d776dcf7e30523b00659f4f141c71",
+    "box_threshold": 0.4,
+    "text_threshold": 0.3
+  },
+  "segmenter": {
+    "source_revision": "2b90b9f5ceec907a1c18123530e92e794ad901a4",
+    "config": "configs/sam2.1/sam2.1_hiera_l.yaml",
+    "multimask_output": true,
+    "postprocessing": "largest connected component only"
+  },
+  "mask": {
+    "shape": [
+      576,
+      768
+    ],
+    "minimum_pixels": 10000,
+    "maximum_pixels": 45000,
+    "boundary_margin_pixels": 2,
+    "maximum_border_fraction": 0.1,
+    "minimum_observed_points": 2000
+  },
+  "control_minimum_iou": 0.7,
+  "development_limits": {
+    "object_mean_cm": 0.56244822,
+    "pair_mean_cm": 0.61972984
+  },
+  "packed_limits": {
+    "object_mean_cm": 0.56443301,
+    "pair_mean_cm": 0.62080727
+  }
+}
