@@ -7,22 +7,34 @@ pair entries**, v4 scores **0.6534 cm per object / 0.6629 cm per pair**, versus
 v3's **0.7711 / 0.8115 cm**: measured-subset reductions of **15.3% / 18.3%**,
 with nine improved entries, 17 ties and none worse. The ten spoon entries are
 unmeasured; a scan-free silhouette check failed validation. All mesh results are adaptive development estimates on reused scans.
-For static boxes with parked hands, packed **D2 v4** replaces v3's scaled
-MoGe-2 slot-1 offset with direct calibrated-stereo centroid placement, retaining
-slot 0 and applying a frozen clearance expansion or a v3 fallback. On eight
-training episodes with one seed, equal-episode kinematic kit means improve:
-**AUC 0.2690 → 0.2767**, **RPE 35.34 → 29.01 cm**, and
-**MPPE 20.84 → 17.68 cm**. Both success rates remain zero. AUC changes only on
-episode 23; direction errors of **51–130°** persist on four of five changed
-train episodes. The idea and gates followed known train frame-0 errors, so this
-is not independent confirmation. Fresh validation failed because episode 13's
-objects merged; measurable episodes 22/24/27 favoured stereo (**1.14 versus
-7.21 cm** mean offset-length error), and the owner approved T1 despite the
-failure. Public validation 2/13/22/24/27 is spent; no leaderboard score was used.
-Without references, 12/20 leaderboard episodes change and all 12 new policy
-rollouts pass physical checks; the other eight exports are byte-identical to
-v3. These are public-reference train metrics and scored-stage physical checks,
-not leaderboard gains. Main text fits two pages, followed by references on page 3.
+For static boxes with inactive hands, the final **D2 v4** pose file replaces
+v3's scaled MoGe-2 layout with horizontal offsets between calibrated-stereo
+3D mask centroids, keeping the first object fixed. The scorer rigidly aligns
+each simulated world to the first object's initial pose. The method changes
+the second object's offset length and direction; the first object's heading
+is unobserved. On eight training episodes with one seed, equal-episode
+kinematic kit means improve: **AUC 0.2690 → 0.2767**, **RPE 35.34 → 29.01 cm**,
+and **MPPE 20.84 → 17.68 cm**. The SPIDER and ManipTrans success rates
+(SP-SR/MP-SR) remain zero. One episode raises AUC; four changed training
+episodes retain **51–130°** horizontal direction errors and unchanged AUC
+despite lower RPE/MPPE.
+
+The idea and selection criteria followed known training initial-frame errors,
+so the training result is not independent confirmation. A pre-registered
+check on four fresh public validation episodes could not be completed as
+specified because two objects merged in one mask. On the three measurable
+episodes, stereo offset-length error was **1.14 versus 7.21 cm** for scaled
+MoGe-2. We adopted the method despite the incomplete check. Five public
+validation episodes have been examined; no leaderboard score was used.
+One of five changed training episodes also changes the mask used for the
+first object. Public-split stereo calibration is assumed to hold for the
+evaluation videos.
+
+Without reference poses, 12/20 evaluation episodes change. All 12 simulated
+trajectories reproduce their prescribed initial positions within **0.049 cm**
+and drift at most **0.048 cm**; these checks measure simulation consistency,
+not accuracy against reference poses. The other eight episode files are
+byte-identical to v3. Main text fits two pages, followed by references on page 3.
 
 ## Build
 
@@ -72,7 +84,7 @@ stronger magenta. Single-frame IoU is **0.56 box / 0.70 bowl**, labelled
 over three views, distinct from this single-frame comparison.
 
 The retained pose chart keeps all 24 recorded bar heights for centroid/stacking,
-stereo and uniform placement. Episodes 0 and 26 start stacked. Initial errors
+stereo and uniform placement. Two training episodes start stacked. Initial errors
 are measured in the first object's body frame, distinct from Table 2's rollout
 metrics. Stereo and uniform give nearly identical initial errors on all eight
 episodes; their rollout MPPE is **20.84 / 20.80 cm**.
@@ -102,32 +114,38 @@ episodes; their rollout MPPE is **20.84 / 20.80 cm**.
   **0.0069 / 0.0053 cm**, maximum **0.0214 cm** over three kit seeds. These
   quantify surface-sampling variability, not uncertainty on new objects.
 - **Initial placement:** `outputs/pose_insurance/shrink/summary.json`,
-  `episodes[I/S1/G][episode].frame0.offset_error_cm`, for training episodes
-  0, 11, 12, 18, 21, 23, 26 and 31. Rollout aggregates are `means8.I/S1/G`.
+  `episodes[I/S1/G][episode].frame0.offset_error_cm`, for the eight training
+  episodes. Rollout aggregates are `means8.I/S1/G`.
   Stereo scales the second object's horizontal displacement from the first by
   a stereo/MoGe-2 depth ratio: median over jointly valid pixels, then frames.
   Uniform shrinkage uses the mean of those eight stereo factors.
 - **D2 v4 placement:** `docs/chain/pose-stereo-placement-protocol.md`
-  (protocol `f18664c`, Amendment 1 `c7c079b`, both before scoring) fixes T1:
+  (protocol `f18664c`, Amendment 1 `c7c079b`, both before scoring) specifies:
   frame-0 observed-mask centroids with at least 300 valid stereo pixels per
-  object, projected into the table basis. Only slot 1's table-plane offset
+  object, projected into the table basis. Only the second object's horizontal offset
   changes. The smallest feasible expansion gives 1 cm footprint clearance,
   capped at v3's length; missing independent masks/depth or infeasible clearance
-  retains v3. Episode 12 uses an observed slot-0 mask despite v3's default
-  placement, an assignment difference as well as a depth-source change.
+  retains v3. One of five changed training episodes uses an observed mask for
+  the first object despite v3's default placement, changing mask assignment as
+  well as the depth source.
   `outputs/pose_insurance/stereo-placement/summary.json` (`means`) and
-  `summary.md` record the eight-episode S1/T1 metrics, exact S1 reproduction,
-  unchanged controls 39/42, fallbacks 0/26/31 and direction errors. Episode 23's
-  aligned slot-1 error falls from **8.2 to 0.8 cm**, accounting for the AUC gain.
+  `summary.md` record the eight-episode comparison, exact v3 reproduction,
+  two unchanged single-object controls, three training fallbacks and direction
+  errors. In the one episode with an AUC gain, the aligned second-object error
+  falls from **8.2 to 0.8 cm**. Four other changed episodes retain
+  **51–130°** horizontal direction errors and unchanged AUC despite lower
+  RPE/MPPE; horizontal-position threshold flags are not AUC success flags.
 - **Scored-stage checks:**
   `outputs/pose_insurance/stereo-placement-scored/summary.md` records 12 changed
-  episodes out of v3's 13 affected episodes; 30 falls back without a slot-0
-  cluster. Reading `summary.json` (`plans[].stereo_length_m`, `s1_length_m`,
+  episodes out of the 13 previously changed by v3; one retains v3 because
+  the first object has no separate observed mask. Reading `summary.json` (`plans[].stereo_length_m`, `s1_length_m`,
   `clearance.factor`) gives raw offsets **11.24–25.70% shorter** than v3, or
-  **1.80–25.70% shorter** after clearance expansion. All 12 new rollouts pass physical
-  checks: first-pose error **≤0.049 cm**, drift **≤0.048 cm**, against limits
-  **1 cm / 2°**. `docs/chain/SUBMISSION.md` records numerically unchanged
-  slot 0 and eight byte-identical exports, and identifies the packed file:
+  **1.80–25.70% shorter** after clearance expansion. All 12 new simulated
+  trajectories reproduce their prescribed initial positions within
+  **0.049 cm** and drift at most **0.048 cm**, against limits **1 cm / 2°**.
+  These checks measure simulation consistency, not accuracy against reference
+  poses. `docs/chain/SUBMISSION.md` records a numerically unchanged first
+  object and eight byte-identical episode files, and identifies the final file:
   `submissions/20261103T0645Z-d2-v4/track3_poses_v4_final.csv`, SHA-256
   `7221dd3ad8cabed7037d35a61293f1aac26b1dbcfd9498fa617a02791d9f57cf`.
 - **Spoon silhouette proxy:** `outputs/mesh_extents/spoon-proxy/summary.md` (5/8 passing, sweeper Spearman −0.09, mean spoon IoU gain +0.23; not validated for CD-O, v4 unchanged).
@@ -155,9 +173,16 @@ episodes; their rollout MPPE is **20.84 / 20.80 cm**.
   operation on episode triplets. `_geometry.py:extents` supplies in-plane
   2nd–98th-percentile spans and 98th-percentile height. Neither aggregation
   corrects depth-induced proportion errors.
-- **Pose metrics:** the pinned kit's `metric_code/track_3/AUC.py` and `MPPE.py`
-  define the 1–9 cm AUC thresholds, success thresholds, start-pose alignment,
-  and MPPE points at ±5 cm on the three body axes.
+- **Pose metrics:** the pinned kit's `metric_code/track_3/AUC.py` and `MPPE.py`.
+  AUC is the normalised area under the surface-point accuracy curve over
+  **1–9 cm** thresholds. Relative-position error (RPE) compares object-to-object
+  offsets in the first object's frame. Mean per-point error (MPPE) measures six
+  object-fixed points at **±5 cm** along the three body axes. SPIDER success
+  rate (SP-SR) requires mean position/orientation errors **≤10 cm / 0.5 rad**;
+  ManipTrans success rate (MP-SR) requires every object **<3 cm / 30°**.
+  The scorer uses one rigid transform per simulated world to align the first
+  object's initial pose to its reference, rather than aligning each object
+  separately.
 
 A pair entry means one leaderboard (episode, object) slot. Packaged pair means
 average the 26 measured slots equally; object means average within each object,
@@ -184,14 +209,19 @@ spoon regression of about **0.39 cm** would cancel the measured gain over all
 is unknown.
 
 Pose selection was exploratory because the tuning episodes have only one object.
-The T1 idea and train gates followed train diagnostics with known frame-0 errors.
-Its failed fresh confirmation and owner override are recorded in
-`docs/chain/pose-stereo-placement-protocol.md` and `docs/chain/IDEAS.md`, rows 44–45;
-the measurable validation means are descriptive, not a passed confirmation.
-One seed supplies no estimate of between-seed variance. The train scores are
-kinematic kit metrics against public mocap; physical rollout checks on the
-leaderboard episodes establish stability, not pose accuracy against references.
-Stereo uses public-split camera calibration, assumed valid for evaluation videos.
-Evaluation episode 5 keeps earlier placement after training produced non-finite
-optimizer/BatchNorm state (`outputs/pose_insurance/shrink/episode5_diagnosis.json`). Public-scan samples approximate official reference
-surfaces; these diagnostics establish no official pose-score gain or manipulation.
+The idea and selection criteria followed known training initial-frame errors.
+The incomplete four-episode fresh confirmation and subsequent adoption are
+recorded in `docs/chain/pose-stereo-placement-protocol.md` and
+`docs/chain/IDEAS.md`, rows 44–45. The measurable validation means are
+illustrative evidence, not a completed confirmation. One seed supplies no
+estimate of between-seed variance. The training scores are kinematic kit
+metrics against public motion-capture references. Physical checks on the
+evaluation trajectories establish simulation consistency, not accuracy against
+reference poses. One of five changed training episodes also changes the
+first object's mask assignment. The first object's heading is unobserved;
+public-split stereo calibration is assumed to hold for evaluation videos.
+One evaluation episode keeps earlier placement after training produced
+non-finite optimizer/BatchNorm state
+(`outputs/pose_insurance/shrink/episode5_diagnosis.json`). Public-scan samples
+approximate official reference surfaces; these diagnostics establish no
+official pose-score gain or manipulation.

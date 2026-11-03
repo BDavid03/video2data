@@ -15,10 +15,9 @@ all reported mesh scores are adaptive development results on reused scans.
 On ten scanned objects covering 26/36 pair entries, v4 reduces object-mean
 Chamfer distance (CD-O) from 0.7711 to 0.6534\,cm and pair-mean CD-O from
 0.8115 to 0.6629\,cm. The ten spoon entries remain unmeasured.
-On eight public training episodes with one seed, direct stereo slot-1 placement
-(D2 v4) lowers RPE/MPPE from 35.34/20.84 to 29.01/17.68\,cm versus v3;
-AUC rises from 0.2690 to 0.2767. Both success rates remain zero;
-these train-informed results are not independent confirmation.
+On eight training episodes (one seed), stereo pose v4 lowers relative-position/mean
+point errors from 35.34/20.84 to 29.01/17.68\,cm; AUC rises from 0.2690 to 0.2767.
+SP-SR/MP-SR remain zero; evaluation assumes public-split stereo calibration.
 \end{abstract}
 
 \begin{document}
@@ -155,47 +154,53 @@ Figure~\ref{fig:qualitative} shows one frame. This does not establish improved \
 \par\end{samepage}
 
 
+\setlength{\parskip}{0pt}
 \section{Static poses: stereo placement}
-Static boxes have parked hands~\cite{flashchord}. T1 (D2 v4) replaces
-v3's scaled MoGe-2 offset with the frame-0 table-plane offset between
-calibrated-stereo 3D mask centroids (valid depth), keeping slot 0 fixed.
-Frozen $c\geq1$ expands it for 1\,cm footprint clearance, up to v3's length;
-missing independent clusters/depth or infeasible clearance keep v3.
+Stereo initially places only the second box horizontally using calibrated
+3D mask centroids;
+hands stay inactive~\cite{flashchord}. The scorer
+rigidly aligns each world to the first object's initial pose; our correction
+changes the second object's offset length and direction, with first-object
+heading unobserved.
 
 \noindent\begin{minipage}{\columnwidth}
 \centering
 \small
 \setlength{\tabcolsep}{2.5pt}
+\captionsetup{font=footnotesize}
 \begin{tabular}{lrrr}
 \toprule
-Placement & AUC $\uparrow$ & \shortstack{RPE\\cm $\downarrow$} & \shortstack{MPPE\\cm $\downarrow$} \\
+Placement & AUC $\uparrow$ & RPE $\downarrow$ & MPPE $\downarrow$ \\
 \midrule
 Centroids + stacking & 0.2688 & 39.36 & 22.82 \\
 Stereo shrinkage (v3) & 0.2690 & 35.34 & 20.84 \\
 Uniform shrinkage & 0.2690 & 35.28 & 20.80 \\
-\textbf{Stereo slot-1 (v4)} & \textbf{0.2767} & \textbf{29.01} & \textbf{17.68} \\
+\textbf{Stereo placement (v4)} & \textbf{0.2767} & \textbf{29.01} & \textbf{17.68} \\
 \bottomrule
 \end{tabular}
-\captionof{table}{Kinematic kit metrics~\cite{challenge}, public mocap;
-equal-episode means over eight training episodes, one seed.
-Bold: packed D2 v4.}
+\captionof{table}{Equal-episode kit kinematics~\cite{challenge}: eight train episodes,
+one seed, public motion capture. Bold: final pose v4.
+AUC (area under curve): normalised surface-point accuracy, 1--9\,cm.
+RPE (cm): relative-position error. MPPE (cm): mean per-point error
+(six body points, $\pm$5\,cm). Success rates: SP-SR, mean
+position/orientation errors $\leq$10\,cm/0.5\,rad;
+MP-SR, every object $<$3\,cm/30$^\circ$.}
 \label{tab:pose}
 \end{minipage}\par
 
-No train episode worsens. Only 23 raises AUC (slot-1 error 8.2 to 0.8\,cm).
-On 11/12/18/21 (four of five changes), 51--130$^\circ$ direction errors
-miss AUC thresholds despite RPE/MPPE gains.
+No training episode worsens; the AUC gain comes from one episode
+(second-object error 8.2 to 0.8\,cm). Four changed training episodes retain
+51--130$^\circ$ horizontal direction errors; their AUC is unchanged despite lower RPE/MPPE.
+Known first-frame training errors informed the idea and selection: no independent
+confirmation. Fresh pre-registered public confirmation was incomplete:
+one of four episodes had merged object masks; three measurable episodes favoured stereo
+(1.14 versus 7.21\,cm offset-length error). We adopted the method anyway.
+Five public validation episodes were examined; no leaderboard score was used.
 
-Known train frame-0 errors informed the idea and gates: no independent
-confirmation. Fresh public validation failed: 13's masks merged.
-Measurable 22/24/27 favoured stereo (mean offset-length error 1.14 versus
-7.21\,cm); the owner approved T1 anyway. Validation 2/13/22/24/27 is spent;
-no leaderboard score was used.
-
-Without references, 12/20 scored episodes change (12/13 v3-affected;
-30 lacks a slot-0 cluster). All 12 pass physical checks: initial error
-$\leq$0.049\,cm, drift $\leq$0.048\,cm (limits 1\,cm/2$^\circ$).
-Slot 0 is numerically unchanged; eight exports are byte-identical to v3.
+One of five changed training episodes also reassigns the first object's mask.
+Twelve of 20 evaluation episodes change; the rest keep v3. Their new rollouts reproduce prescribed initial
+positions within 0.049\,cm and drift at most 0.048\,cm; these checks measure
+simulation consistency, not accuracy against reference poses.
 
 \paragraph{Conclusion.} V4 improves measured shape scores (Table~\ref{tab:cdo}), without
 isolating a cause. Spoon accuracy and manipulation remain unverified.
