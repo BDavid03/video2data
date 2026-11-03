@@ -1,0 +1,5 @@
+{
+  "episodes": [0, 11, 12, 18, 21, 23, 26, 31, 22, 24, 27],
+  "source_split": "public",
+  "max_seconds": 600
+}

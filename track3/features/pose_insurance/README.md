@@ -519,3 +519,26 @@ export CUDA_VISIBLE_DEVICES='' PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1
 
 `length_prepare.py` (`setup`, `prepare --reuse-only`, `freeze`) replaces the temporary confirmation
 preparation drivers; `--reuse-only` replays the recorded video producers without running anything new.
+
+## Identical-support pose diagnostic
+
+`support_diagnostic.py` follows `docs/chain/pose-support-diagnostic-protocol.md`, including Amendment 1.
+It admits the frozen public producers, compares depth on identical object pixels, separates support and
+episode-12 assignment effects, and fits table depth models with spatially withheld patches. `_support.py`
+contains the pure NumPy calculations. This is descriptive; stereo is not ground-truth depth.
+
+```bash
+PYTHONPATH=. CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 .runtime/linux-cuda/bin/python -B -m track3.features.pose_insurance.support_diagnostic --request track3/features/pose_insurance/support_request.json
+```
+
+Outputs are `outputs/pose_insurance/support-diagnostic/{run.json,summary.md,summary.json,support.png}`,
+with immutable episode records/maps, an append-only ledger, and an immutable report per invocation.
+All eleven episodes completed; the second invocation resumed all eleven with zero new episodes.
+Episodes 0/26/31 retain missing object offsets. Spent validation 22/24/27 is reported separately.
+
+On clean train 11/12/18/21/23, native MoGe minus stereo has a mean whole-support length gap of
+11.8301 cm and a common-support gap of 11.8859 cm. Each net support contribution has magnitude below
+0.472 cm. The frozen depth-dominates reading qualifies on 5/5; the common-support ratio correction on
+4/5; the recorded episode scale on 0/5. Episode 12's assignment change shortens the offset by
+19.8533 cm. Affine depth and affine inverse depth beat the frozen table thresholds on 2/5 and 1/5,
+respectively, so neither table-correction reading qualifies. No candidate or pack follows.
