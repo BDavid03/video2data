@@ -79,8 +79,8 @@ implemented behavior, historical evidence, design assumptions and remaining work
 | Adding or changing a vertical slice | [Feature authoring guide](docs/design/feature-template.md) |
 | Pinned competition rules and source interpretation | [Contract report](reports/contract.md) |
 
-The roadmap replaces the historical milestone schedule in
-[TRACK3-PLAN.md](TRACK3-PLAN.md). Competition dates and rules in historical reports
+The roadmap replaces the historical milestone schedule in the
+[legacy plan](docs/design/legacy-plan.md). Competition dates and rules in historical reports
 are dated source readings, not fresh external verification.
 
 ## Implementation scope

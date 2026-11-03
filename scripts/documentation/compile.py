@@ -17,7 +17,7 @@ SKIP_DIRECTORIES = {
     "datasets", "models", "outputs", "runs", "coursework",
 }
 PRIORITY = (
-    "README.md", "AGENTS.md", "TRACK3-PLAN.md", "docs/design/README.md",
+    "README.md", "AGENTS.md", "docs/design/legacy-plan.md", "docs/design/README.md",
     "docs/design/system-overview.md", "docs/design/artifact-contracts.md",
     "docs/design/operations.md", "docs/design/version1.md",
     "docs/design/entry-tiers.md", "docs/design/decisions.md",

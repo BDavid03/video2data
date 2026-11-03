@@ -125,7 +125,7 @@ without their actual upstream observations. Correspondence visibility is an
 explicit reciprocal-match/positive-triangulation proxy, not full occlusion proof.
 The selection receipt must preserve these missing channels, never replace nulls
 with success. Details and artifact fields are in the
-[stereo slice](../track3/features/stereo_depth/README.md).
+[stereo slice](../../track3/features/stereo_depth/README.md).
 
 Disposition: source implementation delivered; unassessed. New operation flags are
 false and incumbent flags unchanged. No tests, import checks, runtime artifacts,

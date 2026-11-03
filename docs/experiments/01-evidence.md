@@ -79,9 +79,9 @@ winner even when another candidate's historical holdout number looks preferable.
 
 ## Pinned evaluation and producer contract map
 
-Reuse [the kit reading](../reports/contract-evidence/2026-09-30/submission-kit.md),
-[FlashCHORD reading](../reports/contract-evidence/2026-09-30/flashchord-runtime.md)
-and [artifact contracts](../docs/design/artifact-contracts.md).
+Reuse [the kit reading](../../reports/contract-evidence/2026-09-30/submission-kit.md),
+[FlashCHORD reading](../../reports/contract-evidence/2026-09-30/flashchord-runtime.md)
+and [artifact contracts](../design/artifact-contracts.md).
 Kit archive SHA is `a2de2aeed5821c28efedf36ddbe08a7e595f9b7d7298e4be2c07fe4665cf91b3`;
 FlashCHORD commit is `aee95f25ae0943f335d8bb42fa95b6a9acfa266f`.
 Online research never replaces their metric code.

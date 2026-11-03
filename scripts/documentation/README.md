@@ -3,7 +3,8 @@
 `compile.py` combines the project's Markdown documentation into one file using
 only the Python standard library (Python 3.9 or newer). It imports no project
 modules, starts no subprocesses, installs nothing and makes no network requests.
-The script has been added as source only; it has not been run or tested.
+The phase-2 documentation restructure ran this compiler successfully; this
+provides documentation-generation evidence only.
 
 From the project root, the reference invocation is:
 
@@ -22,12 +23,13 @@ Use `python3` instead of `python` where that is the installed interpreter name.
 The script finds the project root relative to its own location, so an absolute
 script invocation also works from another working directory. Relative output
 paths always refer to the project root. No pipeline operation or runtime flag
-is involved. These invocations document usage; none was executed for this change.
+is involved.
 
 ## Included documentation
 
-- All root-level `.md` files, including the README, current instructions and
-  historical project plan.
+- All root-level `.md` files, including the README and current instructions.
+- The historical plan at `docs/design/legacy-plan.md` and the research backlog
+  under `docs/experiments/`, discovered recursively through `docs/`.
 - Markdown recursively under `docs/`, `track3/`, `configs/`, `scripts/` and
   `reports/`, including feature READMEs and historical review snapshots.
 - This script's own documentation.

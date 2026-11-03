@@ -154,7 +154,7 @@
   It does not authorize tests, model execution, simulation or additional packages.
 - Prefer pnpm if dependency installation for JavaScript is later authorized.
 - Sub-agents run on Opus 5.5 or Sonnet 5.5. The user set this on 2026-09-30. It
-  replaces the agent model settings in `TRACK3-PLAN.md`.
+  replaces the agent model settings in `docs/design/legacy-plan.md` (formerly `TRACK3-PLAN.md`).
 - On 2026-10-11 the user approved available GPT sub-agents for this buildout
   because Opus/Sonnet sub-agents were unavailable in the session. This is a
   scoped exception to the preceding model preference.

@@ -2,7 +2,7 @@
 
 Status: baseline opening-39 geometry stages completed in the canonical checkout;
 independent accuracy remains unestablished. See the completed opening records in
-[evidence reconciliation](../../../experiments/01-evidence.md). The runtime flags
+[evidence reconciliation](../../../docs/experiments/01-evidence.md). The runtime flags
 reflect prior episode39 research authorization, not permission to run checks.
 
 This slice turns the calibrated mono stereo pair into metric depth, and uses it to
@@ -111,7 +111,7 @@ identity is the frame index and integer PTS; no other clock is read.
 
 [anchor-comparison.json](anchor-comparison.json) is a bounded **research design**,
 not a CLI request. Its proposed independent support and comparisons are described
-in [item04](../../../experiments/04-metric-anchor.md); no comparison ran here.
+in [item04](../../../docs/experiments/04-metric-anchor.md); no comparison ran here.
 
 `runtime.json` retains the prior `rectify_authorized`, `generate_authorized` and
 `anchor_authorized` state for episode39. New research flags are false. Request files name the episode, frame range,

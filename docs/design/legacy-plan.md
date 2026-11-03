@@ -1,12 +1,12 @@
 # Track 3 Egocentric: local execution plan
 
 Prepared 2026-09-24. Project root: `Z:\hugging-face\video2data`.
-Compute constraint: existing local hardware only. Implementation of the first batch began on 2026-09-24; see [current execution evidence and blockers](reports/implementation-status.md). The original planning baseline below predates implementation. The initial foundation batch installed no production dependencies or weights; a synthetic CUDA runtime smoke ran before the no-testing direction. On 2026-09-25, the user approved the bounded MoGe2 installation recorded under `reports/installation/moge-20260925/`.
+Compute constraint: existing local hardware only. Implementation of the first batch began on 2026-09-24; see [current execution evidence and blockers](../../reports/implementation-status.md). The original planning baseline below predates implementation. The initial foundation batch installed no production dependencies or weights; a synthetic CUDA runtime smoke ran before the no-testing direction. On 2026-09-25, the user approved the bounded MoGe2 installation recorded under `reports/installation/moge-20260925/`.
 
 **Revision note, 2026-09-30.** The organisers published the Track 3 contract on
-2026-09-29. It is recorded in [reports/contract.md](reports/contract.md). The
-design that follows from it is in [docs/design](docs/design/README.md), and the
-[roadmap](docs/design/roadmap.md) replaces the milestone dates below. This
+2026-09-29. It is recorded in [reports/contract.md](../../reports/contract.md). The
+design that follows from it is in [docs/design](README.md), and the
+[roadmap](roadmap.md) replaces the milestone dates below. This
 document remains as the original plan and the record of the first batch. Where it
 says the evaluator, embodiment or submission format is unknown, the contract
 report now has the answer. Candidate components it names, such as Isaac Lab for
@@ -123,7 +123,7 @@ Exit criteria: official validator succeeds, all required episodes are included, 
 
 ```text
 Z:\hugging-face\video2data\
-  TRACK3-PLAN.md
+  docs/design/legacy-plan.md
   datasets--nvidia--video_to_data_challenge\  existing input cache
   upstream\video_to_data\                   pinned source checkout
   track3\                                   our Python adapters and pipeline
@@ -152,7 +152,7 @@ The first implementation batch is: create the project layout and manifests; pin 
 Sonnet 5.5. The Astra model settings and the Codex session limits below describe
 the 2026-09-24 session and no longer apply. The assignment table remains as a
 record of how the work was divided; ownership now follows the feature slices in
-[docs/design/README.md](docs/design/README.md). Current practice: Opus for design,
+[docs/design/README.md](README.md). Current practice: Opus for design,
 source analysis and review; Sonnet for bounded lookups and mechanical edits; every
 brief repeats the no-testing rule and names the only paths the agent may write.
 

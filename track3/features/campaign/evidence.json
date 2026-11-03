@@ -24,7 +24,7 @@
   ],
   "dispositions": [
     {"item": 1, "approaches": [
-      {"name": "Existing bounded/expanded campaign, freeze and pinned evaluation-contract reconciliation", "status": "investigated", "reason": "Reuse experiments/01-evidence.md; exact historical identities above, no producers restarted", "evidence": []}
+      {"name": "Existing bounded/expanded campaign, freeze and pinned evaluation-contract reconciliation", "status": "investigated", "reason": "Reuse docs/experiments/01-evidence.md; exact historical identities above, no producers restarted", "evidence": []}
     ], "blockers": []},
     {"item": 2, "approaches": [
       {"name": "Teacher agreement, reserved stereo/unused-view geometry, label diagnostics and achieved-outcome channel separation", "status": "implemented", "reason": "Source/specification only; no independent geometric report executed", "evidence": []},

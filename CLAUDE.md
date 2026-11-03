@@ -93,4 +93,6 @@ measured depth; say so in any write-up.
 Other slices (object masks/mesh/pose, hands, scene assembly, retargeting, policy, campaign,
 submission, diagnostics) follow the same request/gate/run.json pattern; most are implemented
 but unrun. Design references: `docs/design/README.md` (feature directory),
-`artifact-contracts.md`, `feature-template.md`.
+`artifact-contracts.md`, `feature-template.md`. The historical plan is
+`docs/design/legacy-plan.md`; the ordered research backlog is
+`docs/experiments/README.md`.

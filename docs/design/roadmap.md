@@ -2,7 +2,8 @@
 
 The target remains **full complete version1**. This roadmap is dependency-based,
 as of 5 October 2026; it makes no unmeasured runtime estimates or new deadline
-promises. Historical milestone dates in `TRACK3-PLAN.md` are background. The
+promises. Historical milestone dates in [the legacy plan](legacy-plan.md) are
+background. The
 [delivery ledger](version1.md) is the requirement-by-requirement authority.
 
 ## Current position

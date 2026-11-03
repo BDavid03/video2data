@@ -50,7 +50,7 @@ averages objects. Use the pinned kit, not a similarly named runtime metric.
 ## Concrete proposed protocol
 
 The executable boundary and exact staged budgets are documented in
-[the feature-owned protocol](../track3/features/policy_training/research-protocol.md).
+[the feature-owned protocol](../../track3/features/policy_training/research-protocol.md).
 This is a research proposal, not authorization or a new runtime configuration.
 
 - Episodes 39/42 only; seeds 31 initially, 47/73 only after the feasibility stage.

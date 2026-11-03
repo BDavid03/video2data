@@ -35,7 +35,7 @@ and production scale application remain unchanged. Mask provenance is explicit;
 mask exclusion alone does not prove static support. This improvement exposes
 limits without selecting a new scale estimator on consumed holdout evidence.
 
-The source-owned [comparison request](../track3/features/stereo_depth/anchor-comparison.json)
+The source-owned [comparison request](../../track3/features/stereo_depth/anchor-comparison.json)
 is explicitly **not executable**. It fixes episodes 39/42, ≤16 sample centres
 each, side 384, 20 CPU minutes and 2 GiB outputs, fitting-support holdback,
 coverage/strata, stopping rules and item-11 promotion criteria. Resolution differs

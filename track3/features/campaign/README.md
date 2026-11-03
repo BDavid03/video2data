@@ -43,7 +43,7 @@ only explicit allowlisted metadata, never model/label/prediction arrays, and
 start no producer. New receipts require canonical Z: storage. Exact named
 historical hashes remain historical; source edits never revise old identities.
 
-See [the source build record](../../../experiments/16-freeze-build.md) for
+See [the source build record](../../../docs/experiments/16-freeze-build.md) for
 request fields, role admission, choice/ancestor constraints and explicit limits.
 Freeze requests require one coherent episode chain, exact source-bound choices,
 independent tuning support on39/42 and export metadata attachments. Missing

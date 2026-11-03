@@ -89,7 +89,7 @@ and retain metric units/alignment/point-set identity. Reconstruction self-score
 is teacher-like agreement, not independent achieved-task ground truth.
 
 No runtime evidence was produced. See
-[item 13](../../../experiments/13-achieved-behaviour.md) for remaining blockers.
+[item 13](../../../docs/experiments/13-achieved-behaviour.md) for remaining blockers.
 
 ## Source build and immutable planning boundary
 

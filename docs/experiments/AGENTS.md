@@ -1,6 +1,6 @@
 # Agent handoff for the research backlog
 
-Read the repository-root `AGENTS.md` first, then `experiments/README.md`.
+Read the repository-root `AGENTS.md` first, then `docs/experiments/README.md`.
 This file organises work; it grants no additional execution permissions.
 
 - Work through the numbered queue in `README.md` in order. Start with the first

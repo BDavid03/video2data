@@ -1,12 +1,12 @@
 # Learning experiments
 
-The subsequent ordered [research backlog](../../../experiments/README.md) reuses
+The subsequent ordered [research backlog](../../../docs/experiments/README.md) reuses
 these completed runs. Its source-only changes add per-pixel `member_count`,
 `effective_member_count` and `log_depth_std` to **future** persisted ensemble
 artifacts. They do not change weights or depth aggregation. Disagreement is
 uncalibrated, is NaN with fewer than two supported positive-weight direct parents,
 and counts parents rather than independent models. Existing artifacts are
-unchanged. No new fit, export, score or check ran; [item11](../../../experiments/11-selection.md)
+unchanged. No new fit, export, score or check ran; [item11](../../../docs/experiments/11-selection.md)
 specifies prospective coverage/selection rules without consumed-holdout reuse.
 
 Status on 18 October 2026: the expanded research campaign **completed** in the

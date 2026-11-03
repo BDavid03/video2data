@@ -2,8 +2,8 @@
 
 Status: the bounded opening-39 camera stage completed in the canonical checkout;
 independent accuracy and full-clip reliability remain unestablished. See the
-[evidence inventory](../../../experiments/01-evidence.md) and
-[camera/depth challenger dispositions](../../../experiments/05-camera-depth.md).
+[evidence inventory](../../../docs/experiments/01-evidence.md) and
+[camera/depth challenger dispositions](../../../docs/experiments/05-camera-depth.md).
 No new camera execution or checks accompanied this backlog review.
 
 The camera is mounted on the demonstrator's head and moves throughout every clip.

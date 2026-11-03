@@ -45,7 +45,7 @@ Online main branches are research context, not replacements for pinned code.
 ## Matched comparison and limitations
 
 The exact objective keys and staged resource ceiling are in
-[policy training's protocol](../track3/features/policy_training/research-protocol.md).
+[policy training's protocol](../../track3/features/policy_training/research-protocol.md).
 Keep reconstruction, object assets, support, reference timing, policy architecture,
 seed, replay, training steps and checkpoint rule identical. Compare achieved
 trajectories using the pinned official kit; do not compare only retargeted joints.

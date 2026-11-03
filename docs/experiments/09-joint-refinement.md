@@ -3,7 +3,7 @@
 Status: concrete preparation/refinement source handlers implemented, disabled and
 unrun; completed admitted residual inputs and independent evidence remain absent.
 Owner: scene_assembly. See the build update below and source-owned
-[design record](../track3/features/scene_assembly/refinement-design.json).
+[design record](../../track3/features/scene_assembly/refinement-design.json).
 No dependency, run or test was introduced.
 
 Reuse existing `assemble.py`, `_geometry.py`, `_hands.py`, `_contacts.py` and

@@ -92,3 +92,10 @@ are not proven tolerances. This documentation update ran no project operations.
 The core design pages were rebuilt from readable source and feature documentation
 after their files were found to contain no readable text. This set describes the
 current design; it does not claim to recover the original decision history.
+
+## Historical planning
+
+The [legacy plan](legacy-plan.md) records the original execution milestones. The
+[research backlog](../experiments/README.md) records the ordered experiment plans
+and their implementation evidence. Current authorizations remain in the root
+[AGENTS.md](../../AGENTS.md).
