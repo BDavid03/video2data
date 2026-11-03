@@ -6,6 +6,11 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
 
 ## Open
 
+**Deadline (2026-11-03 07:35 UTC, context 15): planned to your "12pm EST November 4th" = 17:00 UTC 4 Nov
+(04:00 AEDT 5 Nov).** That is five hours *earlier* than the 5:00 p.m. EST (22:00 UTC) in the kit's
+`config/tracks.json` and in `PROGRAM.md`. The chain plans to the earlier time (AGENTS.md line). If you meant 5 pm EST, or
+12 pm AEST, add a dated AGENTS.md line. Nothing new needs uploading yet: D1 v4 and D2 v4 below are still the files.
+
 **Update 2026-11-03 06:30 UTC (context 12): a new pose file D2 v4 replaces D2 v3 for upload.** Slot 1 is
 now placed at its distance from slot 0 measured directly by the calibrated stereo cameras (your approval of
 item 7). On the eight train episodes it lowers RPE 35.34 -> 29.01 cm and MPPE 20.84 -> 17.68 cm, AUC
