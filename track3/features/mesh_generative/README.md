@@ -185,3 +185,39 @@ mask measurement, fit ratio, gate and resource row. The sealed `admissions.json`
 development scoring. Two preparation-only failures (inherited video provenance and a
 nonzero-frame measurement reference) were corrected before any model inference; their
 logs are preserved under `.runtime/tmp/g3/`.
+## Post-hoc shape insights
+
+Run `.runtime/linux-cuda/bin/python -B -m track3.features.mesh_generative insights`
+from the checkout with `PYTHONPATH=.`. The separate `insights_authorized` gate enables
+the fixed `insights_queue.json`: all nine previously generated pot/pitcher views,
+plus four additional seeds for public pitcher 21, public pot 42 and evaluation pot 5.
+The original seed 12345 is reused. Crops, weights, preprocessing, 30 steps,
+octree 380, mesh budgeting and Sim(3) fitting remain fixed.
+
+`outputs/mesh_generative/insights/` holds a resumable `ledger.jsonl`, hashed
+`run.json`, per-seed raw meshes, kit CD-O scores, two labelled PNGs and
+`summary.md` / `summary.json`. Public views use the three recorded development
+scoring seeds; evaluation views use their recorded packed episode/slot seed.
+Completed trials are skipped; interrupted generations refuse automatic rerolls.
+The queue permits twelve new generations and a two-hour execution budget.
+
+This is a post-hoc diagnostic on reused public scans, with one scan per object
+and pilot-selected objects. Scores never select a new seed or change an admission,
+gate or pack. Original campaigns and every shipped v5 production mesh are hashed
+before and after. Border contact is measured on the original input mask; handle
+visibility uses recorded assignment notes because no isolated handle mask exists.
+Results and interpretation are in `summary.md` and
+`docs/chain/mesh-generative-outcome.md`.
+
+Latest result: 21 diagnostic rows (nine original shapes, twelve new generations).
+Admission ratio versus CD-O change has Spearman rho 0.38333 (n=9); it is not a
+reliable predictor here. Admitting every generated evaluation shape would give
+0.63251184 cm pair-weighted / 0.56950499 cm equal-object, versus shipped v5
+0.62080727 / 0.56443301 cm. Admission reduces the counterfactual mean but still
+passes the harmful G3 pot-6 shape. Generation-seed CD-O sample SDs are
+0.09122 / 0.56984 / 0.33492 cm for public pitcher 21 / public pot 42 /
+evaluation pot 5. Pooled pot seed variance is 7.49 times the variance across
+seven original pot views; this is descriptive, not a causal fraction explained.
+The campaign took 991.95 s; peak torch allocation/reservation was
+4620.69 / 5142 MiB, sampled device use 7142 MiB. All 255 protected historical
+hashes, including 36 shipped PLYs and the v5 parquet, matched before and after.

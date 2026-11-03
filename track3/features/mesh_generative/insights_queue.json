@@ -1,0 +1,11 @@
+{
+  "disclosure": "Post-hoc diagnostics on reused public scans; no model selection, gate or pack changes.",
+  "admissions": "outputs/mesh_generative/g3/admissions.json",
+  "fit_queue": "track3/features/mesh_generative/g2_queue.json",
+  "packed_scores": "outputs/mesh_generative/g2-packed-check/pairs/summary.json",
+  "v5_manifest": "outputs/mesh_generative/g2-real-pack/track3_meshes_v5_final.manifest.json",
+  "generation_seeds": [12346, 12347, 12348, 12349],
+  "seed_crops": ["public-000021-water_pitcher", "public-000042-white_pot", "evaluation-000005-white_pot"],
+  "max_generations": 12,
+  "time_budget_seconds": 7200
+}

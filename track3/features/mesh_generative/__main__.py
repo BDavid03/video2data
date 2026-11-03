@@ -4,10 +4,13 @@ import argparse
 from .pilot import PilotRequest, pilot, smoke
 
 parser = argparse.ArgumentParser()
-parser.add_argument('operation', choices=('pilot','smoke','g2','g3'))
+parser.add_argument('operation', choices=('pilot','smoke','g2','g3','insights'))
 parser.add_argument('--request', default='track3/features/mesh_generative/request.json')
 args = parser.parse_args()
-if args.operation == 'g3':
+if args.operation == 'insights':
+    from .insights import run
+    print(run())
+elif args.operation == 'g3':
     from .g3 import run
     print(run())
 elif args.operation == 'g2':

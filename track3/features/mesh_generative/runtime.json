@@ -5,6 +5,7 @@
     "validation_authorized": true,
     "g2_authorized": true,
     "g3_authorized": true,
+    "insights_authorized": true,
     "evaluation_authorized": true
   },
   "authorized_episode_indices": {
