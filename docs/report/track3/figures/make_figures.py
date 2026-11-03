@@ -12,20 +12,13 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import cv2
 import numpy as np
-import trimesh
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 SUMMARY = ROOT / "outputs/mesh_eval/rules/summary.json"
 POSE_SHRINK = ROOT / "outputs/pose_insurance/shrink/summary.json"
 SCORES = ROOT / "outputs/mesh_eval/pairs/mesh-round3-veto/summary.json"
-BUILD = ROOT / "outputs/mesh_extents/build/20261102T051416.149421Z-f377e0a1"
-PREVIOUS_BUILD = ROOT / "outputs/mesh_extents/build/20261102T031152.089350Z-ea88a295"
-SCANS = ROOT / ("datasets--nvidia--video_to_data_challenge/snapshots/"
-                "5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh")
-PROXY_LEDGER = ROOT / "outputs/mesh_extents/spoon-proxy/ledger.jsonl"
-PROXY_IDENTITY = "3c865ba6dd91e9436badacb858eabacb10e08abce1342ed92f52d12b859cb54b"
+GENERATIVE = ROOT / "outputs/mesh_generative/g1-pilot"
 TARGET = Path(__file__).with_name("d1-v4-objects.pdf")
 BLUE = "#0072B2"
 ORANGE = "#D55E00"
@@ -201,103 +194,70 @@ def draw_mesh(ax, vertices: np.ndarray, faces: np.ndarray, colour: str) -> None:
     surface.set_clip_on(False)
     ax.add_collection3d(surface)
     ax.set(xlim=(-0.55, 0.55), ylim=(-0.55, 0.55), zlim=(-0.55, 0.55))
-    ax.set_box_aspect((1, 1, 1), zoom=1.85)
+    ax.set_box_aspect((1, 1, 1), zoom=1.45)
     ax.set_proj_type("ortho")
     ax.view_init(elev=40, azim=-65)
     ax.set_axis_off()
 
 
-def restyle_overlay(rgb: np.ndarray, overlay: np.ndarray) -> np.ndarray:
-    """Restyle the recorded mask and outline without changing their geometry."""
-    source = np.rint(rgb[..., :3]*255).astype(np.uint8)
-    saved = np.rint(overlay[..., :3]*255).astype(np.uint8)
-    observed = np.all(saved == (source*0.5 + [0, 127, 0]).astype(np.uint8), axis=-1)
-    outline = np.all(saved == [255, 0, 255], axis=-1)
-    image = source.astype(float)/255
-    image[observed] = 0.70*image[observed] + 0.30*np.array([0, 0.8, 0])
-    outline = cv2.dilate(outline.astype(np.uint8), np.ones((3, 3), np.uint8)).astype(bool)
-    image[outline] = [0.82, 0, 0.65]
-    return image
-
-
-def qualitative_panel(rows: list[dict], spoon: list[dict]) -> plt.Figure:
-    """Show matched mesh views and two recorded, identically cropped spoon overlays."""
+def qualitative_panel(rows: list[dict]) -> plt.Figure:
+    """Show the two fixed G1/G2 development examples, with independent display scales."""
     plt.rcParams.update({"font.size": 9, "pdf.fonttype": 42})
-    fig = plt.figure(figsize=(3.18, 2.85))
-    for j, title in enumerate(("v3 mesh", "v4 mesh", "Public scan")):
-        fig.text(0.25 + j*0.30, 0.98, title, ha="center", va="top",
-                 fontsize=8.5, weight="bold")
+    fig = plt.figure(figsize=(3.18, 1.85))
+    for j, title in enumerate(("Frame-0 crop", "Generated", "v4", "Scan")):
+        fig.text(0.17 + j*0.235, 0.99, title, ha="center", va="top",
+                 fontsize=7.5, weight="bold")
     for i, row in enumerate(rows):
-        bottom = 0.65 - i*0.27
-        fig.text(0.035, bottom+0.13, LABELS[row["name"]], rotation=90,
-                 ha="center", va="center", fontsize=8.5, weight="bold")
-        for j, key, colour in ((0, "previous", "#B5B5B5"),
-                               (1, "candidate", "#B5B5B5"), (2, "scan", "#B5B5B5")):
-            ax = fig.add_axes((0.10+j*0.30, bottom, 0.30, 0.26), projection="3d")
-            draw_mesh(ax, *row[key], colour)
-            if key == "candidate":
-                label, point, text = (
-                    ("compartment", (0.465, 0.83), (0.55, 0.915)) if i == 0
-                    else ("grip", (0.61, 0.45), (0.55, 0.39))
-                )
-                ax.annotate(label, xy=point, xytext=text,
-                            xycoords=fig.transFigure, textcoords=fig.transFigure,
-                            ha="center", va="center", fontsize=8, annotation_clip=False,
-                            arrowprops={"arrowstyle": "-", "color": "#444444", "lw": 0.6})
-    fig.text(0.5, 0.33, "Spoon: evaluation 15, single-frame IoU", ha="center",
-             va="center", fontsize=8.5, weight="bold")
-    for j, row in enumerate(spoon):
-        ax = fig.add_axes((0.03+j*0.50, 0.13, 0.44, 0.16))
+        bottom = 0.51 - i*0.44
+        fig.text(0.015, bottom+0.20, row["label"], rotation=90,
+                 ha="center", va="center", fontsize=8, weight="bold")
+        ax = fig.add_axes((0.055, bottom, 0.235, 0.40))
         ax.imshow(row["crop"])
         ax.set_axis_off()
-        fig.text(0.25+j*0.50, 0.105, f"{row['label']}: {row['iou']:.2f}",
-                 ha="center", va="top", fontsize=8.5)
-    fig.text(0.5, 0.008, "IoU is not a validated CD-O proxy", ha="center",
-             va="bottom", fontsize=8.5, weight="bold")
+        for j, key in enumerate(("generated", "v4", "scan"), 1):
+            ax = fig.add_axes((0.055+j*0.235, bottom, 0.235, 0.40), projection="3d")
+            draw_mesh(ax, *row[key], "#B5B5B5")
     return fig
 
 
 def qualitative_chart(preview: Path | None, output_dir: Path = TARGET.parent) -> None:
-    """Load only the two previously illustrated scans and saved spoon trial overlays."""
-    objects = json.loads((BUILD / "objects.json").read_text())["objects"]
-    previous = json.loads((PREVIOUS_BUILD / "objects.json").read_text())["objects"]
-    # Fixed display-only rotation used by the earlier qualitative figure.
-    scan_rotation = np.array([[0, 0, 1], [0, -1, 0], [1, 0, 0]])
+    """Read frozen crops and budgeted meshes; perform no generation, fitting or scoring."""
+    # The public-21 pitcher and tuning-42 pot are the pilot shapes reused by G2.
+    # Match the recorded pilot's display-only Y-up to Z-up rotation for generation.
+    generated_rotation = np.array([[1, 0, 0], [0, 0, -1], [0, 1, 0]])
+    # Fixed display rotations expose each scan's opening and handle, independently
+    # of generation and scoring; no geometric registration or score-based fitting.
+    scan_rotations = {
+        "water_pitcher": np.array([[0, 1, 0], [-1, 0, 0], [0, 0, 1]]),
+        "white_pot": np.array([[0, 0, 1], [0, -1, 0], [1, 0, 0]]),
+    }
     rows = []
-    for name in ("plastic_dish_rack", "mini_dust_pan"):
-        row = {"name": name}
-        for key, path, rotation in (
-            ("previous", PREVIOUS_BUILD / previous[name]["file"], np.eye(3)),
-            ("candidate", BUILD / objects[name]["file"], np.eye(3)),
-            ("scan", SCANS / name / f"{name}.glb", scan_rotation),
-        ):
-            mesh = trimesh.load(path, force="mesh")
-            row[key] = (normalised_vertices(mesh.vertices, rotation), mesh.faces)
+    for name, label, episode in (("water_pitcher", "Pitcher", 21), ("white_pot", "Pot", 42)):
+        directory = GENERATIVE / name
+        row = {"label": label, "crop": plt.imread(directory / "crop.png")}
+        with np.load(directory / "scores.npz", allow_pickle=False) as arrays:
+            for key, prefix, rotation in (
+                ("generated", "", generated_rotation),
+                ("v4", "v4_", np.eye(3)),
+                ("scan", "scan_", scan_rotations[name]),
+            ):
+                vertices, faces = arrays[prefix+"vertices"], arrays[prefix+"faces"].astype(int)
+                triangles = vertices[faces]
+                # Kit budgets may include degenerate padding: omit only zero-area faces.
+                valid = np.linalg.norm(np.cross(triangles[:, 1]-triangles[:, 0],
+                                                triangles[:, 2]-triangles[:, 0]), axis=1) > 0
+                faces = faces[valid]
+                # Ignore unused padding vertices when normalising display bounds.
+                used, remapped = np.unique(faces, return_inverse=True)
+                row[key] = (normalised_vertices(vertices[used], rotation), remapped.reshape(-1, 3))
         rows.append(row)
-    trials = [json.loads(line) for line in PROXY_LEDGER.read_text().splitlines()]
-    trials = [row for row in trials if row["frozen_identity"] == PROXY_IDENTITY
-              and row["view"] == "evaluation-000015-wooden_spoon"]
-    assert len(trials) == 2
-    recorded = {}
-    for row in trials:
-        run_path = ROOT / row["run"]
-        run = json.loads(run_path.read_text())
-        result = json.loads(run_path.with_name("result.json").read_text())
-        assert result["iou"] == row["iou"]
-        recorded[run["request"]["candidate"]["label"]] = (row, run, result)
-    spoon = []
-    for label, candidate_label in (("v3 box", "v3_box"), ("v4 bowl", "v4_bowl")):
-        row, run, result = recorded[candidate_label]
-        overlay = plt.imread(ROOT / row["overlay"])
-        rgb = plt.imread(ROOT / run["request"]["view"]["overlay"])[:, :overlay.shape[1]]
-        # Identical display crop in both 768x576 overlays; includes the whole spoon.
-        crop = restyle_overlay(rgb[442:535, 300:610], overlay[442:535, 300:610])
-        spoon.append({"label": label, "iou": result["iou"], "crop": crop})
-        print(json.dumps({"label": label, "iou": result["iou"], "overlay": row["overlay"],
-                          "crop_xyxy": [300, 442, 610, 535]}))
-    fig = qualitative_panel(rows, spoon)
+        print(json.dumps({"object": name, "public_episode": episode,
+                          "crop": str((directory / "crop.png").relative_to(ROOT)),
+                          "meshes": str((directory / "scores.npz").relative_to(ROOT))}))
+    fig = qualitative_panel(rows)
+    # Keep the existing build command and asset name; Figure 2 now describes v5.
     target = output_dir / "d1-v4-qualitative.pdf"
-    fig.savefig(target, dpi=300, metadata={"Title": "Matched mesh views and unvalidated spoon silhouette check",
+    fig.savefig(target, dpi=300, metadata={"Title": "G2 development crops, pretrained shapes, v4 and public scans",
                                          "Author": "", "Creator": "", "CreationDate": None,
                                          "ModDate": None})
     if preview:
@@ -310,7 +270,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--bars", action="store_true", help="draw the legacy mesh score bars")
     parser.add_argument("--pose-offsets", action="store_true", help="draw initial position errors")
-    parser.add_argument("--qualitative", action="store_true", help="draw mesh views and saved spoon overlays")
+    parser.add_argument("--qualitative", action="store_true", help="draw recorded pitcher/pot crops, generated meshes, v4 and scans")
     parser.add_argument("--preview", type=Path, help="also save the included figure as a PNG")
     parser.add_argument("--output-dir", type=Path, default=TARGET.parent,
                         help="write figure PDFs here instead of beside this script")
