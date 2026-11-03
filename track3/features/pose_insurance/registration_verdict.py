@@ -20,23 +20,28 @@ SOURCES = (*CODE_FILES, 'track3/features/pose_insurance/registration_verdict.py'
 
 
 def frozen_context(queue: dict, record: dict) -> tuple:
-    """Admit pinned method, protocol and evaluation roster before loading results."""
-    for key in ('method', 'protocol', 'evaluation_queue'):
+    """Admit the pinned method, protocol, verdict rules and evaluation roster."""
+    if {'pairs', 'mandatory_pairs', 'pair_thresholds', 'up_thresholds'} & queue.keys():
+        raise ValueError('Verdict rules belong exclusively in the pinned spec')
+    for key in ('method', 'protocol', 'evaluation_queue', 'verdict_spec'):
         checked_entry(queue[key], record)
     method = read_json(queue['method']['path'])
     evaluation = read_json(queue['evaluation_queue']['path'])
+    spec = read_json(queue['verdict_spec']['path'])
+    if spec['protocol'] != queue['protocol']:
+        raise PermissionError('Verdict spec cites a different protocol')
     current = {r['path']: r['sha256'] for r in record['sources']}
     if any(current.get(path) != digest for path, digest in method['code_sha256'].items()):
         raise PermissionError('Frozen HR2 source hashes differ')
     if queue['roster'] != method['evaluation_slots'] or queue['roster'] != evaluation['trials']:
         raise PermissionError('Verdict roster differs from the frozen evaluation roster')
     slots = {(r['episode'], r['slot']) for r in queue['roster']}
-    episodes = [r['episode'] for r in queue['pairs']]
-    if (len(set(episodes)) != len(episodes) or not set(queue['mandatory_pairs']) <= set(episodes)
+    episodes = [r['episode'] for r in spec['pairs']]
+    if (len(set(episodes)) != len(episodes) or not set(spec['mandatory_pairs']) <= set(episodes)
             or any(len(p['slots']) != 2 or len(set(p['slots'])) != 2
-                   or any((p['episode'], s) not in slots for s in p['slots']) for p in queue['pairs'])):
+                   or any((p['episode'], s) not in slots for s in p['slots']) for p in spec['pairs'])):
         raise ValueError('Pair panel must name distinct roster slots and contain mandatory pairs')
-    return method, evaluation
+    return method, evaluation, spec
 
 
 def admit_run(entry: dict, kind: str, record: dict, provenance: str) -> tuple:
@@ -83,12 +88,12 @@ def saved_panel(queue: dict, evaluation: dict, method: dict, record: dict) -> tu
     return summary['predictions'], error_data, errors
 
 
-def load_references(queue: dict, predictions: list, errors: tuple, record: dict) -> dict:
+def load_references(spec: dict, predictions: list, errors: tuple, record: dict) -> dict:
     """Read only the configured pairs' label files after checking their historical hashes."""
     from .placement_diagnostic import baseline_module, label_paths
     by_slot = {(r['episode'], r['slot']): r for r in predictions}
     references = {}
-    for pair in queue['pairs']:
+    for pair in spec['pairs']:
         episode = pair['episode']
         for path in label_paths(episode):
             relative = str(path.relative_to(ROOT))
@@ -102,13 +107,24 @@ def load_references(queue: dict, predictions: list, errors: tuple, record: dict)
 def markdown(result: dict, queue: dict) -> str:
     """Format the recorded verdict and descriptive pair diagnostics with explicit units."""
     pair, up = result['pair_panel'], result['up_panel']
+    spec, rules = result['verdict_spec'], result['rules_applied']
+    pair_limits, up_limits = rules['pair_thresholds'], rules['up_thresholds']
     lines = ['# Recorded HR2 verdict', '',
         f"Overall: {'PASS' if result['overall_passed'] else 'FAIL'}. "
         f"Pair panel: {'PASS' if pair['passed'] else 'FAIL'} "
-        f"({pair['accepted_pairs']}/{len(queue['pairs'])} accepted). "
+        f"({pair['accepted_pairs']}/{len(rules['pairs'])} accepted). "
         f"Up panel: {'PASS' if up['passed'] else 'FAIL'} "
         f"({up['accepted_slots']}/{len(queue['roster'])} accepted; "
-        f"minimum {queue['up_thresholds']['minimum_accepted_slots']}).", '',
+        f"minimum {up_limits['minimum_accepted_slots']}).", '',
+        f"Verdict spec: `{spec['path']}`; SHA-256 `{spec['sha256']}`.", '',
+        f"Pair rules: panel {', '.join(str(p['episode']) for p in rules['pairs'])}; "
+        f"mandatory pairs {', '.join(map(str, rules['mandatory_pairs']))} must be accepted; "
+        f"every accepted pair must have b < {pair_limits['b_error_deg']} deg "
+        f"and C < {pair_limits['C_error_deg']} deg.", '',
+        f"Up rules: >= {up_limits['minimum_accepted_slots']} accepted slots across "
+        f">= {up_limits['minimum_episodes']} episodes and "
+        f">= {up_limits['minimum_object_types']} object types; "
+        f"every accepted up error < {up_limits['up_error_deg']} deg. Both panels must pass.", '',
         'Retrospective recorded calculation over frozen predictions and disclosed labels; '
         'this is not a new registration or an untouched holdout assessment. '
         'Declined-pair errors describe saved selected rotations only.', '',
@@ -132,17 +148,18 @@ def run(queue_path: str = QUEUE) -> Path:
     record['sources'] = [input_file(ROOT, path) for path in SOURCES]
     directory = output_path(ROOT, f'{OUTPUT}/{new_run_id()}')
     with recorded(directory, record):
-        method, evaluation = frozen_context(queue, record)
+        method, evaluation, spec = frozen_context(queue, record)
         for row in queue['roster']:
             authorize_episode(runtime, SimpleNamespace(source_split='public', episode_index=row['episode']),
                               'HR2 recorded verdict')
         predictions, error_data, errors = saved_panel(queue, evaluation, method, record)
-        references = load_references(queue, predictions, errors, record)
+        references = load_references(spec, predictions, errors, record)
         from ._registration_verdict import panel_verdict, selected_pairs
-        pairs = selected_pairs(predictions, references, queue['pairs'])
+        pairs = selected_pairs(predictions, references, spec['pairs'])
         result = dict(method_sha256=queue['method']['sha256'],
             prediction_report=queue['prediction_report']['path'], error_report=queue['error_report']['path'],
-            up=error_data['up'], pairs=pairs, **panel_verdict(error_data['up'], pairs, queue))
+            verdict_spec=queue['verdict_spec'], rules_applied=spec,
+            up=error_data['up'], pairs=pairs, **panel_verdict(error_data['up'], pairs, spec))
         write_json(directory / 'verdict.json', result)
         (directory / 'summary.md').write_text(markdown(result, queue))
     print(json.dumps(dict(run=str((directory / 'run.json').relative_to(ROOT)),

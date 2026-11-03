@@ -1,0 +1,51 @@
+{
+  "protocol": {
+    "path": "docs/chain/pose-heading-hr2-protocol.md",
+    "sha256": "687debcf7f37ffffbfc1d423d02d54e0d293025db84ea48f94cdeeccf0bde82f"
+  },
+  "protocol_section": "Evaluation",
+  "pairs": [
+    {
+      "episode": 18,
+      "slots": [
+        0,
+        1
+      ]
+    },
+    {
+      "episode": 23,
+      "slots": [
+        0,
+        1
+      ]
+    },
+    {
+      "episode": 24,
+      "slots": [
+        0,
+        1
+      ]
+    },
+    {
+      "episode": 27,
+      "slots": [
+        0,
+        1
+      ]
+    }
+  ],
+  "mandatory_pairs": [
+    18,
+    27
+  ],
+  "pair_thresholds": {
+    "b_error_deg": 30,
+    "C_error_deg": 30
+  },
+  "up_thresholds": {
+    "minimum_accepted_slots": 6,
+    "minimum_episodes": 4,
+    "minimum_object_types": 3,
+    "up_error_deg": 15
+  }
+}

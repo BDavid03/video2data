@@ -27,15 +27,15 @@ def selected_pairs(predictions: list, references: dict, pairs: list) -> list:
     return results
 
 
-def panel_verdict(up: list, pairs: list, queue: dict) -> dict:
-    """Apply strict angle bounds and inclusive coverage minima from the queue."""
-    pair_limits, up_limits = queue['pair_thresholds'], queue['up_thresholds']
+def panel_verdict(up: list, pairs: list, spec: dict) -> dict:
+    """Apply strict angle bounds and inclusive coverage minima from the admitted spec."""
+    pair_limits, up_limits = spec['pair_thresholds'], spec['up_thresholds']
     by_episode = {r['episode']: r for r in pairs}
     angle_pass = {r['episode']: r['b_error_deg'] is not None
         and r['b_error_deg'] < pair_limits['b_error_deg']
         and r['C_error_deg'] < pair_limits['C_error_deg'] for r in pairs}
     pair_checks = {}
-    for episode in queue['mandatory_pairs']:
+    for episode in spec['mandatory_pairs']:
         accepted = by_episode[episode]['accepted']
         pair_checks[f'mandatory_{episode}_accepted'] = accepted
         pair_checks[f'mandatory_{episode}_angles'] = accepted and angle_pass[episode]
