@@ -1,0 +1,9 @@
+{
+  "python": ".runtime/linux-cuda/bin/python",
+  "execution": {
+    "stage_a_authorized": true,
+    "evaluation_authorized": false,
+    "validation_authorized": false
+  },
+  "authorized_episode_indices": {"public": [12, 42], "evaluation": []}
+}
