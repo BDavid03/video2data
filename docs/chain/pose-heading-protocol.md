@@ -1,4 +1,4 @@
-# Pose heading protocol: is a frame-0 heading cue worth building, and is it identifiable from video? (IDEAS 46; fixed 2026-11-03 08:15 UTC, context 16, before any number below was computed)
+# Pose heading protocol: is a frame-0 heading cue worth building, and is it identifiable from video? (IDEAS 46; fixed 2026-11-03 08:03 UTC, context 16, before any number below was computed)
 
 ## Why
 
