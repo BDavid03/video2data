@@ -123,3 +123,16 @@ def analysis(results: dict, plans: dict, historical: dict, lengths: list) -> dic
     return dict(means=scores, ranking=ranking, gates=gates, verdict=verdict, integrity=integrity,
                 reproduction=reproduction, offset_reproduction=offsets, s1_position_difference_m=positions,
                 invariance=invariance)
+
+
+def scene_placement(scene: list, displacement, reason: str | None) -> tuple:
+    """Apply the same T1 rule to scored scene rows while preserving all other metadata."""
+    from copy import deepcopy
+    geometry = dict(positions=np.array([row['position'] for row in scene], float),
+                    dimensions=np.array([row['dimensions_m'] for row in scene], float),
+                    quaternions=np.array([row['quaternion_wxyz'] for row in scene], float))
+    transformed, clearance = placement(geometry, displacement, reason)
+    result = deepcopy(scene)
+    if len(scene) > 1:
+        result[1]['position'][:2] = transformed['positions'][1, :2].tolist()
+    return result, clearance

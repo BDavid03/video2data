@@ -1,0 +1,9 @@
+{
+  "candidate": "T1",
+  "episodes": [3, 6, 8, 10, 14, 15, 16, 19, 20, 25, 30, 32, 33],
+  "untouched": [1, 5, 28, 35, 36, 37, 38],
+  "budget": {"environment_steps": 512, "worlds": 1, "replay_minimum": 32},
+  "max_gpu_trials": 12,
+  "max_seconds": 7200,
+  "base_manifest": "submissions/20261102T0032Z-d2-v3/manifest.json"
+}

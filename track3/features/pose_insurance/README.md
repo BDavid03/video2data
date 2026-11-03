@@ -454,3 +454,68 @@ records, and `finished.json`. Exact completed identities resume without new
 trials, including recovery from a torn ledger tail. Direction tables use
 horizontal position thresholds; these flags are not ADD/AUC success flags.
 No scored episode, policy run or package is produced by this command.
+
+## T1 scored stage and D2 v4 composition
+
+Run the fixed scored roster serially, then compose twenty exports and run preflight:
+
+```bash
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 .runtime/linux-cuda/bin/python -m track3.features.pose_insurance.scored_stereo_loop
+```
+
+`--phase prepare` records all scene/clearance plans without starting a policy.
+`scored_stereo_queue.json` fixes the thirteen candidate episodes, seven untouched
+v3 episodes, and the existing 512-step / one-world / replay-minimum-32 budget.
+The existing `scored_scale_authorized` flag admits this stage; pinned runtime,
+S1 handlers and v1–v3 reproduction files are preserved. New handlers reuse the
+existing training command, optimizer-state checks, physical inspector and GPU
+lease. Only slot-one XY changes in the exact v3 task; no reference label or scan
+is loaded. Failed or interrupted attempts fall back once to v3 and are not retried.
+
+`outputs/pose_insurance/stereo-placement-scored/` holds frozen plans, the ledger,
+policy/build records, summary, preflight log and `composition.json` with hashes
+and selected policy records. `outputs/pose_insurance/results-v4/` contains the
+complete twenty-episode result set. Repeating the loop resumes all attempts.
+
+The pinned `scripts/reproduce/d2_poses.sh` is complemented by the v4 entry point:
+
+```bash
+bash scripts/reproduce/d2_poses_v4.sh --compose-only
+```
+
+This rechecks each source policy, physical evidence and export hash, copies the
+exports into fresh task scratch and runs local preflight. It starts no GPU run
+and produces no final CSV. After the lead commits the exact recorded sources:
+
+```bash
+bash scripts/reproduce/d2_poses_v4.sh --run --code-commit https://github.com/BDavid03/video2data/commit/<sha> --out outputs/pose_insurance/stereo-placement-scored/track3_poses_v4.csv
+```
+
+Packing requires a full commit SHA containing the recorded computation sources;
+it writes a CSV plus `.manifest.json`, pinning the protocol, composition, source
+policies, GPU records and reproduction script. Nothing is uploaded.
+
+Latest scored result: all **12 eligible T1 policy runs pass**; episode 30 keeps
+v3 because its slot zero has no independent cluster. Episodes 1/5/28/35–38 also
+keep v3, giving twelve T1 plus eight v3 exports. The twelve runs total 548.62 s
+(including a 178.09 s first-run kernel compile); each has 479 optimizer updates
+and 240 actor Adam steps. Maximum T1 first-pose error is 0.048608 cm and drift
+0.047697 cm, with rotations below 0.000005 degrees. The second invocation
+executes **zero new GPU runs**, resuming all twelve. CPU reproduction verifies
+all twenty exports. Local preflight is **Ready to submit**; full preflight's
+only failure is the owner's absent Kaggle token. No final CSV is packed.
+
+## Length diagnostics after the refactor
+
+`length_diagnostic.py` admits the request before importing NumPy. Train and confirmation share one row
+builder (`_length.build_row`) and one renderer (`_length_report.py`); construction names, episode subsets,
+counted episodes and thresholds live in `length_request.json` and `length_confirm_request.json`. Outputs
+are byte-identical to the historical reports (`outputs/pose_insurance/length-refactor/equivalence.json`).
+
+```bash
+export CUDA_VISIBLE_DEVICES='' PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1
+.runtime/linux-cuda/bin/python -B -m track3.features.pose_insurance length_diagnostic --request track3/features/pose_insurance/length_confirm_request.json
+```
+
+`length_prepare.py` (`setup`, `prepare --reuse-only`, `freeze`) replaces the temporary confirmation
+preparation drivers; `--reuse-only` replays the recorded video producers without running anything new.
