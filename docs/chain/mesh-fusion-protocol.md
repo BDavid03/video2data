@@ -54,3 +54,19 @@ untouched validation. Episodes 41/43/44 are never read; validation 2/13/22/24/27
 
 Deforming v4 toward fused observations (the route's alternative, IDEAS 56) and post-contact fusion (needs object motion
 compensation) are recorded but not run under this protocol.
+
+## Amendment 1 (F1b), written after Stage A and before any rerun; commit time is the record
+
+**Why, and what it is informed by.** Stage A killed both objects because no later frame passed acceptance
+(`docs/chain/mesh-fusion-outcome.md`). The Claude critic (critic-20) read the run records and found that the
+background-PnP poses alone had median reprojection 0.68 / 0.95 / 0.93 px (rack) and 0.82 / 0.92 / 0.94 px (pot), all
+within the 1 px limit; the ICP refinement on background stereo raised them to 1.65-5.13 px. So the kill measured our ICP
+step, not the clips. This amendment is informed by those Stage A numbers on train 12 and tuning 42 (choices on
+train/tuning data); no scan has been opened and no CD-O computed.
+
+**Change (only this):** Stage A is re-run with the camera pose taken from background PnP alone; the ICP refinement step is
+removed. Everything else is unchanged and frozen: the episodes, objects, pre-contact intervals and candidate frames
+(0/5/10/15), frame acceptance (>= 30 PnP inliers, median reprojection <= 1 px, independent background disagreement
+<= 3 mm, now measured with the PnP pose), the measurements, and the kill rule (fewer than 3 accepted frames, or angular
+span < 10 degrees and additional supported surface < 10 %). The first Stage A runs stay on record as F1. Stage B and its
+gates are unchanged. If F1b also kills both objects, the fusion route ends for this deadline with no further amendment.
