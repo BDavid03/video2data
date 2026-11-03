@@ -6,6 +6,17 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
 
 ## Open
 
+**Update 2026-11-03 13:25 UTC (context 18): the pre-checks below are done, and they pass. Still your call.**
+The placement rule was fixed in writing before any number (`docs/chain/pose-heading-h3-protocol.md`). Under it, on
+train episode 18: AUC 0.30 -> 0.47, RPE 29.6 -> 10.2 cm, MPPE 19.5 -> 5.6 cm (eight-episode mean AUC 0.2767 -> 0.2982).
+That is less than the 0.56-0.62 quoted below, because the fixed rule keeps the stereo-measured positions. If the method
+picks the sweeper's upside-down alternative instead, AUC stays where it is now but RPE gets worse (29.6 -> 41.7 cm).
+On scored episode 19 itself (registered without labels), the sweeper is again nearly a coin flip: its upside-down
+alternative fits only 3.4 % worse. So the pre-registered rule counted both outcomes equally. The expected gain is
++0.0108 mean AUC against a required +0.010: it passes, but only just. The dust pan's heading is clear-cut. Full
+numbers: `docs/chain/pose-heading-h3-outcome.md`. The approval line and deadline below are unchanged (add it by about
+06:00 UTC 4 Nov). Without it, D2 v4 stays.
+
 **Decision 2026-11-03 12:45 UTC (context 16): adopt object heading from scan registration for one scored episode?**
 A new method registers each object's 3D scan to the calibrated-stereo points at the first frame, which gives the
 object's heading (which way it faces). It failed its own pre-registered test, because its "decline when unsure" rule
