@@ -17,6 +17,8 @@
 #   CODEX_RESUME=<earlier answer.md or session id>  sends the brief as a follow-up in that
 #     Codex session (it keeps everything it read and did), e.g. "fix these review defects".
 #   CODEX_TIMEOUT_MIN  cap in minutes (default 60 read-only, 180 for job modes).
+#   CODEX_MEMORY_MAX   memory cap for Codex and everything it runs (default 20G). Past it the
+#     kernel kills the job alone; without it a runaway script fills the WSL VM and WSL dies.
 #
 # Writes outputs/chain/codex/<UTC>-<label>.{brief.md,answer.md,log} and appends one line to
 # outputs/chain/codex/calls.jsonl (with the session id). The last line printed is
@@ -75,6 +77,10 @@ points to. Rules that always bind you:
   expect to take longer than about two hours: start it detached
   (setsid nohup ... > outputs/<slice>/<name>.log 2>&1 &) and report its PID, log and how to tell
   it has finished, instead of waiting.
+- Never call trimesh .split() on a dataset scan mesh, or build one Trimesh per component:
+  blue_cup.glb is ~99k disconnected faces and split() copies the texture into every piece
+  until memory runs out (it crashed WSL three times on 2026-11-03). Label components with
+  trimesh.graph.connected_component_labels(mesh.face_adjacency, node_count=len(mesh.faces)).
 - Install nothing. Upload nothing. No test suites: verify with py_compile, a CPU import, an
   old-versus-new equivalence script, and real runs on real data.
 How to build (docs/chain/PROGRAM.md section 9): code runs the loop, agents steer it. For
@@ -98,16 +104,21 @@ EOF
 
 common=(-m "$model" -c "model_reasoning_effort=\"$effort\"" -c "sandbox_mode=\"$sandbox\""
         --skip-git-repo-check -o "$stem.answer.md")
+# Codex and its children share one memory-capped cgroup, so a runaway job is killed on its own.
+cap=()
+if systemd-run --user --scope -q true 2>/dev/null; then
+  cap=(systemd-run --user --scope -q -p "MemoryMax=${CODEX_MEMORY_MAX:-20G}" -p MemorySwapMax=0 --)
+fi
 start=$(date -u +%FT%TZ)
 if [ -n "$session" ]; then
-  timeout "$((minutes * 60))" "$codex" exec resume "${common[@]}" "$session" - < "$stem.brief.md" > "$stem.log" 2>&1
+  timeout "$((minutes * 60))" "${cap[@]}" "$codex" exec resume "${common[@]}" "$session" - < "$stem.brief.md" > "$stem.log" 2>&1
 else
-  timeout "$((minutes * 60))" "$codex" exec "${common[@]}" -C "$PWD" --color never - < "$stem.brief.md" > "$stem.log" 2>&1
+  timeout "$((minutes * 60))" "${cap[@]}" "$codex" exec "${common[@]}" -C "$PWD" --color never - < "$stem.brief.md" > "$stem.log" 2>&1
 fi
 rc=$?
 sid=$(grep -m1 -oP '^session id: \K\S+' "$stem.log" 2>/dev/null)
 python3 -c 'import json,sys; print(json.dumps(dict(zip(["start","label","mode","model","effort","rc","answer","session"], sys.argv[1:]))))' \
   "$start" "$label" "$mode" "$model" "$effort" "$rc" "$stem.answer.md" "${sid:-$session}" >> "$dir/calls.jsonl"
-[ -s "$stem.answer.md" ] || echo "no answer written; see $stem.log (usage limit, auth or timeout)"
+[ -s "$stem.answer.md" ] || echo "no answer written; see $stem.log (usage limit, auth, timeout or memory cap)"
 echo "CODEX $rc $stem.answer.md"
 exit "$rc"
