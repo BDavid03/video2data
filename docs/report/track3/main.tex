@@ -156,12 +156,12 @@ Figure~\ref{fig:qualitative} shows one frame. This does not establish improved \
 
 \setlength{\parskip}{0pt}
 \section{Static poses: stereo placement}
-Stereo 3D mask centroids set only the second box's horizontal offset at
-1\,cm footprint clearance. Calibrated stereo fixes camera/world length and
-direction; rigid scoring alignment to the first object's initial pose makes
-scored direction depend on its unknown heading. V3 stays where frame-0
-objects lack separate masks (train episodes 0/26/31; evaluation episode 30);
-hands inactive~\cite{flashchord}.
+3D stereo mask centroids set only the second box's horizontal offset,
+with box footprints at least 1\,cm apart. Stereo fixes world offset vectors.
+Scoring rigidly aligns to the first object's initial pose;
+its unknown heading affects scored direction. Stereo shrinkage (v3) stays
+where frame-0 masks are not separate (train 0/26/31; evaluation 30).
+Hands are inactive~\cite{flashchord}.
 
 \noindent\begin{minipage}{\columnwidth}
 \centering
@@ -191,19 +191,19 @@ MP-SR, every object $<$3\,cm/30$^\circ$.}
 Train: none worsen; one gives the AUC gain (second-object error
 8.2 to 0.8\,cm), another about half the RPE gain with first-object
 mask reassignment. Four changed episodes retain 51--130$^\circ$ horizontal
-direction errors and unchanged AUC despite lower RPE/MPPE. First-frame train
-errors informed choices; we adopted without a leaderboard score despite
-fresh pre-registered validation failing by rule: 2 and required 13 had
-merged masks; 22/24/27 favoured stereo (1.14 vs 7.21\,cm length error).
-Oracle (train-label) first-frame relative poses lift AUC
-0.277 to 0.353, mainly via heading; frozen scan-to-stereo
-registration recovered it on 0/4 unseen train episodes (cup markers
-below stereo noise); a second placed two asymmetric pairs within
-9$^\circ$ yet declined them.
-Twelve of 20 evaluation episodes change; rollouts hold
-initial targets within 0.049\,cm and drift $\leq$0.048\,cm:
-simulation consistency, not reference accuracy.
-In sum, v4 improves shape scores and train pose errors; SP-SR/MP-SR stay
+direction errors and unchanged AUC despite lower RPE/MPPE.
+First-frame train errors guided us. We adopted without a leaderboard score.
+Fresh pre-registered validation failed: merged masks in 2 and required episode 13;
+22/24/27 favoured stereo (1.14 vs 7.21\,cm length error).
+Train-label oracle initial direction and relative rotation raise AUC
+0.277 to 0.353, mainly via heading. Frozen scan-to-stereo registration
+recovered heading on 0/4 unseen train episodes (cup markers below stereo
+noise). A second registration estimated two asymmetric pairs' offset
+directions within 9$^\circ$ but rejected both.
+12/20 evaluation episodes change. Initial target error
+$\leq$0.049\,cm and drift $\leq$0.048\,cm show simulation consistency,
+not reference accuracy. V4 improves shape scores and train pose errors;
+SP-SR/MP-SR stay
 zero; shape-gain causes, spoon accuracy and manipulation are unverified.
 
 \typeout{TRACK3-MAIN-TEXT-END-PAGE: \thepage}
