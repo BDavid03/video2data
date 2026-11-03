@@ -52,3 +52,63 @@ the run directory so the final CLI print cannot invalidate an artifact hash.
 
 The handler always stops at that gate. Scans were reused and object selection used v4 scores,
 so this pilot is not an untouched validation. No full panel or packing is authorized here.
+
+## G2: fixed pot/pitcher follow-up
+
+G2 is a separately authorized campaign under the committed protocol's final section. G1's
+records remain untouched. Run:
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. .runtime/linux-cuda/bin/python -m track3.features.mesh_generative g2 > outputs/mesh_generative/g2-handler.log 2>&1
+```
+
+`g2_queue.json` freezes all relevant public development and evaluation pot/pitcher pairs,
+recorded mask producers, fallback cases, fit settings and the development aggregation. Only
+public 21/42 reuse their own G1 meshes. Evaluation 5/8/20 generate from their own frame-0 crops.
+Public pot 0/26 and evaluation pot 1/3/6/28 lack usable assignments and keep v4. No new mask is made.
+
+One PCA-initialized proper Sim(3) ICP aligns at most 4096 observed points to 8192 deterministic
+mesh-surface samples, with 40 iterations, no reflection and a 1e-7 cost stopping threshold.
+Final point-to-triangle medians use **every valid masked depth point**, with bounded chunks and
+trimesh's exact closest-point library. Both meshes use the same procedure. Residuals share the
+frame's unanchored MoGe units; their ratio is the admission criterion. Fits and every fallback
+are appended to `outputs/mesh_generative/g2/ledger.jsonl` before any scan scoring. A sealed
+`admissions.json` precedes development and, conditionally, the packed veto.
+
+Development uses public pot 0/26/42 and pitcher 21, kit seed episodes 1/3/5, matched v4 geometry
+and the existing object folds. It averages views within each object/seed, then the ten objects;
+fixed roster counts give the 26-pair weighted mean. The other eight objects retain their
+matched v4 results. There is no adjustable parameter. Evaluation meshes remain separate.
+
+Only a development PASS enters `g2-packed-check/`: copies v4's complete production PLY tree,
+replaces only video-admitted evaluation pot/pitcher pairs, checks unchanged PLY hashes and packed
+coordinates, uses the manifest's official packer, and runs the existing `mesh_eval.pairs.run_queue`
+and `write_summary` code with the original pair seeds. This keeps scoring outputs and scratch
+inside this job's permitted directories. Both kit policy-track and mesh-track preflights run.
+The preflight checks environment/sample availability; packing and row/geometry comparisons check
+the placeholder file. A failure stops G2 with no repair or runner-up.
+
+The lead can repack a **passing** frozen production tree after committing the new sources:
+
+```bash
+bash scripts/reproduce/d1_meshes_v5.sh "https://github.com/BDavid03/video2data/commit/$(git rev-parse HEAD)" --run
+```
+
+The script refuses unless both gates passed. This worker never executes a real-URL pack.
+G2 selects objects after their G1 results on the same public scans; all results are reused-scan
+development evidence and not an untouched assessment. See `outputs/mesh_generative/g2/summary.md`
+for the completed verdict, all residuals, gate thresholds, seed spread, resources and figures.
+
+Latest G2 result (2026-11-03 UTC): **development PASS; packed veto PASS**. Development
+equal-object / pair-weighted means are **0.56244822 / 0.61972984 cm**. Exact packed means
+are **0.56443301 / 0.62080727 cm**, against v4 **0.65338396 / 0.66292148 cm**.
+Maximum object regression is zero in both stages. Only evaluation pot 5 and pitcher 20
+replace v4. Evaluation pot 8 was rejected by video residual (4.37493 x v4), before scoring.
+All 29 non-target production PLY files are byte-identical to v4; 278,528 unchanged packed
+coordinate rows match exactly. Both kit preflights report Ready to submit.
+
+The placeholder file is
+`outputs/mesh_generative/g2-packed-check/track3_meshes_v5_placeholder.parquet`, SHA256
+`8545628a8cfc3a23639942f37fbafb0aaebdc5070b3c5038cb0829c9d23eaa9b`.
+The real-URL repack command above must run **after the lead commits the new G2 sources**.
+A dry plan was checked; no real-URL file, commit, push or upload was created by this job.

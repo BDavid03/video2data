@@ -1,0 +1,102 @@
+{
+  "protocol": "docs/chain/mesh-generative-protocol.md",
+  "protocol_commit": "db7b13f",
+  "roster": "upstream/v2d_submission_kit/v2d_submission_kit/data/track_3_evaluation_objects.json",
+  "v4_manifest": "submissions/20261102T0516Z-d1-v4/manifest.json",
+  "development_baseline": "track3/features/mesh_extents/rules-round4.json",
+  "fit": {
+    "surface_samples": 8192,
+    "observed_fit_points": 4096,
+    "seed": 12345,
+    "max_iterations": 40,
+    "threshold": 1e-07,
+    "initialization": "PCA frames with dominant-axis positive signs and proper handedness; RMS-radius scale",
+    "direction": "observed points to sampled mesh surface; inverse places mesh in observed coordinates",
+    "residual": "exact closest triangle over every valid observed mask point; chunks of 64",
+    "reflection": false
+  },
+  "pairs": [
+    {
+      "source_split": "public",
+      "episode": 0,
+      "object": "white_pot",
+      "measurement": null,
+      "fallback": "no recorded frame-0 mask assignment"
+    },
+    {
+      "source_split": "public",
+      "episode": 21,
+      "object": "water_pitcher",
+      "measurement": "outputs/mesh_extents/public/episode_000021/20261101T150523.067420Z-d55bafd5/run.json",
+      "reuse_pilot": "outputs/mesh_generative/g1-pilot/water_pitcher/raw.ply"
+    },
+    {
+      "source_split": "public",
+      "episode": 26,
+      "object": "white_pot",
+      "measurement": null,
+      "fallback": "no recorded frame-0 mask assignment"
+    },
+    {
+      "source_split": "public",
+      "episode": 42,
+      "object": "white_pot",
+      "measurement": "outputs/mesh_extents/public/episode_000042/20261101T150535.525988Z-843fc990/run.json",
+      "reuse_pilot": "outputs/mesh_generative/g1-pilot/white_pot/raw.ply"
+    },
+    {
+      "source_split": "evaluation",
+      "episode": 1,
+      "object": "white_pot",
+      "slot": 0,
+      "measurement": null,
+      "fallback": "no recorded frame-0 mask assignment"
+    },
+    {
+      "source_split": "evaluation",
+      "episode": 3,
+      "object": "white_pot",
+      "slot": 0,
+      "measurement": null,
+      "fallback": "no recorded frame-0 mask assignment"
+    },
+    {
+      "source_split": "evaluation",
+      "episode": 5,
+      "object": "white_pot",
+      "slot": 0,
+      "measurement": "outputs/mesh_extents/evaluation/episode_000005/20261101T150546.271456Z-c9daeaa6/run.json"
+    },
+    {
+      "source_split": "evaluation",
+      "episode": 6,
+      "object": "white_pot",
+      "slot": 0,
+      "measurement": null,
+      "fallback": "no recorded frame-0 mask assignment"
+    },
+    {
+      "source_split": "evaluation",
+      "episode": 8,
+      "object": "white_pot",
+      "slot": 1,
+      "measurement": "outputs/mesh_extents/evaluation/episode_000008/20261101T150554.830417Z-c9dce012/run.json"
+    },
+    {
+      "source_split": "evaluation",
+      "episode": 20,
+      "object": "water_pitcher",
+      "slot": 1,
+      "measurement": "outputs/mesh_extents/evaluation/episode_000020/20261101T150632.240847Z-ab500119/run.json"
+    },
+    {
+      "source_split": "evaluation",
+      "episode": 28,
+      "object": "white_pot",
+      "slot": 1,
+      "measurement": null,
+      "fallback": "no recorded frame-0 mask assignment"
+    }
+  ],
+  "development_panel": "public:0/26/42 pot (missing masks retain v4), public:21 pitcher; seeds 1/3/5; equal within-object view averaging; fixed 26-pair object weights"
+}
