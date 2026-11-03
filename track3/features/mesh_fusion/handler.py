@@ -23,7 +23,7 @@ def cpu_runtime():
     runtime = runtime_flag(FEATURE, 'stage_a_authorized', 'F1 Stage A')
     if Path(sys.executable).resolve() != interpreter(ROOT, runtime['python']):
         raise RuntimeError('Use .runtime/linux-cuda/bin/python')
-    scratch = output_path(ROOT, '.runtime/tmp/ctx20/fusion-cache')
+    scratch = output_path(ROOT, '.runtime/tmp/mesh-fusion/cache')
     scratch.mkdir(parents=True, exist_ok=True)
     for name in ('MPLCONFIGDIR', 'XDG_CACHE_HOME', 'TEMP', 'TMP', 'TMPDIR'):
         os.environ[name] = str(scratch)

@@ -14,7 +14,7 @@ PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THRE
 `outputs/mesh_fusion/ledger.jsonl` records each completed object and `summary.md` reports the two verdicts.
 Every object and queue execution owns a `run.json`, hashed inputs/sources and hashed output inventory.
 New stereo observations go through the unchanged CPU `stereo_depth.generate` handler and are cached by
-single-frame request. No CUDA is required. All local caches go under `.runtime/tmp/ctx20/fusion-cache/`.
+single-frame request. No CUDA is required. All local caches go under `.runtime/tmp/mesh-fusion/cache/`.
 
 ## Method and fixed choices
 

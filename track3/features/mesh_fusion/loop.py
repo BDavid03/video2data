@@ -31,12 +31,16 @@ def load_ledger(path):
 
 
 def append_ledger(path, row):
-    needs_newline = path.is_file() and path.stat().st_size and not path.read_bytes().endswith(b'\n')
+    data = path.read_bytes() if path.is_file() else b''
+    if data and not data.endswith(b'\n'):
+        keep = data.rfind(b'\n') + 1
+        path.with_name(f'{path.name}.partial-{time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())}').write_bytes(data[keep:])
+        with path.open('r+b') as stream:
+            stream.truncate(keep)
     with path.open('a', encoding='utf-8') as stream:
-        if needs_newline:
-            stream.write('\n')
         stream.write(json.dumps(row, allow_nan=False) + '\n')
         stream.flush()
+        os.fsync(stream.fileno())
 
 
 def summary(rows, directory):
