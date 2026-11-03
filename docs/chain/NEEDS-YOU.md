@@ -6,6 +6,21 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
 
 ## Open
 
+**Proposal (2026-11-03 14:20 UTC, context 19): installs for moving objects, only needed if test D0 says GO.** In
+the evaluator, objects move only when simulated hands push them, and the dataset has no hand references. So a moving
+entry needs hand motion estimated from the video. D0 (`docs/chain/dynamic-feasibility-protocol.md`, running now)
+measures whether our 16 GB GPU can train a hand policy that moves an object at all. If it does, these would be
+installed into their own environments under `.runtime/`, never the main venv:
+- **Hands, option A (no licence):** Google MediaPipe Hands (`pip install mediapipe`, Apache-2.0), 21 hand keypoints per
+  frame, lifted to 3D with our calibrated stereo and fitted to the Sharpa hand by inverse kinematics.
+- **Hands, option B (better, needs your login):** WiLoR (`rolpotamias/WiLoR` weights `detector.pt`, `wilor_final.ckpt`)
+  plus the MANO hand model, which needs you to register at mano.is.tue.mpg.de and download `MANO_RIGHT.pkl` /
+  `MANO_LEFT.pkl` into `models/mano/`.
+- **Masks through the clip:** SAM2.1 Hiera-Large (`sam2.1_hiera_large.pt`) with `IDEA-Research/grounding-dino-tiny`
+  (Transformers 4.56.2), the backends our `object_masks` slice already targets.
+To approve, add to AGENTS.md, for example: "2026-11-03: approve mediapipe, SAM2.1 and grounding-dino-tiny installs"
+(and "MANO files placed" if you download them). Without it the chain uses only what is installed.
+
 **Decision (updated 2026-11-03 13:50 UTC, context 18): change the object headings in one scored episode (19)?**
 What it is: a method fits each object's 3D scan to the stereo points in the first frame. That gives the object's heading
 (which way it faces). It failed its own pre-registered test: its "decline when unsure" rule rejected every pair. But on
