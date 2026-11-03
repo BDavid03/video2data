@@ -560,3 +560,57 @@ diagnostic; `support.png` is pixel- and byte-identical. Evidence is
 ```bash
 PYTHONPATH=. CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 .runtime/linux-cuda/bin/python -B .runtime/tmp/support-clean/check.py
 ```
+
+## Recorded heading oracles and up-axis priors
+
+`heading_loop.py` implements `docs/chain/pose-heading-protocol.md` Stage A and Amendment 1.
+It reads the recorded T1 constructions, then scores T1/O1/O2/O3/U1-LOO/U1-full on train
+episodes **0/11/12/18/21/23/26/31** only. `_heading.py` owns the pure rotation/oracle
+calculations and signed body-up fitting. The handler admits producers, enforces the new
+`heading_authorized` runtime flag, records inputs/sources and applies the fixed verdicts.
+Heavy imports follow `heavy_execution`; execution forces CPU visibility.
+
+```bash
+CUDA_VISIBLE_DEVICES='' PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 .runtime/linux-cuda/bin/python -B -m track3.features.pose_insurance.heading_loop --queue track3/features/pose_insurance/heading_queue.json
+```
+
+The editable queue names the fixed variants, train roster, exact build/scoring records and
+48-trial / 7,200-second budget. Trial identities hash inputs and sources; repeating the
+command re-admits completed trials and their inputs instead of scoring them again.
+The first invocation executed **48** trials; the second executed **0**, resuming all **48**.
+`outputs/pose_insurance/heading/` contains the append-only ledger, immutable trial
+`runs/*/{run.json,metrics.json}`, immutable invocation reports under `reports/`, and latest
+`summary.md`, `summary.json`, `auc.png`, `finished.json`. The summary includes all five
+metrics per episode, ranked means, full-train per-type prior observations/statistics,
+every LOO fold, frame-zero residuals and the computed gate verdicts.
+
+| Variant | Mean AUC | RPE cm | MPPE cm | SP-SR | MP-SR |
+|---|---:|---:|---:|---:|---:|
+| T1 | 0.276704640 | 29.013682158 | 17.678603332 | 0.000000 | 0.000000 |
+| O1 | 0.286238568 | 20.266692973 | 12.050148004 | 0.000000 | 0.000000 |
+| O2 | 0.352712560 | 20.266692973 | 11.352044754 | 0.250000 | 0.000000 |
+| O3 | 0.531918520 | 15.114438767 | 7.403291369 | 0.625000 | 0.000000 |
+| U1-LOO | 0.276704640 | 28.777554357 | 17.970976278 | 0.000000 | 0.000000 |
+| U1-full | 0.268844063 | 27.684943181 | 17.469624484 | 0.000000 | 0.000000 |
+
+T1 reproduces the historical full-precision per-episode metrics with maximum absolute
+difference **0**. Stage A passes: O2 minus T1 AUC is **+0.076007920**, above +0.010.
+O1 keeps T1 exactly on stacked episodes 0/26. O3 is a label-derived bound, and all Stage A
+oracles are descriptive. Scoring uses the existing kit integration and 1,000 seed-zero
+surface samples per scanned mesh; it never splits scan components.
+
+**U1-LOO fails**: AUC gain is **0**, and MPPE increases **0.292372946 cm**. RPE improves
+0.236127801 cm, SP-SR/MP-SR remain zero, and worst episode AUC loss is zero. Full-train
+U1 is descriptive: its mean AUC falls 0.007860577. Full fitting rejects `white_pot`
+(179.052339-degree maximum up-axis separation; mean norm 0.008269805); other types meet
+the consistency rule. LOO singletons retain T1, and each fold fits from other episodes
+only. U1 was chosen after train-label inspection, so LOO does not make this a blind study.
+No scored policy, physical check, geometry counter-rotation or pack follows from this failure.
+
+Syntax compilation and CPU imports passed. The pure-function equivalence script at
+`.runtime/tmp/heading-build/equivalence.py` compares U1 to `apply_conventions` and O3's
+relative frame to `oracle_replacements`; all 24 comparisons pass, maximum residual
+**3.94e-16**. Only after the independent 48-trial run completed, the two permitted scratch
+summary JSON files were read. `scratch-comparison/{run.json,comparison.json,comparison.md}`
+under the output directory records **315** per-episode/mean comparisons: no difference
+exceeds **1e-9** (Stage A maximum **1.07e-14**, U1 maximum **1.07e-13**).

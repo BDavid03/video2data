@@ -1,0 +1,42 @@
+{
+  "episodes": [
+    0,
+    11,
+    12,
+    18,
+    21,
+    23,
+    26,
+    31
+  ],
+  "variants": [
+    "T1",
+    "O1",
+    "O2",
+    "O3",
+    "U1-LOO",
+    "U1-full"
+  ],
+  "max_trials": 48,
+  "max_seconds": 7200,
+  "builds": {
+    "0": "outputs/pose_insurance/stereo-placement/builds/20261103T001807.996054Z-c922133b/run.json",
+    "11": "outputs/pose_insurance/stereo-placement/builds/20261103T001808.118352Z-78829e68/run.json",
+    "12": "outputs/pose_insurance/stereo-placement/builds/20261103T001808.260465Z-9bb1806e/run.json",
+    "18": "outputs/pose_insurance/stereo-placement/builds/20261103T001808.390849Z-755aa1d7/run.json",
+    "21": "outputs/pose_insurance/stereo-placement/builds/20261103T001808.523845Z-0913429d/run.json",
+    "23": "outputs/pose_insurance/stereo-placement/builds/20261103T001808.661614Z-1c75a0fe/run.json",
+    "26": "outputs/pose_insurance/stereo-placement/builds/20261103T001808.793661Z-15248ff4/run.json",
+    "31": "outputs/pose_insurance/stereo-placement/builds/20261103T001808.891067Z-1c0a1087/run.json"
+  },
+  "t1_scores": {
+    "0": "outputs/pose_insurance/stereo-placement/runs/20261103T001811.986262Z-eb1dee22/run.json",
+    "11": "outputs/pose_insurance/stereo-placement/runs/20261103T001812.084981Z-e81a5b19/run.json",
+    "12": "outputs/pose_insurance/stereo-placement/runs/20261103T001812.166268Z-8eee38bc/run.json",
+    "18": "outputs/pose_insurance/stereo-placement/runs/20261103T001812.256152Z-db33f4c7/run.json",
+    "21": "outputs/pose_insurance/stereo-placement/runs/20261103T001812.353121Z-2a2aa9cd/run.json",
+    "23": "outputs/pose_insurance/stereo-placement/runs/20261103T001812.434831Z-c99e7a88/run.json",
+    "26": "outputs/pose_insurance/stereo-placement/runs/20261103T001812.531165Z-79159806/run.json",
+    "31": "outputs/pose_insurance/stereo-placement/runs/20261103T001812.616052Z-e8facfe8/run.json"
+  }
+}

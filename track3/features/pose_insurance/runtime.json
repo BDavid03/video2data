@@ -11,7 +11,8 @@
     "scale_diagnostic_authorized": true,
     "scored_scale_authorized": true,
     "length_diagnostic_authorized": true,
-    "support_diagnostic_authorized": true
+    "support_diagnostic_authorized": true,
+    "heading_authorized": true
   },
   "authorized_episode_indices": {
     "evaluation": [
