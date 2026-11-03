@@ -59,8 +59,13 @@ def apply_conventions(quaternions_wxyz, dimensions, ups):
     old = Rotation.from_quat(np.asarray(quaternions_wxyz)[:, [1, 2, 3, 0]])
     yaw = 2 * np.arctan2(np.asarray(quaternions_wxyz)[:, 3], np.asarray(quaternions_wxyz)[:, 0])
     new = Rotation.concatenate([convention_rotation(up, angle) for up, angle in zip(ups, yaw)])
-    geometry = (new.inv() * old).as_matrix()
     inertia = np.array([np.diag(box_properties(dims)[0]) for dims in dimensions])
+    return reexpress_rotations(old, new, inertia)
+
+
+def reexpress_rotations(old: Rotation, new: Rotation, inertia: np.ndarray) -> dict:
+    """Express geometry and COM inertia in explicit new body rotations without moving them."""
+    geometry = (new.inv() * old).as_matrix()
     return dict(quaternions=new.as_quat()[:, [3, 0, 1, 2]], geometry_rotation=geometry,
                 inertia=np.einsum("bij,bjk,blk->bil", geometry, inertia, geometry),
                 physical_rotation_residual=float(np.max(np.abs(new.as_matrix() @ geometry - old.as_matrix()))))

@@ -8,16 +8,20 @@ import shutil
 import subprocess
 from track3.paths import output_path
 from track3.provenance import input_file, sha256_file, write_json
-from track3.runs import ROOT, artifact, checked_entry, new_run_id, producer, read_json
-from .scene import KIT
-from .scored_scale_handler import inspect
-from .scored_stereo_loop import BUDGET, EPISODES, UNTOUCHED
+from track3.runs import ROOT, artifact, authorize_episode, checked_entry, new_run_id, producer, read_json, runtime_flag
+from .scored_stereo_config import FEATURE, KIT, BUDGET, EPISODES, UNTOUCHED
+from .request import Request
 
 DEFAULT = 'outputs/pose_insurance/stereo-placement-scored/composition.json'
 
 
 def verify(manifest: dict) -> None:
     """Admit every export against its policy record, physical evidence and exact source hash."""
+    if manifest['version'] == 'v5':
+        from .scored_heading_pack import verify as verify_v5
+        verify_v5(manifest)
+        return
+    from .scored_scale_handler import inspect
     changed, fallback = manifest['composition']['T1'], manifest['composition']['v3']
     expected = set((*EPISODES, *UNTOUCHED))
     episodes = [int(Path(row['path']).stem.split('_')[1]) for row in manifest['exports']]
@@ -81,8 +85,8 @@ def reproduce(manifest: dict, directory: Path) -> Path:
 
 def main() -> None:
     parser = argparse.ArgumentParser(__doc__)
-    parser.add_argument('--manifest', default=DEFAULT)
-    parser.add_argument('--version', choices=('v4',), default='v4')
+    parser.add_argument('--manifest')
+    parser.add_argument('--version', choices=('v4', 'v5'), default='v4')
     parser.add_argument('--code-commit')
     parser.add_argument('--out')
     parser.add_argument('--run', action='store_true', help='compose verified exports and pack with a committed code URL')
@@ -93,16 +97,25 @@ def main() -> None:
     if args.run and (not args.code_commit or not args.out):
         parser.error('--run requires --code-commit and --out')
     os.environ.update(CUDA_VISIBLE_DEVICES='', PYTHONDONTWRITEBYTECODE='1')
+    args.manifest = args.manifest or ('outputs/pose_insurance/heading-v5/composition.json' if args.version == 'v5' else DEFAULT)
+    runtime = runtime_flag(FEATURE, 'scored_stereo_authorized', 'Scored stereo CPU pack')
+    for ep in (*EPISODES, *UNTOUCHED):
+        authorize_episode(runtime, Request(episode_index=ep, budget=BUDGET), 'scored stereo CPU pack')
+    from .scored_stereo_handler import environment
+    environment(runtime, cpu=True, candidate='TW' if args.version == 'v5' else 'T1')
     manifest = read_json(args.manifest)
+    if manifest['version'] != args.version:
+        raise ValueError('Manifest version differs from the requested reproduction version')
     verify(manifest)
     print('Verified 20 exports against admitted policies, source hashes and physical checks.', flush=True)
     if not args.run and not args.compose_only:
         return
     # Packing is deliberately a separate command after the lead's commit.
     sha = committed_sources(manifest, args.code_commit) if args.run else None
-    if args.run and not manifest['composition']['T1']:
+    if args.run and args.version == 'v4' and not manifest['composition']['T1']:
         raise ValueError('No accepted T1 changes: retain D2 v3 instead of packing v4')
-    directory = output_path(ROOT, f'.runtime/tmp/t1-scored/reproduce/{new_run_id()}')
+    scratch = 'd2v5' if args.version == 'v5' else 't1-scored'
+    directory = output_path(ROOT, f'.runtime/tmp/{scratch}/reproduce/{new_run_id()}')
     results = reproduce(manifest, directory)
     output = output_path(ROOT, args.out) if args.run else None
     commands = []
@@ -126,6 +139,10 @@ def main() -> None:
                   source_manifest=input_file(ROOT, args.manifest), preflight_verdict='Ready to submit (Kaggle checks skipped)',
                   reproduction_directory=str(directory.relative_to(ROOT)), status='reproduced; not packed')
     if output is not None:
+        if args.version == 'v5':
+            from .scored_heading_pack import compare_csv
+            result['csv_comparison'] = compare_csv(manifest, output)
+            write_json(directory / 'csv-comparison.json', result['csv_comparison'])
         result.update(file=str(output.relative_to(ROOT)), sha256=sha256_file(output), head=sha,
                       code_commit_url=args.code_commit, status='packed; not uploaded')
         write_json(output.with_suffix('.manifest.json'), result)

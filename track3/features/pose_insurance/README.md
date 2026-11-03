@@ -194,3 +194,76 @@ Only 2/7 controls have complete matches; neither vetoes. Episode 19 abstains
 Both panels surrounding the unmatched-control reporting correction remain saved;
 thresholds, sweeper scores and verdicts agree. `silhouette/report.md` holds the
 full evidence. H3 and submissions are unchanged.
+
+## D2 v5: frozen episode-19 TW headings
+
+The owner approved the H3 TW selection on 3 November 2026. The pinned queue is
+`scored_heading_v5_queue.json`: episode 19 only, 512 environment steps, one world,
+replay minimum 32, one policy attempt and no retries or basin switching. G1/G2/G3
+must pass in the hashed H3 summary; the dated approval, H3 report, v4 manifest and
+full-precision H3 poses are admitted before numerical imports. The dedicated
+`scored_stereo_authorized` flag controls this stage and the stereo runner/packer.
+
+CPU preparation (writes assets and task; never runs the policy):
+
+```bash
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 .runtime/linux-cuda/bin/python -B \
+  -m track3.features.pose_insurance.scored_heading_v5 \
+  --queue track3/features/pose_insurance/scored_heading_v5_queue.json --phase prepare
+```
+
+The same command with `--phase all` is the single GPU command, to be launched by
+the lead in GPU mode after review, source freeze and completion of any other GPU
+job. It reuses the CPU build. `plan.json` freezes source/input hashes; any later
+change refuses execution. `attempt.json` reserves the sole attempt atomically;
+`ledger.jsonl` records preparation and resolution. The policy handler requires the
+reserved plan and run path before any policy write; exclusive creation of
+`attempt-claim.json` prevents a second handler invocation from running it again.
+Packing admits only that reserved run and its recorded claim. An interrupted/failed attempt
+retains v4 and cannot be retried. The 300-second queue budget is a planning bound
+based on the v4 33-second warm / 178-second cold runs; a live training process is
+never terminated at that boundary. Completion is `heading-v5/finished.json`.
+
+Output is under `outputs/pose_insurance/heading-v5/`. Counter-rotation uses
+`G = Rnew.T Rold`: OBJ vertices become `G v`; the URDF collision origin becomes
+`G Rcollision` / `G tcollision`; COM inertia becomes `G Ibody G.T`. URDF RPY uses
+extrinsic XYZ (`Rz(yaw) Ry(pitch) Rx(roll)`). The full six-entry tensor has identity
+inertial RPY, preventing a second rotation. Mesh/URDF read-back equivalence covers
+world vertices, collision corners, COM and inertia; masses, collision dimensions,
+positions, parked hands, mesh radii and all 235 frames are preserved. The CPU
+`cpu-task-projection.parquet` is explicitly a task/export-contract projection,
+never a policy trajectory or simulation evidence. `cpu-inspection.json` also
+inspects the real v4 trajectory against the TW scene and records its expected
+heading failure. Actual first-pose and drift gates apply after the GPU run.
+
+On success the runner copies the other nineteen v4 Parquets verbatim into
+`outputs/pose_insurance/results-v5/`, checking their v4 SHA-256 values, and records
+full/local kit preflight separately. After the lead commits the frozen sources:
+
+```bash
+bash scripts/reproduce/d2_poses_v5.sh --run --code-commit "$URL" \
+  --out "$PACK/track3_poses_v5_final.csv"
+```
+
+`URL` must contain the full committed SHA. Without `--run`, the wrapper verifies
+admission only; `--compose-only` reproduces and runs local preflight on CPU. Packing
+compares all 8,650 non-19 CSV rows field-for-field as strings, preserving signed
+zero text and excluding only `code_commit_url`; total rows remain 9,120. The v5
+manifest includes the hashed parent, approval/H3/plan/build/policy/checkpoint,
+invariance, twenty export hashes, committed sources, script, CSV comparison and
+preflight result. Historical v4 outputs, queue and reproduction script stay intact.
+
+Scientific limitation: world-geometry/inertia equivalence and physical/export
+checks establish consistency, not scored accuracy. The sweeper rival is only
+3.44% worse in registration and G2 cleared by 0.00077 AUC; the basin may be wrong.
+The CPU build and verification findings are recorded in
+`outputs/pose_insurance/heading-v5/cpu-verification.json`; GPU results remain pending.
+
+CPU preparation passed: the serialized world mesh/collision residuals were at most
+5.55e-17 / 8.33e-17 m, and world inertia residual was at most 6.51e-19 kg m².
+Both 0.1 kg masses, 26 task fields and 235 frames are preserved. The projected task
+covers 470/470 rows; the real v4 export is correctly rejected against TW at
+178.19 degrees first-pose rotation error. All 12 changed/new Python modules compile
+and import on CPU; the convention extraction is bit-identical on 16 recorded calls
+(32 slots). Preparation resumes with one build and zero GPU attempts. All 5,658
+inventoried historical output/pack files retain their hashes.

@@ -7,24 +7,15 @@ from pathlib import Path
 import shutil
 import subprocess
 import time
-import numpy as np
 from track3.provenance import input_file, sha256_file, write_json
-from track3.runs import (ROOT, artifact, authorize_episode, checked_entry, heavy_execution, new_run_id,
+from track3.runs import (ROOT, artifact, authorize_episode, checked_entry, new_run_id,
                          producer, read_json, runtime_flag, source_hashes)
-from .scene import FEATURE, KIT
+from .scored_stereo_config import FEATURE, KIT, BUDGET, EPISODES, UNTOUCHED
 from .request import Request
-from .length_diagnostic import frame_arrays
-from .scale_loop import append
-from .shrink_loop import resume_ledger
-from .scored_scale_loop import BUDGET, completed_attempt
-from .scored_scale_handler import inspect
-from ._stereo_placement import stereo_offset, scene_placement
 
 OUTPUT = ROOT / 'outputs/pose_insurance/stereo-placement-scored'
 RESULTS = ROOT / 'outputs/pose_insurance/results-v4'
 PROTOCOL = 'docs/chain/pose-stereo-placement-protocol.md'
-EPISODES = (3, 6, 8, 10, 14, 15, 16, 19, 20, 25, 30, 32, 33)
-UNTOUCHED = (1, 5, 28, 35, 36, 37, 38)
 QUEUE = 'track3/features/pose_insurance/scored_stereo_queue.json'
 
 
@@ -51,6 +42,9 @@ def base_episode(episode: int, export: dict, record: dict) -> dict:
 
 def measure_offset(base: dict, record: dict) -> tuple:
     """Read frame-zero stereo and v3 cluster unions using only evaluation video producers."""
+    import numpy as np
+    from .length_diagnostic import frame_arrays
+    from ._stereo_placement import stereo_offset
     episode = base['episode']
     ids = [row['clusters'] for row in base['base_scene']]
     details = dict(cluster_ids=ids, stereo_valid_pixels=[0, 0])
@@ -104,6 +98,7 @@ def measure_offset(base: dict, record: dict) -> tuple:
 
 def resume_plans(ledger) -> dict | None:
     """Re-admit immutable plans without rebuilding them when unrelated sources change."""
+    from .scale_loop import append
     saved = OUTPUT / 'plans.json'
     if saved.exists():
         plans = {int(ep): plan for ep, plan in read_json(saved)['plans'].items()}
@@ -130,6 +125,9 @@ def resume_plans(ledger) -> dict | None:
 
 def prepare(queue: dict, ledger) -> dict:
     """Freeze every clearance and fallback before any policy attempt."""
+    import numpy as np
+    from ._stereo_placement import scene_placement
+    from .scale_loop import append
     saved = resume_plans(ledger)
     if saved is not None:
         return saved
@@ -176,6 +174,9 @@ def prepare(queue: dict, ledger) -> dict:
 
 def evaluate(plans: dict, queue: dict, rows: list, ledger) -> tuple:
     """Reuse one-shot attempt resolution while running changed scenes serially."""
+    from .scored_scale_handler import inspect
+    from .scored_scale_loop import completed_attempt
+    from .scale_loop import append
     decisions, executed, resumed, started = {}, 0, 0, time.perf_counter()
     for episode, plan in plans.items():
         if not plan['changed']:
@@ -260,35 +261,9 @@ def compose(plans: dict, decisions: dict, queue: dict) -> dict:
 
 
 def summarize(plans: dict, decisions: dict, manifest: dict, executed: int, resumed: int, preflight: dict) -> None:
-    """Write a compact scored-stage table and retain the complete machine-readable evidence."""
-    lines = ['# T1 scored-stage physical result', '',
-             f"New GPU runs: {executed}; resumed attempts: {resumed}. Accepted T1: {len(manifest['composition']['T1'])}/20.", '',
-             'No reference poses or scan geometry entered this stage. Public stereo calibration is assumed '
-             'to hold for the evaluation rig. The train idea and gates were informed by train diagnostics; '
-             'fresh confirmation failed by the letter and the owner approved the candidate anyway. '
-             'The expected gain is RPE/MPPE; direction remains unobservable. No final file has been packed.', '',
-             '| Episode | Result / reason | Stereo / S1 length (cm) | c | First pose (cm / deg) | Drift (cm / deg) | Export |',
-             '|---:|---|---:|---:|---:|---:|---|']
-    for ep, plan in sorted(plans.items()):
-        decision = decisions[ep]
-        checks = decision.get('checks', {})
-        lengths = '—' if plan['stereo_length_m'] is None else f"{100*plan['stereo_length_m']:.3f} / {100*plan['s1_length_m']:.3f}"
-        if plan['stereo_length_m'] is None and plan['s1_length_m'] is not None:
-            lengths = f"— / {100*plan['s1_length_m']:.3f}"
-        factor = '—' if plan['clearance']['factor'] is None else f"{plan['clearance']['factor']:.9f}"
-        first = '—' if 'first_pose_cm' not in checks else f"{checks['first_pose_cm']:.6f} / {checks['first_pose_deg']:.6f}"
-        drift = '—' if 'drift_cm' not in checks else f"{checks['drift_cm']:.6f} / {checks['drift_deg']:.6f}"
-        result = 'T1' if decision['accepted'] else 'v3 fallback' if ep in EPISODES else 'v3 unchanged'
-        lines.append(f"| {ep} | {result}: {decision['reason']} | {lengths} | {factor} | {first} | {drift} | `results-v4/episode_{ep:06d}.parquet` |")
-    lines += ['', 'Physical limits: first pose ≤1 cm / ≤2 degrees; drift <1 cm / <2 degrees. '
-              'Unchanged/fallback exports are rechecked on CPU against their admitted v3 task.', '',
-              f"Full preflight: exit {preflight['exit_code']}, ready={preflight['ready']} (`preflight.log`). "
-              f"Local preflight with Kaggle checks skipped: {preflight.get('local', 'not needed')} (`preflight-local.log`).", '',
-              'Frozen clearance factors and projected gaps: `plans/episode_*.json`. '
-              'GPU attempts and optimizer/physical evidence: `runs/*/episode_*/run.json`. '
-              'Export hashes, source policies and composition: `composition.json`. '
-              'The lead must commit before packing; `scripts/reproduce/d2_poses_v4.sh` verifies and reproduces v4 on CPU.', '']
-    (OUTPUT / 'summary.md').write_text('\n'.join(lines))
+    """Publish the rendered result and the complete machine-readable evidence."""
+    from .scored_stereo_report import markdown
+    (OUTPUT / 'summary.md').write_text(markdown(plans, decisions, manifest, executed, resumed, preflight, EPISODES))
     write_json(OUTPUT / 'summary.json', dict(executed=executed, resumed=resumed, decisions=decisions,
                composition=manifest['composition'], plans=plans, preflight=preflight))
     write_json(OUTPUT / 'finished.json', dict(status='completed', executed=executed, resumed=resumed,
@@ -299,8 +274,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(__doc__)
     parser.add_argument('--phase', choices=('prepare', 'all'), default='all')
     args = parser.parse_args()
-    runtime = runtime_flag(FEATURE, 'scored_scale_authorized', 'T1 scored stage')
-    heavy_execution(dict(runtime, python=runtime['diagnostic_python']))
+    runtime = runtime_flag(FEATURE, 'scored_stereo_authorized', 'T1 scored stage')
     queue = read_json(QUEUE)
     if (queue['episodes'] != list(EPISODES) or queue['untouched'] != list(UNTOUCHED)
             or queue['budget'] != BUDGET or queue['candidate'] != 'T1'
@@ -308,6 +282,9 @@ def main() -> None:
         raise ValueError('Scored T1 queue differs from the fixed roster or budget')
     for ep in (*EPISODES, *UNTOUCHED):
         authorize_episode(runtime, Request(episode_index=ep, budget=BUDGET), 'T1 scored stage')
+    from .scored_stereo_handler import environment
+    environment(runtime, cpu=True)
+    from .shrink_loop import resume_ledger
     OUTPUT.mkdir(parents=True, exist_ok=True)
     rows, ledger = resume_ledger(OUTPUT)
     plans = prepare(queue, ledger)

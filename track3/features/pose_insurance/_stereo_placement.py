@@ -3,8 +3,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 from ._length import footprint_centres, offset
 from ._scene import camera_points
-from ._scale import candidate_gates
-from ._shrink import EPISODES, CONTROLS, METRICS, comparison, means, footprint_clearance
+from ._shrink import footprint_clearance
 
 
 def stereo_offset(stereo: dict, masks: list, normal: np.ndarray) -> tuple:
@@ -97,32 +96,6 @@ def direction_reading(scene: dict, ref_start: np.ndarray, raw_offset, thresholds
                     float(abs(np.linalg.norm(raw_offset) - target_length) * 100),
                 applied_exact_direction_error_cm=abs(predicted_length - target_length) * 100,
                 equal_length_angle_tolerance_deg=tolerance)
-
-
-def analysis(results: dict, plans: dict, historical: dict, lengths: list) -> dict:
-    """Apply fixed-denominator integrity controls and the existing candidate gates."""
-    reproduction = {str(ep): comparison(historical['S1'][str(ep)]['metrics'], results['S1'][ep]['metrics'])
-                    for ep in (*EPISODES, *CONTROLS)}
-    offsets = {str(row['episode']): offset_comparison(plans[row['episode']]['raw_offset_m'], row['vectors_m']['V_stereo'])
-               for row in lengths if row['episode'] in EPISODES}
-    positions = {str(ep): float(np.max(np.abs(np.asarray(plans[ep]['scenes']['S1']['positions']) -
-                          historical['S1'][str(ep)]['scene']['positions']))) for ep in (*EPISODES, *CONTROLS)}
-    invariance = {str(ep): comparison(results['S1'][ep]['metrics'], results['T1'][ep]['metrics']) for ep in CONTROLS}
-    finite = all(np.isfinite(row['metrics'][key]) for rows in results.values() for row in rows.values() for key in METRICS)
-    integrity = dict(s1_reproduction=all(r['passed'] for r in reproduction.values()),
-                     offset_reproduction=len(offsets) == len(EPISODES) and all(r['passed'] for r in offsets.values()),
-                     s1_position_reproduction=all(value <= 1e-6 for value in positions.values()),
-                     single_object_invariance=all(r['passed'] for r in invariance.values()),
-                     unchanged_fields=all(p['unchanged_fields'] for p in plans.values()), finite_metrics=finite)
-    scores = {name: means(rows, EPISODES) for name, rows in results.items()}
-    gates = candidate_gates([results['S1'][ep]['metrics'] for ep in EPISODES],
-                            [results['T1'][ep]['metrics'] for ep in EPISODES])
-    verdict = ('blocked: integrity control failed' if not all(integrity.values()) else
-               'T1 goes to the scored stage' if gates['passed'] else 'D2 v3 stays')
-    ranking = sorted(scores, key=lambda name: scores[name]['MPPE_cm'])
-    return dict(means=scores, ranking=ranking, gates=gates, verdict=verdict, integrity=integrity,
-                reproduction=reproduction, offset_reproduction=offsets, s1_position_difference_m=positions,
-                invariance=invariance)
 
 
 def scene_placement(scene: list, displacement, reason: str | None) -> tuple:

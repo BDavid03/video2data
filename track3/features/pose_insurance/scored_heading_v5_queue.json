@@ -1,0 +1,51 @@
+{
+  "candidate": "TW",
+  "episodes": [
+    19
+  ],
+  "budget": {
+    "environment_steps": 512,
+    "worlds": 1,
+    "replay_minimum": 32
+  },
+  "max_gpu_trials": 1,
+  "max_seconds": 300,
+  "inputs": {
+    "approval": {
+      "path": "AGENTS.md",
+      "sha256": "565d63cb2cca513335bb58e173de04911c9925eb6f0c9592f2dd30d213955877"
+    },
+    "v4_manifest": {
+      "path": "submissions/20261103T0645Z-d2-v4/track3_poses_v4_final.manifest.json",
+      "sha256": "abbd53d920b0a23d8500ef81849daa6e8da7f79905d0a51cbe6e383092c76a3b"
+    },
+    "h3_summary": {
+      "path": "outputs/pose_insurance/heading-h3/summary.json",
+      "sha256": "ff5ec178c147ca7d9655fe0425fa1a1b06f0df6a63b49f84161b172f8614d429"
+    },
+    "h3_report": {
+      "path": "outputs/pose_insurance/heading-h3/reports/20261103T133724.570656Z-36624a39/run.json",
+      "sha256": "8bad0397993e7dfeecfa6b43be109120de68ded3f330953e4e0e118811863b32"
+    },
+    "h3_outcome": {
+      "path": "docs/chain/pose-heading-h3-outcome.md",
+      "sha256": "1db29cf3388c2eb2ef2486bb078f5529bba4b6bf39b0c421669fa6631b49f488"
+    },
+    "h3_protocol": {
+      "path": "docs/chain/pose-heading-h3-protocol.md",
+      "sha256": "ae1c4934dd6fe4601fefcf1d3d2c6b9fadb5f640de1528a47698757a4d0e7d55"
+    },
+    "h3_verification": {
+      "path": "outputs/pose_insurance/heading-h3/verification.json",
+      "sha256": "2a8de312a0ee6582538f6253a4d3e5c9b269387ae9725b09bbb6e56e4ef44b56"
+    },
+    "build_plan": {
+      "path": "docs/chain/d2-v5-plan.md",
+      "sha256": "f10612f73a2528f75092af61fb1218bcbad1f688329804d82b60f1d52f0c3284"
+    },
+    "h3_pose_run": {
+      "path": "outputs/pose_insurance/heading-h3/scored-pose/20261103T133724.498103Z-69cf4828/run.json",
+      "sha256": "925f02f80e45e93512f701a591e0dbf35332b36925f0a1f33c1a2da908116253"
+    }
+  }
+}
