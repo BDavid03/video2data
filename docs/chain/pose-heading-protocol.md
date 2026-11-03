@@ -112,3 +112,18 @@ read only after the freeze): gravity-constrained scan-to-stereo registration, bo
 trimmed ICP, decline if another basin > 30 degrees away is within 3 % of the best. On episode 11 it declines both cups
 (flat multi-basin curves, rival basins 0.8-1.6 % worse). It is now run once, unchanged, on 12/18/21/23; a declined
 slot fails the b test as the protocol says.
+
+## Outcome (2026-11-03 08:20 UTC, context 16): Stage B FAILS; IDEAS 46 closed under this protocol
+
+HR1 ran once, unchanged (hash checked), on 12/18/21/23; registrations and declines were saved
+(`heldout_registrations.json`, sha256 e402f605...) before mocap was read. b direction < 30 degrees on 0 of 4 episodes
+and C < 30 degrees on 0 of 4: blue_cup declined on 12 and 21 (rival basins within 0.56-2.16 %), the rack, pitcher and
+both cups declined, mini_sweeper and both wooden pieces "cannot represent" (no `<name>.glb`; only `_visual`/`_collision`
+files), mini_dust_pan accepted but 79 degrees off in up axis. Before declines, episode 12 would have been 103 / 129
+degrees off (b / C) and episode 21 +11 / 168, so declining was protective. Even choosing the best of the 72 x 72 yaw
+starts with the truth known could not meet both tests on 12 or 21 (best b + C 60.8 and 136.9 degrees), because the
+frozen {+z, -z} up set cannot represent the rack (+x up), dust pan or tilted pitcher. Reading: geometry fixes a cup's up
+axis but not its heading (1 cm markers under ~3 mm stereo noise); the heading lever needs a different observation
+(e.g. RGB marker detection), which is a new protocol, not a repair of this one. Evidence:
+`outputs/pose_insurance/heading/summary.md` (recorded Stage A and U1, Codex) and
+`outputs/pose_insurance/heading/scratch-evidence/` (scratch Stage A/U1 and Stage B, Claude sub-agents).
