@@ -1,7 +1,13 @@
 # Submission checklist
 
-Kept current by every chain context (see `PROGRAM.md` section 1). Freeze: 4 November 2026,
-17:00 EST (22:00 UTC). Package-ready target: 2 November 2026.
+Kept current by every chain context (see `PROGRAM.md` section 1). Deadline planned to **17:00 UTC 4 Nov 2026** (owner,
+AGENTS.md; the kit says 22:00 UTC); new packs done by 12:00 UTC 4 Nov.
+
+**Current files to upload (context 20, 3 Nov 21:00 UTC): D1 v5 and D2 v5** (sections "D1 v5" and "D2 v5" under Packed
+files; commands in `NEEDS-YOU.md`, top). D1 v5 = v4 plus pretrained Hunyuan3D-2mini shapes for evaluation pot 5 and
+pitcher 20 (`bcb93d57...`, URL commit `b161723`); D2 v5 = v4 plus H3 scan-to-stereo headings on episode 19 only
+(`0b2606ae...`, URL commit `db7b13f`). Both preflight "Ready to submit" (Kaggle skipped). The table below is history
+up to v4.
 
 | Id | Deliverable | State | Evidence | Blocked on |
 | --- | --- | --- | --- | --- |
