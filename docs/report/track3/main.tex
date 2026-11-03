@@ -156,12 +156,13 @@ Figure~\ref{fig:qualitative} shows one frame. This does not establish improved \
 
 \setlength{\parskip}{0pt}
 \section{Static poses: stereo placement}
-Stereo initially places only the second box horizontally using calibrated
-3D mask centroids;
+Stereo places only the second box horizontally, by calibrated
+3D mask centroids pushed out to 1\,cm footprint clearance;
+v3 is kept without separate frame-0 masks (train 0/26/31, scored 30);
 hands stay inactive~\cite{flashchord}. The scorer
-rigidly aligns each world to the first object's initial pose; our correction
-changes the second object's offset length and direction, with first-object
-heading unobserved.
+rigidly aligns each world to the first object's initial pose; we correct
+the second object's offset length and direction; first-object
+heading is unobserved.
 
 \noindent\begin{minipage}{\columnwidth}
 \centering
@@ -189,15 +190,15 @@ MP-SR, every object $<$3\,cm/30$^\circ$.}
 \end{minipage}\par
 
 No training episode worsens; the AUC gain comes from one episode
-(second-object error 8.2 to 0.8\,cm). Four changed training episodes retain
+(second-object error 8.2 to 0.8\,cm); another, also reassigning the first
+object's mask, supplies about half the RPE gain. Four changed training episodes retain
 51--130$^\circ$ horizontal direction errors; their AUC is unchanged despite lower RPE/MPPE.
-Known first-frame training errors informed the idea and selection: no independent
-confirmation. Fresh pre-registered public confirmation was incomplete:
-one of four episodes had merged object masks; three measurable episodes favoured stereo
-(1.14 versus 7.21\,cm offset-length error). We adopted it anyway;
-five validation episodes were examined, no leaderboard score.
+Known first-frame training errors informed idea and selection; fresh
+pre-registered confirmation on validation 2/13/22/24/27 failed by rule
+(2 and required 13 had merged masks; 22/24/27 favoured stereo,
+1.14 versus 7.21\,cm offset-length error), but we adopted it,
+with no leaderboard score.
 
-One changed training episode also reassigns the first object's mask; it supplies about half the RPE gain.
 Twelve of 20 evaluation episodes change (the rest keep v3); their rollouts
 hold prescribed initial positions within 0.049\,cm and drift at most
 0.048\,cm: simulation consistency, not reference accuracy.
