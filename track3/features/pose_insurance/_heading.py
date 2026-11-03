@@ -30,7 +30,7 @@ def body_ups(poses: np.ndarray) -> np.ndarray:
     return Rotation.from_quat(poses[:, 3:]).as_matrix()[:, 2, :]
 
 
-def fit_priors(occurrences: dict) -> dict:
+def fit_priors(occurrences: dict, consistency: dict) -> dict:
     """Fit normalised signed means only for mutually consistent up vectors."""
     result = {}
     for name, rows in sorted(occurrences.items()):
@@ -38,7 +38,8 @@ def fit_priors(occurrences: dict) -> dict:
         mean = vectors.mean(axis=0) if len(rows) else np.zeros(3)
         norm = float(np.linalg.norm(mean))
         angle = float(np.degrees(np.arccos(np.clip(vectors @ vectors.T, -1, 1))).max()) if len(rows) else None
-        accepted = bool(len(rows) and angle <= 30. and norm >= .8)
+        accepted = bool(len(rows) and angle <= consistency['max_pairwise_angle_deg']
+                        and norm >= consistency['min_mean_norm'])
         result[name] = dict(occurrences=len(rows), episodes=[row['episode'] for row in rows],
                             up_vectors=vectors.tolist(), max_pairwise_angle_deg=angle, mean_norm=norm,
                             prior=accepted, up=(mean / norm).tolist() if accepted else None)
@@ -96,3 +97,27 @@ def frame0_checks(start: np.ndarray, result: np.ndarray, reference: np.ndarray) 
                 offset_error_m=float(np.linalg.norm(new_b - ref_b)),
                 relative_offset_change_m=float(np.linalg.norm(new_b - old_b)),
                 body_ups=body_ups(result).tolist())
+
+
+def analyze(results: dict, queue: dict, reproduction: dict, metric_names: list) -> dict:
+    """Apply T1 reproduction, Stage A and Amendment 1's fixed U1 gates."""
+    episodes, variants = queue['episodes'], queue['variants']
+    descriptive, gates = queue['descriptive_variants'], queue['gates']
+    means = {v: {key: float(np.mean([results[v][ep]['metrics'][key] for ep in episodes]))
+                  for key in metric_names} for v in variants}
+    t1, loo = means['T1'], means['U1-LOO']
+    changes = {key: loo[key] - t1[key] for key in metric_names}
+    worst_loss = max(results['T1'][ep]['metrics']['AUC'] - results['U1-LOO'][ep]['metrics']['AUC'] for ep in episodes)
+    checks = dict(auc_gain=changes['AUC'] >= gates['auc_gain_min'], rpe_not_worse=changes['RPE_cm'] <= 0,
+                  mppe_not_worse=changes['MPPE_cm'] <= 0, sp_sr_not_lower=changes['SP_SR'] >= 0,
+                  mp_sr_not_lower=changes['MP_SR'] >= 0, worst_episode_auc_loss=worst_loss <= gates['worst_episode_auc_loss_max'])
+    stage_a_gain = means['O2']['AUC'] - t1['AUC']
+    coverage = {ep: [name for name in results['T1'][ep]['names'] if name in ('blue_cup', 'beige_cup')] for ep in episodes}
+    return dict(means=means, ranking=sorted(variants, key=lambda v: means[v]['AUC'], reverse=True),
+                descriptive_variants=descriptive, cup_coverage=coverage,
+                cup_coverage_episodes=[ep for ep, names in coverage.items() if names],
+                cup_auc_gains={v: means[v]['AUC'] - t1['AUC'] for v in descriptive},
+                reproduction=reproduction,
+                stage_a=dict(auc_gain=stage_a_gain, passed=stage_a_gain >= gates['auc_gain_min']),
+                u1_gate=dict(changes=changes, worst_auc_loss=worst_loss, checks=checks,
+                             passed=all(checks.values())))

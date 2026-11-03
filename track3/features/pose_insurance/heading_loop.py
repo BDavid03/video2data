@@ -1,6 +1,7 @@
 """Resume the fixed train-only CPU heading queue and publish protocol verdicts."""
 import argparse
 from dataclasses import asdict, dataclass
+from functools import cache
 import hashlib
 import json
 import os
@@ -15,10 +16,26 @@ from track3.runs import (ROOT, artifact, authorize_episode, checked_entry, heavy
 FEATURE = Path(__file__).parent
 OUTPUT = 'outputs/pose_insurance/heading'
 PROTOCOL = 'docs/chain/pose-heading-protocol.md'
-EPISODES = [0, 11, 12, 18, 21, 23, 26, 31]
-VARIANTS = ['T1', 'O1', 'O2', 'O3', 'U1-LOO', 'U1-full', 'O2-cups', 'O2-cups-up']
-DESCRIPTIVE = ['O2-cups', 'O2-cups-up']
 METRICS = ['AUC', 'RPE_cm', 'MPPE_cm', 'SP_SR', 'MP_SR']
+
+
+def validate_protocol(queue: dict) -> None:
+    """Bind queue decisions to the reviewed protocol bytes and coverage extension."""
+    contract = {key: queue[key] for key in
+                ('episodes', 'variants', 'descriptive_variants', 'gates', 'prior_consistency')}
+    binding = hashlib.sha256(project_path(ROOT, PROTOCOL).read_bytes() +
+                             json.dumps(contract, sort_keys=True).encode()).hexdigest()
+    # SHA-256(protocol bytes + sorted-key contract JSON); values live only in the queue.
+    if binding != '69f4311a980c5574e8eb5d756cc583e44bd66a283a664214a6f683604a660c21':
+        raise ValueError('Queue or committed heading protocol differs from the frozen decisions')
+
+
+@cache
+def protocol_queue() -> dict:
+    """Load the fixed request domain once, retaining direct-request refusals."""
+    queue = read_json(FEATURE / 'heading_queue.json')
+    validate_protocol(queue)
+    return queue
 
 
 @dataclass(frozen=True)
@@ -28,9 +45,10 @@ class HeadingRequest:
     source_split: str = 'public'
 
     def __post_init__(self):
-        if self.source_split != 'public' or self.episode_index not in EPISODES:
+        queue = protocol_queue()
+        if self.source_split != 'public' or self.episode_index not in queue['episodes']:
             raise PermissionError('Heading requires the eight protocol train episodes')
-        if self.variant not in VARIANTS:
+        if self.variant not in queue['variants']:
             raise ValueError('Unknown heading variant')
 
 
@@ -97,7 +115,7 @@ def diagnose(request: HeadingRequest, build: tuple, paths: list, priors: dict, i
     with recorded(directory, record):
         start = start_poses({key: np.array(value) for key, value in plan['scenes']['T1'].items()})
         ref, vertices = scoring_data(request.episode_index, tuple(plan['names']))
-        if request.variant in DESCRIPTIVE:
+        if request.variant in protocol_queue()['descriptive_variants']:
             result = cup_oracle(start, ref[0, 0], plan['names'], priors if request.variant == 'O2-cups-up' else None)
         else:
             result = (apply_priors(start, plan['names'], priors) if request.variant.startswith('U1')
@@ -121,12 +139,12 @@ def diagnose(request: HeadingRequest, build: tuple, paths: list, priors: dict, i
         write_json(directory / 'metrics.json', dict(episode=request.episode_index, variant=request.variant,
                    names=plan['names'], metrics=metrics, frames=len(ref), frame0=checks,
                    start_poses=result.tolist(), priors=priors if request.variant.startswith('U1') or request.variant == 'O2-cups-up' else None,
-                   descriptive=request.variant in DESCRIPTIVE,
+                   descriptive=request.variant in protocol_queue()['descriptive_variants'],
                    covered_slots=[i for i, name in enumerate(plan['names']) if name in ('blue_cup', 'beige_cup')]))
     return directory / 'run.json'
 
 
-def fit_folds(episodes: list) -> tuple:
+def fit_folds(episodes: list, consistency: dict) -> tuple:
     """Read only train frame-zero labels and fit the full and episode-excluded priors."""
     from ._heading import body_ups, fit_priors
     from .placement_diagnostic import ROSTER, reference
@@ -134,9 +152,9 @@ def fit_folds(episodes: list) -> tuple:
     for ep in episodes:
         for name, up in zip(ROSTER[ep], body_ups(reference(ep)[0, 0])):
             occurrences[name].append(dict(episode=ep, up=up.tolist()))
-    return fit_priors(occurrences), {
+    return fit_priors(occurrences, consistency), {
         ep: fit_priors({name: [row for row in rows if row['episode'] != ep]
-                        for name, rows in occurrences.items()}) for ep in episodes}
+                        for name, rows in occurrences.items()}, consistency) for ep in episodes}
 
 
 def recorded_trials(queue: dict) -> dict:
@@ -145,7 +163,7 @@ def recorded_trials(queue: dict) -> dict:
     report = producer(path, 'pose_insurance.heading_report', allowed=('public_label_diagnostic',))
     summary = read_json(artifact(report, 'summary.json', {'inputs': []}))
     trials = {(row['variant'], row['episode']): row for row in summary['selected']}
-    if set(trials) != {(v, ep) for v in VARIANTS if v not in DESCRIPTIVE for ep in EPISODES}:
+    if set(trials) != {(v, ep) for v in queue['variants'] if v not in queue['descriptive_variants'] for ep in queue['episodes']}:
         raise ValueError('Historical report must contain exactly the original 48 trials')
     return trials
 
@@ -176,84 +194,9 @@ def resume_recorded(request: HeadingRequest, row: dict, build: tuple, priors: di
 
 
 def analysis(results: dict, queue: dict) -> dict:
-    """Apply T1 reproduction, Stage A and Amendment 1's fixed U1 gates."""
-    import numpy as np
-    means = {v: {key: float(np.mean([results[v][ep]['metrics'][key] for ep in EPISODES]))
-                  for key in METRICS} for v in VARIANTS}
-    reproduction = reproduce_t1(results, queue)
-    t1, loo = means['T1'], means['U1-LOO']
-    changes = {key: loo[key] - t1[key] for key in METRICS}
-    worst_loss = max(results['T1'][ep]['metrics']['AUC'] - results['U1-LOO'][ep]['metrics']['AUC'] for ep in EPISODES)
-    checks = dict(auc_gain=changes['AUC'] >= .010, rpe_not_worse=changes['RPE_cm'] <= 0,
-                  mppe_not_worse=changes['MPPE_cm'] <= 0, sp_sr_not_lower=changes['SP_SR'] >= 0,
-                  mp_sr_not_lower=changes['MP_SR'] >= 0, worst_episode_auc_loss=worst_loss <= .02)
-    stage_a_gain = means['O2']['AUC'] - t1['AUC']
-    coverage = {ep: [name for name in results['T1'][ep]['names'] if name in ('blue_cup', 'beige_cup')] for ep in EPISODES}
-    return dict(means=means, ranking=sorted(VARIANTS, key=lambda v: means[v]['AUC'], reverse=True),
-                descriptive_variants=DESCRIPTIVE, cup_coverage=coverage,
-                cup_coverage_episodes=[ep for ep, names in coverage.items() if names],
-                cup_auc_gains={v: means[v]['AUC'] - t1['AUC'] for v in DESCRIPTIVE},
-                reproduction=reproduction,
-                stage_a=dict(auc_gain=stage_a_gain, passed=stage_a_gain >= .010),
-                u1_gate=dict(changes=changes, worst_auc_loss=worst_loss, checks=checks,
-                             passed=all(checks.values())))
-
-
-def render(summary: dict, directory: Path) -> None:
-    """Write ranked metrics, all episode scores and prior tables."""
-    lines = ['# Recorded heading diagnostic', '',
-             'Train labels only; Stage A oracles are ceilings. U1 was chosen after label inspection; '
-             'LOO is the gate, full-train is descriptive. Scan ADD uses 1,000 seed-zero surface samples.', '',
-             'O2-cups and O2-cups-up are descriptive coverage ceilings with no gate. '
-             'O2-cups-up applies full-train priors to uncovered objects before the coverage oracle. '
-             f"Cup coverage touches episodes {summary['cup_coverage_episodes']}; other episodes in O2-cups-up equal U1-full.", '',
-             'Stage B registration failed under the frozen protocol; the historical Stage A trigger below is not a new authorization.', '',
-             f"Executed {summary['executed']}; resumed {summary['resumed']}. "
-             f"T1 reproduction: {summary['reproduction']['passed']}. "
-             f"Stage A passes: {summary['stage_a']['passed']}. U1-LOO passes: {summary['u1_gate']['passed']}.", '',
-             f"Changes since previous report: `{json.dumps(summary['mean_changes_since_previous'], sort_keys=True)}`.", '',
-             '| Variant | AUC | RPE cm | MPPE cm | SP-SR | MP-SR |', '|---|---:|---:|---:|---:|---:|']
-    for variant in summary['ranking']:
-        lines.append('| ' + variant + ' | ' + ' | '.join(f'{summary["means"][variant][k]:.9f}' for k in METRICS) + ' |')
-    lines += ['', '## Per-episode metrics', '', '| Episode | Variant | AUC | RPE cm | MPPE cm | SP-SR | MP-SR |',
-              '|---:|---|---:|---:|---:|---:|---:|']
-    for ep in EPISODES:
-        for variant in VARIANTS:
-            metrics = summary['results'][variant][ep]['metrics']
-            lines.append(f'| {ep} | {variant} | ' + ' | '.join(f'{metrics[k]:.9f}' for k in METRICS) + ' |')
-    lines += ['', '## Full-train priors', '',
-              '| Type | Episodes | N | Body-up observations | Max angle deg | Mean norm | Prior up | Prior? |',
-              '|---|---|---:|---|---:|---:|---|---|']
-    for name, row in summary['priors_full'].items():
-        angle = '-' if row['max_pairwise_angle_deg'] is None else f'{row["max_pairwise_angle_deg"]:.6f}'
-        vectors = '; '.join(', '.join(f'{x:.6f}' for x in v) for v in row['up_vectors'])
-        up = '-' if row['up'] is None else ', '.join(f'{x:.6f}' for x in row['up'])
-        lines.append(f'| {name} | {row["episodes"]} | {row["occurrences"]} | {vectors} | {angle} | '
-                     f'{row["mean_norm"]:.9f} | {up} | {row["prior"]} |')
-    lines += ['', 'All LOO fold memberships, observations and consistency statistics are in summary.json and each U1 trial.', '',
-              '## U1-LOO gate', '', f"Mean changes: `{json.dumps(summary['u1_gate']['changes'], sort_keys=True)}`.", '',
-              f"Worst episode AUC loss: {summary['u1_gate']['worst_auc_loss']:.9f}.", '',
-              *[f'- {key}: {value}' for key, value in summary['u1_gate']['checks'].items()], '',
-              'No scored policy, geometry counter-rotation, physical check or pack is part of this diagnostic.', '',
-              '![Per-episode AUC](auc.png)', '']
-    (directory / 'summary.md').write_text('\n'.join(lines))
-
-
-def figure(summary: dict, directory: Path) -> None:
-    """Plot every protocol variant's train-episode ADD AUC."""
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
-    fig, ax = plt.subplots(figsize=(9, 4))
-    for variant in VARIANTS:
-        ax.plot(range(len(EPISODES)), [summary['results'][variant][ep]['metrics']['AUC'] for ep in EPISODES],
-                marker='o', markersize=3, label=variant)
-    ax.set(xticks=range(len(EPISODES)), xticklabels=EPISODES, xlabel='Train episode', ylabel='ADD AUC', ylim=(0, 1))
-    ax.legend(ncol=3, fontsize=8)
-    ax.grid(alpha=.2)
-    fig.tight_layout()
-    fig.savefig(directory / 'auc.png', dpi=140)
-    plt.close(fig)
+    """Admit the historical baseline and aggregate the configured protocol gates."""
+    from ._heading import analyze
+    return analyze(results, queue, reproduce_t1(results, queue), METRICS)
 
 
 def operation(request: HeadingRequest, build: tuple, paths: list, priors: dict,
@@ -284,7 +227,7 @@ def operation(request: HeadingRequest, build: tuple, paths: list, priors: dict,
 def reproduce_t1(results: dict, queue: dict) -> dict:
     """Check full-precision historical T1 metrics before scoring any oracle."""
     differences = {}
-    for ep in EPISODES:
+    for ep in queue['episodes']:
         old = producer(queue['t1_scores'][str(ep)], 'pose_insurance.stereo_placement_diagnostic',
                        HeadingRequest(ep, 'T1'), allowed=('public_label_diagnostic',))
         previous = read_json(artifact(old, 'metrics.json', {'inputs': []}))
@@ -305,8 +248,9 @@ def publish(summary: dict, queue: dict, queue_path: Path, directory: Path) -> No
                         provenance='public_label_diagnostic')
     with recorded(report, record):
         write_json(report / 'summary.json', summary)
-        render(summary, report)
-        figure(summary, report)
+        from ._heading_render import render, figure
+        render(summary, report, queue, METRICS)
+        figure(summary, report, queue)
     for name in ('summary.json', 'summary.md', 'auc.png'):
         (directory / name).write_bytes((report / name).read_bytes())
     write_json(directory / 'finished.json', dict(status='completed', executed=summary['executed'], resumed=summary['resumed'],
@@ -324,27 +268,28 @@ def run_queue(queue_path: str) -> None:
     from .shrink_loop import resume_ledger
     queue_path = project_path(ROOT, queue_path)
     queue = read_json(queue_path)
-    if (queue['episodes'] != EPISODES or queue['variants'] != VARIANTS
-            or not 1 <= queue['max_trials'] <= 64 or not 1 <= queue['max_seconds'] <= 7200
-            or set(queue['builds']) != set(map(str, EPISODES)) or set(queue['t1_scores']) != set(map(str, EPISODES))):
+    validate_protocol(queue)
+    episodes, variants = queue['episodes'], queue['variants']
+    if (not 1 <= queue['max_trials'] <= len(episodes) * len(variants) or not 1 <= queue['max_seconds'] <= 7200
+            or set(queue['builds']) != set(map(str, episodes)) or set(queue['t1_scores']) != set(map(str, episodes))):
         raise ValueError('Queue must preserve the fixed heading protocol and bounded budget')
     sampling = read_json(FEATURE / 'diagnostic_sampling.json')
     if sampling['surface_points_per_object'] != 1000 or sampling['seed'] != 0:
         raise ValueError('Heading requires 1,000 surface samples and seed zero')
-    for ep in EPISODES:
+    for ep in queue['episodes']:
         authorize_episode(runtime, HeadingRequest(ep, 'T1'), 'Heading queue')
-    builds = {ep: admit_build(ep, queue['builds'][str(ep)]) for ep in EPISODES}
-    priors, folds = fit_folds(EPISODES)
+    builds = {ep: admit_build(ep, queue['builds'][str(ep)]) for ep in episodes}
+    priors, folds = fit_folds(episodes, queue['prior_consistency'])
     directory = output_path(ROOT, OUTPUT)
     directory.mkdir(parents=True, exist_ok=True)
     rows, ledger = resume_ledger(directory)
     historical = recorded_trials(queue)
     sources = source_hashes(FEATURE)
-    results, selected, executed, resumed = {v: {} for v in VARIANTS}, [], 0, 0
+    results, selected, executed, resumed = {v: {} for v in variants}, [], 0, 0
     admissions = []
     started = time.perf_counter()
-    for variant in VARIANTS:
-        for ep in EPISODES:
+    for variant in variants:
+        for ep in queue['episodes']:
             request = HeadingRequest(ep, variant)
             fitted = folds[ep] if variant == 'U1-LOO' else priors
             if (variant, ep) in historical:
@@ -371,7 +316,7 @@ def run_queue(queue_path: str) -> None:
                    recorded_trial_admissions=admissions)
     previous = read_json(directory / 'summary.json') if (directory / 'summary.json').exists() else None
     summary['mean_changes_since_previous'] = ({v: {k: summary['means'][v][k] - previous['means'][v][k]
-                                                  for k in METRICS} for v in VARIANTS if v in previous['means']} if previous else None)
+                                                  for k in METRICS} for v in variants if v in previous['means']} if previous else None)
     publish(summary, queue, queue_path, directory)
 
 

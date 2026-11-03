@@ -567,7 +567,8 @@ PYTHONPATH=. CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 .runtime/linux-cu
 It reads the recorded T1 constructions, then scores T1/O1/O2/O3/U1-LOO/U1-full and the
 descriptive O2-cups/O2-cups-up coverage ceilings on train
 episodes **0/11/12/18/21/23/26/31** only. `_heading.py` owns the pure rotation/oracle
-calculations and signed body-up fitting. The handler admits producers, enforces the new
+calculations, signed body-up fitting and numerical aggregation. `_heading_render.py` owns
+Markdown tables and figures. The handler admits producers, enforces the
 `heading_authorized` runtime flag, records inputs/sources and applies the fixed verdicts.
 Heavy imports follow `heavy_execution`; execution forces CPU visibility.
 
@@ -576,7 +577,14 @@ CUDA_VISIBLE_DEVICES='' PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 .runtime/linux-cu
 ```
 
 The editable queue names the fixed variants, train roster, exact build/scoring records and
-64-trial / 7,200-second budget. Trial identities hash inputs and sources; repeating the
+64-trial / 7,200-second budget. It also supplies the +0.010 AUC floor, 0.02 worst-episode
+AUC loss limit and 30-degree / 0.8 prior-consistency thresholds. These values occur only
+in the queue and are passed to the numerical functions. `validate_protocol` checks one
+frozen SHA-256 binding of the committed protocol bytes followed by sorted-key JSON for
+`episodes`, `variants`, `descriptive_variants`, `gates` and `prior_consistency`. A roster,
+order, threshold or protocol mismatch fails closed.
+The binding includes the descriptive cup extension; the protocol's U1 and Stage A
+verdicts are unchanged. Trial identities hash inputs and sources; repeating the
 command re-admits completed trials and their inputs instead of scoring them again.
 The first invocation executed **48** trials; the second executed **0**, resuming all **48**.
 `outputs/pose_insurance/heading/` contains the append-only ledger, immutable trial
@@ -608,9 +616,9 @@ the consistency rule. LOO singletons retain T1, and each fold fits from other ep
 only. U1 was chosen after train-label inspection, so LOO does not make this a blind study.
 No scored policy, physical check, geometry counter-rotation or pack follows from this failure.
 
-Syntax compilation and CPU imports passed. The pure-function equivalence script at
-`.runtime/tmp/heading-build/equivalence.py` compares U1 to `apply_conventions` and O3's
-relative frame to `oracle_replacements`; all 24 comparisons pass, maximum residual
+The original syntax compilation and CPU imports passed. Pure-function comparisons
+of U1 to `apply_conventions` and O3's relative frame to `oracle_replacements` passed
+all 24 comparisons, maximum residual
 **3.94e-16**. Only after the independent 48-trial run completed, the two permitted scratch
 summary JSON files were read. `scratch-comparison/{run.json,comparison.json,comparison.md}`
 under the output directory records **315** per-episode/mean comparisons: no difference
@@ -652,6 +660,23 @@ unchanged scoring inputs/sources, and requires exact equality of current constru
 to recorded pose arrays and U1 fitting priors. Only the additive queue/protocol and the
 two extended heading sources are admitted as explicit replacements, with their old and
 current hashes recorded in `recorded_trial_admissions`. The original 48 result objects
-and all 96 original `run.json`/`metrics.json` files remain byte-identical; evidence is
-`.runtime/tmp/heading-build/cups/preservation.json`. CPU imports, syntax compilation and
-the old/new construction equivalence in that scratch directory pass.
+and all 96 original `run.json`/`metrics.json` files remained byte-identical in the
+extension's preservation comparison. Its CPU imports, syntax compilation and old/new
+construction comparisons passed.
+
+### Heading loop engineering
+
+A fresh CPU engineering re-run recomputed **64** trials with **0** resumes. All **320**
+per-trial metric values and all nine full/LOO prior fits matched exactly (maximum metric
+difference **0**); all gate verdicts stayed unchanged. All 64 identity hashes changed
+because the queue and source bytes changed. Seven modified queue decisions and five
+invalid requests were refused before scoring.
+
+Raw invocation summaries differ from the historical repeat: they record 64 executions,
+new run identities/paths/timings, new source admissions and no previous-report delta.
+The scorer also writes the existing cup-extension metadata (`descriptive`, `covered_slots`)
+for the original 48 variants, whose archived results predate those fields. A separate
+comparison restored only these historical metadata/schema fields; its `summary.json`
+and `summary.md` matched the historical files byte for byte. This is report-content
+preservation, not raw invocation byte identity. The historical heading directory was
+left unchanged.

@@ -44,5 +44,17 @@
   "recorded_report": {
     "path": "outputs/pose_insurance/heading/reports/20261103T081438.443926Z-e4aba625/run.json",
     "sha256": "81c6817f12a31646752fa7c7da46d1b8eb503b94e1db0f8f7a4ca2f4cc98fbec"
+  },
+  "descriptive_variants": [
+    "O2-cups",
+    "O2-cups-up"
+  ],
+  "gates": {
+    "auc_gain_min": 0.01,
+    "worst_episode_auc_loss_max": 0.02
+  },
+  "prior_consistency": {
+    "max_pairwise_angle_deg": 30.0,
+    "min_mean_norm": 0.8
   }
 }
