@@ -62,6 +62,22 @@ def apply_priors(start: np.ndarray, names: list, priors: dict) -> np.ndarray:
     return result
 
 
+def cup_oracle(start: np.ndarray, reference: np.ndarray, names: list,
+               priors: dict | None = None) -> np.ndarray:
+    """Apply the cup-covered oracle after optional priors on uncovered objects."""
+    covered = [name in ('blue_cup', 'beige_cup') for name in names]
+    result = start.copy()
+    if priors is not None:
+        fitted = apply_priors(start, names, priors)
+        result[np.logical_not(covered)] = fitted[np.logical_not(covered)]
+    if covered[0]:
+        return oracle(result, reference, 'O2' if covered[1] else 'O1')
+    if covered[1]:
+        reference_c, _ = relative_transform(reference)
+        result[1, 3:] = (Rotation.from_quat(result[0, 3:]) * reference_c).as_quat()
+    return result
+
+
 def frame0_checks(start: np.ndarray, result: np.ndarray, reference: np.ndarray) -> dict:
     """Measure invariant residuals and reference-relative errors at the first frame."""
     old_c, old_b = relative_transform(start)

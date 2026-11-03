@@ -564,7 +564,8 @@ PYTHONPATH=. CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 .runtime/linux-cu
 ## Recorded heading oracles and up-axis priors
 
 `heading_loop.py` implements `docs/chain/pose-heading-protocol.md` Stage A and Amendment 1.
-It reads the recorded T1 constructions, then scores T1/O1/O2/O3/U1-LOO/U1-full on train
+It reads the recorded T1 constructions, then scores T1/O1/O2/O3/U1-LOO/U1-full and the
+descriptive O2-cups/O2-cups-up coverage ceilings on train
 episodes **0/11/12/18/21/23/26/31** only. `_heading.py` owns the pure rotation/oracle
 calculations and signed body-up fitting. The handler admits producers, enforces the new
 `heading_authorized` runtime flag, records inputs/sources and applies the fixed verdicts.
@@ -575,7 +576,7 @@ CUDA_VISIBLE_DEVICES='' PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 .runtime/linux-cu
 ```
 
 The editable queue names the fixed variants, train roster, exact build/scoring records and
-48-trial / 7,200-second budget. Trial identities hash inputs and sources; repeating the
+64-trial / 7,200-second budget. Trial identities hash inputs and sources; repeating the
 command re-admits completed trials and their inputs instead of scoring them again.
 The first invocation executed **48** trials; the second executed **0**, resuming all **48**.
 `outputs/pose_insurance/heading/` contains the append-only ledger, immutable trial
@@ -614,3 +615,43 @@ relative frame to `oracle_replacements`; all 24 comparisons pass, maximum residu
 summary JSON files were read. `scratch-comparison/{run.json,comparison.json,comparison.md}`
 under the output directory records **315** per-episode/mean comparisons: no difference
 exceeds **1e-9** (Stage A maximum **1.07e-14**, U1 maximum **1.07e-13**).
+
+### Cup coverage ceiling (descriptive)
+
+Stage B registration failed under the frozen protocol. These extra ceilings describe
+what a future cup-only heading observation could recover; neither has an adoption gate.
+Covered types are `blue_cup` and `beige_cup`. Both slots covered uses O2; slot zero only
+uses O1; slot one only replaces its rotation with `R0 C_ref`; neither covered keeps T1.
+`O2-cups-up` first gives uncovered objects their U1-full rotation, then applies the same
+coverage rule. This carries the uncovered slot's prior through O1's common yaw; episodes
+without cups equal U1-full. Positions remain T1's throughout.
+
+Coverage touches **11** (blue/beige cups, both slots), **12** (blue cup, slot zero) and
+**21** (blue cup, slot zero). No train episode has a cup in slot one alone.
+
+| Variant | Mean AUC | RPE cm | MPPE cm | SP-SR | MP-SR |
+|---|---:|---:|---:|---:|---:|
+| T1 | 0.276704640 | 29.013682158 | 17.678603332 | 0.000000 | 0.000000 |
+| O2 | 0.352712560 | 20.266692973 | 11.352044754 | 0.250000 | 0.000000 |
+| O2-cups | 0.289136209 | 22.867713743 | 13.584867080 | 0.125000 | 0.000000 |
+| O2-cups-up | 0.281275632 | 23.281197161 | 13.851305617 | 0.125000 | 0.000000 |
+
+O2-cups gains **+0.012431569 AUC**, **16.36%** of O2's full +0.076007920 gain. All
+of that AUC gain comes from episode 11 (0.500000000 to 0.599452555). Episodes 12/21
+improve RPE/MPPE without an AUC change. Adding uncovered-object priors reduces the
+gain to **+0.004570992**, **6.01%** of O2's full gain. The AUC reduction comes from
+the non-cup wooden episode 23, which inherits U1-full's 0.062884615 loss. These are
+label-derived descriptive bounds, with no demonstrated video marker detector.
+The latest `summary.md`/`summary.json` report all five metrics per episode for all eight
+variants, coverage membership and the two mean AUC gains; `auc.png` includes both curves.
+
+The coverage extension executed **16** trials and resumed the original **48**; an
+unchanged repeat executed **0** and resumed **64**. `heading_queue.json` pins the original
+immutable report by SHA-256. Historical admission rechecks its metric artifacts and
+unchanged scoring inputs/sources, and requires exact equality of current constructions
+to recorded pose arrays and U1 fitting priors. Only the additive queue/protocol and the
+two extended heading sources are admitted as explicit replacements, with their old and
+current hashes recorded in `recorded_trial_admissions`. The original 48 result objects
+and all 96 original `run.json`/`metrics.json` files remain byte-identical; evidence is
+`.runtime/tmp/heading-build/cups/preservation.json`. CPU imports, syntax compilation and
+the old/new construction equivalence in that scratch directory pass.

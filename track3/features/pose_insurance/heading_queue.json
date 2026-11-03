@@ -15,9 +15,11 @@
     "O2",
     "O3",
     "U1-LOO",
-    "U1-full"
+    "U1-full",
+    "O2-cups",
+    "O2-cups-up"
   ],
-  "max_trials": 48,
+  "max_trials": 64,
   "max_seconds": 7200,
   "builds": {
     "0": "outputs/pose_insurance/stereo-placement/builds/20261103T001807.996054Z-c922133b/run.json",
@@ -38,5 +40,9 @@
     "23": "outputs/pose_insurance/stereo-placement/runs/20261103T001812.434831Z-c99e7a88/run.json",
     "26": "outputs/pose_insurance/stereo-placement/runs/20261103T001812.531165Z-79159806/run.json",
     "31": "outputs/pose_insurance/stereo-placement/runs/20261103T001812.616052Z-e8facfe8/run.json"
+  },
+  "recorded_report": {
+    "path": "outputs/pose_insurance/heading/reports/20261103T081438.443926Z-e4aba625/run.json",
+    "sha256": "81c6817f12a31646752fa7c7da46d1b8eb503b94e1db0f8f7a4ca2f4cc98fbec"
   }
 }

@@ -16,7 +16,8 @@ FEATURE = Path(__file__).parent
 OUTPUT = 'outputs/pose_insurance/heading'
 PROTOCOL = 'docs/chain/pose-heading-protocol.md'
 EPISODES = [0, 11, 12, 18, 21, 23, 26, 31]
-VARIANTS = ['T1', 'O1', 'O2', 'O3', 'U1-LOO', 'U1-full']
+VARIANTS = ['T1', 'O1', 'O2', 'O3', 'U1-LOO', 'U1-full', 'O2-cups', 'O2-cups-up']
+DESCRIPTIVE = ['O2-cups', 'O2-cups-up']
 METRICS = ['AUC', 'RPE_cm', 'MPPE_cm', 'SP_SR', 'MP_SR']
 
 
@@ -58,17 +59,20 @@ def trial_inputs(request: HeadingRequest, queue: dict, queue_path: Path, build: 
     from .placement_diagnostic import label_paths
     paths = [queue_path, PROTOCOL, *scoring_inputs(request.episode_index, build[1]['names']),
              build[0][0], ROOT / build[2]['path']]
-    if request.variant.startswith('U1'):
-        fitting = [ep for ep in queue['episodes'] if request.variant == 'U1-full' or ep != request.episode_index]
+    if request.variant.startswith('U1') or request.variant == 'O2-cups-up':
+        fitting = [ep for ep in queue['episodes'] if request.variant != 'U1-LOO' or ep != request.episode_index]
         paths.extend(path for ep in fitting for path in label_paths(ep))
     return list(dict.fromkeys(map(str, paths)))
 
 
-def resume_result(row: dict) -> dict:
+def resume_result(row: dict, replacements: dict | None = None) -> dict:
     """Re-admit a completed trial and every input and source it consumed."""
     record = read_run(ROOT, row['run'], kind='pose_insurance.heading_trial')
     for entry in [*record['inputs'], *record['sources']]:
-        checked_entry(entry, {'inputs': []})
+        if replacements is not None and entry['path'] in replacements:
+            replacements[entry['path']].append(entry['sha256'])
+        else:
+            checked_entry(entry, {'inputs': []})
     return read_json(artifact((ROOT / row['run'], record), 'metrics.json', {'inputs': []}))
 
 
@@ -79,7 +83,7 @@ def diagnose(request: HeadingRequest, build: tuple, paths: list, priors: dict, i
     os.environ['CUDA_VISIBLE_DEVICES'] = ''
     heavy_execution(dict(runtime, python=runtime['diagnostic_python']))
     import numpy as np
-    from ._heading import oracle, apply_priors, frame0_checks
+    from ._heading import oracle, apply_priors, cup_oracle, frame0_checks
     from ._stereo_placement import start_poses
     from .stereo_placement_loop import scoring_data
     from .placement_diagnostic import baseline_module
@@ -93,8 +97,11 @@ def diagnose(request: HeadingRequest, build: tuple, paths: list, priors: dict, i
     with recorded(directory, record):
         start = start_poses({key: np.array(value) for key, value in plan['scenes']['T1'].items()})
         ref, vertices = scoring_data(request.episode_index, tuple(plan['names']))
-        result = (apply_priors(start, plan['names'], priors) if request.variant.startswith('U1')
-                  else oracle(start, ref[0, 0], request.variant))
+        if request.variant in DESCRIPTIVE:
+            result = cup_oracle(start, ref[0, 0], plan['names'], priors if request.variant == 'O2-cups-up' else None)
+        else:
+            result = (apply_priors(start, plan['names'], priors) if request.variant.startswith('U1')
+                      else oracle(start, ref[0, 0], request.variant))
         checks = frame0_checks(start, result, ref[0, 0])
         if request.variant != 'O3' and checks['positions_max_change_m'] != 0:
             raise ValueError('Heading changed T1 positions')
@@ -113,7 +120,9 @@ def diagnose(request: HeadingRequest, build: tuple, paths: list, priors: dict, i
         record['metrics'] = metrics
         write_json(directory / 'metrics.json', dict(episode=request.episode_index, variant=request.variant,
                    names=plan['names'], metrics=metrics, frames=len(ref), frame0=checks,
-                   start_poses=result.tolist(), priors=priors if request.variant.startswith('U1') else None))
+                   start_poses=result.tolist(), priors=priors if request.variant.startswith('U1') or request.variant == 'O2-cups-up' else None,
+                   descriptive=request.variant in DESCRIPTIVE,
+                   covered_slots=[i for i, name in enumerate(plan['names']) if name in ('blue_cup', 'beige_cup')]))
     return directory / 'run.json'
 
 
@@ -130,6 +139,42 @@ def fit_folds(episodes: list) -> tuple:
                         for name, rows in occurrences.items()}) for ep in episodes}
 
 
+def recorded_trials(queue: dict) -> dict:
+    """Admit the pinned historical report supplying the original 48 completed trials."""
+    path = checked_entry(queue['recorded_report'], {'inputs': []})
+    report = producer(path, 'pose_insurance.heading_report', allowed=('public_label_diagnostic',))
+    summary = read_json(artifact(report, 'summary.json', {'inputs': []}))
+    trials = {(row['variant'], row['episode']): row for row in summary['selected']}
+    if set(trials) != {(v, ep) for v in VARIANTS if v not in DESCRIPTIVE for ep in EPISODES}:
+        raise ValueError('Historical report must contain exactly the original 48 trials')
+    return trials
+
+
+def resume_recorded(request: HeadingRequest, row: dict, build: tuple, priors: dict) -> tuple:
+    """Admit an additive extension only when the historical scored poses are identical."""
+    import numpy as np
+    from ._heading import oracle, apply_priors
+    from ._stereo_placement import start_poses
+    from .placement_diagnostic import reference
+    replacements = {path: [] for path in (PROTOCOL, 'track3/features/pose_insurance/heading_queue.json',
+                    'track3/features/pose_insurance/_heading.py', 'track3/features/pose_insurance/heading_loop.py')}
+    result = resume_result(row, replacements)
+    record = read_run(ROOT, row['run'], kind='pose_insurance.heading_trial')
+    if record['request'] != asdict(request) or record['identity'] != row['identity'] or result['names'] != build[1]['names']:
+        raise ValueError('Historical trial does not match its selected request')
+    start = start_poses({key: np.array(value) for key, value in build[1]['scenes']['T1'].items()})
+    constructed = (apply_priors(start, result['names'], priors) if request.variant.startswith('U1')
+                   else oracle(start, reference(request.episode_index)[0, 0], request.variant))
+    if not np.array_equal(constructed, result['start_poses']):
+        raise ValueError('Historical scored poses differ under the additive extension')
+    if request.variant.startswith('U1') and result['priors'] != priors:
+        raise ValueError('Historical fitting priors differ')
+    admission = dict(run=row['run'], identical_scored_poses=True,
+                     replacements={path: dict(recorded_sha256=sorted(set(hashes)),
+                                              current=input_file(ROOT, path)) for path, hashes in replacements.items()})
+    return result, admission
+
+
 def analysis(results: dict, queue: dict) -> dict:
     """Apply T1 reproduction, Stage A and Amendment 1's fixed U1 gates."""
     import numpy as np
@@ -143,7 +188,11 @@ def analysis(results: dict, queue: dict) -> dict:
                   mppe_not_worse=changes['MPPE_cm'] <= 0, sp_sr_not_lower=changes['SP_SR'] >= 0,
                   mp_sr_not_lower=changes['MP_SR'] >= 0, worst_episode_auc_loss=worst_loss <= .02)
     stage_a_gain = means['O2']['AUC'] - t1['AUC']
+    coverage = {ep: [name for name in results['T1'][ep]['names'] if name in ('blue_cup', 'beige_cup')] for ep in EPISODES}
     return dict(means=means, ranking=sorted(VARIANTS, key=lambda v: means[v]['AUC'], reverse=True),
+                descriptive_variants=DESCRIPTIVE, cup_coverage=coverage,
+                cup_coverage_episodes=[ep for ep, names in coverage.items() if names],
+                cup_auc_gains={v: means[v]['AUC'] - t1['AUC'] for v in DESCRIPTIVE},
                 reproduction=reproduction,
                 stage_a=dict(auc_gain=stage_a_gain, passed=stage_a_gain >= .010),
                 u1_gate=dict(changes=changes, worst_auc_loss=worst_loss, checks=checks,
@@ -155,6 +204,10 @@ def render(summary: dict, directory: Path) -> None:
     lines = ['# Recorded heading diagnostic', '',
              'Train labels only; Stage A oracles are ceilings. U1 was chosen after label inspection; '
              'LOO is the gate, full-train is descriptive. Scan ADD uses 1,000 seed-zero surface samples.', '',
+             'O2-cups and O2-cups-up are descriptive coverage ceilings with no gate. '
+             'O2-cups-up applies full-train priors to uncovered objects before the coverage oracle. '
+             f"Cup coverage touches episodes {summary['cup_coverage_episodes']}; other episodes in O2-cups-up equal U1-full.", '',
+             'Stage B registration failed under the frozen protocol; the historical Stage A trigger below is not a new authorization.', '',
              f"Executed {summary['executed']}; resumed {summary['resumed']}. "
              f"T1 reproduction: {summary['reproduction']['passed']}. "
              f"Stage A passes: {summary['stage_a']['passed']}. U1-LOO passes: {summary['u1_gate']['passed']}.", '',
@@ -248,7 +301,8 @@ def publish(summary: dict, queue: dict, queue_path: Path, directory: Path) -> No
     report = output_path(ROOT, f'{OUTPUT}/reports/{new_run_id()}')
     record = run_fields(ROOT, 'pose_insurance', 'heading_report', dict(queue=str(queue_path.relative_to(ROOT))),
                         inputs=[queue_path, PROTOCOL, FEATURE / 'runtime.json', *queue['t1_scores'].values()],
-                        parents=[row['run'] for row in summary['selected']], provenance='public_label_diagnostic')
+                        parents=[queue['recorded_report']['path'], *[row['run'] for row in summary['selected']]],
+                        provenance='public_label_diagnostic')
     with recorded(report, record):
         write_json(report / 'summary.json', summary)
         render(summary, report)
@@ -271,7 +325,7 @@ def run_queue(queue_path: str) -> None:
     queue_path = project_path(ROOT, queue_path)
     queue = read_json(queue_path)
     if (queue['episodes'] != EPISODES or queue['variants'] != VARIANTS
-            or not 1 <= queue['max_trials'] <= 48 or not 1 <= queue['max_seconds'] <= 7200
+            or not 1 <= queue['max_trials'] <= 64 or not 1 <= queue['max_seconds'] <= 7200
             or set(queue['builds']) != set(map(str, EPISODES)) or set(queue['t1_scores']) != set(map(str, EPISODES))):
         raise ValueError('Queue must preserve the fixed heading protocol and bounded budget')
     sampling = read_json(FEATURE / 'diagnostic_sampling.json')
@@ -284,20 +338,27 @@ def run_queue(queue_path: str) -> None:
     directory = output_path(ROOT, OUTPUT)
     directory.mkdir(parents=True, exist_ok=True)
     rows, ledger = resume_ledger(directory)
+    historical = recorded_trials(queue)
     sources = source_hashes(FEATURE)
     results, selected, executed, resumed = {v: {} for v in VARIANTS}, [], 0, 0
+    admissions = []
     started = time.perf_counter()
     for variant in VARIANTS:
         for ep in EPISODES:
             request = HeadingRequest(ep, variant)
-            paths = trial_inputs(request, queue, queue_path, builds[ep])
-            payload = dict(request=asdict(request), inputs=[input_file(ROOT, p) for p in paths], sources=sources)
-            key = hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
-            completed = any(r.get('identity') == key and r['status'] == 'completed' for r in rows)
-            if not completed and (executed >= queue['max_trials'] or time.perf_counter() - started >= queue['max_seconds']):
-                raise RuntimeError('Heading budget reached; resume the unchanged queue')
-            result, row, fresh = operation(request, builds[ep], paths, folds[ep] if variant == 'U1-LOO' else priors,
-                                           key, rows, ledger)
+            fitted = folds[ep] if variant == 'U1-LOO' else priors
+            if (variant, ep) in historical:
+                row, fresh = historical[variant, ep], False
+                result, admission = resume_recorded(request, row, builds[ep], fitted)
+                admissions.append(admission)
+            else:
+                paths = trial_inputs(request, queue, queue_path, builds[ep])
+                payload = dict(request=asdict(request), inputs=[input_file(ROOT, p) for p in paths], sources=sources)
+                key = hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
+                completed = any(r.get('identity') == key and r['status'] == 'completed' for r in rows)
+                if not completed and (executed >= queue['max_trials'] or time.perf_counter() - started >= queue['max_seconds']):
+                    raise RuntimeError('Heading budget reached; resume the unchanged queue')
+                result, row, fresh = operation(request, builds[ep], paths, fitted, key, rows, ledger)
             executed += int(fresh)
             resumed += int(not fresh)
             selected.append(row)
@@ -306,10 +367,11 @@ def run_queue(queue_path: str) -> None:
         if variant == 'T1':
             reproduce_t1(results, queue)
     summary = dict(**analysis(results, queue), results=results, priors_full=priors, priors_loo=folds,
-                   executed=executed, resumed=resumed, selected=selected, sampling=sampling)
+                   executed=executed, resumed=resumed, selected=selected, sampling=sampling,
+                   recorded_trial_admissions=admissions)
     previous = read_json(directory / 'summary.json') if (directory / 'summary.json').exists() else None
     summary['mean_changes_since_previous'] = ({v: {k: summary['means'][v][k] - previous['means'][v][k]
-                                                  for k in METRICS} for v in VARIANTS} if previous else None)
+                                                  for k in METRICS} for v in VARIANTS if v in previous['means']} if previous else None)
     publish(summary, queue, queue_path, directory)
 
 
