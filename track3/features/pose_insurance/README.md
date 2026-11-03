@@ -429,3 +429,28 @@ The train rerun uses `diagnose(..., publish=False)` with the original request;
 its full report content excluding execution counters is byte-identical to the
 saved pre-amendment report, and all eight S1 scenes still reproduce exactly.
 Evidence is `.runtime/tmp/pose-length/train_rerun.json`.
+
+## T1: direct stereo slot-one placement (train only)
+
+Run the fixed stereo-placement protocol, including Amendment 1, on CPU:
+
+```bash
+PYTHONPATH=. CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 .runtime/linux-cuda/bin/python -m track3.features.pose_insurance.stereo_placement_loop --queue track3/features/pose_insurance/stereo_placement_queue.json
+```
+
+The queue fixes eight train episodes and single-object controls 39/42, with a
+20-trial / 600-second budget. The standalone module reuses the existing
+`scale_diagnostic_authorized` CPU gate; pinned runtime and dispatcher files are
+unchanged. `_stereo_placement.py` contains pure computations. The loop records
+all video-only S1/T1 scenes, raw stereo offsets and bounded clearance factors
+before reading any reference poses or scan geometry. It then scores frozen
+scenes through the existing kit integration, checks S1/offset reproduction and
+single-object invariance, and calls `_scale.candidate_gates` without changing
+its margins. Only slot-one XY may change; height, rotation and size stay fixed.
+
+`outputs/pose_insurance/stereo-placement/` holds `summary.md`, `summary.json`,
+`metrics.png`, an append-only ledger, immutable construction/trial/report run
+records, and `finished.json`. Exact completed identities resume without new
+trials, including recovery from a torn ledger tail. Direction tables use
+horizontal position thresholds; these flags are not ADD/AUC success flags.
+No scored episode, policy run or package is produced by this command.
