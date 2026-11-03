@@ -195,11 +195,12 @@ direction errors and unchanged AUC despite lower RPE/MPPE. First-frame train
 errors informed choices; we adopted without a leaderboard score despite
 fresh pre-registered validation failing by rule: 2 and required 13 had
 merged masks; 22/24/27 favoured stereo (1.14 versus 7.21\,cm offset-length error).
-True first-frame relative poses (train labels, an oracle) lift AUC
-0.277 to 0.353, mainly via unknown heading; frozen scan-to-stereo
+Oracle (train-label) first-frame relative poses lift AUC
+0.277 to 0.353 via heading; frozen scan-to-stereo
 registration recovered it on 0/4 held-out train episodes (cup markers
-below stereo noise; asymmetric objects not covered by it).
-Twelve of 20 evaluation episodes change; rollouts hold
+below stereo noise); a second chose accurate asymmetric poses but
+failed its decline rule.
+12 of 20 evaluation episodes change; rollouts hold
 initial targets within 0.049\,cm and drift $\leq$0.048\,cm:
 simulation consistency, not reference accuracy.
 In sum, v4 improves shape scores and train pose errors; SP-SR/MP-SR stay
@@ -211,6 +212,7 @@ zero; shape-gain causes, spoon accuracy and manipulation are unverified.
 \typeout{TRACK3-POSE-TABLE-PAGE: \getpagerefnumber{tab:pose}}
 \typeout{TRACK3-QUALITATIVE-FIGURE-PAGE: \getpagerefnumber{fig:qualitative}}
 \clearpage
+\thispagestyle{plain}
 \bibliographystyle{plainnat}
 \bibliography{references}
 \end{document}
