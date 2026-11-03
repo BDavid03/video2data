@@ -14,6 +14,9 @@ Protocol `docs/chain/dynamic-feasibility-protocol.md` (committed `c287d5e`, 14:1
   on Z by 0.83 % < 20 %). Total GPU 4.5 of the 75 allowed minutes. No deviation, no setting changed after launch.
 - Z: the hand reference alone moved the box at most 1.5 cm against the reference's 17.4 cm. The hands following their
   reference do not carry the object; transport has to be learned.
+- L1 seed 1 comes closest to S because it disturbs the box least (0.72 cm of motion against Z's 1.50 cm), not because
+  it transports it better (critic-19). An "improvement over Z" gate therefore also rewards staying still; a later
+  test should gate on transport (displacement along the reference), not only on error.
 - What D0 does NOT show: L1 is about 1/2000 of the released recipe (237 learner updates), so D0 rules out the cheapest
   budget only. Whether a larger budget that fits 16 GB learns transport is a separate question (D1, its own protocol).
 - Checks: an independent script reproduced position errors and ADD-AUC exactly (orientation within 2.1e-9 deg); 85

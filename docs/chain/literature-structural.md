@@ -51,9 +51,11 @@ oracle with true frame-0 poses held static 0.532.
 
 ## What this means for us
 
-1. An AUC near 0.99 needs a near-exact object trajectory (2 cm of noise already costs about 0.43 AUC) plus a policy
-   that tracks it. Public honest video reconstructions reach about 0.24-0.29, comparable to our static 0.277. How the
-   leader reaches 0.99 is not known to us; we do not guess at it, and we never use confidential references.
+1. One team's unverified noise test (2 cm of added position noise: AUC 1.00 -> 0.57) suggests an AUC near 0.99 needs
+   a near-exact object trajectory plus a policy that tracks it; it is one reported experiment, not a controlled study.
+   That team's video reconstructions (0.24-0.29, 14-20 public episodes) and our static 0.277 (8 train episodes) are on
+   different episode panels, so they are not a like-for-like comparison. How the leader reaches 0.99 is not known to
+   us; we do not guess at it, and we never use confidential references.
 2. The structural levers in order: (a) object motion in the reference, which only pays if tracking error stays well
    under a few cm; (b) policies that follow a moving reference within our 16 GB GPU and the remaining hours; (c) mesh
    quality (CD-O) from whole-clip fusion.
