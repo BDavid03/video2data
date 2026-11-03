@@ -16,11 +16,17 @@ from ._sizing import choose_budget
 from .request import Request
 
 
+def scaling_plan(queue):
+    """Retain retired probe values in identity only, in their original plan shape."""
+    plan = {key: value for key, value in queue.items() if key not in ("chosen", "history")}
+    plan["probe"] = {**queue.get("history", {}).get("probe", {}), **queue["probe"]}
+    return plan
+
+
 def identity(queue_path, queue, task):
     """Bind resume to exact task, protocol, queue and implementation bytes."""
     scaling = "D1" in queue or "base_queue" in queue
-    runtime = "scaling_runtime.json" if scaling else "runtime.json"
-    paths = [handler.FEATURE / runtime, ROOT / queue["protocol"],
+    paths = [handler.FEATURE / "runtime.json", ROOT / queue["protocol"],
              *sorted(handler.FEATURE.glob("*.py")),
              *(ROOT / "track3" / name for name in ("gpu.py", "runs.py", "paths.py", "provenance.py"))]
     if scaling:
@@ -28,7 +34,7 @@ def identity(queue_path, queue, task):
     else:
         paths.insert(0, queue_path)
     inputs = [handler.entry(path) for path in paths] + task["inputs"]
-    payload = ({"plan": {k: v for k, v in queue.items() if k != "chosen"}, "inputs": inputs}
+    payload = ({"plan": scaling_plan(queue), "inputs": inputs}
                if scaling else inputs)
     return hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest(), inputs
 
@@ -202,6 +208,7 @@ def scaling_summary(rows, selection=None, error=None, output=None, queue_path=No
 
 def run_scaling(queue_path):
     """Run D1 through the shared trial loop, retaining any historical frozen choice."""
+    handler.scaling_runtime("run_authorized")
     handler.environment()
     queue_path = Path(queue_path).resolve()
     document = json.loads(queue_path.read_text())
@@ -211,7 +218,7 @@ def run_scaling(queue_path):
     handler.prepare_arrays(task)
     output = handler.SCALING_OUTPUT
     output.mkdir(parents=True, exist_ok=True)
-    plan = {key: value for key, value in queue.items() if key != "chosen"}
+    plan = scaling_plan(queue)
     digest, inputs = identity(queue_path, queue, task)
     path = output / "campaign.json"
     if path.exists():
@@ -248,6 +255,8 @@ def run_scaling(queue_path):
         selection = dict(event="budget_frozen", key="selection", chosen=queue["chosen"],
                          queue_sha256=sha256_file(queue_path))
         write_json(selection_path, selection)
+    if not ledger.exists() or not any(json.loads(line)["key"] == selection["key"]
+                                     for line in ledger.read_text().splitlines()):
         with ledger.open("a") as stream:
             stream.write(json.dumps(selection, allow_nan=False) + "\n")
             stream.flush()

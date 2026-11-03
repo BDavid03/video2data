@@ -34,7 +34,9 @@ frame-0 poses held static reaches only 0.532, so about half of AUC is lost to ob
    completion, transport unmeasured (`0eec3f3`); route paused for this deadline as a planning decision.*
 2. [ ] If yes: per-frame object trajectories from released video (stereo depth + masks + own reconstruction), then
    policies on moving references for the scored episodes. If no: record the measured finding and move to item 3.
-3. [ ] Whole-clip mesh reconstruction (multi-frame fusion) in place of primitives, judged on CD-O train/tuning.
+3. [~] Whole-clip mesh reconstruction (multi-frame fusion) in place of primitives, judged on CD-O train/tuning.
+   *Context 20: F1 static pre-contact fusion KILL before any score (`4be1a52`): the camera turns only 2.4-5.2 deg before
+   contact; post-contact fusion needs masks through the clip (SAM2, unapproved). G1 (pretrained shapes) awaits approval.*
 4. [ ] Pretrained models and synthetic data where they serve 1-3 (proposals in `NEEDS-YOU.md` for any new install).
 5. [~] *(phases 1-2 done, `907bf80`, `4caf513`; plan `docs/chain/restructure-plan.md`)* **Restructure the file system to be less scattered, and remove irrelevant components** (owner, 2026-11-03
    14:15 UTC). Order: (a) a written inventory first (each top-level directory, each slice, each script: used by a

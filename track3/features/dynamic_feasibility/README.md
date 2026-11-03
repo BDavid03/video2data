@@ -39,8 +39,11 @@ PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 .runtime/flashchord/venv/bin/python -B -m
 
 Writes `outputs/dynamic_feasibility/d1/sizing-fixed/`: campaign, frozen
 `selection.json`, ledger, per-seed records, checkpoints/exports when complete,
-`summary.{json,md}` and `finished.json`. `scaling_runtime.json` preserves D1's
-separate operation authorizations. Both seeds have 1800-second allowances within
+`summary.{json,md}` and `finished.json`. The slice's single `runtime.json` keeps
+D1's separate operation authorizations in `D1.execution`; its run flag is checked
+before any campaign preparation or write. D0's top-level flags are unchanged;
+D1 training still also requires D0's run flag, while D1 measurement uses only
+its own measure flag. Both seeds have 1800-second allowances within
 a 3900-second total cap. The common handler retains only recent checkpoints in
 owned scratch and copies the final policy/state unchanged into the trial record.
 
@@ -61,6 +64,14 @@ a final checkpoint/export; **NO-GO by completion, tracking unmeasured**.
 Total GPU time was 3600.928 s, including 174.795 s for all probes and setup
 failures. Last saved steps were 21,575,680 / 22,599,680, with 2632 / 2757
 learner updates. Actual training was about 12.9k–13.6k transitions/s.
+
+Retired probe world counts, fallback, timing and method settings live only in
+`scaling_queue.json`'s `D1.history.probe`. Identity reconstructs their original
+plan shape so moving them does not change the queue's identity contribution;
+they never control execution. The live `probe` block keeps only the memory
+ceiling and training duration consumed by sizing. A saved `selection.json`
+missing its `budget_frozen` ledger event is durably appended before training
+resumes, without duplicating an existing selection key.
 
 Original setup failures remain under `outputs/dynamic_feasibility/d1/` and
 are charged to the corrected campaign. `audit.json`, `partial_checkpoints.json`

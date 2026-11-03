@@ -6,6 +6,18 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
 
 ## Open
 
+**Status (2026-11-03 ~16:45 UTC, context 20): the chain has stopped (`CHAIN: STOP` in hand-off 20); it is waiting on
+you.** Without a new install, the mesh route is used up for this deadline. Fusing the stereo frames from before the hand
+touches the object gave no new viewpoint (the camera turns only 2.4-5.2 degrees in the 0.6 s before contact; protocol
+gate 10), so that test failed for the pot and the rack (`docs/chain/mesh-fusion-outcome.md`). D1 v4 and D2 v4 below stay
+the files to upload. The two decisions below are the only things that can still change a pack before 12:00 UTC 4 Nov.
+To act on either:
+1. Add its line to `AGENTS.md`.
+2. Restart the chain from `~/repos/video2data`:
+   `nohup python3 scripts/chain/session_chain.py > outputs/chain/driver.log 2>&1 &`
+   The next context starts from hand-off 20's prompt, which handles both approvals.
+If you approve nothing, nothing else is needed until after the deadline (file-system restructure phases 3-5).
+
 **Proposal (2026-11-03 14:45 UTC, context 19): install Hunyuan3D-2mini for a mesh pilot (pretrained image-to-3D).**
 Our meshes are measured primitives (CD-O 0.663 cm on the public-scan pairs); the pot, rack and pitcher hold 64 % of
 that error. The pilot generates one shape-only mesh per object from our own video crops for rack (train 12), pitcher

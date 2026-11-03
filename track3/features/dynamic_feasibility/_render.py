@@ -38,7 +38,7 @@ def d0_summary(rows, static, campaign, l2):
     return report, "\n".join(lines) + "\n"
 
 
-def d1_summary(rows, baseline, prior_probes, prior_seconds, selection=None, error=None, setup_correction=True):
+def d1_summary(rows, baseline, prior_probes, prior_seconds, selection=None, error=None):
     """Report sizing and both-seed outcomes beside the unchanged S and Z comparators."""
     static = baseline["comparator_S"]
     zero = next(row for row in baseline["trials"] if row["arm"] == "Z")
@@ -51,8 +51,6 @@ def d1_summary(rows, baseline, prior_probes, prior_seconds, selection=None, erro
               "trials": trials, "comparator_S": static, "comparator_Z": zero,
               "gpu_seconds": prior_seconds + sum(row["gpu_seconds"] for row in rows.values()), "error": error,
               "setup_correction": "Flattened simulator observation replaced by the existing WarpRLEnv.reset view before any D1 training; all failed sizing time retained and charged"}
-    if not setup_correction:
-        report.pop("setup_correction")
     for row in trials:
         if row["metrics"]:
             row["improvement_over_Z"] = 1 - row["metrics"]["mean_position_cm"] / zero["metrics"]["mean_position_cm"]

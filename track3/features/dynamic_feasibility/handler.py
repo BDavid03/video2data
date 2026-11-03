@@ -45,8 +45,9 @@ def environment():
 
 
 def scaling_runtime(flag):
-    """Require the preserved D1 operation authorization from its folded runtime file."""
-    runtime = json.loads((FEATURE / "scaling_runtime.json").read_text())
+    """Require D1's independent operation flag from the slice's single runtime file."""
+    runtime = json.loads((FEATURE / "runtime.json").read_text())
+    runtime = {**runtime, **runtime["D1"]}
     if runtime["execution"].get(flag) is not True:
         raise PermissionError(f"Dynamic scaling requires {flag}")
     return runtime
@@ -230,7 +231,7 @@ def run(request, queue, task, campaign_identity):
                  OUTPUT / "runs" / f"{request.arm}-seed{request.seed}")
     record = run_fields(ROOT, "dynamic_feasibility", "scaling_run" if scaling else "run", asdict(request),
                         inputs=[ROOT / queue.get("queue_path", "track3/features/dynamic_feasibility/queue.json"),
-                                FEATURE / ("scaling_runtime.json" if scaling else "runtime.json"),
+                                FEATURE / "runtime.json",
                                 ROOT / queue["protocol"], *([SCALING_OUTPUT / "selection.json"] if scaling else [])],
                         provenance="public_asset_diagnostic")
     record.update(campaign_identity=campaign_identity, pid=os.getpid(), task_inputs=task["inputs"],

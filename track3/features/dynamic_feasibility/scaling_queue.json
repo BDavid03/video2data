@@ -13,21 +13,8 @@
     "maximum_seed_seconds": 1800,
     "evaluation_reserve_seconds": 90,
     "probe": {
-      "world_counts": [
-        256,
-        512,
-        1024
-      ],
-      "between_if_failed": [
-        384,
-        768
-      ],
-      "maximum_gpu_seconds": 300,
-      "warmup_collections": 8,
-      "timed_collections": 64,
       "maximum_peak_mib": 13824,
-      "training_seconds_for_sizing": 1350,
-      "method": "Zero-residual captured environment steps, synchronized over the timed interval; initialize and retain the full L1 learner/replay state without any optimizer updates. No tracking-error, reward or pose-quality values are read."
+      "training_seconds_for_sizing": 1350
     },
     "checkpoint_retention": "Keep L1's 5120-transition save interval. Write checkpoints in an owned scratch directory; discard obsolete intermediate checkpoints there, retain and copy the final policy/state bytes into the trial record.",
     "chosen": {
@@ -77,6 +64,23 @@
       "outputs/dynamic_feasibility/runs/L1-seed0/run.json",
       "outputs/dynamic_feasibility/runs/L1-seed1/run.json"
     ],
-    "sizing_rule": "New selections use measured end-to-end training seconds/transition times 1.1. The historical chosen field is preserved exactly."
+    "sizing_rule": "New selections use measured end-to-end training seconds/transition times 1.1. The historical chosen field is preserved exactly.",
+    "history": {
+      "probe": {
+        "world_counts": [
+          256,
+          512,
+          1024
+        ],
+        "between_if_failed": [
+          384,
+          768
+        ],
+        "maximum_gpu_seconds": 300,
+        "warmup_collections": 8,
+        "timed_collections": 64,
+        "method": "Zero-residual captured environment steps, synchronized over the timed interval; initialize and retain the full L1 learner/replay state without any optimizer updates. No tracking-error, reward or pose-quality values are read."
+      }
+    }
   }
 }
