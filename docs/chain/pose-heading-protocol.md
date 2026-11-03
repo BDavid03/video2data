@@ -63,7 +63,7 @@ v5; otherwise D2 v4 stands.
 Stage A uses train labels by design; its numbers are a ceiling, never a result. The report may mention the ceiling
 and the kill-test outcome as findings.
 
-## Amendment 1 (2026-11-03 08:15 UTC, context 16, after Stage A and before any up-axis-prior number)
+## Amendment 1 (2026-11-03 08:09 UTC commit time, context 16, after Stage A and before any up-axis-prior number)
 
 **Stage A outcome (scratch run `.runtime/tmp/heading-ceiling/`, T1 reproduced to 3.6e-15):** train-mean AUC T1
 0.276705, O1 0.286239, O2 0.352713, O3 0.531919. O2 - T1 = +0.0760 >= +0.010, so Stage B runs. Direction alone is
@@ -122,8 +122,23 @@ both cups declined, mini_sweeper and both wooden pieces "cannot represent" (no `
 files), mini_dust_pan accepted but 79 degrees off in up axis. Before declines, episode 12 would have been 103 / 129
 degrees off (b / C) and episode 21 +11 / 168, so declining was protective. Even choosing the best of the 72 x 72 yaw
 starts with the truth known could not meet both tests on 12 or 21 (best b + C 60.8 and 136.9 degrees), because the
-frozen {+z, -z} up set cannot represent the rack (+x up), dust pan or tilted pitcher. Reading: geometry fixes a cup's up
-axis but not its heading (1 cm markers under ~3 mm stereo noise); the heading lever needs a different observation
-(e.g. RGB marker detection), which is a new protocol, not a repair of this one. Evidence:
+frozen {+z, -z} up set cannot represent the rack (+x up), dust pan or tilted pitcher. Reading (narrow, after the
+critics): this shows that HR1 as frozen fails, and that for the cups the stereo shape gives the up axis but not the
+heading (flat multi-basin yaw curves; 1 cm markers under ~3 mm stereo noise). It does NOT show that geometry cannot
+recover heading for asymmetric objects (rack, dust pan, pitcher, sweeper, wooden pieces): HR1 could not represent
+their up axes or load three of their scans, so for them the question is untested. Either route (geometry with a full
+up-axis search, or RGB marker detection for the cups) is a new protocol, not a repair of this one.
+
+**Disclosures added after the critics.** (1) HR1's "label-blind" means its developer read no mocap before the freeze;
+the context as a whole had already read all train mocap in Stage A, and the {+z, -z} up set was frozen after Stage A's
+up-axis table (train labels, including 12/18/21/23) showed the rack, dust pan, pot and wooden pieces to be +x-up. That
+knowledge biased HR1 towards failing on those objects, not towards passing; the HR1 verdict stands (C fails on 12 and
+21 even before declines, 128.8 and 168.4 degrees), but it is not evidence about those objects. (2) The loader's
+`<name>.glb` assumption failing on three scans was found after the freeze. (3) O1 matches the angle of b's body-frame
+x/y components; that is a horizontal direction only when slot 0's body frame is z-up or z-down. On episode 23 (slot 0
++x-up) it matches the wrong angle; on 0 and 26 it is a no-op. So the "direction +0.0095 / relative rotation +0.0665"
+split depends on this convention; the Stage A decision (+0.0760 vs +0.010) does not. (4) Amendment 1's heading time
+was corrected to its commit time (08:09 UTC). Episodes 12/18/21/23 now carry spent HR1 errors: a new heading protocol
+must name its own evaluation set before it is built. Evidence:
 `outputs/pose_insurance/heading/summary.md` (recorded Stage A and U1, Codex) and
 `outputs/pose_insurance/heading/scratch-evidence/` (scratch Stage A/U1 and Stage B, Claude sub-agents).
