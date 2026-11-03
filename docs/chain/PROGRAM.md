@@ -38,7 +38,10 @@ frame-0 poses held static reaches only 0.532, so about half of AUC is lost to ob
 5. [ ] **Restructure the file system to be less scattered, and remove irrelevant components** (owner, 2026-11-03
    14:15 UTC). Order: (a) a written inventory first (each top-level directory, each slice, each script: used by a
    deliverable, by a recorded result, or by nothing), committed as a plan with the target layout; (b) moves with
-   `git mv` and removals with `git rm` only, never `rm -rf`, so history keeps everything; (c) imports, READMEs,
+   `git mv` only; nothing is deleted: everything to be removed is moved into the recycle folder
+   `recycle/<UTC stamp>/<original path>` (tracked files by `git mv`, untracked clutter by plain `mv`, with a
+   `recycle/<UTC stamp>/MANIFEST.md` listing each original path and why), never `git rm` or `rm -rf` (owner,
+   2026-11-03 14:20 UTC: "can move everything thats gonna be deleted into a recycle folder"); (c) imports, READMEs,
    reproduction scripts and request paths updated in the same commit, and `py_compile` plus a CPU import of every
    slice afterwards. Files pinned by a pack manifest (`submissions/*/…manifest.json`) are moved only after the
    12:00 UTC 4 Nov pack cut-off or as part of a new pack; the packed commits keep reproducing at their URLs either

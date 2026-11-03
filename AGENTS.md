@@ -11,7 +11,9 @@
   Then "also maybe worth looking at research on the subject to see if there is any meaningful academic literature"
   (done: `docs/chain/literature-structural.md`), and at about 14:15 UTC "also in the todo list, add reformatted of
   file system structure to be less all over the shop + removing irrelevant components": `PROGRAM.md` section 0,
-  to-do item 5 (inventory first, `git mv`/`git rm` only, pinned pack files after the 12:00 UTC 4 Nov cut-off).
+  to-do item 5 (inventory first, `git mv` only, pinned pack files after the 12:00 UTC 4 Nov cut-off). At about
+  14:20 UTC: "can move everything thats gonna be deleted into a recycle folder": nothing is deleted; removals are
+  moves into `recycle/<UTC stamp>/<original path>` with a MANIFEST.md (tracked files by `git mv`).
 - On 2026-11-03 at about 11:00 UTC (chain context 16, resumed after its usage-limit block) the user wrote, live, "GO ON
   THEN" (continue past hand-off 16 in the same session), then "back to the original claude direction, codex workers".
   Read as: keep working in this session on hand-off 16's items, with `docs/chain/PROGRAM.md` section 8 unchanged
