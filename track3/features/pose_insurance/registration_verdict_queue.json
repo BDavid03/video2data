@@ -1,0 +1,123 @@
+{
+  "method": {
+    "path": "docs/chain/pose-heading-method-hr2.json",
+    "sha256": "c1fd86776f0a5e39eaf0f79273cbb8c6098ef585b59783b00a30ef1d65772e25"
+  },
+  "protocol": {
+    "path": "docs/chain/pose-heading-hr2-protocol.md",
+    "sha256": "687debcf7f37ffffbfc1d423d02d54e0d293025db84ea48f94cdeeccf0bde82f"
+  },
+  "evaluation_queue": {
+    "path": "track3/features/pose_insurance/registration_eval_queue.json",
+    "sha256": "ce2542c468d3c99424a4737f00e206542641b8e8cb326fe874824348b049b574"
+  },
+  "prediction_report": {
+    "path": "outputs/pose_insurance/registration-hr2/reports/20261103T112311.649653Z-73129785/run.json",
+    "sha256": "9cabcde252596fa05adcf73641393eeef877c8af070c7f519ac7669b4f15beab"
+  },
+  "error_report": {
+    "path": "outputs/pose_insurance/registration-hr2/errors/20261103T123037.250192Z-a9dc3916/run.json",
+    "sha256": "fb60c70bf8286ab5a969974639aa4e0f2a8e9b5a92c5a4570fe568bbc58c9def"
+  },
+  "roster": [
+    {
+      "episode": 12,
+      "slot": 1,
+      "name": "plastic_dish_rack"
+    },
+    {
+      "episode": 18,
+      "slot": 0,
+      "name": "mini_sweeper"
+    },
+    {
+      "episode": 18,
+      "slot": 1,
+      "name": "mini_dust_pan"
+    },
+    {
+      "episode": 21,
+      "slot": 1,
+      "name": "water_pitcher"
+    },
+    {
+      "episode": 23,
+      "slot": 0,
+      "name": "wooden_piece_1"
+    },
+    {
+      "episode": 23,
+      "slot": 1,
+      "name": "wooden_piece_2"
+    },
+    {
+      "episode": 24,
+      "slot": 0,
+      "name": "wooden_piece_1"
+    },
+    {
+      "episode": 24,
+      "slot": 1,
+      "name": "wooden_piece_2"
+    },
+    {
+      "episode": 27,
+      "slot": 0,
+      "name": "plastic_dish_rack"
+    },
+    {
+      "episode": 27,
+      "slot": 1,
+      "name": "white_pot"
+    },
+    {
+      "episode": 42,
+      "slot": 0,
+      "name": "white_pot"
+    }
+  ],
+  "pairs": [
+    {
+      "episode": 18,
+      "slots": [
+        0,
+        1
+      ]
+    },
+    {
+      "episode": 23,
+      "slots": [
+        0,
+        1
+      ]
+    },
+    {
+      "episode": 24,
+      "slots": [
+        0,
+        1
+      ]
+    },
+    {
+      "episode": 27,
+      "slots": [
+        0,
+        1
+      ]
+    }
+  ],
+  "mandatory_pairs": [
+    18,
+    27
+  ],
+  "pair_thresholds": {
+    "b_error_deg": 30,
+    "C_error_deg": 30
+  },
+  "up_thresholds": {
+    "minimum_accepted_slots": 6,
+    "minimum_episodes": 4,
+    "minimum_object_types": 3,
+    "up_error_deg": 15
+  }
+}
