@@ -6,7 +6,23 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
 
 ## Open
 
-**Update 2026-11-03 (owner wrote "all owner requirements approved").** Both final files are packed with
+**Update 2026-11-03 06:30 UTC (context 12): a new pose file D2 v4 replaces D2 v3 for upload.** Slot 1 is
+now placed at its distance from slot 0 measured directly by the calibrated stereo cameras (your approval of
+item 7). On the eight train episodes it lowers RPE 35.34 -> 29.01 cm and MPPE 20.84 -> 17.68 cm, AUC
+0.2690 -> 0.2767, with no episode worse; 12 of the 20 scored episodes change, each passed the physical
+check. It carries the URL of commit `d1d1da5`, so that commit (or a later one containing it) must be pushed:
+
+1. In `~/repos/video2data`: `git merge --ff-only worktree-chain-ctx01`, then `git push origin main`.
+2. Upload D2 v4 instead of D2 v3 (D1 v4 unchanged, command below as before):
+   ```bash
+   W=~/repos/video2data/.claude/worktrees/chain-ctx01; K=$W/upstream/v2d_submission_kit/v2d_submission_kit
+   $W/.runtime/kit-env/bin/python $K/submit/v2d_submit.py $W/submissions/20261103T0645Z-d2-v4/track3_poses_v4_final.csv \
+     --track track_3 -m "Static objects, slot 1 placed by calibrated stereo"
+   ```
+   If D2 v3 was already uploaded, uploading v4 once is fine: it was chosen on train episodes, not on the
+   leaderboard. Please write the scores back here.
+
+**Update 2026-11-03 (owner wrote "all owner requirements approved"; the D2 v3 upload line below is superseded by D2 v4 above, the D1 v4 line still holds).** Both final files are packed with
 the real URL `https://github.com/BDavid03/video2data/commit/15060c13b07bda03b056f5cc507f0e4f68a083f0` (SUBMISSION.md, "Final real-URL files"). Three steps need your own logins:
 
 1. Push the commit. In `~/repos/video2data`: `git merge --ff-only worktree-chain-ctx01`, then
