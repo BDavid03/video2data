@@ -1,0 +1,36 @@
+{
+  "phase": "development",
+  "max_trials": 1,
+  "max_seconds": 3600,
+  "trials": [{"episode": 39, "slot": 0, "name": "mini_dust_pan"}],
+  "tuning_builds": {
+    "39": "outputs/pose_insurance/build-v1/20261101T170225.751821Z-94e57a9b/episode_000039/run.json"
+  },
+  "parameters": {
+    "scan_samples": 20000,
+    "scan_seed": 0,
+    "scan_resolution_order": ["{name}.glb", "{name}_visual.glb"],
+    "yaw_step_deg": 5,
+    "max_observed_points": 4000,
+    "minimum_observed_points": 300,
+    "seed": 0,
+    "keep_fraction": 0.8,
+    "translation_only_iters": 10,
+    "rigid_iters": 25,
+    "push_back_m": 0.02,
+    "above_table_m": 0.005,
+    "basin_separation_deg": 30,
+    "relative_loss_margin": 0.05,
+    "stability_max_deg": 10,
+    "subsampling_seeds": [1, 2, 3],
+    "subsampling_fraction": 0.75,
+    "table": {
+      "radius_m": 0.35,
+      "iterations": 400,
+      "seed": 0,
+      "inlier_m": 0.004,
+      "normal_hint_max_deg": 20,
+      "degenerate_cross_norm": 1e-9
+    }
+  }
+}

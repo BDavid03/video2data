@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "method": "HR2",
+  "frozen_utc": "2026-11-03T11:21:27.802499+00:00",
+  "protocol": {
+    "path": "docs/chain/pose-heading-hr2-protocol.md",
+    "sha256": "80ebc145270079f40812cc1fd5e15dfd4db6a8219616c2d46f94ca4a9b68ac56"
+  },
+  "parameters": {
+    "scan_samples": 20000,
+    "scan_seed": 0,
+    "scan_resolution_order": [
+      "{name}.glb",
+      "{name}_visual.glb"
+    ],
+    "yaw_step_deg": 5,
+    "max_observed_points": 4000,
+    "minimum_observed_points": 300,
+    "seed": 0,
+    "keep_fraction": 0.8,
+    "translation_only_iters": 10,
+    "rigid_iters": 25,
+    "push_back_m": 0.02,
+    "above_table_m": 0.005,
+    "basin_separation_deg": 30,
+    "relative_loss_margin": 0.05,
+    "stability_max_deg": 10,
+    "subsampling_seeds": [
+      1,
+      2,
+      3
+    ],
+    "subsampling_fraction": 0.75,
+    "table": {
+      "radius_m": 0.35,
+      "iterations": 400,
+      "seed": 0,
+      "inlier_m": 0.004,
+      "normal_hint_max_deg": 20,
+      "degenerate_cross_norm": 1e-09
+    }
+  },
+  "computation": {
+    "units": "metres; degree thresholds",
+    "transform": "point_camera = R @ point_scan + t",
+    "start_order": [
+      "+x",
+      "-x",
+      "+y",
+      "-y",
+      "+z",
+      "-z"
+    ],
+    "yaw_degrees": "0 through 355 inclusive at 5 degrees",
+    "starts_per_search": 432,
+    "rotational_refinement": "unrestricted SO(3) Kabsch after translation-only warmup",
+    "scan_sampling": "trimesh area-uniform triangle surface sampling, fixed scan seed, no visual/texture copy",
+    "scan_loading": "trimesh.load(force='mesh', process=False); no components or collision substitution",
+    "observations": "frame-0 independent object-mask pixels with positive finite calibrated stereo depth and stereo validity; no radial object crop",
+    "stereo_grid": "exact mask/depth shape and intrinsics allclose atol=1e-5, rtol=1e-5 via existing loader",
+    "extraction_minimum_points": 3,
+    "primary_subsampling": "uniform without replacement; min(4000, above-table count), seed 0",
+    "stability_subsampling": "three independent full searches, floor(0.75 * min(4000, above-table count)), seeds 1/2/3",
+    "table": "background labels == 0 within radius of mean independent object points; RANSAC normal hint from MoGe, SVD refit; plane n dot p = offset",
+    "table_normal_orientation": "sign aligned with normalized MoGe normal hint",
+    "initialization": "observed mean + 0.02 m horizontal camera-back displacement; scan sample horizontal mean aligned, minimum sample height on table",
+    "nearest_neighbors": {
+      "implementation": "scipy.spatial.cKDTree",
+      "k": 1,
+      "p": 2,
+      "eps": 0,
+      "workers": 1
+    },
+    "correspondence_trimming": "distance <= numpy.quantile(distance, 0.8, method=linear)",
+    "loss": "mean of sorted distances[:max(1, round(0.8 * n))], in metres",
+    "best": "argmin final trimmed observed-to-model loss; no labels",
+    "ambiguity": "any final rotation strictly >30 degrees from best with loss <= 1.05 * best loss declines",
+    "stability": "any fixed subsample best strictly >10 degrees from primary best declines",
+    "missing": "decline missing visual scan, independent mask/stereo support, <300 above-table points, or failed stereo table fit; producer integrity mismatches raise",
+    "basin_display": "greedy loss-ranked representatives with <=30-degree geodesic assignment; decline compares ALL final rotations",
+    "up_error": "angle(R_est.T @ n_table, R_ref.T @ [0,0,1])",
+    "pair_errors": "b = R0.T @ (t1-t0), C = R0.T @ R1, compared in full 3D against mocap; no symmetry quotient",
+    "label_order": "whole requested prediction report completed before separate errors operation"
+  },
+  "evaluation_slots": [
+    {
+      "episode": 12,
+      "slot": 1,
+      "name": "plastic_dish_rack"
+    },
+    {
+      "episode": 18,
+      "slot": 0,
+      "name": "mini_sweeper"
+    },
+    {
+      "episode": 18,
+      "slot": 1,
+      "name": "mini_dust_pan"
+    },
+    {
+      "episode": 21,
+      "slot": 1,
+      "name": "water_pitcher"
+    },
+    {
+      "episode": 23,
+      "slot": 0,
+      "name": "wooden_piece_1"
+    },
+    {
+      "episode": 23,
+      "slot": 1,
+      "name": "wooden_piece_2"
+    },
+    {
+      "episode": 24,
+      "slot": 0,
+      "name": "wooden_piece_1"
+    },
+    {
+      "episode": 24,
+      "slot": 1,
+      "name": "wooden_piece_2"
+    },
+    {
+      "episode": 27,
+      "slot": 0,
+      "name": "plastic_dish_rack"
+    },
+    {
+      "episode": 27,
+      "slot": 1,
+      "name": "white_pot"
+    },
+    {
+      "episode": 42,
+      "slot": 0,
+      "name": "white_pot"
+    }
+  ],
+  "code_sha256": {
+    "track3/features/pose_insurance/_registration.py": "c1ab145c8bcb2ab6c2bb3e5e6fd200d64b4347a6f1f74ed9fd5fc6f8c96d8404",
+    "track3/features/pose_insurance/registration_loop.py": "b6ab916433997cb42f57f793753a980573d77f60d45167cf693e4cf4fbbe24f8",
+    "track3/features/pose_insurance/_scene.py": "7b518dc6ca9a37d03f1d623d13c379cfd465eec20391be829508c1e214471f0e",
+    "track3/features/pose_insurance/_length.py": "25b1c803b69ecd9c285a7dcaeabed0743914cae6e3341d22b315f376faf590c7",
+    "track3/features/pose_insurance/length_diagnostic.py": "b8e77a5bda88e0c7aa8f7797f27bb36bc2b50d3b810726a3d659c06b9f33d7e6",
+    "track3/features/pose_insurance/placement_diagnostic.py": "6d36a445970fe6ed24f1db8fd3010093b317564607e4fcba55a4fb17fbb90695",
+    "track3/features/pose_insurance/scale_diagnostic.py": "46c8d83e7d86b9ceacb393cec1ae251ead5b7a85624e736b936d16ab6dc1cfe7",
+    "track3/features/pose_insurance/scene.py": "138e901fa4342d811ce27142876b12153a237cadf243eaef86361f5d8985efc1",
+    "track3/features/pose_insurance/_placement.py": "53651ba6ac8743a68ce5b842e8b7288f301df4460f624c9046f8af9f36a93a27",
+    "track3/features/pose_insurance/_scale.py": "99d505e9f2c915ac995b2a0bb11f27b0cec911d49e3cb1e0031182cb21c35c97",
+    "track3/paths.py": "5f7cf257b1e5f207e81ce781034dfe192da01a40889917bf77d5053925ee5b54",
+    "track3/provenance.py": "26c6127133b1130b3311a94f668cac2642d6e90da796aca6c4111fd5c6ec2c91",
+    "track3/runs.py": "28c5d4f9d7b757bc69e1b430ce1df49b6820c5120c53f6b41868ac7fbd92cc60",
+    "track3/gpu.py": "d7b7353e6e72050b1033a5a8d8ecda73f0a0e27436f0a3ecc9d5fd044c4c15d1",
+    "scripts/track3/static_pose_baseline.py": "ccf72a433e212b5dbc4490525c062314e053d00ffb4e628ec842563f1315c015"
+  },
+  "versions": {
+    "numpy": "2.2.6",
+    "scipy": "1.18.1",
+    "trimesh": "5.2.0",
+    "matplotlib": "3.11.2",
+    "pandas": "3.1.0",
+    "pyarrow": "26.0.0"
+  },
+  "development": {
+    "episode": 39,
+    "slot": 0,
+    "name": "mini_dust_pan",
+    "prediction_run": "outputs/pose_insurance/registration-hr2/trials/20261103T111232.770514Z-4b289c63/run.json",
+    "prediction_report": "outputs/pose_insurance/registration-hr2/reports/20261103T112013.028843Z-b4ed4d0a/run.json",
+    "error_run": "outputs/pose_insurance/registration-hr2/errors/20261103T112013.844971Z-12cf1186/run.json",
+    "scan_report": "outputs/pose_insurance/registration-hr2/scans/20261103T111223.666090Z-8f5cc7e2/scans.json",
+    "up_error_deg": 6.154969216583537,
+    "accepted": true,
+    "decline_reasons": [],
+    "best_loss_mm": 2.4784921838721665,
+    "wall_seconds": 434.1213490910013,
+    "resume": {
+      "executed": 0,
+      "resumed": 1
+    },
+    "selection": "Retain HR1 ICP/sample defaults with the fixed HR2 representation and decline rules; no evaluation registration or labels used."
+  }
+}

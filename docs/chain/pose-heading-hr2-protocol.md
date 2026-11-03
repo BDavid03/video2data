@@ -52,3 +52,14 @@ AUC loss <= 0.02. If H2 clears them by 06:00 UTC on 4 November it goes to the sc
 pose <= 1 cm and 2 degrees) as D2 v5; otherwise D2 v4 stands.
 
 Episodes 41, 43, 44 are never read; no leaderboard use.
+
+## Amendment 1 (context 16, before any evaluation episode was loaded; commit time is the record): HR2 frozen
+
+Phase 1 registered tuning episode 39 only (`outputs/pose_insurance/registration-hr2/phase1-report.md`): dust pan
+accepted, up error 6.2 degrees, distant rival basin 26 % worse, subsampling shifts <= 1.9 degrees, 434 s CPU per
+object; all eight non-cup scans load. Method frozen as `docs/chain/pose-heading-method-hr2.json` (sha256
+c1fd86776f0a5e39eaf0f79273cbb8c6098ef585b59783b00a30ef1d65772e25); code `_registration.py`,
+`registration_loop.py` at this commit. The evaluation roster is `track3/features/pose_insurance/registration_eval_queue.json`
+(11 slots: 12 rack; 18 sweeper, dust pan; 21 pitcher; 23 and 24 wooden pieces; 27 rack, pot; 42 pot). Phase 2 runs it
+once, predictions saved before any label is read, then applies the pass rules above unchanged. Note: the pair panel's
+wooden-piece identities in 24 follow the recorded confirmation assignments.

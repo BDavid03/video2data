@@ -1,0 +1,65 @@
+{
+  "phase": "evaluation",
+  "max_trials": 11,
+  "max_seconds": 7200,
+  "trials": [
+    {
+      "episode": 12,
+      "slot": 1,
+      "name": "plastic_dish_rack"
+    },
+    {
+      "episode": 18,
+      "slot": 0,
+      "name": "mini_sweeper"
+    },
+    {
+      "episode": 18,
+      "slot": 1,
+      "name": "mini_dust_pan"
+    },
+    {
+      "episode": 21,
+      "slot": 1,
+      "name": "water_pitcher"
+    },
+    {
+      "episode": 23,
+      "slot": 0,
+      "name": "wooden_piece_1"
+    },
+    {
+      "episode": 23,
+      "slot": 1,
+      "name": "wooden_piece_2"
+    },
+    {
+      "episode": 24,
+      "slot": 0,
+      "name": "wooden_piece_1"
+    },
+    {
+      "episode": 24,
+      "slot": 1,
+      "name": "wooden_piece_2"
+    },
+    {
+      "episode": 27,
+      "slot": 0,
+      "name": "plastic_dish_rack"
+    },
+    {
+      "episode": 27,
+      "slot": 1,
+      "name": "white_pot"
+    },
+    {
+      "episode": 42,
+      "slot": 0,
+      "name": "white_pot"
+    }
+  ],
+  "tuning_builds": {
+    "42": "outputs/pose_insurance/build-v1/20261101T170257.010692Z-02e462b3/episode_000042/run.json"
+  }
+}
