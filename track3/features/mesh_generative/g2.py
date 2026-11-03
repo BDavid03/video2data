@@ -92,8 +92,41 @@ def append(ledger,row):
         stream.write(json.dumps(row,allow_nan=False)+'\n'); stream.flush(); os.fsync(stream.fileno())
 
 
+def sealed_admissions(queue,directory):
+    """Verify and reuse sealed decisions without rewriting their historical record."""
+    path=directory/'admissions.json'
+    result=json.loads(path.read_text())
+    if (result['status']!='completed' or result['queue_sha256']!=sha256_file(ROOT/QUEUE)
+        or json.loads((ROOT/QUEUE).read_text())!=queue):
+        raise ValueError('Sealed admission queue changed')
+    rows=result['pairs']
+    ledger=[r for line in (directory/'ledger.jsonl').read_text().splitlines()
+            if (r:=json.loads(line)).get('stage')=='admission']
+    if rows!=ledger or len(rows)!=len(queue['pairs']): raise ValueError('Sealed admission decisions changed')
+    for pair,row in zip(queue['pairs'],rows):
+        if row['key']!=key(pair) or any(row.get(k)!=v for k,v in pair.items()):
+            raise ValueError('Sealed admission pair differs from queue')
+        if row['status']!='completed' or sha256_file(ROOT/row['v4_mesh'])!=row['v4_mesh_sha256']:
+            raise ValueError('Sealed v4 mesh changed')
+        expected='v4'
+        if pair['measurement'] is not None:
+            if sha256_file(ROOT/row['generated_mesh'])!=row['generated_mesh_sha256']:
+                raise ValueError('Sealed generated mesh changed')
+            if row['generated_residual_m']<=1.5*row['v4_residual_m']: expected='generated'
+        selected=row['generated_mesh'] if expected=='generated' else row['v4_mesh']
+        if row['decision']!=expected or row['selected_mesh']!=selected:
+            raise ValueError('Sealed admission violates the frozen residual decision')
+    run_path=directory/'run.json'
+    if run_path.exists():
+        digest=json.loads(run_path.read_text()).get('admissions_sha256')
+        if digest and sha256_file(path)!=digest: raise ValueError('Sealed admission record hash changed')
+    return result
+
+
 def admissions(queue,directory,v4_objects,prepared):
     """Generate each fixed shape once and persist every video-only choice before scan scoring."""
+    admission_path=directory/'admissions.json'
+    if admission_path.exists(): return sealed_admissions(queue,directory)
     import numpy as np
     from ._admission import fit_residual
     from .pilot import generate
@@ -135,7 +168,8 @@ def admissions(queue,directory,v4_objects,prepared):
         print(f"admission {ident}: {row['decision']} gen={row['generated_residual_m']} v4={row['v4_residual_m']}",flush=True)
     result=dict(status='completed',completed_utc=now_utc(),pairs=rows,provenance='video_only',
                 scan_scoring_started=False,queue_sha256=sha256_file(ROOT/QUEUE))
-    write_json(directory/'admissions.json',result)
+    with admission_path.open('x',encoding='utf-8') as stream:
+        json.dump(result,stream,indent=2,allow_nan=False); stream.write('\n')
     return result
 
 

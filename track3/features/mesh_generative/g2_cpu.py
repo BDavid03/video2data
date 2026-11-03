@@ -25,25 +25,21 @@ def development(job):
     import numpy as np
     from scripts.track3 import local_cdo
     from track3.features.mesh_extents._rule_scores import FOLDS
+    from ._metrics import development_metrics
     admission = json.loads((ROOT/job['admissions']).read_text())
     assert admission['status']=='completed'
     queue = json.loads((ROOT/job['queue']).read_text())
     frozen = json.loads((ROOT/queue['development_baseline']).read_text())
     incumbent = frozen['incumbent']
-    object_rows, trial_rows = [], []
+    trial_rows = []
     for name,before in incumbent['per_object_cm'].items():
         views = [r for r in admission['pairs'] if r['source_split']=='public' and r['object']==name]
-        if not views:
-            object_rows.append(dict(object=name,v4_cm=before,g2_cm=before,change_cm=0.0,
-                                    seed_std_cm=incumbent['seed_std_cm'][name],pairs=incumbent['pair_counts'][name],
-                                    fold='A' if name in FOLDS['A'] else 'B',unchanged=True))
-            continue
+        if not views: continue
         reference_path = local_cdo.scan_path(name)
         reference = local_cdo.budgeted(reference_path)
         baseline_mesh = local_cdo.budgeted(ROOT/job['v4_objects']/f'{name}.ply')
         base_values = [local_cdo.CDO._object_chamfer_cm(reference,baseline_mesh,local_cdo.CDO._object_seed(e,0)) for e in (1,3,5)]
         if abs(np.mean(base_values)-before)>1e-12: raise ValueError('Development baseline differs from matched v4')
-        scores_by_seed = []
         for row in views:
             candidate = local_cdo.budgeted(ROOT/row['selected_mesh'])
             values = (base_values if row['decision']=='v4' else
@@ -51,19 +47,9 @@ def development(job):
             trial_rows.append(dict(key=row['key'],object=name,seeds=[1000003,3000009,5000015],values_cm=values,
                                    v4_values_cm=base_values,scan=input_file(ROOT,reference_path),
                                    selected_mesh_sha256=sha256_file(ROOT/row['selected_mesh'])))
-            scores_by_seed.append(values)
-        per_seed=np.mean(scores_by_seed,axis=0); after=float(per_seed.mean())
-        object_rows.append(dict(object=name,v4_cm=before,g2_cm=after,change_cm=after-before,
-                                seed_std_cm=float(per_seed.std()),seed_values_cm=per_seed.tolist(),
-                                development_views=len(views),pairs=incumbent['pair_counts'][name],
-                                fold='A' if name in FOLDS['A'] else 'B',unchanged=all(r['decision']=='v4' for r in views)))
-    mean=float(np.mean([r['g2_cm'] for r in object_rows])); weighted=sum(r['g2_cm']*r['pairs'] for r in object_rows)/26
-    gates=dict(equal_object_mean=mean<0.62270304,pair_weighted_mean=weighted<=0.66288090,
-               no_object_regresses=all(r['change_cm']<=0.15 for r in object_rows))
-    result=dict(status='completed',verdict='PASS' if all(gates.values()) else 'FAIL',
-                per_object_mean_cm=mean,pair_weighted_cm=weighted,gates=gates,objects=object_rows,trials=trial_rows,
+    metrics=development_metrics(incumbent,trial_rows,admission['pairs'],FOLDS)
+    result=dict(status='completed',**metrics,trials=trial_rows,
                 baseline_per_object_cm=incumbent['per_object_mean_cm'],baseline_pair_weighted_cm=incumbent['pair_weighted_mean_cm'],
-                folds={f:float(np.mean([r['g2_cm'] for r in object_rows if r['fold']==f])) for f in ('A','B')},
                 no_adjustable_parameters=True,admission_sha256=sha256_file(ROOT/job['admissions']),
                 interpretation='Public development views per object (missing masks retain v4), averaged within seed, then equal-object / fixed 26-pair weights. Evaluation views are separate.',
                 disclosure='Pot/pitcher selected after G1 on reused scans; no untouched validation.')
@@ -78,6 +64,7 @@ def packed(job):
     import pandas as pd
     from scripts.track3 import local_cdo
     from track3.features.mesh_eval import pairs
+    from ._metrics import packed_metrics
     from v2dlb import object_mesh as om
     queue=json.loads((ROOT/job['queue']).read_text())
     roster=json.loads((ROOT/queue['roster']).read_text())['episodes']
@@ -108,12 +95,10 @@ def packed(job):
     rows=pairs.run_queue(SimpleNamespace(**request),record,references,local_cdo.CDO,directory/'ledger.jsonl',start)
     record.update(status='completed',wall_seconds=time.perf_counter()-start)
     pairs.write_summary(directory,record,rows); write_json(directory/'run.json',record)
-    result=json.loads((directory/'summary.json').read_text()); means=result['means']['candidate']
+    result=packed_metrics(rows,roster_pairs); means=result['means']['candidate']
     baseline=json.loads((ROOT/'outputs/mesh_eval/pairs/mesh-round3-veto/summary.json').read_text())['means']['candidate']
     if any(abs(result['means']['v4'][k]-baseline[k])>1e-12 for k in ('pair_weighted_cm','per_object_cm')): raise ValueError('Packed v4 baseline differs')
-    gates=dict(equal_object_mean=means['per_object_cm']<0.62338396,pair_weighted_mean=means['pair_weighted_cm']<=0.66292148,
-               no_object_regresses=all(r['candidate']-r['v4']<=0.15 for r in result['objects']))
-    write_json(ROOT/job['output'],dict(status='completed',verdict='PASS' if all(gates.values()) else 'FAIL',gates=gates,
+    write_json(ROOT/job['output'],dict(status='completed',verdict=result['verdict'],gates=result['gates'],
         means=means,baseline_means=result['means']['v4'],objects=result['objects'],
         unchanged_packed_rows=int(unchanged.sum()),unchanged_geometry_identical=True,
         summary=str((directory/'summary.json').relative_to(ROOT))))

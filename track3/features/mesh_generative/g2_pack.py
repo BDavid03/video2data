@@ -88,19 +88,33 @@ def repack(url,out,execute=False):
     development=json.loads((ROOT/'outputs/mesh_generative/g2/development.json').read_text())
     if veto['verdict']!='PASS' or development['verdict']!='PASS': raise PermissionError('G2 did not pass both frozen gates')
     if 'PLACEHOLDER' in url or '/commit/' not in url: raise ValueError('Supply the real immutable GitHub commit URL')
-    manifest=json.loads((ROOT/'submissions/20261102T0516Z-d1-v4/manifest.json').read_text())
+    production_path=directory/'production.json'
+    if sha256_file(production_path)!=veto['production']['sha256']:
+        raise ValueError('Veto-pinned production manifest changed')
+    production=json.loads(production_path.read_text())
+    for row in production['pairs']:
+        if sha256_file(ROOT/row['file'])!=row['sha256']: raise ValueError('Passing production bytes changed')
+    placeholder=ROOT/veto['placeholder_file']['path']
+    if sha256_file(placeholder)!=veto['placeholder_file']['sha256']:
+        raise ValueError('Veto-pinned placeholder changed')
     destination=output_path(ROOT,out)
-    if not destination.is_relative_to(ROOT/'outputs/mesh_generative'): raise ValueError('Repack output must remain under outputs/mesh_generative')
+    if not any(destination.is_relative_to(ROOT/folder) for folder in ('outputs/mesh_generative','.runtime/tmp/g1')):
+        raise ValueError('Repack output must remain under outputs/mesh_generative or .runtime/tmp/g1')
     command=list(veto['pack_command'])
+    command[command.index('--meshes')+1]=(directory/'meshes').relative_to(ROOT).as_posix()
     command[command.index('--commit')+1]=url; command[command.index('--out')+1]=str(destination)
     print(' '.join(command),flush=True)
     if execute:
         if destination.exists(): raise FileExistsError('Preserve prior packs')
-        for row in json.loads((directory/'production.json').read_text())['pairs']:
-            if sha256_file(ROOT/row['file'])!=row['sha256']: raise ValueError('Passing production bytes changed')
         destination.parent.mkdir(parents=True,exist_ok=True)
         with destination.with_suffix('.log').open('w') as log:
             subprocess.run(command,cwd=ROOT,stdout=log,stderr=subprocess.STDOUT,check=True)
+        import pyarrow.parquet as pq
+        columns=['row_id','x','y','z']
+        if not pq.read_table(placeholder,columns=columns).equals(pq.read_table(destination,columns=columns)):
+            raise ValueError('Repacked row IDs or coordinates differ from the verified placeholder')
         write_json(destination.with_suffix('.manifest.json'),dict(status='completed',file=input_file(ROOT,destination),
-            code_commit_url=url,pack_command=command,passing_veto=input_file(ROOT,directory/'veto.json')))
+            code_commit_url=url,pack_command=command,passing_veto=input_file(ROOT,directory/'veto.json'),
+            production=input_file(ROOT,production_path),placeholder=input_file(ROOT,placeholder),
+            placeholder_geometry_identical=True))
     return destination

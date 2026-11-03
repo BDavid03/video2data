@@ -69,3 +69,13 @@ untouched validation, and every write-up says so.
 - Packed veto: production build of all objects, packed with a placeholder URL and scored by `mesh_eval` pairs: object
   mean < 0.62338396 cm, pair mean <= 0.66292148 cm, no object worse than packed v4 by > 0.15 cm. Pass: D1 v5 at a new
   real-URL commit with NEEDS-YOU commands by 12:00 UTC 4 Nov. Fail: v4 stands; no runner-up, no repair.
+
+### G2 implementation clarification (context 20, after the run; the text above is unchanged history)
+
+The disclosure above says the pot's five other public pairs "are generated from their own episodes' crops". In the run,
+the pot's development pairs were public 0, 26 and 42 (as the existing pair ledger defines them); 0 and 26 have no
+recorded frame-0 mask assignment, so by the fixed fallback they kept v4, and only the pilot pair 42 used a generated
+mesh. So the pot's development gain (0.863 -> 0.819 cm object mean) rests on one generated shape, and the pitcher's on
+its single in-sample pair. On evaluation episodes, pot 1/3/6/28 have no mask assignment (v4 kept), pot 8 was rejected
+by the video-only admission (4.37x), and only pot 5 and pitcher 20 changed. Evidence:
+`outputs/mesh_generative/g2/summary.md`; review `outputs/chain/codex/*review-g2-20.answer.md`.
