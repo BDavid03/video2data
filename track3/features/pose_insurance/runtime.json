@@ -13,7 +13,8 @@
     "length_diagnostic_authorized": true,
     "support_diagnostic_authorized": true,
     "heading_authorized": true,
-    "registration_authorized": true
+    "registration_authorized": true,
+    "silhouette_authorized": true
   },
   "authorized_episode_indices": {
     "evaluation": [

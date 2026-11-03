@@ -1,0 +1,524 @@
+{
+  "protocol": {
+    "path": "docs/chain/pose-silhouette-protocol.md",
+    "sha256": "097a2e2ef637e4aa26ae75842e84e9010f070f489f8c2e55984d18752cdc32af"
+  },
+  "method": {
+    "path": "docs/chain/pose-heading-method-hr2.json",
+    "sha256": "c1fd86776f0a5e39eaf0f79273cbb8c6098ef585b59783b00a30ef1d65772e25"
+  },
+  "max_trials": 13,
+  "max_seconds": 7200,
+  "thresholds": {
+    "relative_loss_margin": 0.05,
+    "basin_separation_deg": 30,
+    "matching_max_deg": 10,
+    "iou_margin": 0.05,
+    "kernel_pixels": 3,
+    "chamfer_cap_px": 8,
+    "C_error_deg": 30,
+    "up_error_deg": 15
+  },
+  "trials": [
+    {
+      "episode": 18,
+      "slot": 0,
+      "name": "mini_sweeper",
+      "role": "known",
+      "source_split": "public",
+      "registration": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T112911.312560Z-c6cf948f/run.json",
+        "sha256": "544c688e03e6232e11f262f6a9aca2c6fb439e52d4bf2e8719bbfcfbf484d6c5"
+      },
+      "prediction": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T112911.312560Z-c6cf948f/prediction.json",
+        "sha256": "7cb15b087728e0fe849bf84f52d2385ce4e8c40b11b4c1a2505d43b4471e542c"
+      },
+      "registrations": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T112911.312560Z-c6cf948f/registrations.npz",
+        "sha256": "12c2561578fdbd6ec1683c178663a3bcfc26539710acd238bba25f4b6fcf7c43"
+      },
+      "mask": {
+        "path": "outputs/mesh_extents/public/episode_000018/20261101T103706.195611Z-8e4c4ca5/labels_000000.npz",
+        "sha256": "63fd4c72e6833a23622bcbd57c5acd17401795b05e58e745447abedbbf99cd51"
+      },
+      "grid": {
+        "path": "outputs/depth/public/episode_000018/20261029T020946.139727Z/preprocessing.npz",
+        "sha256": "2aa2fde1d2d7b0dffc861a8207b6f7ee38b368d4ecee694228e48a4f78e3ea54"
+      },
+      "scan": {
+        "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh/mini_sweeper/mini_sweeper_visual.glb",
+        "sha256": "5aa3af228ce53d0fc2e8252391aeb09930535d66f7af9129ff2dd6edf55bb216"
+      },
+      "assignment": {
+        "path": "track3/features/mesh_extents/assignments.json",
+        "sha256": "baf5043625401bdb2b51cd48da784406e13e9fc83470a1f677822035769c7e92"
+      },
+      "cluster_ids": [
+        1
+      ]
+    },
+    {
+      "episode": 18,
+      "slot": 1,
+      "name": "mini_dust_pan",
+      "role": "control",
+      "source_split": "public",
+      "registration": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T113226.572792Z-041aa9e0/run.json",
+        "sha256": "70ec5be7f7d43dbb4786b3aa9b5983b6b36343a8012cfa86ae93f99383b60491"
+      },
+      "prediction": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T113226.572792Z-041aa9e0/prediction.json",
+        "sha256": "ff4f7b7a6ff9977d1f596a24db3c09306761fd3e440894ea1e2ace648d30d29a"
+      },
+      "registrations": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T113226.572792Z-041aa9e0/registrations.npz",
+        "sha256": "0dcaef95535f1e82605066336d16680a3884b714a29969dd1cb60a9d602b53fb"
+      },
+      "mask": {
+        "path": "outputs/mesh_extents/public/episode_000018/20261101T103706.195611Z-8e4c4ca5/labels_000000.npz",
+        "sha256": "63fd4c72e6833a23622bcbd57c5acd17401795b05e58e745447abedbbf99cd51"
+      },
+      "grid": {
+        "path": "outputs/depth/public/episode_000018/20261029T020946.139727Z/preprocessing.npz",
+        "sha256": "2aa2fde1d2d7b0dffc861a8207b6f7ee38b368d4ecee694228e48a4f78e3ea54"
+      },
+      "scan": {
+        "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh/mini_dust_pan/mini_dust_pan.glb",
+        "sha256": "6358b4f913fd8164a797b9375948cd09d47c5e60abcef0843fe43af5109737e3"
+      },
+      "assignment": {
+        "path": "track3/features/mesh_extents/assignments.json",
+        "sha256": "baf5043625401bdb2b51cd48da784406e13e9fc83470a1f677822035769c7e92"
+      },
+      "cluster_ids": [
+        0
+      ]
+    },
+    {
+      "episode": 23,
+      "slot": 0,
+      "name": "wooden_piece_1",
+      "role": "known",
+      "source_split": "public",
+      "registration": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T115050.799956Z-3bcea8bd/run.json",
+        "sha256": "6bbec5cb4632b2567432136076ee5583e75215c66db280dad57f84fb8de50fed"
+      },
+      "prediction": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T115050.799956Z-3bcea8bd/prediction.json",
+        "sha256": "ad930a365ad7c7c44d17084a67e1bb200d8170776537107ccc4cfcd710833a83"
+      },
+      "registrations": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T115050.799956Z-3bcea8bd/registrations.npz",
+        "sha256": "19aab3f222918c229bb399c682121037ef1f689f1e115a7139f845618861ea17"
+      },
+      "mask": {
+        "path": "outputs/mesh_extents/public/episode_000023/20261101T103708.924989Z-52ed3be1/labels_000000.npz",
+        "sha256": "e845427401e05dc3d2b4a140fe0619a1e7eda8930a425f1df19549d37b93eb7c"
+      },
+      "grid": {
+        "path": "outputs/depth/public/episode_000023/20261029T021005.260544Z/preprocessing.npz",
+        "sha256": "2aa2fde1d2d7b0dffc861a8207b6f7ee38b368d4ecee694228e48a4f78e3ea54"
+      },
+      "scan": {
+        "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh/wooden_piece_1/wooden_piece_1_visual.glb",
+        "sha256": "30b681f4030fd85c8cee426f27f1e09d9c0dd9f33dca54f7fd82aa5a25f2e8b9"
+      },
+      "assignment": {
+        "path": "track3/features/mesh_extents/assignments.json",
+        "sha256": "baf5043625401bdb2b51cd48da784406e13e9fc83470a1f677822035769c7e92"
+      },
+      "cluster_ids": [
+        0
+      ]
+    },
+    {
+      "episode": 23,
+      "slot": 1,
+      "name": "wooden_piece_2",
+      "role": "known",
+      "source_split": "public",
+      "registration": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T115403.973957Z-3ca3b440/run.json",
+        "sha256": "8e640abdc7f4a024970209202a0ea9c7b08d113375fb45f4abd125fe0a232e5b"
+      },
+      "prediction": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T115403.973957Z-3ca3b440/prediction.json",
+        "sha256": "f06344d950d22b396691265787b5a30346e1e0b6e4d8128a9fc9c64ecaa9b500"
+      },
+      "registrations": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T115403.973957Z-3ca3b440/registrations.npz",
+        "sha256": "93a4349f8662464d5889b3976788000da33cfd6cd3442f0026a7bd554c890db1"
+      },
+      "mask": {
+        "path": "outputs/mesh_extents/public/episode_000023/20261101T103708.924989Z-52ed3be1/labels_000000.npz",
+        "sha256": "e845427401e05dc3d2b4a140fe0619a1e7eda8930a425f1df19549d37b93eb7c"
+      },
+      "grid": {
+        "path": "outputs/depth/public/episode_000023/20261029T021005.260544Z/preprocessing.npz",
+        "sha256": "2aa2fde1d2d7b0dffc861a8207b6f7ee38b368d4ecee694228e48a4f78e3ea54"
+      },
+      "scan": {
+        "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh/wooden_piece_2/wooden_piece_2_visual.glb",
+        "sha256": "2063471068b6c3f73f89223f4f541502c84cc8c7f99a0075487e4cb65faf0025"
+      },
+      "assignment": {
+        "path": "track3/features/mesh_extents/assignments.json",
+        "sha256": "baf5043625401bdb2b51cd48da784406e13e9fc83470a1f677822035769c7e92"
+      },
+      "cluster_ids": [
+        1
+      ]
+    },
+    {
+      "episode": 24,
+      "slot": 0,
+      "name": "wooden_piece_1",
+      "role": "known",
+      "source_split": "public",
+      "registration": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T115627.877075Z-3bb2c1de/run.json",
+        "sha256": "2cd3026b99f24bc104eb858f9656a9fb281676e467d2ed8157af7b53cfd6dd63"
+      },
+      "prediction": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T115627.877075Z-3bb2c1de/prediction.json",
+        "sha256": "ad4115c7ad7fe03096c995162c1410b87e47b412813dc47e588706c476e18565"
+      },
+      "registrations": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T115627.877075Z-3bb2c1de/registrations.npz",
+        "sha256": "1e1d57000c927c33753a459e958b54aa1bf9f05d33aaa14e0885b20bd7bccf03"
+      },
+      "mask": {
+        "path": "outputs/mesh_extents/public/episode_000024/20261102T163458.120337Z-abdb6d9b/labels_000000.npz",
+        "sha256": "1810b16c1adc2d7b13aff0a8e2a65bfabdc5d0c81436fc6d4bb3044c9f091752"
+      },
+      "grid": {
+        "path": "outputs/depth/public/episode_000024/20261102T163447.053558Z/preprocessing.npz",
+        "sha256": "2aa2fde1d2d7b0dffc861a8207b6f7ee38b368d4ecee694228e48a4f78e3ea54"
+      },
+      "scan": {
+        "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh/wooden_piece_1/wooden_piece_1_visual.glb",
+        "sha256": "30b681f4030fd85c8cee426f27f1e09d9c0dd9f33dca54f7fd82aa5a25f2e8b9"
+      },
+      "assignment": {
+        "path": "track3/features/pose_insurance/length_confirm_assignments.json",
+        "sha256": "f8724e560b40e7f8a5320471a15767f740ce64f540e86c528700f0be20d2a5c9"
+      },
+      "cluster_ids": [
+        0
+      ]
+    },
+    {
+      "episode": 24,
+      "slot": 1,
+      "name": "wooden_piece_2",
+      "role": "known",
+      "source_split": "public",
+      "registration": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T115942.452435Z-d33e43ff/run.json",
+        "sha256": "be01bdba6e737f6b6060633ffeef59192eeb08e13a575a16c08cb816c15b6c55"
+      },
+      "prediction": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T115942.452435Z-d33e43ff/prediction.json",
+        "sha256": "e41e8e140c9a45ecf7005d2ebe4f4dd14293f3bba7d684c4198bd12444b2c51e"
+      },
+      "registrations": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T115942.452435Z-d33e43ff/registrations.npz",
+        "sha256": "324caa1c17362d4c52680d71ec4a24656810beef5e7b873834f9000d41c0e8ac"
+      },
+      "mask": {
+        "path": "outputs/mesh_extents/public/episode_000024/20261102T163458.120337Z-abdb6d9b/labels_000000.npz",
+        "sha256": "1810b16c1adc2d7b13aff0a8e2a65bfabdc5d0c81436fc6d4bb3044c9f091752"
+      },
+      "grid": {
+        "path": "outputs/depth/public/episode_000024/20261102T163447.053558Z/preprocessing.npz",
+        "sha256": "2aa2fde1d2d7b0dffc861a8207b6f7ee38b368d4ecee694228e48a4f78e3ea54"
+      },
+      "scan": {
+        "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh/wooden_piece_2/wooden_piece_2_visual.glb",
+        "sha256": "2063471068b6c3f73f89223f4f541502c84cc8c7f99a0075487e4cb65faf0025"
+      },
+      "assignment": {
+        "path": "track3/features/pose_insurance/length_confirm_assignments.json",
+        "sha256": "f8724e560b40e7f8a5320471a15767f740ce64f540e86c528700f0be20d2a5c9"
+      },
+      "cluster_ids": [
+        1
+      ]
+    },
+    {
+      "episode": 39,
+      "slot": 0,
+      "name": "mini_dust_pan",
+      "role": "control",
+      "source_split": "public",
+      "registration": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T111232.770514Z-4b289c63/run.json",
+        "sha256": "7711161aeb565f01c60f53dda71342f53da03ac547ffaae0b9b7cf1d98adfb23"
+      },
+      "prediction": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T111232.770514Z-4b289c63/prediction.json",
+        "sha256": "6c25c85124d134c1ae3d9f9bd9045042d388c53070c8293ab5cdcd1daaffb331"
+      },
+      "registrations": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T111232.770514Z-4b289c63/registrations.npz",
+        "sha256": "9575e2c7f495632b9a2ea488d1af3b8c0c72aab89d75a75cdf8c9baab65f8590"
+      },
+      "mask": {
+        "path": "outputs/mesh_extents/public/episode_000039/20261101T103712.508161Z-a07ab7a6/labels_000000.npz",
+        "sha256": "1a96339d370be19ba3e3f227fe968496acf0f9ac41047d2bd008cbba5a5ceee8"
+      },
+      "grid": {
+        "path": "outputs/depth/public/episode_000039/20261101T094931.143511Z/preprocessing.npz",
+        "sha256": "2aa2fde1d2d7b0dffc861a8207b6f7ee38b368d4ecee694228e48a4f78e3ea54"
+      },
+      "scan": {
+        "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh/mini_dust_pan/mini_dust_pan.glb",
+        "sha256": "6358b4f913fd8164a797b9375948cd09d47c5e60abcef0843fe43af5109737e3"
+      },
+      "assignment": {
+        "path": "track3/features/mesh_extents/assignments.json",
+        "sha256": "baf5043625401bdb2b51cd48da784406e13e9fc83470a1f677822035769c7e92"
+      },
+      "cluster_ids": [
+        0
+      ]
+    },
+    {
+      "episode": 12,
+      "slot": 1,
+      "name": "plastic_dish_rack",
+      "role": "control",
+      "source_split": "public",
+      "registration": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T112312.414779Z-40655a67/run.json",
+        "sha256": "fd7da8a4e99e52477a0792d795e5f9673fb089c0e15b2fd1de04fa9eaa525b13"
+      },
+      "prediction": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T112312.414779Z-40655a67/prediction.json",
+        "sha256": "6a33788dcc099242bcae2f90d838af3709351e6230272b7c73a1d92cf445d97f"
+      },
+      "registrations": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T112312.414779Z-40655a67/registrations.npz",
+        "sha256": "fe35e0afaf8c51dc46413a15f977cb04dc065ebe782af3f6e380926ea2f4cbdf"
+      },
+      "mask": {
+        "path": "outputs/mesh_extents/public/episode_000012/20261101T103703.949004Z-546c56c2/labels_000000.npz",
+        "sha256": "5e09296f9434b65bef6d8d876b999315dfe5b1c70bfb837a9ef48f32ef3648fa"
+      },
+      "grid": {
+        "path": "outputs/depth/public/episode_000012/20261029T020937.002419Z/preprocessing.npz",
+        "sha256": "2aa2fde1d2d7b0dffc861a8207b6f7ee38b368d4ecee694228e48a4f78e3ea54"
+      },
+      "scan": {
+        "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh/plastic_dish_rack/plastic_dish_rack.glb",
+        "sha256": "4ee134a483b39bae7d7fabf3a07858a7401a21920e13b86c97face8f7578f963"
+      },
+      "assignment": {
+        "path": "track3/features/mesh_extents/assignments.json",
+        "sha256": "baf5043625401bdb2b51cd48da784406e13e9fc83470a1f677822035769c7e92"
+      },
+      "cluster_ids": [
+        0,
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "episode": 21,
+      "slot": 1,
+      "name": "water_pitcher",
+      "role": "control",
+      "source_split": "public",
+      "registration": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T114035.178074Z-572cd4e6/run.json",
+        "sha256": "2289f5c236cd4dcd7fbea6c3c4abf1e1d472d949d777c6f5040e5c1080b9ea9c"
+      },
+      "prediction": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T114035.178074Z-572cd4e6/prediction.json",
+        "sha256": "9853b91b3822a6e9ba49a54df4cdc314838463da728971eb8d3114711c127e26"
+      },
+      "registrations": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T114035.178074Z-572cd4e6/registrations.npz",
+        "sha256": "3e3a0894d9ec342a32a0e7ecd594fa4cd321de8bd9a8d80f8ff70208802fa510"
+      },
+      "mask": {
+        "path": "outputs/mesh_extents/public/episode_000021/20261101T103707.151959Z-05bf6bac/labels_000000.npz",
+        "sha256": "6edc4d1da413e5785af5f8ba471443d67bfb858806b0e3ac92e6a7dd99eb79c4"
+      },
+      "grid": {
+        "path": "outputs/depth/public/episode_000021/20261029T020955.740261Z/preprocessing.npz",
+        "sha256": "2aa2fde1d2d7b0dffc861a8207b6f7ee38b368d4ecee694228e48a4f78e3ea54"
+      },
+      "scan": {
+        "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh/water_pitcher/water_pitcher.glb",
+        "sha256": "1780f92ff3ae3e471874799f5133ae49d09d18f062892878550606ea611b6e1e"
+      },
+      "assignment": {
+        "path": "track3/features/mesh_extents/assignments.json",
+        "sha256": "baf5043625401bdb2b51cd48da784406e13e9fc83470a1f677822035769c7e92"
+      },
+      "cluster_ids": [
+        0
+      ]
+    },
+    {
+      "episode": 27,
+      "slot": 1,
+      "name": "white_pot",
+      "role": "control",
+      "source_split": "public",
+      "registration": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T120807.011747Z-fbb78022/run.json",
+        "sha256": "7bcdd84b6cfacca035f63bce87869ab62ef6ed34965e08294e46f893ec822e56"
+      },
+      "prediction": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T120807.011747Z-fbb78022/prediction.json",
+        "sha256": "543188df1560b6e7e940856f8f624560f19a92857fd419093b714a491a67a82c"
+      },
+      "registrations": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T120807.011747Z-fbb78022/registrations.npz",
+        "sha256": "cfbdf9ac2396eda733407f3c40a33fc782135b98ad886f14524d0c7a7dc48e69"
+      },
+      "mask": {
+        "path": "outputs/mesh_extents/public/episode_000027/20261101T225816.131017Z-ebd30c8f/labels_000000.npz",
+        "sha256": "a64abba079ed65f086e32d30a97941c2a852a2c889a3637f368408760a473751"
+      },
+      "grid": {
+        "path": "outputs/depth/public/episode_000027/20261101T225805.331133Z/preprocessing.npz",
+        "sha256": "2aa2fde1d2d7b0dffc861a8207b6f7ee38b368d4ecee694228e48a4f78e3ea54"
+      },
+      "scan": {
+        "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh/white_pot/white_pot.glb",
+        "sha256": "2627b01350864cc7f52540cb1ccfb9d67544e245d7061d8e313ecfd9d3eb5151"
+      },
+      "assignment": {
+        "path": "track3/features/pose_insurance/length_confirm_assignments.json",
+        "sha256": "f8724e560b40e7f8a5320471a15767f740ce64f540e86c528700f0be20d2a5c9"
+      },
+      "cluster_ids": [
+        0,
+        2
+      ]
+    },
+    {
+      "episode": 42,
+      "slot": 0,
+      "name": "white_pot",
+      "role": "control",
+      "source_split": "public",
+      "registration": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T121947.451604Z-6e9beb58/run.json",
+        "sha256": "db2fb5c1b3d1d4e2b72c5fb66eac6edf1c3d18b6ddf0b8e876462c7bbcc7d3fb"
+      },
+      "prediction": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T121947.451604Z-6e9beb58/prediction.json",
+        "sha256": "944004af7da75eef94791f43b81f460ffef51d3b3320bd657bada3af7d8544fd"
+      },
+      "registrations": {
+        "path": "outputs/pose_insurance/registration-hr2/trials/20261103T121947.451604Z-6e9beb58/registrations.npz",
+        "sha256": "758e2996caf75c313810f5cc93b02d5fdd3d85498a376a9e6e43bd7d82256377"
+      },
+      "mask": {
+        "path": "outputs/mesh_extents/public/episode_000042/20261101T103715.090424Z-d410dfac/labels_000000.npz",
+        "sha256": "378de1680a5791cd7af70f6fee16174142c3726ebad0be96b5f6505a14d0edd6"
+      },
+      "grid": {
+        "path": "outputs/depth/public/episode_000042/20261029T021042.911743Z/preprocessing.npz",
+        "sha256": "2aa2fde1d2d7b0dffc861a8207b6f7ee38b368d4ecee694228e48a4f78e3ea54"
+      },
+      "scan": {
+        "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh/white_pot/white_pot.glb",
+        "sha256": "2627b01350864cc7f52540cb1ccfb9d67544e245d7061d8e313ecfd9d3eb5151"
+      },
+      "assignment": {
+        "path": "track3/features/mesh_extents/assignments.json",
+        "sha256": "baf5043625401bdb2b51cd48da784406e13e9fc83470a1f677822035769c7e92"
+      },
+      "cluster_ids": [
+        0
+      ]
+    },
+    {
+      "episode": 19,
+      "slot": 0,
+      "name": "mini_sweeper",
+      "role": "application",
+      "source_split": "evaluation",
+      "registration": {
+        "path": "outputs/pose_insurance/registration-h3/trials/20261103T130445.626124Z-878a4f5c/run.json",
+        "sha256": "4257d18878ca021fa787dc136fa1622aca0ca905e234d587d58bdbacaa315c78"
+      },
+      "prediction": {
+        "path": "outputs/pose_insurance/registration-h3/trials/20261103T130445.626124Z-878a4f5c/prediction.json",
+        "sha256": "f8beb467adb81c999a14078297b6e355f9c56a30c3b3f2d37eaf51091b2a757b"
+      },
+      "registrations": {
+        "path": "outputs/pose_insurance/registration-h3/trials/20261103T130445.626124Z-878a4f5c/registrations.npz",
+        "sha256": "df7af6b428203817dafaff17318b6da398888f779a0d02d1bd050e87e9d42aa0"
+      },
+      "mask": {
+        "path": "outputs/mesh_extents/evaluation/episode_000019/20261101T103744.465563Z-cf791566/labels_000000.npz",
+        "sha256": "9a097d0db13428a610fbdda80b2ffdfe32fdccaa913f664387ffa2a8c1d9376d"
+      },
+      "grid": {
+        "path": "outputs/depth/evaluation/episode_000019/20261101T100143.510380Z/preprocessing.npz",
+        "sha256": "2aa2fde1d2d7b0dffc861a8207b6f7ee38b368d4ecee694228e48a4f78e3ea54"
+      },
+      "scan": {
+        "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh/mini_sweeper/mini_sweeper_visual.glb",
+        "sha256": "5aa3af228ce53d0fc2e8252391aeb09930535d66f7af9129ff2dd6edf55bb216"
+      },
+      "assignment": {
+        "path": "outputs/pose_insurance/stereo-placement-scored/plans/episode_000019.json",
+        "sha256": "73565e201bca10f0a5c71e10a7dc7f72836943e12a8c581c73d9b5274992fdf5"
+      },
+      "cluster_ids": [
+        2
+      ]
+    },
+    {
+      "episode": 19,
+      "slot": 1,
+      "name": "mini_dust_pan",
+      "role": "control",
+      "source_split": "evaluation",
+      "registration": {
+        "path": "outputs/pose_insurance/registration-h3/trials/20261103T130707.891203Z-5122ba19/run.json",
+        "sha256": "53333803b3a7b2910dd4ad7b8fefb46a1d8059bc8445201b1a253dd944ccacf1"
+      },
+      "prediction": {
+        "path": "outputs/pose_insurance/registration-h3/trials/20261103T130707.891203Z-5122ba19/prediction.json",
+        "sha256": "02445fff90145b935ea325c0f15a4e962a410d3be833bf107d53de6060a76ce5"
+      },
+      "registrations": {
+        "path": "outputs/pose_insurance/registration-h3/trials/20261103T130707.891203Z-5122ba19/registrations.npz",
+        "sha256": "8941119a8f9226d30a2f4bd219e434c43dc6e74b38a50d153312febe72db1e9b"
+      },
+      "mask": {
+        "path": "outputs/mesh_extents/evaluation/episode_000019/20261101T103744.465563Z-cf791566/labels_000000.npz",
+        "sha256": "9a097d0db13428a610fbdda80b2ffdfe32fdccaa913f664387ffa2a8c1d9376d"
+      },
+      "grid": {
+        "path": "outputs/depth/evaluation/episode_000019/20261101T100143.510380Z/preprocessing.npz",
+        "sha256": "2aa2fde1d2d7b0dffc861a8207b6f7ee38b368d4ecee694228e48a4f78e3ea54"
+      },
+      "scan": {
+        "path": "datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh/mini_dust_pan/mini_dust_pan.glb",
+        "sha256": "6358b4f913fd8164a797b9375948cd09d47c5e60abcef0843fe43af5109737e3"
+      },
+      "assignment": {
+        "path": "outputs/pose_insurance/stereo-placement-scored/plans/episode_000019.json",
+        "sha256": "73565e201bca10f0a5c71e10a7dc7f72836943e12a8c581c73d9b5274992fdf5"
+      },
+      "cluster_ids": [
+        1
+      ]
+    }
+  ]
+}
