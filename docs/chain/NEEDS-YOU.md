@@ -11,14 +11,14 @@ A new method registers each object's 3D scan to the calibrated-stereo points at 
 object's heading (which way it faces). It failed its own pre-registered test, because its "decline when unsure" rule
 rejected every pair. But the headings it picked are accurate on the asymmetric objects. On train episode 18
 (sweeper and dust pan) the error is 4 / 6 degrees, and AUC goes 0.30 -> 0.62, RPE 29.6 -> 9.6 cm, MPPE 19.5 -> 4.1 cm.
-Over the eight train episodes: AUC 0.2767 -> 0.3223, RPE 29.01 -> 26.45, MPPE 17.68 -> 15.71, no episode worse. The
+Over the eight train episodes with only episode 18 changed (what this proposal would do): mean AUC 0.2767 -> 0.3161; with the wooden pieces (23) too, 0.3223; no episode worse. The
 same objects appear in one scored episode (19), so a D2 v5 would change only that episode. All other scored pairs
 involve a cup (heading not visible), the spoon (no scan) or merged masks; the wooden pieces (25) are left out because
 which piece is which is ambiguous. Caveats: chosen after seeing train results, not blind; the sweeper's second-best
 heading was only 2 % worse, so on episode 19 it could pick the flipped one.
 **If you want it, add to AGENTS.md: "2026-11-03: approve D2 v5 heading for episode 19".** The next context then builds
 it (simulation check, pack) by 12:00 UTC 4 Nov. Without that line D2 v4 stays the pose file. Evidence:
-`docs/chain/pose-heading-hr2-protocol.md` (Outcome), `outputs/pose_insurance/heading/summary.md` (H2S-desc).
+`docs/chain/pose-heading-hr2-outcome.md`, `outputs/pose_insurance/heading/summary.md` (H2S-desc).
 
 **Deadline (2026-11-03 07:35 UTC, context 15): planned to your "12pm EST November 4th" = 17:00 UTC 4 Nov
 (04:00 AEDT 5 Nov).** That is five hours *earlier* than the 5:00 p.m. EST (22:00 UTC) in the kit's
