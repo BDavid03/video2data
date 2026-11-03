@@ -1,0 +1,6 @@
+{
+  "python": ".runtime/flashchord/venv/bin/python",
+  "measurement_python": ".runtime/linux-cuda/bin/python",
+  "execution": {"probe_authorized": true, "run_authorized": true, "measure_authorized": true},
+  "scope": "D1 on the unchanged shipped tissue-box example; no challenge episodes"
+}

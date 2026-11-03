@@ -1,10 +1,14 @@
 """Own task admission, upstream subprocesses, GPU lease and immutable trial records."""
 
+from contextlib import contextmanager
 from dataclasses import asdict
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
+import tempfile
+import threading
 import time
 import xml.etree.ElementTree as ET
 
@@ -15,6 +19,8 @@ from track3.runs import ROOT, heavy_execution, recorded, runtime_flag
 
 FEATURE = Path(__file__).parent
 OUTPUT = ROOT / "outputs/dynamic_feasibility"
+SCALING_QUEUE = FEATURE / "scaling_queue.json"
+SCALING_OUTPUT = OUTPUT / "d1/sizing-fixed"
 FC = ROOT / ".runtime/flashchord/video_to_data/robotic_grounding/flash_chord"
 PYTHON = ROOT / ".runtime/flashchord/venv/bin/python"
 EVALUATOR = ROOT / "upstream/v2d_submission_kit/v2d_submission_kit/flash_chord/scripts/evaluate_policy.py"
@@ -36,6 +42,14 @@ def environment():
                       JAX_ENABLE_COMPILATION_CACHE="true", JAX_PERSISTENT_CACHE_MIN_COMPILE_TIME_SECS="0",
                       WANDB_MODE="disabled", HYDRA_FULL_ERROR="1", PYTHONUNBUFFERED="1")
     return os.environ.copy()
+
+
+def scaling_runtime(flag):
+    """Require the preserved D1 operation authorization from its folded runtime file."""
+    runtime = json.loads((FEATURE / "scaling_runtime.json").read_text())
+    if runtime["execution"].get(flag) is not True:
+        raise PermissionError(f"Dynamic scaling requires {flag}")
+    return runtime
 
 
 def entry(path):
@@ -96,17 +110,23 @@ def prepare_arrays(task):
             np.savez_compressed(stream, reference=task["reference"], vertices=task["vertices"], fps=task["fps"])
 
 
-def measure(directory=None):
+def measure(directory=None, scaling=False, record=None):
     """Run kit measurement on CPU in the existing perception environment."""
-    runtime = runtime_flag(FEATURE, "measure_authorized", "Dynamic feasibility measurement")
+    runtime = (scaling_runtime("measure_authorized") if scaling else
+               runtime_flag(FEATURE, "measure_authorized", "Dynamic feasibility measurement"))
     target = directory / "metrics.json" if directory else OUTPUT / "comparator_S.json"
     command = [str(ROOT / runtime["measurement_python"]), "-B", "-m",
                "track3.features.dynamic_feasibility.measure", "--task", str(OUTPUT / "task.npz"),
                "--out", str(target)]
+    if scaling:
+        command += ["--campaign", "D1"]
     if directory:
         command += ["--directory", str(directory)]
     env = {**os.environ, "CUDA_VISIBLE_DEVICES": ""}
-    with target.with_suffix(".log").open("w") as stream:
+    if scaling and record is not None:
+        record.setdefault("commands", []).append(command)
+    log = directory / "measurement.log" if scaling else target.with_suffix(".log")
+    with log.open("w") as stream:
         subprocess.run(command, cwd=ROOT, env=env, stdout=stream, stderr=subprocess.STDOUT, check=True)
     return json.loads(target.read_text())
 
@@ -168,12 +188,50 @@ def checkpoint_counts(checkpoint, state, arm):
             "checkpoint_metadata": metadata}
 
 
+@contextmanager
+def temporary_checkpoints(scratch, final_steps):
+    """Bound disk use by removing obsolete generated checkpoints only inside owned scratch."""
+    stop = threading.Event()
+    retention = {"scratch": str(scratch.relative_to(ROOT)), "removed_files": 0, "removed_bytes": 0,
+                 "keep_recent_steps": 2, "errors": []}
+
+    def reap():
+        while not stop.wait(1):
+            try:
+                paths = list((scratch / "training").glob("*.safetensors"))
+                steps = sorted({int(path.stem.rsplit("_", 1)[1]) for path in paths})
+                keep = set(steps[-2:]) | {final_steps}
+                for path in paths:
+                    if int(path.stem.rsplit("_", 1)[1]) not in keep:
+                        size = path.stat().st_size
+                        path.unlink()
+                        retention["removed_files"] += 1
+                        retention["removed_bytes"] += size
+            except Exception as error:
+                retention["errors"].append(f"{type(error).__name__}: {error}")
+                return
+
+    thread = threading.Thread(target=reap, daemon=True)
+    thread.start()
+    try:
+        yield retention
+    finally:
+        stop.set()
+        thread.join()
+
+
 def run(request, queue, task, campaign_identity):
     """Train, evaluate and record one fixed arm/seed, with no retry or episode access."""
+    scaling = request.arm == "D1"
+    if scaling:
+        scaling_runtime("run_authorized")
     env = environment()
-    directory = OUTPUT / "runs" / f"{request.arm}-seed{request.seed}"
-    record = run_fields(ROOT, "dynamic_feasibility", "run", asdict(request),
-                        inputs=[FEATURE / "queue.json", FEATURE / "runtime.json", ROOT / queue["protocol"]],
+    directory = (SCALING_OUTPUT / "runs" / f"seed{request.seed}" if scaling else
+                 OUTPUT / "runs" / f"{request.arm}-seed{request.seed}")
+    record = run_fields(ROOT, "dynamic_feasibility", "scaling_run" if scaling else "run", asdict(request),
+                        inputs=[ROOT / queue.get("queue_path", "track3/features/dynamic_feasibility/queue.json"),
+                                FEATURE / ("scaling_runtime.json" if scaling else "runtime.json"),
+                                ROOT / queue["protocol"], *([SCALING_OUTPUT / "selection.json"] if scaling else [])],
                         provenance="public_asset_diagnostic")
     record.update(campaign_identity=campaign_identity, pid=os.getpid(), task_inputs=task["inputs"],
                   diagnostic_only=True, challenge_episode_access=False, fps=task["fps"])
@@ -184,13 +242,29 @@ def run(request, queue, task, campaign_identity):
         started = time.monotonic()
         deadline = time.time() + request.maximum_seconds
         with GpuLease(ROOT, queue["headroom_mib"], queue["admission_allowance_mib"],
-                      stage="dynamic_feasibility") as lease:
+                      stage="dynamic_scaling" if scaling else "dynamic_feasibility") as lease:
             record["gpu_started_epoch"] = time.time()
             write_json(directory / "run.json", record)
             try:
-                execute(training_command(request, task, directory), directory / "training.log", env,
-                        deadline - queue["evaluation_reserve_seconds"], record, "training")
                 steps = request.budget["total_environment_steps"]
+                if scaling:
+                    scratch = Path(tempfile.mkdtemp(prefix=f"dynamic-scaling-seed{request.seed}-", dir=ROOT / ".runtime/tmp"))
+                    command = training_command(request, task, directory)
+                    command = [f"output_dir={json.dumps(str(scratch / 'training'))}" if arg.startswith("output_dir=")
+                               else arg for arg in command]
+                    with temporary_checkpoints(scratch, steps) as retention:
+                        record["checkpoint_retention"] = retention
+                        execute(command, directory / "training.log", env,
+                                deadline - queue["evaluation_reserve_seconds"], record, "training")
+                    if retention["errors"]:
+                        raise RuntimeError(retention["errors"][-1])
+                    final = directory / "training"
+                    final.mkdir()
+                    for name in (f"policy_{steps}.safetensors", f"state_{steps}.safetensors"):
+                        shutil.copyfile(scratch / "training" / name, final / name)
+                else:
+                    execute(training_command(request, task, directory), directory / "training.log", env,
+                            deadline - queue["evaluation_reserve_seconds"], record, "training")
                 checkpoint = directory / f"training/policy_{steps}.safetensors"
                 state = directory / f"training/state_{steps}.safetensors"
                 record.update(checkpoint_counts(checkpoint, state, request.arm))
@@ -204,6 +278,6 @@ def run(request, queue, task, campaign_identity):
                 lease.require_headroom()
             finally:
                 record.update(gpu=lease.report(), gpu_seconds=time.monotonic() - started)
-        record["metrics"] = measure(directory)
+        record["metrics"] = measure(directory, scaling=scaling, record=record)
         write_json(directory / "metrics.json", record["metrics"])
     return directory / "run.json"

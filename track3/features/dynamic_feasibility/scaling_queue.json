@@ -1,0 +1,82 @@
+{
+  "D1": {
+    "protocol": "docs/chain/dynamic-scaling-protocol.md",
+    "protocol_commit": "5941707",
+    "base_queue": "track3/features/dynamic_feasibility/queue.json",
+    "total_gpu_seconds": 3900,
+    "prior_sizing_failure": "outputs/dynamic_feasibility/d1/finished.json",
+    "prior_sizing_ledger": "outputs/dynamic_feasibility/d1/ledger.jsonl",
+    "seeds": [
+      0,
+      1
+    ],
+    "maximum_seed_seconds": 1800,
+    "evaluation_reserve_seconds": 90,
+    "probe": {
+      "world_counts": [
+        256,
+        512,
+        1024
+      ],
+      "between_if_failed": [
+        384,
+        768
+      ],
+      "maximum_gpu_seconds": 300,
+      "warmup_collections": 8,
+      "timed_collections": 64,
+      "maximum_peak_mib": 13824,
+      "training_seconds_for_sizing": 1350,
+      "method": "Zero-residual captured environment steps, synchronized over the timed interval; initialize and retain the full L1 learner/replay state without any optimizer updates. No tracking-error, reward or pose-quality values are read."
+    },
+    "checkpoint_retention": "Keep L1's 5120-transition save interval. Write checkpoints in an owned scratch directory; discard obsolete intermediate checkpoints there, retain and copy the final policy/state bytes into the trial record.",
+    "chosen": {
+      "written_utc": "2026-11-03T14:48:28.272706+00:00",
+      "budget": {
+        "world_count": 1024,
+        "total_environment_steps": 66763776,
+        "curriculum_thresholds": [
+          5240832,
+          9180160,
+          13119488,
+          17057792,
+          20997120,
+          24936448,
+          28875776,
+          32814080,
+          36753408,
+          53410816,
+          66763776
+        ],
+        "updates_per_collection": 0.125,
+        "minimum_size": 6400,
+        "capacity": 16384,
+        "checkpoint_interval": 5120,
+        "observation_storage_dtype": "float16",
+        "save_replay": false,
+        "seeds": [
+          0,
+          1
+        ]
+      },
+      "selected_probe": {
+        "event": "probe",
+        "key": "worlds-1024",
+        "status": "completed",
+        "run": "outputs/dynamic_feasibility/d1/sizing-fixed/probes/worlds-1024/run.json",
+        "gpu_seconds": 37.32576530199731,
+        "wall_seconds": 37.32624837500043,
+        "peak_gpu_mib": 4124,
+        "error": null,
+        "world_count": 1024,
+        "steps_per_second": 49455.15781780435
+      },
+      "rule": "Highest steps/s with peak <=13824 MiB; transitions=floor(steps/s*1350/worlds)*worlds"
+    },
+    "training_runs": [
+      "outputs/dynamic_feasibility/runs/L1-seed0/run.json",
+      "outputs/dynamic_feasibility/runs/L1-seed1/run.json"
+    ],
+    "sizing_rule": "New selections use measured end-to-end training seconds/transition times 1.1. The historical chosen field is preserved exactly."
+  }
+}

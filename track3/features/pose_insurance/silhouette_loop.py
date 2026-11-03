@@ -17,12 +17,14 @@ from track3.runs import (ROOT, CACHE_FOLDERS, artifact, authorize_episode, check
                          heavy_execution, new_run_id, now_utc, producer, read_json,
                          recorded, runtime_flag, save_npz)
 
+from ._silhouette_render import prediction_markdown, assessment_markdown
+
 FEATURE = Path(__file__).parent
 QUEUE = 'track3/features/pose_insurance/silhouette_queue.json'
 OUTPUT = 'outputs/pose_insurance/silhouette'
 CONTRACT_HASH = '05c08adfc2709d7c625bd76d571dd4cefd844e938b4b17da31eec0d19a143cce'
 SOURCES = tuple(f'track3/features/pose_insurance/{name}.py' for name in (
-    '_silhouette', 'silhouette_loop', '_registration', '_scene')) + (
+    '_silhouette', '_silhouette_labels', '_silhouette_render', 'silhouette_loop', '_registration', '_scene')) + (
     'track3/paths.py', 'track3/provenance.py', 'track3/runs.py', 'configs/sources.lock.json')
 
 
@@ -99,12 +101,8 @@ def admit_trial(trial: dict, record: dict) -> tuple:
         if key == 'mask' and upstream[1]['frames'][0]['frame_index'] != 0:
             raise ValueError('S1 requires frame-zero masks')
     assigned = read_json(trial['assignment']['path'])
-    if trial['episode'] == 19:
-        ids = assigned['observations']['cluster_ids'][trial['slot']]
-    elif trial['episode'] in (24, 27):
-        ids = assigned['episodes'][str(trial['episode'])]['objects'][trial['name']]
-    else:
-        ids = assigned['episodes'][f"public:{trial['episode']}"]['objects'][trial['name']]
+    from ._silhouette_labels import assigned_clusters
+    ids = assigned_clusters(assigned, trial)
     if ids != trial['cluster_ids']:
         raise ValueError('S1 mask assignment differs from the registration assignment')
     prediction = read_json(trial['prediction']['path'])
@@ -158,57 +156,18 @@ def resume(path: str, record: dict) -> tuple:
     return parent, result
 
 
-def prediction_markdown(rows: list) -> str:
-    """Format all candidate scores, margins and abstention reasons without labels."""
-    lines = ['# S1 predictions', '', 'IoU variants: original / eroded / dilated. Chamfer units: pixels.', '',
-             '| Episode/object | Search | Candidate/index | Loss ratio | IoU O/E/D | Chamfer O/E/D (px) |',
-             '|---|---:|---|---:|---|---|']
-    for row in rows:
-        for search, candidates in enumerate(row['searches']):
-            inverse = {local: primary for primary, local in enumerate(row['mappings'][search])}
-            for local, c in enumerate(candidates):
-                iou = '/'.join('NA' if x is None else f'{x:.6f}' for x in c['iou'])
-                chamfer = '/'.join('NA' if x is None else f'{x:.4f}' for x in c['contour_chamfer_px'])
-                label = f"c{inverse[local]}" if local in inverse else 'unmatched'
-                lines.append(f"| {row['episode']} {row['name']} | {search} | {label}/{c['index']} | "
-                             f"{c['loss_ratio']:.6f} | {iou} | {chamfer} |")
-    lines += ['', '| Episode/object | Role | Selected identity | Minimum margin | Abstain reasons |',
-              '|---|---|---|---|---|']
-    for row in rows:
-        lines.append(f"| {row['episode']} {row['name']} | {row['role']} | {row['decision']['selected']} | "
-                     f"{row['decision']['minimum_margin']} | {'; '.join(row['abstain_reasons'])} |")
-    return '\n'.join(lines) + '\n'
-
-
-def figure(rows: list, directory: Path) -> None:
-    """Overlay search-zero candidate outlines for the three requested example objects."""
-    import cv2
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
+def save_figure(rows: list, directory: Path) -> None:
+    """Read saved render arrays and persist the presentation figure."""
     import numpy as np
-    fig, axes = plt.subplots(1, 3, figsize=(18, 7))
-    for ax, key in zip(axes, ((18, 'mini_sweeper'), (19, 'mini_sweeper'), (23, 'wooden_piece_1'))):
-        row = next(r for r in rows if (r['episode'], r['name']) == key)
-        with np.load(project_path(ROOT, row['run']).parent / 'renders.npz', allow_pickle=False) as arrays:
-            ax.imshow(arrays['mask'], cmap='gray', vmin=0, vmax=1)
-            for local, candidate in enumerate(row['searches'][0]):
-                contours, _ = cv2.findContours(arrays[f'search_0_candidate_{local}'].astype(np.uint8),
-                                               cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-                color = plt.get_cmap('tab10')(local % 10)
-                for contour in contours:
-                    xy = contour[:, 0]
-                    ax.plot(xy[:, 0], xy[:, 1], color=color, linewidth=.8)
-                ax.plot([], [], color=color, label=f"c{local}, loss +{100*(candidate['loss_ratio']-1):.2f}%, "
-                        f"IoU {candidate['iou'][0]:.4f}" if candidate['iou'][0] is not None else f'c{local}: invalid')
-        ax.set_title(f'Episode {key[0]}: {key[1]}')
-        ax.set_xlabel('camera A u (px)')
-        ax.set_ylabel('camera A v (px)')
-        ax.legend(loc='upper center', bbox_to_anchor=(.5, -.14), fontsize=8)
-    fig.suptitle('S1 saved registration basins — original mask IoU (unitless)')
-    fig.text(.5, .015, 'masks are depth-derived partial regions', ha='center')
-    fig.tight_layout(rect=(0, .14, 1, .95))
+    from ._silhouette_render import figure, FIGURE_CASES
+    renders = {}
+    for row in rows:
+        if (row['episode'], row['name']) in FIGURE_CASES:
+            with np.load(project_path(ROOT, row['run']).parent / 'renders.npz', allow_pickle=False) as arrays:
+                renders[row['episode'], row['name']] = dict(arrays)
+    fig = figure(rows, renders)
     fig.savefig(directory / 'candidate-outlines.png', dpi=140)
+    import matplotlib.pyplot as plt
     plt.close(fig)
 
 
@@ -267,7 +226,7 @@ def predict(queue_path: str = QUEUE) -> Path:
                        predictions_complete_utc=now_utc(), label_free=True)
         write_json(directory / 'summary.json', summary)
         (directory / 'summary.md').write_text(prediction_markdown(rows))
-        figure(rows, directory)
+        save_figure(rows, directory)
     write_json(root / 'predictions.json', dict(report=str((directory/'run.json').relative_to(ROOT))))
     (root / 'predictions.md').write_text(prediction_markdown(rows))
     print(json.dumps(dict(prediction_report=str((directory/'run.json').relative_to(ROOT)),
@@ -305,7 +264,7 @@ def references(queue: dict, record: dict) -> dict:
     from scipy.spatial.transform import Rotation
     dataset = Path(next(t['scan']['path'] for t in queue['trials'])).parents[2]
     result = {}
-    for episode in (18, 23, 24):
+    for episode in sorted({t['episode'] for t in queue['trials'] if t['role'] == 'known'}):
         path = dataset / f'data/chunk-000/episode_{episode:06d}.parquet'
         record['inputs'].append(input_file(ROOT, path))
         objects = pq.read_table(project_path(ROOT, path), columns=['observation.objects'])['observation.objects'][0].as_py()
@@ -319,57 +278,19 @@ def references(queue: dict, record: dict) -> dict:
 
 
 def assess_case(trial: dict, prediction: dict, reference: dict, queue: dict) -> dict:
-    """Apply the precommitted correctness and identity-agreement definitions."""
+    """Load saved candidate arrays and delegate their correctness classification."""
     import numpy as np
-    from ._silhouette import label_errors
+    from ._silhouette_labels import classify_case, partner_name
     with np.load(project_path(ROOT, trial['registrations']['path']), allow_pickle=False) as arrays:
         rotations = arrays['search_0_rotations'][[c['index'] for c in prediction['searches'][0]]]
     original = read_json(trial['prediction']['path'])
-    if trial['episode'] == 18:
-        pan_trial = next(t for t in queue['trials'] if t['episode'] == 18 and t['name'] == 'mini_dust_pan')
-        pan = np.array(read_json(pan_trial['prediction']['path'])['rotation'])
-        errors = label_errors(rotations, np.array(original['normal']), reference[trial['name']],
-                              partner=pan, partner_reference=reference['mini_dust_pan'])
-        correct = np.array(errors['C_error_deg']) < queue['thresholds']['C_error_deg']
-        testable = int(correct.sum()) == 1
-        reason = None if testable else 'requires_exactly_one_correct_candidate'
-    else:
-        canonical = np.array([1. if trial['name'].endswith('_1') else -1., 0, 0])
-        errors = label_errors(rotations, np.array(original['normal']), reference[trial['name']], canonical)
-        correct = np.array(errors['up_error_deg']) < queue['thresholds']['up_error_deg']
-        signed = np.array(errors['canonical_up_error_deg']) < queue['thresholds']['up_error_deg']
-        testable = bool(np.array_equal(correct, signed) and correct.any())
-        reason = 'identity_uncertain' if not np.array_equal(correct, signed) else (
-            'no_correct_candidate' if not correct.any() else None)
-    selected = prediction['decision']['selected']
-    selected_correct = None if selected is None or not testable else bool(correct[selected])
-    return dict(episode=trial['episode'], name=trial['name'], testable=testable, reason=reason,
-                correct_candidates=np.flatnonzero(correct).tolist(), selected=selected,
-                selected_correct=selected_correct, verdict='not_testable' if not testable else (
-                    'abstain' if selected is None else 'correct' if selected_correct else 'WRONG'), **errors)
-
-
-def assessment_markdown(result: dict) -> str:
-    """Present the known-answer cases, control completeness and withheld application."""
-    lines = ['# S1 assessment', '', f"Overall: **{'PASS' if result['passed'] else 'FAIL'}**. "
-             f"Episode 19: **{result['episode_19']}**.", '',
-             f"Predictions completed: {result['predictions_finished_utc']}; "
-             f"assessment started: {result['assessment_started_utc']}.", '',
-             '| Episode/object | Testable | Correct identities | Selected | Verdict/reason |',
-             '|---|---|---|---|---|']
-    for case in result['known_cases']:
-        lines.append(f"| {case['episode']} {case['name']} | {case['testable']} | {case['correct_candidates']} | "
-                     f"{case['selected']} | {case['verdict']}: {case['reason']} |")
-    lines += ['', '| Control | Complete | Per-search selected identities | Veto | Reasons |',
-              '|---|---|---|---|---|']
-    for control in result['controls']:
-        lines.append(f"| {control['episode']} {control['name']} | {control['complete']} | "
-                     f"{control['search_selections']} | {control['veto']} | {'; '.join(control['reasons'])} |")
-    lines += ['', f"Known-answer pass: {result['known_passed']}; controls complete: {result['controls_complete']}; "
-              f"control veto: {result['control_veto']}.", '',
-              'No wooden decision establishes wooden-flip resolution. Controls test consistency with depth, '
-              'not truth. H3 and submissions are unchanged.', '']
-    return '\n'.join(lines)
+    name = partner_name(trial['episode'])
+    partner = None
+    if name:
+        partner_trial = next(t for t in queue['trials'] if t['episode'] == trial['episode'] and t['name'] == name)
+        partner = np.array(read_json(partner_trial['prediction']['path'])['rotation'])
+    return classify_case(trial, prediction, rotations, np.array(original['normal']), reference,
+                         queue['thresholds'], partner)
 
 
 def assess(report_path: str, queue_path: str = QUEUE) -> Path:
@@ -385,26 +306,10 @@ def assess(report_path: str, queue_path: str = QUEUE) -> Path:
         reference = references(queue, record)
         cases = [assess_case(t, p, reference[t['episode']], queue)
                  for t, p in zip(queue['trials'], rows) if t['role'] == 'known']
-        sweeper = next(c for c in cases if c['episode'] == 18)
-        known_passed = sweeper['testable'] and sweeper['selected'] == 0 and all(
-            c['selected_correct'] is not False for c in cases if c['testable'])
-        controls = []
-        for row in rows:
-            if row['role'] != 'control':
-                continue
-            failures = [r for r in row['abstain_reasons'] if r != 'no_common_winner_with_margin']
-            selections = [d['selected'] for d in row['search_decisions']]
-            controls.append(dict(episode=row['episode'], name=row['name'], complete=not failures,
-                                 search_selections=selections, veto=1 in selections, reasons=failures))
-        complete = all(c['complete'] for c in controls)
-        veto = any(c['veto'] for c in controls)
-        passed = bool(known_passed and complete and not veto)
-        application = next(r for r in rows if r['role'] == 'application')
-        selected = application['decision']['selected']
-        outcome = 'application withheld' if not passed else 'abstain' if selected is None else (
-            'agree' if selected == 0 else 'disagree')
-        result = dict(passed=passed, known_passed=bool(known_passed), known_cases=cases, controls=controls,
-                      controls_complete=complete, control_veto=veto, episode_19=outcome,
+        from ._silhouette_labels import assess_panel
+        panel = assess_panel(cases, rows)
+        passed, outcome = panel['passed'], panel['episode_19']
+        result = dict(**panel,
                       predictions_finished_utc=parent[1]['finished_utc'], assessment_started_utc=record['started_utc'],
                       assessment_computed_utc=now_utc(), prediction_report=str(report_path))
         write_json(directory / 'assessment.json', result)

@@ -36,3 +36,17 @@ def extension_steps(training_seconds_per_step, pair_seconds, reserve_seconds, sa
     """Choose the largest collection-grid budget under the fixed conservative time model."""
     available = pair_seconds / 2 - reserve_seconds
     return max(0, int(available / (training_seconds_per_step * safety_factor) // worlds) * worlds)
+
+
+def verdict(rows, static):
+    """Apply the committed two-seed position/completion rule, without score selection."""
+    limit = min(3., .5 * static["mean_position_cm"])
+    passing = []
+    for arm in ("L1", "L2"):
+        outcomes = [rows.get(f"{arm}-seed{seed}") for seed in (0, 1)]
+        if all(row and row["status"] == "completed" and row["metrics"]["completed"]
+               and row["metrics"]["mean_position_cm"] <= limit for row in outcomes):
+            passing.append(arm)
+    return {"verdict": "GO" if passing else "NO-GO", "passing_arms": passing,
+            "mean_position_limit_cm": limit,
+            "rule": "Some learned arm must complete on BOTH seeds with mean position <=3 cm and <=0.5*S"}

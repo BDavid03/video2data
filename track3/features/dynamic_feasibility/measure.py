@@ -46,13 +46,16 @@ def main():
     parser.add_argument("--task", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--directory", type=Path)
+    parser.add_argument("--campaign", choices=("D0", "D1"), default="D0")
     args = parser.parse_args()
-    runtime = runtime_flag(handler.FEATURE, "measure_authorized", "D0 CPU measurement")
+    runtime = (handler.scaling_runtime("measure_authorized") if args.campaign == "D1" else
+               runtime_flag(handler.FEATURE, "measure_authorized", "D0 CPU measurement"))
     heavy_execution({**runtime, "python": runtime["measurement_python"]})
     if not all(path.resolve().is_relative_to(handler.OUTPUT) for path in (args.task, args.out)):
         raise ValueError("Measurement paths must be inside the D0 output directory")
-    if args.directory and not args.directory.resolve().is_relative_to(handler.OUTPUT / "runs"):
-        raise ValueError("Only D0 trial exports may be measured")
+    trial_root = handler.SCALING_OUTPUT if args.campaign == "D1" else handler.OUTPUT
+    if args.directory and not args.directory.resolve().is_relative_to(trial_root / "runs"):
+        raise ValueError("Only the selected campaign trial exports may be measured")
     import numpy as np
     from ._metrics import pose_metrics
     spec = importlib.util.spec_from_file_location("dynamic_kit_auc", handler.KIT_METRIC)

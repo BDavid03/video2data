@@ -1,7 +1,7 @@
 # D1 outcome (context 19, 15:48 UTC 3 Nov 2026): NO-GO by the completion rule; tracking unmeasured
 
 Protocol `docs/chain/dynamic-scaling-protocol.md` (committed `5941707`, 14:33:09 UTC, before any D1 run). Evidence:
-`track3/features/dynamic_feasibility/scaling/README.md`, `outputs/dynamic_feasibility/d1/sizing-fixed/` (ledger,
+[D1 slice documentation](../../track3/features/dynamic_feasibility/README.md#d1-scaling), `outputs/dynamic_feasibility/d1/sizing-fixed/` (ledger,
 `audit.json`, `commands.json`).
 
 - Sizing probe (reads no error): 256 / 512 / 1,024 worlds at 28.7k / 39.6k / 49.5k environment steps/s, peak 2.6 /

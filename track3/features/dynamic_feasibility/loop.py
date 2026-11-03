@@ -1,4 +1,4 @@
-"""Resume the fixed D0 queue, retain failures and publish its measured verdict."""
+"""Run D0 and D1 queues through shared trial admission and ledger persistence."""
 
 from dataclasses import asdict
 import hashlib
@@ -10,17 +10,27 @@ import time
 from track3.provenance import sha256_file, write_json
 from track3.runs import ROOT, now_utc
 from . import handler
-from ._metrics import extension_steps, scaled_thresholds
+from ._metrics import extension_steps, scaled_thresholds, verdict
+from ._render import d0_summary, d1_summary
+from ._sizing import choose_budget
 from .request import Request
 
 
 def identity(queue_path, queue, task):
     """Bind resume to exact task, protocol, queue and implementation bytes."""
-    paths = [queue_path, handler.FEATURE / "runtime.json", ROOT / queue["protocol"],
+    scaling = "D1" in queue or "base_queue" in queue
+    runtime = "scaling_runtime.json" if scaling else "runtime.json"
+    paths = [handler.FEATURE / runtime, ROOT / queue["protocol"],
              *sorted(handler.FEATURE.glob("*.py")),
              *(ROOT / "track3" / name for name in ("gpu.py", "runs.py", "paths.py", "provenance.py"))]
+    if scaling:
+        paths += [ROOT / queue["base_queue"], *(ROOT / path for path in queue["training_runs"])]
+    else:
+        paths.insert(0, queue_path)
     inputs = [handler.entry(path) for path in paths] + task["inputs"]
-    return hashlib.sha256(json.dumps(inputs, sort_keys=True).encode()).hexdigest(), inputs
+    payload = ({"plan": {k: v for k, v in queue.items() if k != "chosen"}, "inputs": inputs}
+               if scaling else inputs)
+    return hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest(), inputs
 
 
 def existing_result(directory, campaign_identity):
@@ -44,33 +54,40 @@ def existing_result(directory, campaign_identity):
     return record
 
 
-def trial(request, queue, task, campaign_identity, rows):
-    """Execute a missing trial once and append exactly one durable ledger row."""
-    key = f"{request.arm}-seed{request.seed}"
+def trial(request, queue, task, campaign_identity, rows, output=None):
+    """Execute or re-admit one trial and append its historical campaign row shape."""
+    output = handler.OUTPUT if output is None else output
+    scaling = request.arm == "D1"
+    key = f"seed{request.seed}" if scaling else f"{request.arm}-seed{request.seed}"
     if key in rows:
         return
-    directory = handler.OUTPUT / "runs" / key
-    if (directory / "run.json").exists():
-        record = existing_result(directory, campaign_identity)
-    else:
+    directory = output / "runs" / key
+    path = directory / "run.json"
+    if not path.exists():
         try:
-            path = handler.run(request, queue, task, campaign_identity)
+            handler.run(request, queue, task, campaign_identity)
         except Exception as error:
-            path = directory / "run.json"
             if not path.exists():
                 raise
             print(f"{key}: {type(error).__name__}: {error}", flush=True)
-        record = json.loads(path.read_text())
-    row = {"trial": key, "arm": request.arm, "seed": request.seed, "status": record["status"],
-           "run": str((directory / "run.json").relative_to(ROOT)), "request": asdict(request),
-           "metrics": record.get("metrics"), "error": record.get("error"),
-           "gpu_seconds": record.get("gpu_seconds", 0.),
+    record = existing_result(directory, campaign_identity)
+    row = {"status": record["status"], "seed": request.seed,
+           "run": str(path.relative_to(ROOT)), "metrics": record.get("metrics"),
+           "error": record.get("error"), "gpu_seconds": record.get("gpu_seconds", 0.),
            "wall_seconds": record.get("timing", {}).get("wall_seconds"),
-           "training_seconds": record.get("training_seconds"),
-           "evaluation_seconds": record.get("evaluation_seconds"),
            "peak_gpu_mib": record.get("gpu", {}).get("peak_sampled_total_device_used_mib"),
            "learner_updates": record.get("learner_updates"), "actor_adam_steps": record.get("actor_adam_steps")}
-    with (handler.OUTPUT / "ledger.jsonl").open("a") as stream:
+    if scaling:
+        row.update(event="trial", key=key)
+    else:
+        row.update(trial=key, arm=request.arm, request=asdict(request),
+                   training_seconds=record.get("training_seconds"),
+                   evaluation_seconds=record.get("evaluation_seconds"))
+    fields = ("event key status run gpu_seconds wall_seconds peak_gpu_mib error seed metrics learner_updates actor_adam_steps"
+              if scaling else "trial arm seed status run request metrics error gpu_seconds wall_seconds training_seconds "
+              "evaluation_seconds peak_gpu_mib learner_updates actor_adam_steps")
+    row = {name: row[name] for name in fields.split()}
+    with (output / "ledger.jsonl").open("a") as stream:
         stream.write(json.dumps(row, allow_nan=False) + "\n")
         stream.flush()
         os.fsync(stream.fileno())
@@ -78,56 +95,16 @@ def trial(request, queue, task, campaign_identity, rows):
     print(json.dumps(row, allow_nan=False), flush=True)
 
 
-def verdict(rows, static):
-    """Apply the committed two-seed position/completion rule, without score selection."""
-    limit = min(3., .5 * static["mean_position_cm"])
-    passing = []
-    for arm in ("L1", "L2"):
-        outcomes = [rows.get(f"{arm}-seed{seed}") for seed in (0, 1)]
-        if all(row and row["status"] == "completed" and row["metrics"]["completed"]
-               and row["metrics"]["mean_position_cm"] <= limit for row in outcomes):
-            passing.append(arm)
-    return {"verdict": "GO" if passing else "NO-GO", "passing_arms": passing,
-            "mean_position_limit_cm": limit,
-            "rule": "Some learned arm must complete on BOTH seeds with mean position <=3 cm and <=0.5*S"}
-
-
-def summary(rows, static, campaign, l2):
-    """Publish compact per-trial measurements and the exact go/no-go decision."""
-    decision = verdict(rows, static)
-    used = sum(row["gpu_seconds"] for row in rows.values())
-    report = {**decision, "campaign_identity": campaign["identity"], "comparator_S": static,
-              "trials": list(rows.values()), "l2_decision": l2, "gpu_seconds": used,
-              "note": "Raw world-frame position/orientation. ADD-AUC uses kit initial slot-0 alignment. "
-                      "1,000 seeded surface samples of the shipped task mesh; not challenge scores."}
-    write_json(handler.OUTPUT / "summary.json", report)
-    lines = ["# Dynamic feasibility D0", "", f"**{decision['verdict']}**; both-seed position limit "
-             f"{decision['mean_position_limit_cm']:.4f} cm. GPU lease time including compilation: {used / 60:.2f} min.",
-             "", report["note"], "", "| Arm | Seed | Mean pos cm | P90 pos cm | Mean ori deg | P90 ori deg | ADD-AUC | Complete | Wall s | Peak MiB |",
-             "|---|---:|---:|---:|---:|---:|---:|---|---:|---:|"]
-    def metrics_row(name, seed, metrics, complete, wall, memory):
-        values = [f"{metrics[key]:.6f}" for key in ("mean_position_cm", "p90_position_cm", "mean_orientation_deg", "p90_orientation_deg", "add_auc")]
-        return "| " + " | ".join([name, str(seed), *values, str(complete), str(wall), str(memory)]) + " |"
-    lines.append(metrics_row("S (computed)", "—", static, "reference timeline", 0, 0))
-    for row in rows.values():
-        if row["metrics"]:
-            lines.append(metrics_row(row["arm"], row["seed"], row["metrics"], row["metrics"]["completed"],
-                                     round(row["wall_seconds"], 2), row["peak_gpu_mib"]))
-        else:
-            lines.append(f"| {row['arm']} | {row['seed']} | — | — | — | — | — | {row['status']} | {row['wall_seconds']} | {row['peak_gpu_mib']} |")
-    ranking = sorted((row for row in rows.values() if row["metrics"]),
-                     key=lambda row: row["metrics"]["mean_position_cm"])
-    lines += ["", "Measured ranking by mean position: " + ", ".join(row["trial"] for row in ranking),
-              "", "L2 decision: " + json.dumps(l2, sort_keys=True), "", decision["rule"],
-              "", "A NO-GO means this bounded policy stage did not justify a dynamic pack by the deadline; it does not establish an impossibility of manipulation."]
-    for row in rows.values():
-        if row["error"]:
-            lines.append(f"\n{row['trial']}: {row['error']}")
-    (handler.OUTPUT / "summary.md").write_text("\n".join(lines) + "\n")
+def summary(rows, static, campaign, l2, output=None):
+    """Persist a D0 report without changing its historical serialization."""
+    report, markdown = d0_summary(rows, static, campaign, l2)
+    output = handler.OUTPUT if output is None else output
+    write_json(output / "summary.json", report)
+    (output / "summary.md").write_text(markdown)
     return report
 
 
-def run(queue_path):
+def run_d0(queue_path):
     """Run Z, both L1 seeds and only a qualifying, time-sized L2 pair."""
     handler.environment()
     queue_path = Path(queue_path).resolve()
@@ -209,3 +186,115 @@ def run(queue_path):
                                                 "verdict": report["verdict"], "gpu_seconds": report["gpu_seconds"]})
     print(f"D0 finished: {report['verdict']}; {report['gpu_seconds'] / 60:.2f} GPU-minutes", flush=True)
 
+
+def scaling_summary(rows, selection=None, error=None, output=None, queue_path=None):
+    """Render saved D1 events with the unchanged D0 comparators and failed probes."""
+    output = handler.SCALING_OUTPUT if output is None else output
+    queue = json.loads(Path(queue_path or handler.SCALING_QUEUE).read_text())["D1"]
+    baseline = json.loads((handler.OUTPUT / "summary.json").read_text())
+    prior = [json.loads(line) for line in (ROOT / queue["prior_sizing_ledger"]).read_text().splitlines()]
+    prior_seconds = json.loads((ROOT / queue["prior_sizing_failure"]).read_text())["gpu_seconds"]
+    report, markdown = d1_summary(rows, baseline, prior, prior_seconds, selection, error)
+    write_json(output / "summary.json", report)
+    (output / "summary.md").write_text(markdown)
+    return report
+
+
+def run_scaling(queue_path):
+    """Run D1 through the shared trial loop, retaining any historical frozen choice."""
+    handler.environment()
+    queue_path = Path(queue_path).resolve()
+    document = json.loads(queue_path.read_text())
+    queue = document["D1"]
+    base = json.loads((ROOT / queue["base_queue"]).read_text())
+    task = handler.load_task(base)
+    handler.prepare_arrays(task)
+    output = handler.SCALING_OUTPUT
+    output.mkdir(parents=True, exist_ok=True)
+    plan = {key: value for key, value in queue.items() if key != "chosen"}
+    digest, inputs = identity(queue_path, queue, task)
+    path = output / "campaign.json"
+    if path.exists():
+        campaign = json.loads(path.read_text())
+        if campaign["identity"] != digest:
+            raise ValueError("D1 plan or source identity changed; historical records are render-only")
+    else:
+        campaign = dict(identity=digest, created_utc=now_utc(), plan=plan, inputs=inputs)
+        write_json(path, campaign)
+    rows = {}
+    ledger = output / "ledger.jsonl"
+    if ledger.exists():
+        for line in ledger.read_text().splitlines():
+            row = json.loads(line)
+            if row["event"] == "budget_frozen":
+                continue
+            if row["key"] in rows:
+                raise ValueError("Duplicate D1 operation in ledger")
+            existing_result((ROOT / row["run"]).parent, digest)
+            rows[row["key"]] = row
+    selection_path = output / "selection.json"
+    if selection_path.exists():
+        selection = json.loads(selection_path.read_text())
+        if queue["chosen"] != selection["chosen"]:
+            raise ValueError("Queue and frozen sizing selection differ")
+    else:
+        if queue["chosen"] is None:
+            measurements = [json.loads((ROOT / path).read_text()) for path in queue["training_runs"]]
+            budget, best = choose_budget(measurements, base["L1"], queue["probe"]["maximum_peak_mib"],
+                                         queue["probe"]["training_seconds_for_sizing"])
+            queue["chosen"] = dict(written_utc=now_utc(), budget=budget, selected_probe=best,
+                                   rule="Measured training seconds/transition * 1.1; collection-grid floor")
+            write_json(queue_path, document)
+        selection = dict(event="budget_frozen", key="selection", chosen=queue["chosen"],
+                         queue_sha256=sha256_file(queue_path))
+        write_json(selection_path, selection)
+        with ledger.open("a") as stream:
+            stream.write(json.dumps(selection, allow_nan=False) + "\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+    error = None
+    try:
+        for seed in queue["seeds"]:
+            prior_seconds = json.loads((ROOT / queue["prior_sizing_failure"]).read_text())["gpu_seconds"]
+            remaining = queue["total_gpu_seconds"] - prior_seconds - sum(r["gpu_seconds"] for r in rows.values())
+            if remaining <= queue["evaluation_reserve_seconds"]:
+                error = "65-minute stop budget exhausted before the next seed"
+                break
+            request = Request("D1", seed, selection["chosen"]["budget"], min(queue["maximum_seed_seconds"], remaining))
+            trial(request, {**base, **queue, "queue_path": str(queue_path.relative_to(ROOT))}, task, digest, rows, output)
+            scaling_summary(rows, selection, queue_path=queue_path)
+    except Exception as failure:
+        error = f"{type(failure).__name__}: {failure}"
+        raise
+    finally:
+        report = scaling_summary(rows, selection, error, queue_path=queue_path)
+        write_json(output / "finished.json", dict(finished_utc=now_utc(), identity=digest,
+                   verdict=report["verdict"], error=error, gpu_seconds=report["gpu_seconds"]))
+        print(f"D1 finished: {report['verdict']}; {report['gpu_seconds']/60:.2f} GPU-minutes", flush=True)
+
+
+def rerender(queue_path, output):
+    """Read historical ledgers without re-admitting obsolete source hashes or executing trials."""
+    from track3.paths import output_path
+    output = output_path(ROOT, output)
+    if output.is_relative_to(handler.OUTPUT):
+        raise ValueError("Historical campaign directories are read-only during rendering")
+    output.mkdir(parents=True, exist_ok=True)
+    document = json.loads(Path(queue_path).read_text())
+    source = handler.SCALING_OUTPUT if "D1" in document else handler.OUTPUT
+    events = [json.loads(line) for line in (source / "ledger.jsonl").read_text().splitlines()]
+    if "D1" in document:
+        rows = {row["key"]: row for row in events if row["event"] != "budget_frozen"}
+        selection = json.loads((source / "selection.json").read_text())
+        error = json.loads((source / "finished.json").read_text()).get("error")
+        return scaling_summary(rows, selection, error, output, queue_path)
+    rows = {row["trial"]: row for row in events}
+    return summary(rows, json.loads((source / "comparator_S.json").read_text()),
+                   json.loads((source / "campaign.json").read_text()),
+                   json.loads((source / "l2_decision.json").read_text()), output)
+
+
+def run(queue_path):
+    """Dispatch either campaign queue to the shared execution and ledger machinery."""
+    document = json.loads(Path(queue_path).read_text())
+    return run_scaling(queue_path) if "D1" in document else run_d0(queue_path)
