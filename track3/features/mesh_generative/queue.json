@@ -1,0 +1,8 @@
+{
+  "protocol": "docs/chain/mesh-generative-protocol.md",
+  "objects": [
+    {"episode": 12, "object": "plastic_dish_rack", "measurement": "outputs/mesh_extents/public/episode_000012/20261101T150517.961678Z-74eac32d/run.json"},
+    {"episode": 21, "object": "water_pitcher", "measurement": "outputs/mesh_extents/public/episode_000021/20261101T150523.067420Z-d55bafd5/run.json"},
+    {"episode": 42, "object": "white_pot", "measurement": "outputs/mesh_extents/public/episode_000042/20261101T150535.525988Z-843fc990/run.json"}
+  ]
+}

@@ -42,3 +42,30 @@ improves, and no object regresses > 0.15 cm. Passing authorises only the full pa
 - A passing candidate is packed as D1 v5 by 12:00 UTC 4 Nov or not at all.
 
 Episodes 41, 43, 44 are never read; no leaderboard use.
+
+## G2 (context 20, written after the G1 pilot FAIL and before any non-pilot generation; commit time is the record)
+
+**Outcome it follows.** The G1 pilot failed its gate (`outputs/mesh_generative/g1-pilot/summary.md`): pitcher
+1.487 -> 0.607 cm, pot 0.858 -> 0.729 cm, rack 0.865 -> 1.096 cm (rack regressed 0.232 > 0.15). G1 is closed and stays
+failed.
+
+**Disclosure.** G2 keeps only the pot and the pitcher because the pilot scored them better on the same public scans that
+G2's gates use. That is selection on development scans: the pitcher has a single public pair (the pilot pair), so its
+G2 development number is in-sample; the pot's five other pairs use the same scan but are generated from their own
+episodes' crops. The leaderboard pairs are other videos of the same objects. G2 is evidence on reused scans, not an
+untouched validation, and every write-up says so.
+
+**Fixed now.**
+- Objects: white pot and water pitcher only; every other object (rack included) keeps v4 bytes. Spoon unchanged.
+- Generation exactly as the G1 pilot (same code, weights, crop rule from the recorded `mesh_extents` mask with 10 % margin
+  and white outside, seed 12345, 30 steps, octree 380, ordinary marching cubes, kit `budget_mesh(path, 4096, 4096)`),
+  one generation per (episode, object) pair from that pair's own frame-0 crop. No re-rolls, mask edits or prompt
+  changes. The pilot meshes are reused only for their own pilot pairs (pot 42, pitcher 21).
+- Per-pair video-only admission (from G1's full-panel rule, unchanged): after one Sim(3) fit to the pair's frame-0
+  observed depth points of the object, the generated mesh's median point-to-surface residual must be <= 1.5 x that of
+  the v4 mesh fitted the same way; otherwise the pair keeps v4. Applied identically to development and evaluation pairs.
+- Development adoption (all required): equal-object mean < 0.62270304 cm and pair-weighted mean <= 0.66288090 cm on the
+  matched development seeds and folds, no object worse than v4 by > 0.15 cm, seed spread reported.
+- Packed veto: production build of all objects, packed with a placeholder URL and scored by `mesh_eval` pairs: object
+  mean < 0.62338396 cm, pair mean <= 0.66292148 cm, no object worse than packed v4 by > 0.15 cm. Pass: D1 v5 at a new
+  real-URL commit with NEEDS-YOU commands by 12:00 UTC 4 Nov. Fail: v4 stands; no runner-up, no repair.
