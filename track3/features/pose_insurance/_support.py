@@ -143,7 +143,7 @@ def support_estimates(moge: dict, stereo: dict, input_valid: np.ndarray,
 
 
 def assignment_contrast(scene: dict, observed_slot_zero_xy: np.ndarray,
-                        scale: float, stereo_length_cm: float) -> dict:
+                        scale: float, stereo_length_cm: float, thresholds: dict) -> dict:
     """Replace only the default pre-separation slot-zero xy while retaining shifts."""
     before = np.asarray(scene['before'], float)[:, :2]
     distances = np.asarray(scene['shifts'], float)
@@ -164,8 +164,9 @@ def assignment_contrast(scene: dict, observed_slot_zero_xy: np.ndarray,
                 length_change_cm=change, separation_term_xy_m=scale * (shifts[1] - shifts[0]),
                 recorded_separation_distances_cm=distances,
                 reproduction_max_difference_m=mismatch, denominator_cm=denominator,
-                change_over_recorded_stereo_gap=change / denominator if abs(denominator) >= 1 else None,
-                material=abs(change) >= 1)
+                change_over_recorded_stereo_gap=change / denominator
+                    if abs(denominator) >= thresholds['assignment_min_denominator_cm'] else None,
+                material=abs(change) >= thresholds['assignment_min_change_cm'])
 
 
 def cell_errors(predicted: np.ndarray, target: np.ndarray, cells: np.ndarray) -> dict:
@@ -247,40 +248,45 @@ def table_models(moge: dict, stereo: dict, input_valid: np.ndarray,
     return result
 
 
-def episode_readings(row: dict) -> dict:
+def episode_readings(row: dict, thresholds: dict) -> dict:
     """Apply the frozen descriptive predicates to one episode without reference errors."""
     gap = row['gaps'].get('native')
-    eligible = gap is not None and abs(gap['g_F_cm']) >= 1
+    eligible = gap is not None and abs(gap['g_F_cm']) >= thresholds['min_gap_cm']
     readings = dict(depth_dominates=bool(eligible and gap['g_I_cm'] * gap['g_F_cm'] > 0
-                                       and abs(gap['support_cm']) <= .25 * abs(gap['g_F_cm'])),
-                    support_dominates=bool(eligible and gap['support_cm'] * gap['g_F_cm'] > 0
-                                         and abs(gap['g_I_cm']) <= .25 * abs(gap['g_F_cm'])))
+        and abs(gap['support_cm']) <= thresholds['dominance_fraction'] * abs(gap['g_F_cm'])),
+        support_dominates=bool(eligible and gap['support_cm'] * gap['g_F_cm'] > 0
+        and abs(gap['g_I_cm']) <= thresholds['dominance_fraction'] * abs(gap['g_F_cm'])))
     for name in ('recorded', 'ratio'):
         scaled = row['gaps'].get(name)
         readings[f'{name}_scale_removes_gap'] = bool(gap is not None and scaled is not None
-            and abs(gap['g_I_cm']) >= 1 and abs(scaled['g_I_cm']) <= .5 * abs(gap['g_I_cm'])
-            and abs(scaled['g_I_cm']) <= 1)
+            and abs(gap['g_I_cm']) >= thresholds['min_gap_cm']
+            and abs(scaled['g_I_cm']) <= thresholds['scale_max_fraction'] * abs(gap['g_I_cm'])
+            and abs(scaled['g_I_cm']) <= thresholds['scale_max_gap_cm'])
     models = row.get('table', {}).get('models', {})
     for name in ('affine_depth', 'affine_inverse'):
         scale, model = models.get('scale'), models.get(name)
         readings[f'{name}_table_correction'] = bool(scale and model and np.isfinite(model['mae_cm'])
-            and model['mae_cm'] <= .8 * scale['mae_cm'] and scale['mae_cm'] - model['mae_cm'] >= .5)
+            and model['mae_cm'] <= thresholds['table_max_fraction'] * scale['mae_cm']
+            and scale['mae_cm'] - model['mae_cm'] >= thresholds['table_min_improvement_cm'])
     sensitivity = row.get('projection_sensitivity')
     change = None if sensitivity is None else sensitivity['native_max_gap_change_cm']
-    readings['projection_sensitive'] = change is not None and change >= 1
+    readings['projection_sensitive'] = change is not None and change >= thresholds['projection_min_change_cm']
     return readings
 
 
-def aggregate_readings(rows: list) -> dict:
-    """Keep the five-episode denominator fixed when applying descriptive labels."""
-    clean = [row for row in rows if row['episode'] in (11, 12, 18, 21, 23)]
+def aggregate_readings(rows: list, clean_episodes: tuple, thresholds: dict) -> dict:
+    """Aggregate cached episode readings with the fixed clean-roster denominator."""
+    clean = [row['readings'] for row in rows if row['episode'] in clean_episodes]
     labels = ('depth_dominates', 'support_dominates', 'recorded_scale_removes_gap',
               'ratio_scale_removes_gap', 'affine_depth_table_correction',
               'affine_inverse_table_correction', 'projection_sensitive')
-    return {name: dict(count=sum(bool(episode_readings(row)[name]) for row in clean), denominator=5,
-                       required=2 if name == 'projection_sensitive' else 4,
-                       qualified=sum(bool(episode_readings(row)[name]) for row in clean)
-                                 >= (2 if name == 'projection_sensitive' else 4)) for name in labels}
+    result = {}
+    for name in labels:
+        count = sum(bool(readings[name]) for readings in clean)
+        required = thresholds['projection_required_count' if name == 'projection_sensitive' else 'required_count']
+        result[name] = dict(count=count, denominator=len(clean_episodes), required=required,
+                            qualified=count >= required)
+    return result
 
 
 def check_grid(moge: dict, stereo: dict, grid: dict, labels: np.ndarray) -> dict:
@@ -325,9 +331,10 @@ def reference_columns(estimates: dict, references: dict, ref_rotation_zero: np.n
                                                 - reference_rows['M_o']['world_horizontal_length_cm'])
 
 
-def summarize_rows(rows: list) -> dict:
+def summarize_rows(rows: list, clean_episodes: tuple, validation_episodes: tuple,
+                   thresholds: dict) -> dict:
     """Summarize continuous quantities with explicit counts and fixed-subset readings."""
-    groups = dict(clean=(11, 12, 18, 21, 23), spent_validation=(22, 24, 27))
+    groups = dict(clean=clean_episodes, spent_validation=validation_episodes)
     means = {}
     for group, episodes in groups.items():
         selected = [row for row in rows if row['episode'] in episodes]
@@ -343,13 +350,13 @@ def summarize_rows(rows: list) -> dict:
                 mae_cm=float(np.mean([m['mae_cm'] for m in models])) if models else None,
                 absolute_relative=float(np.mean([m['absolute_relative'] for m in models])) if models else None)
     assignment = next((row.get('assignment') for row in rows if row['episode'] == 12), None)
-    readings = aggregate_readings(rows)
+    readings = aggregate_readings(rows, clean_episodes, thresholds)
     readings['material_assignment_effect'] = dict(qualified=bool(assignment and assignment['material']),
                                                  denominator=1, required=1)
     validation = [row for row in rows if row['episode'] in groups['spent_validation']]
-    validation_readings = {name: dict(denominator=3,
-        count=sum(bool(episode_readings(row)[name]) for row in validation),
-        episodes={str(row['episode']): bool(episode_readings(row)[name]) for row in validation})
-        for name in aggregate_readings(rows)}
+    validation_readings = {name: dict(denominator=len(validation_episodes),
+        count=sum(bool(row['readings'][name]) for row in validation),
+        episodes={str(row['episode']): bool(row['readings'][name]) for row in validation})
+        for name in readings if name != 'material_assignment_effect'}
     return dict(means=means, readings=readings, assignment_episode_12=assignment,
                 spent_validation_readings=validation_readings)

@@ -1,5 +1,21 @@
 {
   "episodes": [0, 11, 12, 18, 21, 23, 26, 31, 22, 24, 27],
   "source_split": "public",
-  "max_seconds": 600
+  "max_seconds": 600,
+  "train_episodes": [0, 11, 12, 18, 21, 23, 26, 31],
+  "clean_episodes": [11, 12, 18, 21, 23],
+  "spent_validation_episodes": [22, 24, 27],
+  "reading_thresholds": {
+    "min_gap_cm": 1,
+    "dominance_fraction": 0.25,
+    "scale_max_fraction": 0.5,
+    "scale_max_gap_cm": 1,
+    "table_max_fraction": 0.8,
+    "table_min_improvement_cm": 0.5,
+    "projection_min_change_cm": 1,
+    "required_count": 4,
+    "projection_required_count": 2,
+    "assignment_min_change_cm": 1,
+    "assignment_min_denominator_cm": 1
+  }
 }

@@ -525,7 +525,16 @@ preparation drivers; `--reuse-only` replays the recorded video producers without
 `support_diagnostic.py` follows `docs/chain/pose-support-diagnostic-protocol.md`, including Amendment 1.
 It admits the frozen public producers, compares depth on identical object pixels, separates support and
 episode-12 assignment effects, and fits table depth models with spatially withheld patches. `_support.py`
-contains the pure NumPy calculations. This is descriptive; stereo is not ground-truth depth.
+contains the pure NumPy calculations; `_support_render.py` formats tables and renders decoded maps.
+The handler owns admission, map loading and run/artifact recording. This is descriptive;
+stereo is not ground-truth depth.
+
+`support_request.json` carries the train, clean and spent-validation rosters and every descriptive
+reading threshold, including episode 12's assignment predicate. `SupportRequest` checks a single
+SHA-256 fingerprint of its canonical JSON (`json.dumps(asdict(request), sort_keys=True)`) against the
+values transcribed from the protocol; changed rosters, thresholds or budget fail closed. Thresholds
+enter library functions as plain values. Each episode's readings are computed once and reused by
+the clean and validation summaries.
 
 ```bash
 PYTHONPATH=. CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 .runtime/linux-cuda/bin/python -B -m track3.features.pose_insurance.support_diagnostic --request track3/features/pose_insurance/support_request.json
@@ -542,3 +551,12 @@ On clean train 11/12/18/21/23, native MoGe minus stereo has a mean whole-support
 4/5; the recorded episode scale on 0/5. Episode 12's assignment change shortens the offset by
 19.8533 cm. Affine depth and affine inverse depth beat the frozen table thresholds on 2/5 and 1/5,
 respectively, so neither table-correction reading qualifies. No candidate or pack follows.
+
+The CPU cleanup replay computed all eleven episodes under `.runtime/tmp/support-clean/out/`, then
+resumed all eleven. Both summaries and all 11 episode JSON records are byte-identical to the historical
+diagnostic; `support.png` is pixel- and byte-identical. Evidence is
+`.runtime/tmp/support-clean/equivalence.json`. Reproduce the fresh/resume comparison with:
+
+```bash
+PYTHONPATH=. CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 .runtime/linux-cuda/bin/python -B .runtime/tmp/support-clean/check.py
+```
