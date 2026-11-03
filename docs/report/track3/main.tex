@@ -16,8 +16,8 @@ entries, mesh v5 reduces development equal-object/pair-mean CD-O from
 0.6527/0.6629 to 0.5624/0.6197\,cm. Selection reuses public scans of the same
 objects; most gain comes from one in-sample pitcher pair. Ten spoon entries
 remain unmeasured. Stereo pose v4 raises eight-train-episode AUC from 0.2690 to
-0.2767; the v5 heading rule raises it to 0.2982 using evidence from episode 18
-alone. These are public-scan/mocap comparisons, not leaderboard results;
+0.2767; the v5 heading rule is supported by train episode 18 alone (AUC 0.30
+to 0.47). These are public-scan/mocap comparisons, not leaderboard results;
 manipulation and transfer to evaluation videos remain unverified.
 \end{abstract}
 
@@ -113,8 +113,10 @@ public-21 pair (1.473 to 0.614\,cm). Pot's 0.863 to 0.819\,cm rests on just
 one generated shape, tuning episode 42: public 0/26 kept v4 for missing masks.
 Across three surface-sampling seeds, G2 pitcher/pot SDs are
 0.0034/0.0059\,cm; these quantify sampling spread, not new-object uncertainty.
-The eight other scanned objects keep v4. Generalisation to other videos of
-the same objects is unmeasured.
+Development re-scored only these two pilot shapes. Shapes generated from
+scored evaluation videos, checked against the same scans in the packed veto,
+also improve: pitcher episode 20, 1.487 to 0.639\,cm; pot episode 5 lowers
+the pot mean 0.858 to 0.817\,cm.
 
 \noindent\begin{minipage}{\columnwidth}
 \centering

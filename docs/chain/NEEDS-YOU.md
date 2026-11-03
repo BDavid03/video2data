@@ -23,8 +23,8 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
    ```
 
 **Update 2026-11-03 19:40 UTC: you replied "all approved" (recorded in AGENTS.md).** The Hunyuan3D-2mini install +
-G1 pilot and the D2 v5 build are running now; any new file to upload will be listed here by 12:00 UTC 4 Nov. Until
-then D1 v4 and D2 v4 stay the files. The items below are kept for the record.
+Both are done: D1 v5 and D2 v5 are packed (upload steps at the top). The items below are kept for the record; the
+Hunyuan and D2 v5 decisions in them are already granted.
 
 **Status (2026-11-03 ~16:45 UTC, context 20): the chain had stopped (`CHAIN: STOP` in hand-off 20), waiting on
 you.** Without a new install, the mesh route is used up for this deadline. Fusing the stereo frames from before the hand
@@ -86,7 +86,7 @@ The checks you asked for are done (rule fixed in writing before any number: `doc
   just (break-even if the selected heading is right at least 46 % of the time). Evidence for these objects is one train
   episode.
 
-**If you want it, add to AGENTS.md: "2026-11-03: approve D2 v5 heading for episode 19"** by about 06:00 UTC 4 Nov. The
+**(Granted 19:40 UTC 3 Nov; D2 v5 packed.)** **If you want it, add to AGENTS.md: "2026-11-03: approve D2 v5 heading for episode 19"** by about 06:00 UTC 4 Nov. The
 chain then builds, simulation-checks and packs D2 v5 (only episode 19 changed) by 12:00 UTC 4 Nov, following
 `docs/chain/d2-v5-plan.md`. Without that line, D2 v4 stays the pose file. Evidence: `docs/chain/pose-heading-h3-outcome.md`,
 `docs/chain/pose-heading-hr2-outcome.md`.
