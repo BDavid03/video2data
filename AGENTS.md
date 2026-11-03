@@ -1,5 +1,9 @@
 # Current user instructions
 
+- On 2026-11-03 at about 11:00 UTC (chain context 16, resumed after its usage-limit block) the user wrote, live, "GO ON
+  THEN" (continue past hand-off 16 in the same session), then "back to the original claude direction, codex workers".
+  Read as: keep working in this session on hand-off 16's items, with `docs/chain/PROGRAM.md` section 8 unchanged
+  (Claude leads, briefs, reviews and commits; Codex builds and runs); no multi-agent workflows.
 - On 2026-11-03 at about 08:05 UTC (chain context 16) the user wrote, live: "for the next 20 minutes you can go
   crazy on the claude side, spawn sub-agents, run dynamic workflows, ultra high until 6:20pm aest". Read as: until
   08:20 UTC on 3 November the context may run Claude sub-agents freely beside Codex. It expires at that time; after
