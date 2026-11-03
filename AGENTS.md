@@ -1,5 +1,9 @@
 # Current user instructions
 
+- On 2026-11-03 at about 08:05 UTC (chain context 16) the user wrote, live: "for the next 20 minutes you can go
+  crazy on the claude side, spawn sub-agents, run dynamic workflows, ultra high until 6:20pm aest". Read as: until
+  08:20 UTC on 3 November the context may run Claude sub-agents freely beside Codex. It expires at that time; after
+  it, `docs/chain/PROGRAM.md` section 8 (Codex does most of the work) applies unchanged.
 - On 2026-11-03 07:35 UTC (chain context 15) the user wrote, live: "deadline is 12pm EST November 4th, im aest
   so we got some more time". 12:00 EST on 4 November is 17:00 UTC (04:00 AEDT 5 November), five hours EARLIER
   than the 22:00 UTC freeze in `docs/chain/PROGRAM.md` and the kit's `config/tracks.json` ("5:00 p.m. EST",
