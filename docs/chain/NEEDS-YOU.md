@@ -6,17 +6,21 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
 
 ## Open
 
-**NEW FILE TO UPLOAD (2026-11-03 20:30 UTC): D2 v5 pose file, replacing D2 v4.** Only episode 19 changes (sweeper and
-dust pan headings, as you approved); everything else is identical to v4. It carries the URL of commit `db7b13f`, so:
-1. In `~/repos/video2data`: `git merge --ff-only worktree-chain-ctx01`, then `git push origin main`.
+**TWO NEW FILES TO UPLOAD (2026-11-03 21:00 UTC): D1 v5 meshes and D2 v5 poses, replacing D1 v4 and D2 v4.**
+- D1 v5: pretrained Hunyuan3D-2mini shapes for the pot and pitcher where a video-only check accepts them; two scored
+  meshes change (evaluation pot 5, pitcher 20). Development CD-O 0.653 -> 0.562 cm (mostly the pitcher; disclosed in
+  `docs/chain/mesh-generative-protocol.md`). URL commit `b161723`.
+- D2 v5: only episode 19 changes (sweeper and dust pan headings, as you approved). URL commit `db7b13f`.
+1. In `~/repos/video2data`: `git merge --ff-only worktree-chain-ctx01`, then `git push origin main` (this pushes both
+   commits; `b161723` contains `db7b13f`).
 2. Upload (Kaggle token needed):
    ```bash
    W=~/repos/video2data/.claude/worktrees/chain-ctx01; K=$W/upstream/v2d_submission_kit/v2d_submission_kit
+   $W/.runtime/kit-env/bin/python $K/submit/v2d_submit.py $W/submissions/20261103T2058Z-d1-v5/track3_meshes_v5_final.parquet \
+     --track track_3_mesh -m "Measured primitives plus pretrained shapes for pot and pitcher"
    $W/.runtime/kit-env/bin/python $K/submit/v2d_submit.py $W/submissions/20261103T2024Z-d2-v5/track3_poses_v5_final.csv \
      --track track_3 -m "Static stereo placement; episode 19 H3 table-world headings"
    ```
-The mesh side (G2: pretrained Hunyuan shapes for the pot and pitcher) is still running; a D1 v5 will be listed here if it
-passes its gates, otherwise D1 v4 stays.
 
 **Update 2026-11-03 19:40 UTC: you replied "all approved" (recorded in AGENTS.md).** The Hunyuan3D-2mini install +
 G1 pilot and the D2 v5 build are running now; any new file to upload will be listed here by 12:00 UTC 4 Nov. Until

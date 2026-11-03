@@ -156,6 +156,22 @@ depth runs and update those paths (the run ids are timestamps).
 
 ## Packed files
 
+### D1 v5 (2026-11-03 20:58 UTC, context 20; supersedes D1 v4 for upload; owner approval 19:40 UTC)
+
+Pretrained Hunyuan3D-2mini shapes (shape only, frame-0 masked crop, seed 12345) replace v4 primitives for the white pot
+and the water pitcher where a video-only depth admission accepts them (protocol `docs/chain/mesh-generative-protocol.md`,
+G2 section, committed `db7b13f` before any non-pilot generation; the object choice followed the failed G1 pilot on the
+same public scans, disclosed). Development equal-object CD-O 0.65270 -> 0.56245 cm, pair 0.66288 -> 0.61973; packed veto
+0.56443 / 0.62081; no object worse; most of the gain is the pitcher's single in-sample pair (lead re-score 1.473 ->
+0.614 cm). Scored file: only evaluation pot 5 and pitcher 20 change (16,384 of 294,912 rows; lead re-check); pot 8
+was rejected by the admission, pot 1/3/6/28 have no mask assignment. Code commit `b161723`; URL
+`https://github.com/BDavid03/video2data/commit/b1617234a85e316baa4a67b7f10ff053f5f92c4d` (the owner must push it).
+Kit preflight `track_3_mesh` "Ready to submit" with Kaggle checks skipped. Not uploaded.
+
+| File | SHA-256 | Command | Identity |
+| --- | --- | --- | --- |
+| `submissions/20261103T2058Z-d1-v5/track3_meshes_v5_final.parquet` | bcb93d57d86b4dac06ed21af9af84ce39edffe52b3d9c35e28928391e47e4e58 | `bash scripts/reproduce/d1_meshes_v5.sh <URL> --run` | 294,912 rows, 36 meshes; manifest `track3_meshes_v5_final.manifest.json` |
+
 ### D2 v5 (2026-11-03 20:24 UTC, context 20; supersedes D2 v4 for upload; owner approval 19:40 UTC)
 
 Only episode 19 changes: the sweeper and dust pan take the H3 table-world headings (`docs/chain/pose-heading-h3-outcome.md`;
