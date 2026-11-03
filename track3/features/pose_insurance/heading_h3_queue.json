@@ -1,0 +1,55 @@
+{
+  "episode": 18,
+  "episodes": [
+    0,
+    11,
+    12,
+    18,
+    21,
+    23,
+    26,
+    31
+  ],
+  "variants": [
+    "H3-sel",
+    "H3-flip",
+    "A",
+    "B"
+  ],
+  "max_trials": 4,
+  "max_seconds": 7200,
+  "protocol": {
+    "path": "docs/chain/pose-heading-h3-protocol.md",
+    "sha256": "ae1c4934dd6fe4601fefcf1d3d2c6b9fadb5f640de1528a47698757a4d0e7d55"
+  },
+  "registration_queue": {
+    "path": "track3/features/pose_insurance/registration_h3_queue.json",
+    "sha256": "1c8b1ad94e65f51bb9980e8dd7fa617b7296027b3ad7d5d0f8ac41436266d362"
+  },
+  "build": {
+    "path": "outputs/pose_insurance/stereo-placement/builds/20261103T001808.390849Z-755aa1d7/run.json",
+    "sha256": "3c8b5c857e8700b2d64e8024f1b893d98a4c6569fbff6c74ae77b68c655594f7"
+  },
+  "measurement": {
+    "path": "outputs/mesh_extents/public/episode_000018/20261101T103706.195611Z-8e4c4ca5/run.json",
+    "sha256": "29485a9a1330c3ea7aad4eac88b4387fb18a98133fb29ea5582f86ae81dc1fef"
+  },
+  "registrations": [
+    {
+      "path": "outputs/pose_insurance/registration-hr2/trials/20261103T112911.312560Z-c6cf948f/run.json",
+      "sha256": "544c688e03e6232e11f262f6a9aca2c6fb439e52d4bf2e8719bbfcfbf484d6c5"
+    },
+    {
+      "path": "outputs/pose_insurance/registration-hr2/trials/20261103T113226.572792Z-041aa9e0/run.json",
+      "sha256": "70ec5be7f7d43dbb4786b3aa9b5983b6b36343a8012cfa86ae93f99383b60491"
+    }
+  ],
+  "historical_report": {
+    "path": "outputs/pose_insurance/heading/reports/20261103T124021.659854Z-77559b86/run.json",
+    "sha256": "b50919b1645aaf7c264e33b7669066f2e499f8b42e8290712fe8274c99351938"
+  },
+  "integrity_snapshot": {
+    "path": "outputs/pose_insurance/heading-h3/integrity-before.json",
+    "sha256": "830e320348f227ac5041c840a169fad5e70de952c9ec6ee3f044144b960540f4"
+  }
+}

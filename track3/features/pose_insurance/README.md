@@ -722,3 +722,14 @@ priors are checked during admission too. `outputs/pose_insurance/heading/summary
 and `summary.json` contain all per-episode metrics, these separate effects, explicit
 post-hoc labels and the registration artifact provenance in each affected trial record.
 No scored/evaluation episode, policy run, physical check or pack is part of this job.
+
+## Recorded HR2 verdict and H3
+
+`registration_verdict.py` recomputes the HR2 panel verdicts and the selected-rotation errors of every pair (accepted
+or declined) inside its own `run.json`, from the frozen phase-2 predictions and error records (admitted by hash); the
+roster, pairs and thresholds live only in `registration_verdict_queue.json`. The frozen HR2 files stay byte-identical
+(their method file pins them), so the hand-written Kabsch and the plotting inside `registration_loop.py` are accepted
+there. Run: `PYTHONPATH=. .runtime/linux-cuda/bin/python -B -m track3.features.pose_insurance.registration_verdict`.
+Latest: FAIL (pairs 0/4 accepted, up 5/11); selected errors 18 b 4.20 / C 5.63 deg, 23 9.46 / 13.69, 24 172.61 / 11.68,
+27 8.49 / 3.02. H3 (registered rotations placed in the T1 table frame, flip cost, scored episode 19) is in
+`H3_README.md`.

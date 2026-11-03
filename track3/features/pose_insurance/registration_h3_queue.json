@@ -1,0 +1,29 @@
+{
+  "source_split": "evaluation",
+  "trials": [
+    {
+      "episode": 19,
+      "slot": 0,
+      "name": "mini_sweeper"
+    },
+    {
+      "episode": 19,
+      "slot": 1,
+      "name": "mini_dust_pan"
+    }
+  ],
+  "max_trials": 2,
+  "max_seconds": 7200,
+  "method": {
+    "path": "docs/chain/pose-heading-method-hr2.json",
+    "sha256": "c1fd86776f0a5e39eaf0f79273cbb8c6098ef585b59783b00a30ef1d65772e25"
+  },
+  "protocol": {
+    "path": "docs/chain/pose-heading-h3-protocol.md",
+    "sha256": "ae1c4934dd6fe4601fefcf1d3d2c6b9fadb5f640de1528a47698757a4d0e7d55"
+  },
+  "scored_plan": {
+    "path": "outputs/pose_insurance/stereo-placement-scored/plans/episode_000019.json",
+    "sha256": "73565e201bca10f0a5c71e10a7dc7f72836943e12a8c581c73d9b5274992fdf5"
+  }
+}
