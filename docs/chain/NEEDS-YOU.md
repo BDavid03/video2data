@@ -10,14 +10,18 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
 A new method registers each object's 3D scan to the calibrated-stereo points at the first frame, which gives the
 object's heading (which way it faces). It failed its own pre-registered test, because its "decline when unsure" rule
 rejected every pair. But the headings it picked are accurate on the asymmetric objects. On train episode 18
-(sweeper and dust pan) the error is 4 / 6 degrees, and AUC goes 0.30 -> 0.62, RPE 29.6 -> 9.6 cm, MPPE 19.5 -> 4.1 cm.
-Over the eight train episodes with only episode 18 changed (what this proposal would do): mean AUC 0.2767 -> 0.3161; with the wooden pieces (23) too, 0.3223; no episode worse. The
-same objects appear in one scored episode (19), so a D2 v5 would change only that episode. All other scored pairs
-involve a cup (heading not visible), the spoon (no scan) or merged masks; the wooden pieces (25) are left out because
-which piece is which is ambiguous. Caveats: chosen after seeing train results, not blind; the sweeper's second-best
-heading was only 2 % worse, so on episode 19 it could pick the flipped one.
-**If you want it, add to AGENTS.md: "2026-11-03: approve D2 v5 heading for episode 19".** The next context then builds
-it (simulation check, pack) by 12:00 UTC 4 Nov. Without that line D2 v4 stays the pose file. Evidence:
+(sweeper and dust pan) the error is 4 / 6 degrees, and AUC goes 0.30 -> 0.56 to 0.62 (depending on how the measured
+rotation is placed in the scene; not yet fixed), RPE 29.6 -> about 9.6 cm, MPPE 19.5 -> about 4.1 cm. Over the eight
+train episodes with only episode 18 changed (what this proposal would do): mean AUC 0.2767 -> 0.309 to 0.316; no
+episode worse. The same objects appear in one scored episode (19), so a D2 v5 would change only that episode. All other
+scored pairs involve a cup (heading not visible), the spoon (no scan) or merged masks; the wooden pieces (25) are left
+out because which piece is which is ambiguous. Caveats: chosen after seeing train results, not blind; the evidence for
+these two objects is one episode; the sweeper's second-best heading (upside down) was only 2 % worse, which is exactly
+why the method declined, and episode 19 has no labels to settle it; the cost of picking the flipped one is not yet
+measured (the next context measures it on train first).
+**If you want it, add to AGENTS.md: "2026-11-03: approve D2 v5 heading for episode 19".** The next context then fixes
+the placement rule in advance, measures the flip cost, and (if the train gates pass by 06:00 UTC 4 Nov) runs the
+simulation check and packs by 12:00 UTC 4 Nov. Without that line D2 v4 stays the pose file. Evidence:
 `docs/chain/pose-heading-hr2-outcome.md`, `outputs/pose_insurance/heading/summary.md` (H2S-desc).
 
 **Deadline (2026-11-03 07:35 UTC, context 15): planned to your "12pm EST November 4th" = 17:00 UTC 4 Nov

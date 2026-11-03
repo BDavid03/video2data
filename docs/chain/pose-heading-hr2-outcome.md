@@ -8,6 +8,8 @@ pairs accepted (18: sweeper declined, rival basin 179 degrees away within 2.06 %
 rivals within 1.7-3.5 %; 27: rack declined, subsampling shift 11.9 degrees). **Up panel FAIL:** 5/11 accepted (needs 6),
 all accepted up errors < 5.4 degrees.
 
+**Construction caveat (Claude critic 16b):** the H2S-desc train scores depend on how the registered relative pose is placed in the T1 world: shortest-arc onto T1 (recorded) gives episode 18 AUC 0.6161, the oracle-style yaw-only construction 0.5582 (eight-episode mean with only 18 changed 0.3161 vs 0.3089); a candidate must fix its construction before scoring.
+
 **Descriptive only (selected rotations, ignoring declines; lead re-derived from the saved NPZ and raw parquet frame 0,
 all objects visible at frame 0):** 18 b 4.2 / C 5.6 degrees (offset length 22.55 vs 22.56 cm); 23 b 9.5 / C 13.7;
 24 b 172.6 / C 11.7 (consistent with the documented arbitrary wooden-piece identity); 27 b 8.5 / C 3.0. The declined
