@@ -29,13 +29,14 @@ frame-0 poses held static reaches only 0.532, so about half of AUC is lost to ob
 
 **Short-term to-do (owner list; tick here when done, with the commit):**
 
-1. [ ] Decisive upper bound: can our FlashCHORD policy follow a moving reference (train mocap, one train episode,
-   16 GB GPU)? Evidence so far: `docs/chain/literature-structural.md`.
+1. [x] Decisive upper bound: can our FlashCHORD policy follow a moving reference (train mocap, one train episode,
+   16 GB GPU)? Evidence so far: `docs/chain/literature-structural.md`. *Context 19: D0 NO-GO (`beb640b`), D1 NO-GO on
+   completion, transport unmeasured (`0eec3f3`); route paused for this deadline as a planning decision.*
 2. [ ] If yes: per-frame object trajectories from released video (stereo depth + masks + own reconstruction), then
    policies on moving references for the scored episodes. If no: record the measured finding and move to item 3.
 3. [ ] Whole-clip mesh reconstruction (multi-frame fusion) in place of primitives, judged on CD-O train/tuning.
 4. [ ] Pretrained models and synthetic data where they serve 1-3 (proposals in `NEEDS-YOU.md` for any new install).
-5. [ ] **Restructure the file system to be less scattered, and remove irrelevant components** (owner, 2026-11-03
+5. [~] *(phases 1-2 done, `907bf80`, `4caf513`; plan `docs/chain/restructure-plan.md`)* **Restructure the file system to be less scattered, and remove irrelevant components** (owner, 2026-11-03
    14:15 UTC). Order: (a) a written inventory first (each top-level directory, each slice, each script: used by a
    deliverable, by a recorded result, or by nothing), committed as a plan with the target layout; (b) moves with
    `git mv` only; nothing is deleted: everything to be removed is moved into the recycle folder
