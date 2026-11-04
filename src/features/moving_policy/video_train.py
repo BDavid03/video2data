@@ -3,6 +3,7 @@
 import argparse
 import json
 import os
+from pathlib import Path
 import subprocess
 import time
 
@@ -46,7 +47,7 @@ def main():
         state = h.ROOT / args.resume_state
         command = [a for a in command if not a.startswith('training.resume=')]
         command += ['training.resume=true', f'training.checkpoint_path={state}']
-        record_path = output / 'train-resume.run.json'
+        record_path = output / f'train-resume-{state.stem}.run.json'
     with record_path.open('x') as stream:
         json.dump(dict(status='running', operation='train', pid=os.getpid(), started_unix=time.time(), resume_state=args.resume_state,
                        stage0_sha256=h.digest(output / 'stage0.json'), admission=str(SEALED.relative_to(h.ROOT))), stream, indent=2)
@@ -55,7 +56,7 @@ def main():
     try:
         with GpuLease(h.ROOT, 1024, 6000, stage='moving-video-train') as lease:
             env = {**h.environment(cpu=False), 'DYNAMIC_FEASIBILITY_DEADLINE': str(time.time() + args.deadline_seconds)}
-            with (output / ('train-resume.log' if args.resume_state else 'train.log')).open('w') as log:
+            with (output / (f'train-resume-{Path(args.resume_state).stem}.log' if args.resume_state else 'train.log')).open('w') as log:
                 subprocess.run(command, cwd=h.ROOT, env=env, stdout=log, stderr=subprocess.STDOUT, check=True)
             record['gpu'] = lease.report()
         record.update(status='completed', finished_unix=time.time())
