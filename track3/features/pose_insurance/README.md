@@ -267,3 +267,29 @@ covers 470/470 rows; the real v4 export is correctly rejected against TW at
 and import on CPU; the convention extraction is bit-identical on 16 recorded calls
 (32 slots). Preparation resumes with one build and zero GPU attempts. All 5,658
 inventoried historical output/pack files retain their hashes.
+
+## Frame-zero panel Stage C
+
+The fixed CPU queue implements `docs/chain/frame0-panel-protocol.md`, including
+Amendment 1. It checks the A/B seal and the exact authorized protocol-history
+exception, freezes all arm poses and recorded-rival combinations before label
+access, then scores only train 0/11/12/18/21/23/26/31 with the unchanged kit metric.
+
+```bash
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. .runtime/linux-cuda/bin/python -B -m track3.features.pose_insurance.panel_gates
+```
+
+`outputs/pose_insurance/frame0-panel/stage-c/` contains hashed `candidates.json`,
+a resumable trial ledger, seed 0/1/2 metrics, every frame-zero limit and gate
+clause in `summary.json` and `summary.md`, and the provenance/timing `run.json`.
+Seed 0 decides the gates; the original placement keep arms are descriptive only.
+These are disclosed train-label kinematic results, with no policy or simulation.
+
+Latest Stage C result: 138 unique pose/seed trials completed in 7.40 seconds;
+seed-zero T1 reproduced exactly. P passes (RPE -1.556 cm, MPPE -0.822 cm,
+AUC unchanged); P-free is identical on 26/31. TW4 fails despite AUC +0.048302:
+only 26 meets the new-pair limits, 23 exceeds the original-T1 offset allowance,
+and flip stress fails. AN4 and all three original-placement keep arms fail.
+Seeds 1/2 give the same verdicts. Episode 31's 5.124 cm vector error exceeds
+5 cm while its 26.015-degree b and 9.096-degree C errors meet their limits.
+No scored-stage adoption or physical-evaluation claim follows from this job.
