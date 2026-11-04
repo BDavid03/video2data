@@ -1,0 +1,5 @@
+{
+  "episodes": [35, 36, 37],
+  "object_name": "spoon",
+  "protocol": "docs/chain/moving-spoon-protocol.md"
+}
