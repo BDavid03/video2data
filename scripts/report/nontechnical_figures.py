@@ -25,8 +25,11 @@ os.environ["CUDA_VISIBLE_DEVICES"] = ""
 os.environ["JAX_PLATFORMS"] = "cpu"
 os.environ["MPLCONFIGDIR"] = str(OUTPUT / "matplotlib")
 os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
+for thread_setting in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS", "NUMEXPR_NUM_THREADS"):
+    os.environ[thread_setting] = "1"
 
 import cv2
+cv2.setNumThreads(1)
 import matplotlib
 
 matplotlib.use("Agg")
@@ -571,9 +574,9 @@ def pan_learning() -> dict:
     axes[1].set(xlabel="Clip time (seconds)", ylabel="Height above goal start (cm)",
                 title="Finished policy: goal and achieved height", xlim=(0, float(frame.time_s.max())))
     axes[1].legend(fontsize=9)
-    footnote(fig, "Not a challenge result; scored episodes have no motion capture. A video-derived path is now estimated, but no policy has followed it yet. Lines connect measurements without smoothing. Save times include startup; the full run took 57.98 minutes.", 151)
+    footnote(fig, "Not a challenge result; scored episodes have no motion capture. A video-trained practice policy is now recorded; its result is shown separately below. Lines connect measurements without smoothing. Save times include startup; the full run took 57.98 minutes.", 151)
     save(fig, "14-pan-learning.png", used,
-         "Not a challenge result; scored episodes have no motion capture. A video-derived path is now estimated, but no policy has followed it yet.")
+         "Not a challenge result; scored episodes have no motion capture. A video-trained practice policy is now recorded; its result is shown separately below.")
     return {"checkpoint_transitions": list(steps), "checkpoint_save_minutes": minutes,
             "auc": auc, "held_still_auc": .17, "training_wall_minutes": (run["finished_unix"]-run["started_unix"])/60,
             "final_position_error_cm": rows[-1]["E_m"]*100,
@@ -708,7 +711,7 @@ def policy_hands_visuals(base="data/outputs/visuals/policy-hands/m0c",
                "Diagnostic only, never scored or packed; CPU physics can differ from the official export.")
     if pan:
         caption = ("Practice episode 39, own pan reconstruction, mocap goal and actual policy hands in a CPU diagnostic. "
-                   "Not a challenge result; scored episodes have no motion capture. A video-derived path is now estimated, but no policy has followed it yet.")
+                   "Not a challenge result; scored episodes have no motion capture. A video-trained practice policy is now recorded; its result is shown separately below.")
     register(FIGURES / f"{figure_stem}.png", used, caption, source_frames=moments)
     video = FIGURES / f"{figure_stem}.mp4"
     stride = max(1, round(summary["control_fps"] / 10))
@@ -875,7 +878,7 @@ def tracked_pan_visuals() -> dict:
                 label += " | ended: holding last frame"
             cv2.putText(canvas, label, (col*480+10, 26), cv2.FONT_HERSHEY_SIMPLEX, .50, (32,40,51), 1, cv2.LINE_AA)
         cv2.putText(canvas, "Green: saved reference projected onto rectified real footage; full outline ignores hands.", (12, 365), cv2.FONT_HERSHEY_SIMPLEX, .52, (32,40,51), 1, cv2.LINE_AA)
-        cv2.putText(canvas, "39: practice episode | 38: no labels, accuracy unknown | Path only; no policy followed it.", (12, 395), cv2.FONT_HERSHEY_SIMPLEX, .52, (32,40,51), 1, cv2.LINE_AA)
+        cv2.putText(canvas, "39: practice | 38: no labels, accuracy unknown | Path only; policy shown separately.", (12, 395), cv2.FONT_HERSHEY_SIMPLEX, .52, (32,40,51), 1, cv2.LINE_AA)
         writer.write(cv2.cvtColor(canvas, cv2.COLOR_RGB2BGR))
     writer.release()
     if path.stat().st_size > 5_000_000:
@@ -931,7 +934,7 @@ def video_path_comparison() -> dict:
     pe, ae, bars = fig.add_subplot(grid[1,0]), fig.add_subplot(grid[1,1]), fig.add_subplot(grid[:,2])
     green = "#179944"
     fig.suptitle("A video-derived path, compared once with motion capture.", x=.025, ha="left", y=.98, fontsize=23)
-    fig.text(.025, .91, "39 is a practice episode • this is the path • no policy has followed the video path yet", fontsize=13)
+    fig.text(.025, .91, "Practice episode 39 • this figure shows the path alone • learned policy: see figure 18", fontsize=13)
     zero = mocap[0]
     for path_values, colour, label in ((mocap, BLUE, "Motion capture"), (video, green, "Video-derived path")):
         height.plot(times, (path_values[:,2]-zero[2])*100, color=colour, label=label)
@@ -960,6 +963,161 @@ def video_path_comparison() -> dict:
             "source": "Existing sealed pass only; no new scoring", "bars": values,
             "position_error_saved_mean_difference_cm": float(abs(position_error.mean()-sealed["mean_position_error_m"]*100)),
             "angle_error_saved_mean_difference_degrees": float(abs(angle_error.mean()-sealed["mean_rotation_error_deg"]))}
+
+
+def video_policy_chart() -> dict:
+    """Plot M2v's saved measurements and the scorer's first-pose alignment."""
+    used = []
+    base = "data/outputs/moving_policy/ep39-v1"
+    read_bytes("docs/chain/moving-m2v-outcome.md", used)
+    read_bytes(f"{base}/result.md", used)
+    aligned = read_json(f"{base}/score-66763776/mocap_metrics_aligned.json", used)
+    raw = read_json(f"{base}/score-66763776/mocap_metrics.json", used)
+    own = read_json(f"{base}/score-66763776/self_metrics.json", used)
+    frame = pd.read_parquet(io.BytesIO(read_bytes(f"{base}/score-66763776/trajectory.parquet", used))).sort_values("step")
+    mocap_frame = pd.read_parquet(io.BytesIO(read_bytes("data/outputs/moving_policy/ep39-a1/score-66763776/trajectory.parquet", used))).sort_values("step")
+    mocap = positions(mocap_frame, "reference")
+    aq = frame[[f"achieved_quaternion_{a}" for a in "xyzw"]].to_numpy()
+    mq = mocap_frame[[f"reference_quaternion_{a}" for a in "xyzw"]].to_numpy()
+    turn = Rotation.from_quat(mq[0]) * Rotation.from_quat(aq[0]).inv()
+    actual = turn.apply(positions(frame,"achieved")-positions(frame,"achieved")[0])+mocap[0]
+    error = np.linalg.norm(actual-mocap,axis=1)*100
+    theta = np.degrees((turn*Rotation.from_quat(aq)*Rotation.from_quat(mq).inv()).magnitude())
+    if abs(error.mean()/100-aligned["E_m"]) > 2e-6 or abs(theta.mean()-aligned["Theta_deg"]) > .001:
+        raise ValueError("Presentation alignment does not reproduce the saved corrected metrics")
+    sealed = read_json("data/outputs/moving_reference/ep39/sealed/sealed.json", used)
+    m2 = read_json("data/outputs/moving_policy/ep39-a1/score-66763776/mocap_metrics.json", used)
+    fig=plt.figure(figsize=(14.6,7.5))
+    grid=fig.add_gridspec(2,2,width_ratios=(1.05,1.2),left=.065,right=.98,top=.80,bottom=.18,wspace=.26,hspace=.38)
+    bars=fig.add_subplot(grid[:,0]);height=fig.add_subplot(grid[0,1]);errors=fig.add_subplot(grid[1,1])
+    fig.suptitle("A learned policy now follows a path taken from video.",x=.025,ha="left",y=.98,fontsize=23)
+    fig.text(.025,.90,"Practice episode 39 only • different stages, not challenge results • one fresh-start video-policy seed",fontsize=12)
+    values=[.18,sealed["kit"]["AUC"],aligned["kit"]["AUC"],m2["kit"]["AUC"]]
+    bars.bar(range(4),values,color=[GREY,"#179944",AMBER,BLUE],width=.65)
+    bars.set(title="Fit on practice 39: different stages",ylabel="AUC",ylim=(0,1.1),xticks=range(4),
+             xticklabels=["Held\nstill","Video\npath alone","Policy on\nvideo path","Policy on\nmocap"])
+    bars.tick_params(axis="x",labelsize=10)
+    for i,value in enumerate(values):bars.text(i,value+.025,f"{value:.3f}" if i==2 else f"{value:.2f}",ha="center",fontsize=13)
+    zero=mocap[0,2]
+    height.plot(frame.time_s,(mocap[:,2]-zero)*100,color=BLUE,label="Mocap")
+    height.plot(frame.time_s,(actual[:,2]-zero)*100,color=AMBER,ls="--",label="Video-trained policy")
+    height.set(title="Height after first-pose alignment",ylabel="Height above start (cm)")
+    height.legend(fontsize=9)
+    errors.plot(frame.time_s,error,color=AMBER)
+    errors.axhline(error.mean(),color=GREY,ls="--",label=f"Mean {error.mean():.2f} cm")
+    errors.set(title="Aligned position error over time",ylabel="Error (cm)",xlabel="Clip time (s)")
+    errors.legend(fontsize=9)
+    caption="The first automatic verdict was NULL because it compared unrelated world frames. First-pose alignment was applied after the fact; the reader should weigh this. No numeric limit changed. No guarantee this beats a still object on 38."
+    footnote(fig,caption,153)
+    save(fig,"18-policy-on-video-path.png",used,caption)
+    return {"AUC":aligned["kit"]["AUC"],"position_cm":aligned["E_m"]*100,"angle_degrees":aligned["Theta_deg"],
+            "T":aligned["T"],"Q":aligned["Q"],"self_position_cm":own["E_m"]*100,
+            "self_angle_degrees":own["Theta_deg"],"raw_position_cm":raw["E_m"]*100,
+            "raw_angle_degrees":raw["Theta_deg"],"raw_verdict":"NULL","corrected_verdict":"GO with alignment",
+            "aligned_error_mean_difference_m":float(abs(error.mean()/100-aligned["E_m"])),
+            "aligned_angle_mean_difference_degrees":float(abs(theta.mean()-aligned["Theta_deg"])),"bars":values}
+
+
+def video_policy_footage() -> dict:
+    """Draw the actual official stand-in and CPU replay hands in the frozen camera."""
+    from src.features.moving_reference._object import render
+    from src.features.moving_reference.camera import apply, project
+
+    used=[];base="data/outputs/moving_policy/ep39-v1";replay_base="data/outputs/visuals/policy-hands/ep39-video"
+    reference=read_json(f"{base}/reference.json",used)
+    asset=read_json(f"{base}/asset.json",used)
+    shift=np.asarray(reference["translation_m"])
+    frame=pd.read_parquet(io.BytesIO(read_bytes(f"{base}/score-66763776/trajectory.parquet",used))).sort_values("step")
+    achieved=np.column_stack([positions(frame,"achieved"),frame[[f"achieved_quaternion_{a}" for a in "xyzw"]].to_numpy()])
+    summary=read_json(f"{replay_base}/summary.json",used)
+    comparison=summary["official_comparison"]
+    with np.load(io.BytesIO(read_bytes(f"{replay_base}/replay.npz",used))) as data:
+        robot=data["body_pose_xyzw"]
+    with np.load(io.BytesIO(read_bytes(f"{replay_base}/geometry.npz",used))) as data:
+        meshes=[(info,data[f"vertices_{i}"],data[f"faces_{i}"]) for i,info in enumerate(summary["meshes"]) if not info["object"]]
+    # The simulation OBJ is already in body coordinates; apply no extra M1 body
+    # constant and no scale correction. This deliberately shows the larger asset.
+    mesh=trimesh.load(io.BytesIO(read_bytes(f"{base}/mini_dust_pan.obj",used)),file_type="obj",force="mesh",process=False)
+    tracking="data/outputs/moving_reference/ep39/candidate-c"
+    with np.load(io.BytesIO(read_bytes(f"{tracking}/tracking.npz",used))) as data:
+        cameras,k=data["world_T_camera"],data["intrinsics"]
+    with np.load(io.BytesIO(read_bytes(f"{tracking}/reference.npz",used))) as data:
+        source=data["pose"];times=data["time"]
+    task_reference=positions(frame,"reference")-shift
+    relocation_error=float(np.abs(task_reference-source[:,:3]).max())
+    if relocation_error>1e-6:raise ValueError("Recorded task translation does not recover the frozen video path")
+    moments=[0,64,127,191,254,318];cache={};colours={"left":np.array([28,175,180]),"right":np.array([181,94,209])}
+
+    def pair(index):
+        if index in cache:return cache[index]
+        with np.load(io.BytesIO(read_bytes(f"{tracking}/frames/frame_{index:06d}.npz",used))) as data:
+            gray,pan_mask=data["gray"],data["object_mask"]
+        image=cv2.cvtColor(gray,cv2.COLOR_GRAY2RGB);mask_view=image.copy();policy_view=image.copy()
+        mask_view[pan_mask]=(.7*mask_view[pan_mask]+.3*np.array([40,210,70])).astype(np.uint8)
+        contours,_=cv2.findContours(pan_mask.astype(np.uint8),cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
+        cv2.drawContours(mask_view,contours,-1,(30,215,75),2,cv2.LINE_AA)
+        camera_world=np.linalg.inv(cameras[index])
+        for side,colour in colours.items():
+            hand_mask=np.zeros(gray.shape,np.uint8)
+            for info,vertices,_ in meshes:
+                if f"{side}_" not in info["label"]:continue
+                world=transform_local_points(vertices,robot[index,info["body"]])-shift
+                points=apply(camera_world,world)
+                visible=points[:,2]>.05
+                if visible.sum()<3:continue
+                pixels=np.rint(np.clip(project(points[visible],k),-10000,10000)).astype(np.int32)
+                # Per-link projected visual-mesh hulls keep this diagnostic light
+                # while retaining the policy's actual articulated link transforms.
+                cv2.fillConvexPoly(hand_mask,cv2.convexHull(pixels),1)
+            hit=hand_mask.astype(bool)
+            policy_view[hit]=(.70*policy_view[hit]+.30*colour).astype(np.uint8)
+            hand_contours,_=cv2.findContours(hand_mask,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+            cv2.drawContours(policy_view,hand_contours,-1,tuple(map(int,colour)),2,cv2.LINE_AA)
+        body_pose=np.eye(4);body_pose[:3,:3]=Rotation.from_quat(achieved[index,3:]).as_matrix()
+        body_pose[:3,3]=achieved[index,:3]-shift
+        pan=render(mesh.vertices,mesh.faces,camera_world@body_pose,k,gray.shape)
+        contours,_=cv2.findContours(pan.astype(np.uint8),cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
+        cv2.drawContours(policy_view,contours,-1,(235,135,20),3,cv2.LINE_AA)
+        view=np.full((420,960,3),250,np.uint8)
+        view[40:340,:480]=cv2.resize(mask_view,(480,300));view[40:340,480:]=cv2.resize(policy_view,(480,300))
+        cv2.putText(view,f"Practice 39 | {times[index]:.2f} s | Pan mask",(10,26),cv2.FONT_HERSHEY_SIMPLEX,.53,(32,40,51),1,cv2.LINE_AA)
+        cv2.putText(view,"Exported pan + CPU robot hands",(490,26),cv2.FONT_HERSHEY_SIMPLEX,.53,(32,40,51),1,cv2.LINE_AA)
+        cv2.putText(view,f"Replay / official: mean {comparison['mean_m']*100:.3f} cm, max {comparison['max_m']*100:.3f} cm",(12,366),cv2.FONT_HERSHEY_SIMPLEX,.55,(32,40,51),1,cv2.LINE_AA)
+        cv2.putText(view,"Orange: larger simulation pan | Teal / purple: robot hands, not the person's",(12,396),cv2.FONT_HERSHEY_SIMPLEX,.53,(32,40,51),1,cv2.LINE_AA)
+        cache[index]=view
+        return view
+
+    sheet=Image.new("RGB",(1920,1260),"white")
+    for n,index in enumerate(moments):sheet.paste(Image.fromarray(pair(index)),((n%2)*960,(n//2)*420))
+    sheet.save(FIGURES/"19-policy-on-real-footage.png")
+    video=FIGURES/"19-policy-on-real-footage.mp4"
+    writer=cv2.VideoWriter(str(video),cv2.VideoWriter_fourcc(*"mp4v"),10.,(960,420))
+    if not writer.isOpened():raise RuntimeError("Policy-on-footage MP4 encoder unavailable")
+    sampled=list(range(0,len(frame),2))
+    for index in sampled:writer.write(cv2.cvtColor(pair(index),cv2.COLOR_RGB2BGR))
+    writer.release()
+    if video.stat().st_size>5_000_000:raise ValueError("Policy-on-footage video exceeds 5 MB")
+    capture=cv2.VideoCapture(str(video));decoded=0;previews=[]
+    while True:
+        ok,bgr=capture.read()
+        if not ok:break
+        if decoded in (0,40,80,len(sampled)-1):previews.append(Image.fromarray(cv2.cvtColor(bgr,cv2.COLOR_BGR2RGB)))
+        decoded+=1
+    capture.release()
+    if decoded!=len(sampled):raise ValueError("Incomplete policy-on-footage video")
+    review=Image.new("RGB",(1920,840),"white")
+    for i,picture in enumerate(previews):review.paste(picture,((i%2)*960,(i//2)*420))
+    review.save(OUTPUT/"review-policy-on-real-footage.png")
+    caption=(f"CPU replay differs from official by {comparison['mean_m']*100:.3f} cm mean and {comparison['max_m']*100:.3f} cm maximum. "
+             "Official achieved pan poses and CPU replay robot hands projected through the frozen camera after undoing the recorded task translation. "
+             "The simulated hands are not the person's, and the larger stand-in is drawn as simulated, without shrinking or a new camera fit.")
+    register(FIGURES/"19-policy-on-real-footage.png",used,caption,source_steps=moments)
+    register(video,used,caption,frames=decoded,fps=10,bytes=video.stat().st_size)
+    return {"official_comparison":comparison,"translation_undone_m":shift.tolist(),
+            "reference_translation_equivalence_m":relocation_error,"frames_decoded":decoded,"video_bytes":video.stat().st_size,
+            "simulation_dimensions_m":asset["identity"]["dimensions_m"],
+            "hands":"CPU replay Sharpa visual meshes, projected per-link hulls; no human hand fitting",
+            "pan":"Official achieved poses, actual larger simulated mesh; no rescaling or first-pose mocap alignment in image view"}
 
 
 def review_previews() -> dict:
@@ -1007,18 +1165,23 @@ def write_report(table: str, metrics: dict) -> None:
     read_bytes("docs/chain/moving-m2-outcome.md", used)
     read_bytes("data/outputs/moving_policy/ep39-a1/result.md", used)
     video_metrics = metrics["video_path_comparison"]
+    m2v = metrics["video_policy"]
+    m2v_view = metrics["video_policy_footage"]
+    m2v_replay = m2v_view["official_comparison"]
+    read_bytes("docs/chain/moving-m2v-outcome.md", used)
+    read_bytes("data/outputs/moving_policy/ep39-v1/result.md", used)
     read_bytes("docs/chain/moving-m1-sealed.md", used)
     read_bytes("data/outputs/moving_reference/ep39/results.md", used)
     read_bytes("data/outputs/moving_reference/ep39/candidate-c/results-amended.md", used)
     text = f"""# Seeing what the models do
 
-Recorded state: 4 November 2026, including a sealed video-derived pan path, the mocap-guided M2 practice policy and diagnostic overlays.
+Recorded state: 4 November 2026, including M2v's policy trained on a video-derived path on practice episode 39, and its disclosed retrospective alignment correction.
 
 ## What the challenge asks
 
 Watch a person's camera footage, reconstruct the objects, and reproduce their movement in simulation. A **policy** is a controller trained by trial and error in simulation. A **reference** is the goal path it tries to follow. **AUC** is a 0-to-1 fit score: higher means closer agreement across a range of allowed errors; it is not a percentage of tasks completed.
 
-**Nothing here is a challenge result yet.** We have an estimated pan path from real video and a practice policy trained with a motion-capture goal. No policy has followed the video-derived path yet. The moving tissue box is the example task supplied with the tools. This report describes prepared work and diagnostic experiments; it claims no upload or leaderboard score.
+**Nothing here is a challenge result yet.** A learned policy has now moved an object along a path taken from video on practice episode 39. Its first automatic verdict was NULL and was corrected after the fact for a coordinate-frame mistake; that matters when weighing the result. The moving tissue box is the example supplied with the tools. This report claims no upload, leaderboard score or measured success on episode 38.
 
 ## What we have prepared to submit so far
 
@@ -1120,11 +1283,11 @@ Both hands have raw object contacts on **{pan_facts['both_hands_high_carry_frame
 
 [Watch the whole pan-policy CPU replay](figures/15-pan-policy-hands.mp4)
 
-**Not a challenge result; scored episodes have no motion capture. A video-derived path is now estimated, but no policy has followed it yet.**
+**Not a challenge result; scored episodes have no motion capture. A video-trained practice policy is now recorded; its result is shown separately below.**
 
 ## What is still unproven
 
-M2 shows a learned policy moving our pan on a practice episode when given a motion-capture goal. A video-derived path has now been estimated and compared once on that practice episode, as described below. No policy has followed that path yet, and its failure history limits how strongly we can rely on it. Neither experiment establishes a natural hand grip or performance on other objects. FoundationPose has only been screened on two used pairs and is not in the entry. The prepared challenge entry remains static.
+M2 shows a policy moving our pan on a practice episode with a motion-capture goal. M2v now follows a video-derived goal on the same practice episode. The tracker failed earlier checks and the policy verdict needed a retrospective coordinate-frame correction, so these limits remain central. Neither experiment establishes a natural hand grip or performance on other objects. FoundationPose has only been screened on two used pairs and is not in the entry. No result here guarantees that a moving policy improves the scored entry.
 
 ### Real-video masks: what the vision step sees
 
@@ -1152,11 +1315,35 @@ After the references were frozen, the saved sealed pass compared 39's path with 
 
 ![Practice 39: saved video-path comparison with motion capture](figures/17-video-versus-mocap.png)
 
-The lift timing is close, but the top view shows sideways differences and the saved position error rises past 5 cm near 9–10 seconds. The angle error also varies, reaching about 17 degrees. The bars compare held still (**0.18**), the video path by itself (**0.83**) and the earlier policy trained with a mocap goal (**0.98**). These measure different stages. **39 is a practice episode; this is the path, and no policy has followed the video path yet.** None of these bars is a challenge result.
+The lift timing is close, but the top view shows sideways differences and the saved position error rises past 5 cm near 9–10 seconds. The angle error also varies, reaching about 17 degrees. These bars compare held still (**0.18**), the video path by itself (**0.83**) and the earlier policy trained with a mocap goal (**0.98**). They measure different stages. **39 is a practice episode; this figure shows the path alone. The learned video-policy result is shown separately below.** None of these bars is a challenge result.
 
-**38 has no labels available to us. We do not know how good its world path is.** It can only claim to pass the video checks when a reviewed record says that it does; the frozen and amended records above failed, so this report does not claim a full pass or adoption. One label comparison on another clip cannot establish 38's accuracy.
+**38 has no labels available to us. We do not know how good its world path is.** The original frozen and amended checks failed; the later reviewed table check and conditional change are described below. Passing those video checks is not an accuracy measurement or policy adoption. One label comparison on another clip cannot establish 38's accuracy.
 
 **The table checks.** Two of those failures came from a fault in the check itself: its "table" area included the person's lap and the table's edge, and its plane fit was poor. With that fixed and the limits unchanged, too few points were left, so a fresh set of table points, never used to fit the camera, was tracked once. Then both clips stayed inside the limits for table height (about 5 and 3 mm against 10) and sideways drift (about 8 mm on both against 10, close to the limit). Under the rule written before the comparison, a stereo measure dominated by depth noise was swapped for a sideways-only version after 39 passed. So 38 passes the final set of video checks. **That final set was only settled after seeing how the earlier ones fared on both clips.** It is weaker evidence than a test fixed in advance, and it does not measure 38's path against the truth.
+
+### The policy on a video-derived path: M2v
+
+**For the first time here, a learned policy trained by trial and error in simulation moved an object along a motion path taken from video alone, on a practice episode.** This is practice episode 39, one fresh-start seed and 66.76 million training transitions. Training took 61.57 minutes. The motion goal came from the frozen video tracker, not motion capture. The hand targets came from our shape rule; they were not the person's recovered hand motion. The existing body-axis convention and the tracker caveats above still apply.
+
+![Different stages on practice 39, including the video-trained policy](figures/18-policy-on-video-path.png)
+
+Against its own video goal, the policy averages **{m2v['self_position_cm']:.2f} cm position error and {m2v['self_angle_degrees']:.2f} degrees angle error**, with a recorded fit score of 0.936. Against motion capture after the scorer's first-pose alignment, its fit score is **{m2v['AUC']:.3f}**, mean position error **{m2v['position_cm']:.2f} cm** and mean angle error **{m2v['angle_degrees']:.2f} degrees**. Its movement gain is {m2v['T']:.3f}, and motion agreement {m2v['Q']:.3f}. It reaches the reference end with no resets during the rollout. The position limit was 3 cm, so 2.67 cm passes with little margin. Following the path loses about 0.06 AUC from the path alone, and remains below the 0.98 result with a mocap goal. The bars describe different stages on one practice episode, not challenge scores.
+
+**The first automatic verdict read NULL because it compared two different coordinate frames. It was corrected after the fact, and the reader should weigh that.** The original calculation compared the simulator's video-tracker world directly with mocap's world, giving {m2v['raw_position_cm']:.2f} cm and {m2v['raw_angle_degrees']:.2f} degrees. Applying the scorer's single first-pose rigid alignment gives the corrected figures above and the recorded GO decision. The original NULL report is preserved. Numeric limits did not change, but the protocol had not explicitly said to align these arithmetic checks; that interpretation was applied after seeing NULL. The evaluator ran once, while the export and mocap were read again for the correction. Alignment hides initial absolute placement and orientation error; it does not remove later drift, scale or timing error. This report reuses the corrected record and reproduces only the plot arithmetic, without running a scorer.
+
+![Official achieved pan and CPU replay robot hands projected onto real footage, beside the pan mask](figures/19-policy-on-real-footage.png)
+
+**The CPU replay differs from the official achieved path by {m2v_replay['mean_m']*100:.3f} cm on average and {m2v_replay['max_m']*100:.3f} cm at most**, without alignment. The left panel shows the estimated pan mask; the right projects the official achieved pan pose and the replay's robot hands through the frozen camera. The recorded task translation is undone for both. There is no new camera fit, scale adjustment or mocap alignment in this image view.
+
+**The simulated hands are not the person's, and the shape is our larger stand-in, drawn as simulated.** The orange pan visibly overshoots the real pan's rim and handle, with a different apparent tilt at some moments. The robot hands float away from the person's fingers, sometimes extend off the image, and maintain an unusual two-handed support while the person uses a different grip. The stand-in has thick walls and a filled handle; the person's pan does not. This is an honest view of the simulated shape and robot link poses, not a reconstruction of the person's grasp. Hands use translucent projected hulls of the replay's Sharpa link meshes to keep this drawing light; foreground occlusion is not reconstructed.
+
+The saved 0.80 median image-overlap check used the smaller tracker mesh, whereas this image shows the actual larger simulation mesh. That check therefore does not describe the orange contour here. Image agreement through a fitted camera is also blind to camera drift. The picture and scores do not establish realistic grip strength or a natural, secure grasp.
+
+[Watch the video-trained policy on the real footage](figures/19-policy-on-real-footage.mp4)
+
+**This is not a challenge score. Episode 38 has no labels available to us, and there is no guarantee this policy beats a still object on 38, even if its video and physical checks pass.** This report does not inspect the live 38 policy run.
+
+**[38 policy outcome: the lead will fill in the reviewed result here.]**
 
 ---
 
@@ -1166,9 +1353,9 @@ Rebuild all figures, animations, the table and this report on CPU:
 CUDA_VISIBLE_DEVICES='' JAX_PLATFORMS=cpu PYTHONPATH=. data/.runtime/linux-cuda/bin/python -B scripts/report/nontechnical_figures.py
 ```
 
-Add `--replay` to explicitly rebuild both CPU policy diagnostics first, or `--replay-pan` for the pan alone; the default reads saved arrays. See [replay instructions](README.md). Input SHA-256 hashes and per-figure source mappings: `data/outputs/visuals/inputs.json`; numeric checks and build details: `data/outputs/visuals/build-summary.json`. The default reads saved outputs, cached camera frames, installed visual meshes and recorded notes; it does not run a model or read a scan.
+Add `--replay` to explicitly rebuild all three CPU diagnostics, `--replay-pan` for M2 or `--replay-video-policy` for M2v; the default reads saved arrays. See [replay instructions](README.md). Input SHA-256 hashes and per-figure source mappings: `data/outputs/visuals/inputs.json`; numeric checks and build details: `data/outputs/visuals/build-summary.json`. The default reads saved outputs, cached camera frames, installed visual meshes and recorded notes; it does not run a model or read a scan.
 
-Evidence: [box outcomes](../../chain/moving-m0b-outcome.md), [earlier policy](../../chain/moving-m0-outcome.md), [pose pilot](../../chain/foundationpose-pilot-outcome.md), [frame-zero panel](../../chain/frame0-panel-outcome.md), [pan outcome](../../chain/moving-m2-outcome.md), [video-path sealing record](../../chain/moving-m1-sealed.md), [episode-39 protocol](../../chain/moving-m2-protocol.md), [entry facts](../../chain/COMPLETION-PLAN.md#1-where-the-entry-really-stands).
+Evidence: [box outcomes](../../chain/moving-m0b-outcome.md), [earlier policy](../../chain/moving-m0-outcome.md), [pose pilot](../../chain/foundationpose-pilot-outcome.md), [frame-zero panel](../../chain/frame0-panel-outcome.md), [pan outcome](../../chain/moving-m2-outcome.md), [video-policy outcome and correction](../../chain/moving-m2v-outcome.md), [video-path sealing record](../../chain/moving-m1-sealed.md), [episode-39 protocol](../../chain/moving-m2-protocol.md), [entry facts](../../chain/COMPLETION-PLAN.md#1-where-the-entry-really-stands).
 """
     path = REPORT / "report.md"
     path.write_text(text)
@@ -1180,6 +1367,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--replay", action="store_true", help="Rebuild the CPU diagnostic before rendering")
     parser.add_argument("--replay-pan", action="store_true", help="Rebuild only the pan CPU diagnostic before rendering")
+    parser.add_argument("--replay-video-policy", action="store_true", help="Rebuild only M2v's CPU hand replay before rendering")
     args = parser.parse_args()
     for directory in (OUTPUT, FIGURES):
         directory.mkdir(parents=True, exist_ok=True)
@@ -1195,6 +1383,18 @@ def main() -> None:
         replay_output = OUTPUT / "policy-hands/ep39"
         replay_output.mkdir(parents=True, exist_ok=True)
         base = ROOT / "data/outputs/moving_policy/ep39-a1"
+        with (replay_output / "replay.log").open("w") as log:
+            subprocess.run([str(ROOT / "data/.runtime/flashchord/venv/bin/python"), "-u", "-B",
+                            str(ROOT / "scripts/report/policy_hands.py"),
+                            "--checkpoint", str(base / "training/policy_66763776.safetensors"),
+                            "--task", str(base / "motion/sequence_id=episode_000039/robot_name=sharpa_wave/task.parquet"),
+                            "--output", str(replay_output),
+                            "--official", str(base / "score-66763776/trajectory.parquet")],
+                           cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True)
+    if args.replay or args.replay_video_policy:
+        replay_output = OUTPUT / "policy-hands/ep39-video"
+        replay_output.mkdir(parents=True, exist_ok=True)
+        base = ROOT / "data/outputs/moving_policy/ep39-v1"
         with (replay_output / "replay.log").open("w") as log:
             subprocess.run([str(ROOT / "data/.runtime/flashchord/venv/bin/python"), "-u", "-B",
                             str(ROOT / "scripts/report/policy_hands.py"),
@@ -1220,19 +1420,22 @@ def main() -> None:
     pan_hands = policy_hands_visuals("data/outputs/visuals/policy-hands/ep39", "15-pan-policy-hands", pan=True)
     tracked_pan = tracked_pan_visuals()
     video_comparison = video_path_comparison()
+    m2v = video_policy_chart()
+    m2v_footage = video_policy_footage()
     review = review_previews()
     summary = {"learning": learning, "error": error, "policy_visuals": policy,
                "policy_hands": policy_hands, "pan_masks": pan_masks,
                "goal_box_audit": goal_audit,
                "pan_learning": pan_result, "pan_policy_hands": pan_hands,
                "tracked_pan": tracked_pan, "video_path_comparison": video_comparison,
+               "video_policy": m2v, "video_policy_footage": m2v_footage,
                "artifact_review": review,
-               "missing": ["No policy has followed the video-derived reference yet.",
+               "missing": ["No challenge score or labelled episode-38 policy assessment.",
                            "No labels or world-path accuracy measurement for episode 38.",
                            "No independent panel registration estimate on pair 12.",
                            "Warm-start middle checkpoint has only a logged time bound."],
                "checks": {"CPU_only": os.environ["CUDA_VISIBLE_DEVICES"] == "",
-                          "frames_from_recorded_exports": True, "new_model_execution": args.replay or args.replay_pan}}
+                          "frames_from_recorded_exports": True, "new_model_execution": args.replay or args.replay_pan or args.replay_video_policy}}
     write_report(table, summary)
     summary["files_written"] = sorted([
         "scripts/report/nontechnical_figures.py", "data/outputs/visuals/build-summary.json",

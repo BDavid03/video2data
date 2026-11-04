@@ -23,8 +23,9 @@ official export. Quaternion order is xyzw in both records. The per-step angle
 arrays and bounds diagnosis are in `data/outputs/visuals/goal-box-angle-audit.json`.
 The large apparent angle in the earlier drawing was a bounds-frame error.
 
-To rerun both CPU policy diagnostics before rebuilding everything, add `--replay`.
-Use `--replay-pan` to rerun only the finished M2 pan policy.
+To rerun all three CPU policy diagnostics before rebuilding, add `--replay`.
+Use `--replay-pan` for M2, or `--replay-video-policy` for M2v. Default builds read
+saved arrays. Rendering uses one OpenCV/BLAS thread to keep CPU use light.
 This launches the isolated FlashCHORD interpreter. It never scores or packs the
 diagnostic and never accesses the GPU. Its log is
 `data/outputs/visuals/policy-hands/m0c/replay.log`; completion is recorded in
@@ -48,7 +49,7 @@ frame window, speed, support, collision, timing and curriculum configuration.
 Its explicit changes are one world, CPU, deterministic inference, frame-zero
 reset and the upstream evaluation composition that removes assistance. CPU
 execution uses the same uncaptured `env.step`; GPU graph capture is omitted.
-The report renders the fixed M0c and M2 final artifacts. To show another saved
+The report renders the fixed M0c, M2 and M2v final artifacts. To show another saved
 replay, add it deliberately to the report builder after inspecting it.
 
 The replay arrays contain each body's position and xyzw orientation after each
@@ -94,8 +95,8 @@ natural or secure grip. Contact forces are large and unverified.
 M2 is one seed, trained by trial and error in simulation from nothing, with our
 shape and a motion-capture goal on practice episode 39. It is the first moving
 result on a challenge-type clip in this project. **Not a challenge result;
-scored episodes have no motion capture. A video-derived path is now estimated,
-but no policy has followed it yet.** No scan is read by the report rebuild or CPU
+scored episodes have no motion capture. M2v has now followed a video-derived
+path on practice 39, shown separately.** No scan is read by the report rebuild or CPU
 diagnostic; the displayed kit measurements were computed earlier by the slice.
 
 `data/outputs/visuals/episode39-setup.json` retains the older dated setup/training
@@ -124,11 +125,46 @@ mocap goal (0.98), with their different meanings labelled.
 The report discloses that the first tracker failed, C failed the first frozen
 checks and the amendment, and the work proceeded under a conditional rule
 written before the sealed label comparison. It explicitly asks the reader to
-weigh that weaker evidence. The requested table-check outcome remains a
-placeholder for the lead's reviewed finding. No full gate pass or adoption on
-38 is claimed: 38 has no labels available to us and its world-path accuracy is
+weigh that weaker evidence. The report retains the lead's reviewed table-check
+finding and its conditional changes. Those video checks do not establish a
+label-based accuracy or policy-adoption claim on 38. Its world-path accuracy is
 unknown. Candidate A's report is at `data/outputs/moving_reference/ep39/results.md`;
 the requested `candidate-a/results.md` does not exist.
+
+`18-policy-on-video-path.png` adds the saved M2v result: AUC 0.774882445,
+aligned mean position error 2.668767 cm and mean angle error 8.312726°. The
+original automatic verdict was NULL because raw video-world and mocap-world
+poses were compared. A retrospective first-pose alignment correction produced
+GO with unchanged numerical limits. The original NULL remains in the source
+result. The report asks the reader to weigh this correction and distinguishes
+one evaluator rollout from rereading export/mocap for corrected arithmetic.
+Plot arithmetic uses cached mocap columns from the completed M2 export; it
+reproduces the corrected saved errors without invoking the scorer or a scan.
+
+`19-policy-on-real-footage.png` and `.mp4` compare the estimated mask with the
+actual exported simulated pan and CPU replay hands on practice 39. The replay
+differs from the official achieved path by **0.409 cm mean, 2.102 cm maximum**.
+The recorded translation `[-0.317251686, -0.093357878, 0.614184324]` m is
+subtracted from object and robot positions before the frozen camera projection.
+The simulation OBJ is already in body coordinates: no extra body constant,
+scale fit, camera refit or mocap alignment is applied to this view. The larger,
+thicker, solid-handled stand-in is deliberately drawn as simulated. Robot hands
+do not match the person's fingers and can run off-screen. Translucent per-link
+projected hulls of replayed Sharpa visual meshes keep rendering light; they are
+a presentation approximation, not recovered human hands. Occlusion is ignored.
+The source's 0.80 image-overlap figure used the smaller tracker mesh and does
+not describe this larger simulated outline.
+
+For a new M2v replay with no other replay rerun:
+
+```bash
+CUDA_VISIBLE_DEVICES='' JAX_PLATFORMS=cpu OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 nice -n 10 data/.runtime/linux-cuda/bin/python -B scripts/report/nontechnical_figures.py --replay-video-policy
+```
+
+The default command at the top rebuilds all presentation from saved arrays.
+The requested 38 policy-outcome placeholder is reserved for the lead. This job
+does not inspect that live run, read any 38 label, or imply that passing video
+and physical checks guarantees beating a still object on 38.
 
 Provenance: `data/outputs/visuals/inputs.json` maps figures to hashed inputs;
 `build-summary.json` records numeric checks, decoded video frames and file paths.

@@ -1,12 +1,12 @@
 # Seeing what the models do
 
-Recorded state: 4 November 2026, including a sealed video-derived pan path, the mocap-guided M2 practice policy and diagnostic overlays.
+Recorded state: 4 November 2026, including M2v's policy trained on a video-derived path on practice episode 39, and its disclosed retrospective alignment correction.
 
 ## What the challenge asks
 
 Watch a person's camera footage, reconstruct the objects, and reproduce their movement in simulation. A **policy** is a controller trained by trial and error in simulation. A **reference** is the goal path it tries to follow. **AUC** is a 0-to-1 fit score: higher means closer agreement across a range of allowed errors; it is not a percentage of tasks completed.
 
-**Nothing here is a challenge result yet.** We have an estimated pan path from real video and a practice policy trained with a motion-capture goal. No policy has followed the video-derived path yet. The moving tissue box is the example task supplied with the tools. This report describes prepared work and diagnostic experiments; it claims no upload or leaderboard score.
+**Nothing here is a challenge result yet.** A learned policy has now moved an object along a path taken from video on practice episode 39. Its first automatic verdict was NULL and was corrected after the fact for a coordinate-frame mistake; that matters when weighing the result. The moving tissue box is the example supplied with the tools. This report claims no upload, leaderboard score or measured success on episode 38.
 
 ## What we have prepared to submit so far
 
@@ -111,11 +111,11 @@ Both hands have raw object contacts on **177 of 180 steps** with the pan's origi
 
 [Watch the whole pan-policy CPU replay](figures/15-pan-policy-hands.mp4)
 
-**Not a challenge result; scored episodes have no motion capture. A video-derived path is now estimated, but no policy has followed it yet.**
+**Not a challenge result; scored episodes have no motion capture. A video-trained practice policy is now recorded; its result is shown separately below.**
 
 ## What is still unproven
 
-M2 shows a learned policy moving our pan on a practice episode when given a motion-capture goal. A video-derived path has now been estimated and compared once on that practice episode, as described below. No policy has followed that path yet, and its failure history limits how strongly we can rely on it. Neither experiment establishes a natural hand grip or performance on other objects. FoundationPose has only been screened on two used pairs and is not in the entry. The prepared challenge entry remains static.
+M2 shows a policy moving our pan on a practice episode with a motion-capture goal. M2v now follows a video-derived goal on the same practice episode. The tracker failed earlier checks and the policy verdict needed a retrospective coordinate-frame correction, so these limits remain central. Neither experiment establishes a natural hand grip or performance on other objects. FoundationPose has only been screened on two used pairs and is not in the entry. No result here guarantees that a moving policy improves the scored entry.
 
 ### Real-video masks: what the vision step sees
 
@@ -143,11 +143,35 @@ After the references were frozen, the saved sealed pass compared 39's path with 
 
 ![Practice 39: saved video-path comparison with motion capture](figures/17-video-versus-mocap.png)
 
-The lift timing is close, but the top view shows sideways differences and the saved position error rises past 5 cm near 9–10 seconds. The angle error also varies, reaching about 17 degrees. The bars compare held still (**0.18**), the video path by itself (**0.83**) and the earlier policy trained with a mocap goal (**0.98**). These measure different stages. **39 is a practice episode; this is the path, and no policy has followed the video path yet.** None of these bars is a challenge result.
+The lift timing is close, but the top view shows sideways differences and the saved position error rises past 5 cm near 9–10 seconds. The angle error also varies, reaching about 17 degrees. These bars compare held still (**0.18**), the video path by itself (**0.83**) and the earlier policy trained with a mocap goal (**0.98**). They measure different stages. **39 is a practice episode; this figure shows the path alone. The learned video-policy result is shown separately below.** None of these bars is a challenge result.
 
-**38 has no labels available to us. We do not know how good its world path is.** It can only claim to pass the video checks when a reviewed record says that it does; the frozen and amended records above failed, so this report does not claim a full pass or adoption. One label comparison on another clip cannot establish 38's accuracy.
+**38 has no labels available to us. We do not know how good its world path is.** The original frozen and amended checks failed; the later reviewed table check and conditional change are described below. Passing those video checks is not an accuracy measurement or policy adoption. One label comparison on another clip cannot establish 38's accuracy.
 
 **The table checks.** Two of those failures came from a fault in the check itself: its "table" area included the person's lap and the table's edge, and its plane fit was poor. With that fixed and the limits unchanged, too few points were left, so a fresh set of table points, never used to fit the camera, was tracked once. Then both clips stayed inside the limits for table height (about 5 and 3 mm against 10) and sideways drift (about 8 mm on both against 10, close to the limit). Under the rule written before the comparison, a stereo measure dominated by depth noise was swapped for a sideways-only version after 39 passed. So 38 passes the final set of video checks. **That final set was only settled after seeing how the earlier ones fared on both clips.** It is weaker evidence than a test fixed in advance, and it does not measure 38's path against the truth.
+
+### The policy on a video-derived path: M2v
+
+**For the first time here, a learned policy trained by trial and error in simulation moved an object along a motion path taken from video alone, on a practice episode.** This is practice episode 39, one fresh-start seed and 66.76 million training transitions. Training took 61.57 minutes. The motion goal came from the frozen video tracker, not motion capture. The hand targets came from our shape rule; they were not the person's recovered hand motion. The existing body-axis convention and the tracker caveats above still apply.
+
+![Different stages on practice 39, including the video-trained policy](figures/18-policy-on-video-path.png)
+
+Against its own video goal, the policy averages **1.21 cm position error and 1.49 degrees angle error**, with a recorded fit score of 0.936. Against motion capture after the scorer's first-pose alignment, its fit score is **0.775**, mean position error **2.67 cm** and mean angle error **8.31 degrees**. Its movement gain is 1.003, and motion agreement 0.945. It reaches the reference end with no resets during the rollout. The position limit was 3 cm, so 2.67 cm passes with little margin. Following the path loses about 0.06 AUC from the path alone, and remains below the 0.98 result with a mocap goal. The bars describe different stages on one practice episode, not challenge scores.
+
+**The first automatic verdict read NULL because it compared two different coordinate frames. It was corrected after the fact, and the reader should weigh that.** The original calculation compared the simulator's video-tracker world directly with mocap's world, giving 21.31 cm and 176.87 degrees. Applying the scorer's single first-pose rigid alignment gives the corrected figures above and the recorded GO decision. The original NULL report is preserved. Numeric limits did not change, but the protocol had not explicitly said to align these arithmetic checks; that interpretation was applied after seeing NULL. The evaluator ran once, while the export and mocap were read again for the correction. Alignment hides initial absolute placement and orientation error; it does not remove later drift, scale or timing error. This report reuses the corrected record and reproduces only the plot arithmetic, without running a scorer.
+
+![Official achieved pan and CPU replay robot hands projected onto real footage, beside the pan mask](figures/19-policy-on-real-footage.png)
+
+**The CPU replay differs from the official achieved path by 0.409 cm on average and 2.102 cm at most**, without alignment. The left panel shows the estimated pan mask; the right projects the official achieved pan pose and the replay's robot hands through the frozen camera. The recorded task translation is undone for both. There is no new camera fit, scale adjustment or mocap alignment in this image view.
+
+**The simulated hands are not the person's, and the shape is our larger stand-in, drawn as simulated.** The orange pan visibly overshoots the real pan's rim and handle, with a different apparent tilt at some moments. The robot hands float away from the person's fingers, sometimes extend off the image, and maintain an unusual two-handed support while the person uses a different grip. The stand-in has thick walls and a filled handle; the person's pan does not. This is an honest view of the simulated shape and robot link poses, not a reconstruction of the person's grasp. Hands use translucent projected hulls of the replay's Sharpa link meshes to keep this drawing light; foreground occlusion is not reconstructed.
+
+The saved 0.80 median image-overlap check used the smaller tracker mesh, whereas this image shows the actual larger simulation mesh. That check therefore does not describe the orange contour here. Image agreement through a fitted camera is also blind to camera drift. The picture and scores do not establish realistic grip strength or a natural, secure grasp.
+
+[Watch the video-trained policy on the real footage](figures/19-policy-on-real-footage.mp4)
+
+**This is not a challenge score. Episode 38 has no labels available to us, and there is no guarantee this policy beats a still object on 38, even if its video and physical checks pass.** This report does not inspect the live 38 policy run.
+
+**[38 policy outcome: the lead will fill in the reviewed result here.]**
 
 ---
 
@@ -157,6 +181,6 @@ Rebuild all figures, animations, the table and this report on CPU:
 CUDA_VISIBLE_DEVICES='' JAX_PLATFORMS=cpu PYTHONPATH=. data/.runtime/linux-cuda/bin/python -B scripts/report/nontechnical_figures.py
 ```
 
-Add `--replay` to explicitly rebuild both CPU policy diagnostics first, or `--replay-pan` for the pan alone; the default reads saved arrays. See [replay instructions](README.md). Input SHA-256 hashes and per-figure source mappings: `data/outputs/visuals/inputs.json`; numeric checks and build details: `data/outputs/visuals/build-summary.json`. The default reads saved outputs, cached camera frames, installed visual meshes and recorded notes; it does not run a model or read a scan.
+Add `--replay` to explicitly rebuild all three CPU diagnostics, `--replay-pan` for M2 or `--replay-video-policy` for M2v; the default reads saved arrays. See [replay instructions](README.md). Input SHA-256 hashes and per-figure source mappings: `data/outputs/visuals/inputs.json`; numeric checks and build details: `data/outputs/visuals/build-summary.json`. The default reads saved outputs, cached camera frames, installed visual meshes and recorded notes; it does not run a model or read a scan.
 
-Evidence: [box outcomes](../../chain/moving-m0b-outcome.md), [earlier policy](../../chain/moving-m0-outcome.md), [pose pilot](../../chain/foundationpose-pilot-outcome.md), [frame-zero panel](../../chain/frame0-panel-outcome.md), [pan outcome](../../chain/moving-m2-outcome.md), [video-path sealing record](../../chain/moving-m1-sealed.md), [episode-39 protocol](../../chain/moving-m2-protocol.md), [entry facts](../../chain/COMPLETION-PLAN.md#1-where-the-entry-really-stands).
+Evidence: [box outcomes](../../chain/moving-m0b-outcome.md), [earlier policy](../../chain/moving-m0-outcome.md), [pose pilot](../../chain/foundationpose-pilot-outcome.md), [frame-zero panel](../../chain/frame0-panel-outcome.md), [pan outcome](../../chain/moving-m2-outcome.md), [video-policy outcome and correction](../../chain/moving-m2v-outcome.md), [video-path sealing record](../../chain/moving-m1-sealed.md), [episode-39 protocol](../../chain/moving-m2-protocol.md), [entry facts](../../chain/COMPLETION-PLAN.md#1-where-the-entry-really-stands).
