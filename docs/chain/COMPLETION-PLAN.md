@@ -86,18 +86,19 @@ Record final scores, complete the report, carry W3 on full budgets if the owner 
 
 ## 5. Order for the next contexts
 
-Revised 4 Nov about 02:25 UTC after M0, W1.0 and critic 24. The rule behind it: reserve the training window for one complete moving-policy path, and cap everything else.
+**Revised 4 Nov about 05:00 UTC, after M0b's GO-1 (`moving-m0b-outcome.md`).** The panel closed with no pack, and a finished curriculum tracks the shipped task at T 0.987. W3 is now the main line, and object reference quality is its bottleneck. Route: Codex `route-w3-25`. Protocols: `moving-m2-protocol.md`, `moving-m0c-protocol.md`.
 
 | When (UTC) | Context does | GPU |
 | --- | --- | --- |
-| Now | Panel Stage C and its gates (`frame0-panel-protocol.md`); if a gate passes, the scored stage and a pack | about 0.5 h |
-| To 04:30 | M0b (resume to a finished unassisted policy); FoundationPose pilot under a hard 90-minute cap, checking first that the scans have usable texture | about 3 h |
-| To 07:00 | W2a kill test, whatever FoundationPose showed: it is the route most likely to put a model we trained in a scored file. M2 after M0b, on whatever schedule M0b shows can finish | about 3 h |
-| To 10:30 | Scored runs for whatever passed; M1 and M3 only if a policy has passed a transport screen; W4 only if idle | rest |
-| To 12:00 | Final pack, abstract, `check_release.sh`, push and upload | none |
+| Now to about 05:50 | M0c (the same recipe from nothing, seed 1) | about 45 min |
+| About 05:50 | FoundationPose kill test and pilot, only as a capped tracking candidate | at most 20 min |
+| To about 06:30 | Build M2's task builder and Stage 0 (CPU, running now); M1's protocol and its per-frame estimate on 39 and 38 (masks by SAM2 on GPU when free; stereo; camera motion from the background) | short |
+| 06:30 to 08:30 | M2: mocap-39, the upper bound (about 50 min). Then M1's gate, then M2v: video-39 (about 50 min) | about 2 h |
+| 08:30 to 10:30 | Scored policies for whatever passed: 38 first, then 35-37 if their references admit, about 45 min each; **budget for two, three as a stretch** | rest |
+| To 12:00 | One gated pack, abstract, `check_release.sh`, push and upload | none |
 | To 17:00 | Chain records scores, works W6 report items | none |
 
-First to go when time runs short: W4, MediaPipe, M3, M1, in that order. The biggest unproven link is still transfer from the tissue box to a packable challenge policy: task assembly, embodiment, reference quality and physical tracking. Name it in any W3 pass; do not call a shipped-task result a challenge result.
+**Cut:** W4, MediaPipe, MANO integration, W2a's rotation model, and broad restoration of the recycled slices; a narrow direct task builder replaces them. First to go if time runs short after that: FoundationPose, then M2v's second variation. **The biggest unproven link is still transfer to a packable challenge policy: task assembly, embodiment, reference quality and physical tracking.** Name it in any W3 pass; do not call a shipped-task result a challenge result. Earliest kill check: Stage 0's grasp closure and first-frame support. If M2 is NULL, W3 closes for this deadline and D2 v5 stands.
 
 ## 6. What done means
 
