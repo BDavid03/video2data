@@ -343,7 +343,7 @@ never eligible for release.
 
 These commands are for the lead after the producer finishes. They do not train,
 render simulation, push or upload. Both runs must have completed training and
-final evaluator outputs; 39 must also have its sealed mocap GO. Both final M1
+final evaluator outputs; 39 must also have its independently recomputed aligned mocap GO; its first raw NULL is retained. Both final M1
 records and Stage 0 must pass. **If those gates fail, retain v5.** The lead
 first reviews/commits the implementation and the actual report disclosure, and
 uses that commit's URL below. A changed abstract also requires the usual D3
@@ -354,7 +354,8 @@ report build/hash update before the final release check can pass.
    be new:
 
    ```bash
-   bash scripts/reproduce/d2_poses_moving.sh \
+   nice -n 19 env OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 \
+     bash scripts/reproduce/d2_poses_moving.sh \
      --make-admission data/outputs/moving_policy/ep38-v1 \
      --m2v-output data/outputs/moving_policy/ep39-v1 \
      --abstract-disclosure docs/report/track3/main.tex \
@@ -371,7 +372,8 @@ report build/hash update before the final release check can pass.
 
    ```bash
    MOVING_CODE_SHA="$(git rev-parse HEAD)"
-   bash scripts/reproduce/d2_poses_moving.sh \
+   nice -n 19 env OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 \
+     bash scripts/reproduce/d2_poses_moving.sh \
      --request data/outputs/pose_insurance/moving-pack/evidence-v1/adoptions.json \
      --code-commit "https://github.com/BDavid03/video2data/commit/$MOVING_CODE_SHA" \
      --out data/outputs/pose_insurance/moving-pack/packed-v1/track3_poses_moving.csv
@@ -505,14 +507,36 @@ The achieved and M2v IoU limits remain median ≥0.60, p10 ≥0.30 on ≥90% of 
 this reprojection is explicitly blind to camera drift, so M1's table/landmark gates
 remain independently mandatory.
 
-M2v's real `score-66763776/mocap_metrics.json` must belong to a completed
-`score-mocap.run.json`, its learned checkpoint and moved reference. Its GO/AUC
-≥0.45, self-reference bounds, no-reset end, amended M1 evidence and achieved
-reprojection must all pass before 38 can be adopted. For adopted achieved poses,
-the packer re-derives `T`, `Q`, `E`, `Theta`, held-still baselines and first-pose
-errors. Each slot must meet `T,Q ≥0.5`, `E ≤min(0.5 E_S,3 cm)`,
-`Theta ≤min(0.5 Theta_S,15°)`, and first errors ≤1 cm / 2°. Undefined positional
-T/Q from a stationary reference are refused. No scored labels are read.
+M2v uses the real `score-66763776/mocap_metrics_aligned.json`, with the
+`m2v-aligned.py` producer hashed separately in the evidence. The packer does not
+execute that producer or trust its numbers: it reads only pinned tuning episode
+39's mocap, independently applies one frame-0/slot-0 rigid transform (no scale,
+per-frame or time fitting), then recomputes T/Q/E/Theta, held-still baselines,
+p95 errors and the kit metrics with the same 1,000 surface samples, seed 0.
+Every recorded numeric result must match within `1e-8` absolute/relative tolerance,
+and all original GO bounds/AUC 0.45 still apply. Episode 38 has no label access.
+
+The actual `mocap_metrics.json` and its completed `score-mocap.run.json` remain
+hashed beside the aligned file, explicitly marked **retained first verdict; raw
+frames**. The raw NULL is not overwritten or used as the aligned selection
+verdict. The correction is retrospective and disclosed in
+`docs/chain/moving-m2v-outcome.md`; it hides initial global placement, so it does
+not replace the independent first-pose gate.
+
+The maker validates final M1 on both clips and full aligned M2v before looking
+for finished 38 policy evidence. It writes diagnostic M2v producer/validation
+records to a fresh `data/.runtime/tmp/mpack-dry/m2v-admission-*/` directory; the
+requested evidence/output directory is untouched if 38 is still training, so the
+same command can be retried after 38 finishes. A resulting admission references
+that immutable M2v evidence, hashes the aligned producer and raw first verdict,
+and records the independently recomputed values in the pack manifest.
+
+For **38**, clause 3 still recomputes self-reference T/Q/E/Theta directly against
+`reference-task.npz`, **unaligned**. Every slot must meet T/Q ≥0.5,
+E ≤min(0.5 E_S,3 cm), Theta ≤min(0.5 Theta_S,15°). Clause 4 still requires initial
+absolute placement within 1 cm / 2°, and the task must still equal the purely
+translated M1 reference. No scored-episode alignment or labels can bypass these
+gates. Undefined positional T/Q from a stationary reference are refused.
 
 ### CPU evidence, 4 November 2026
 
@@ -586,3 +610,20 @@ adoption request or pack is written until those producer outputs exist and pass.
 The release remains v5. Current evidence and final per-gate table are under
 `data/.runtime/tmp/mpack-dry/final-gates-proof/`; command logs and the empty v5
 reproduction are under `data/.runtime/tmp/mpack-dry/`.
+
+### Aligned M2v handoff, 4 November 2026
+
+The same generation/pack/verify/release commands above apply; no manual metrics
+editing is needed. Run the maker at low priority with one BLAS thread while the
+38 GPU job is active. It now gets past final M1 **and aligned M2v** and refuses
+only missing finished 38 policy/evaluator evidence. Neither the running
+`ep38-v1/` folder nor the producer slice is written. The real completed 39
+training record need not invent `exit_code` or `training_completed`: status,
+finished process time, final logged steps and checkpoint optimizer metadata are
+required; explicit failure fields, if present, still refuse.
+
+Independent recomputation: T `1.0032247944`, Q `0.9448632856`, E `0.0266876721 m`,
+Theta `8.3127260658°`, AUC `0.7748824451`. Raw-frame NULL and both metrics files
+remain unchanged. Aligned proof, producer hashes, refusal ledgers, maker diagnostic
+and final commands are under `data/.runtime/tmp/mpack-dry/` (`aligned-proof/` and
+`aligned-make-admission.log`). No episode-38 label is opened.

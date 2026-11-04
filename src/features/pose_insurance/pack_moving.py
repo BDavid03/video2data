@@ -3,6 +3,7 @@
 import argparse
 import csv
 import hashlib
+import importlib.util
 import json
 import math
 import os
@@ -17,7 +18,7 @@ import numpy as np
 import pyarrow.parquet as pq
 from src.paths import current_name
 from src.provenance import sha256_file
-from ._moving import tracking_metrics, translation_errors, pose_matrices, reprojection_summary
+from ._moving import tracking_metrics, translation_errors, pose_matrices, reprojection_summary, aligned_tracking_metrics
 from src.features.moving_reference._final_gates import FINAL_LIMITS as M1_LIMITS
 from src.features.moving_reference.final_gates import verify_final
 
@@ -311,7 +312,8 @@ def inspect_learning(directory: Path, checkpoint: Path, task: Path) -> dict:
     argv = train.get('argv', prepared.get('train', []))
     args = overrides(argv)
     if (train.get('status') != 'completed' or train.get('stage0_sha256') != stage['sha256']
-            or not (train.get('exit_code') == 0 or train.get('result', {}).get('training_completed') is True)
+            or ('exit_code' in train and train['exit_code'] != 0)
+            or train.get('result', {}).get('training_completed') is False
             or number(train.get('finished_unix'), 'training finish') <= number(train.get('started_unix'), 'training start')
             or not any(str(arg).endswith('/scripts/train_flash_sac.py') for arg in argv)
             or int(args.get('training.total_environment_steps', 0)) != FINAL_STEPS
@@ -534,6 +536,109 @@ def require_same_asset(first: dict, second: dict) -> None:
         raise ValueError('M2v and adopted policy do not share one asset hash')
 
 
+def recompute_aligned_39(trajectory: Path) -> dict:
+    """Read only pinned tuning-39 labels and recompute raw/aligned metrics with one initial transform."""
+    table = pq.read_table(trajectory)
+    metadata = table.schema.metadata or {}
+    if metadata.get(b'flash_chord.episode_index') != b'39':
+        raise ValueError('Aligned label recomputation is restricted to tuning episode 39')
+    frame = table.to_pandas().sort_values(['reference_frame', 'object_body_id'])
+    if set(frame.object_body_id) != {0} or set(frame.environment_id) != {0}:
+        raise ValueError('Aligned M2v recomputation requires one body/world on 39')
+    lock = read(ROOT / 'data/configs/sources.lock.json')
+    public = ROOT / 'data/datasets--nvidia--video_to_data_challenge/snapshots' / lock['dataset']['revision'] / 'track_3/public'
+    label = public / 'data/chunk-000/episode_000039.parquet'
+    reference_table = pq.read_table(label, columns=['frame_index', 'observation.objects'])
+    if not np.array_equal(frame.reference_frame, reference_table['frame_index'].to_numpy()):
+        raise ValueError('M2v export and tuning-39 mocap frame grids differ')
+    rows = reference_table['observation.objects'].to_pylist()
+    if any(len(row) != 1 or row[0]['name'] != 'mini_dust_pan' or not row[0]['visible'] for row in rows):
+        raise ValueError('Tuning-39 mocap must contain visible dust-pan poses at every frame')
+    mocap = np.asarray([row[0]['pose'] for row in rows], float)
+    reference = mocap[:, [0, 1, 2, 4, 5, 6, 3]][:, None]
+    achieved = frame[['achieved_' + c for c in POSE]].to_numpy(float)[:, None]
+    require_poses(achieved); require_poses(reference)
+    aligned, metrics = aligned_tracking_metrics(achieved, reference)
+    raw = tracking_metrics(achieved, reference)[0]
+    scorer = KIT / 'metric_code/track_3/AUC.py'
+    spec = importlib.util.spec_from_file_location('moving_admission_auc', scorer)
+    kit = importlib.util.module_from_spec(spec); spec.loader.exec_module(kit)
+    import trimesh
+    mesh_file = public / 'mesh/mini_dust_pan/mini_dust_pan.glb'
+    mesh = trimesh.load(mesh_file, force='mesh')
+    points, _ = trimesh.sample.sample_surface(mesh, 1000, seed=0)
+    points = np.asarray(points, float)[None]
+    def scores(poses):
+        warped = kit._warp_to_reference_start(poses[:, None], reference[:, None])
+        return dict(AUC=kit._add_auc(kit._object_add(warped, reference[:, None], points)),
+                    SP_SR=float(np.mean(kit._spider_success(warped, reference[:, None]))),
+                    MP_SR=float(np.mean(kit._maniptrans_success(warped, reference[:, None], np.array([0])))),
+                    RPE_cm=kit._relative_position_error_cm(warped, reference[:, None]),
+                    MPPE_cm=kit._mean_per_point_error_cm(warped, reference[:, None]))
+    metrics['kit'] = scores(achieved)
+    metrics['kit_after_aligning_first'] = scores(aligned)
+    return dict(recomputed=metrics, raw_recomputed=raw,
+                inputs=[entry(trajectory), entry(label), entry(mesh_file), entry(scorer), entry(ROOT / 'data/configs/sources.lock.json')],
+                alignment='one rigid first-pose transform from frame 0 and slot 0; no scale, per-frame or time fitting',
+                label_episode=39, surface_points=1000, surface_seed=0)
+
+
+def inspect_aligned_39(evidence: dict, policy: dict) -> dict:
+    """Hash the aligned producer, preserve the raw first verdict and independently verify the numbers."""
+    aligned_file = checked(evidence['mocap_metrics_aligned'])
+    producer = checked(evidence['aligned_producer'])
+    raw_entry = evidence['retained_first_verdict']['file']
+    raw = read(checked(raw_entry))
+    reported = read(aligned_file)
+    trajectory = checked(policy['trajectory'])
+    directory = trajectory.parent
+    if producer != directory / 'm2v-aligned.py' or path(reported.get('producer', '')) != producer:
+        raise ValueError('Aligned evidence producer does not belong to this M2v export')
+    if (evidence['retained_first_verdict'].get('role') != 'retained first verdict; raw frames'
+            or evidence['retained_first_verdict'].get('verdict') != raw.get('verdict')):
+        raise ValueError('Raw M2v first verdict must be retained and marked descriptively')
+    record = read(checked(evidence['mocap_run']))
+    if (record.get('status') != 'completed' or record.get('stage0_sha256') != policy['stage0']['sha256']
+            or record.get('result') != raw or raw.get('label_access') is not True
+            or raw.get('checkpoint_sha256') != policy['learning']['checkpoint']['sha256']
+            or raw.get('task_reference_sha256') != policy['reference_task']['sha256']):
+        raise ValueError('Retained raw M2v result is not bound to its completed producer/checkpoint/reference')
+    if reported.get('GO_with_alignment') is not True:
+        raise ValueError('Aligned M2v result is not GO_with_alignment')
+    result = recompute_aligned_39(trajectory)
+    metrics = result['recomputed']
+    for key in ('T', 'Q', 'E_m', 'E_S_m', 'Theta_deg', 'Theta_S_deg', 'p95_E_m', 'p95_Theta_deg'):
+        actual = number(reported.get(key), 'aligned.' + key)
+        if not np.isclose(actual, metrics[key], atol=1e-8, rtol=1e-8):
+            raise ValueError(f'Aligned M2v numbers do not recompute: {key}')
+    for group in ('kit', 'kit_after_aligning_first'):
+        for key, expected in metrics[group].items():
+            if not np.isclose(number(reported.get(group, {}).get(key), group + '.' + key), expected, atol=1e-8, rtol=1e-8):
+                raise ValueError(f'Aligned M2v numbers do not recompute: {group}.{key}')
+    for key in ('T', 'Q', 'E_m', 'E_S_m', 'Theta_deg', 'Theta_S_deg'):
+        if not np.isclose(number(raw.get(key), 'raw.' + key), result['raw_recomputed'][key], atol=1e-8, rtol=1e-8):
+            raise ValueError(f'Retained raw M2v numbers do not recompute: {key}')
+    require_tracking(metrics, 'M2v aligned mocap')
+    if not .45 <= metrics['kit']['AUC'] <= 1.:
+        raise ValueError('Aligned M2v recomputed AUC fails .45')
+    return dict(**result, aligned=evidence['mocap_metrics_aligned'], producer=evidence['aligned_producer'],
+                retained_first_verdict=evidence['retained_first_verdict'], accepted=True)
+
+
+def m2v_evidence(directory: Path, policy: dict, projection: dict) -> dict:
+    """Bind the actual raw and aligned producer files without rewriting either verdict."""
+    score = directory / f'score-{FINAL_STEPS}'
+    raw = score / 'mocap_metrics.json'
+    return dict(directory=str(directory.relative_to(ROOT)), stage0=policy['stage0'],
+                mocap_metrics_aligned=entry(score / 'mocap_metrics_aligned.json'),
+                aligned_producer=entry(score / 'm2v-aligned.py'),
+                retained_first_verdict=dict(file=entry(raw), verdict=read(raw)['verdict'], role='retained first verdict; raw frames'),
+                mocap_run=entry(directory / 'score-mocap.run.json'),
+                m1=dict(gates=entry(path(policy['reference_source']['path']).parent / 'gates-final.json'),
+                        reference=policy['reference_source'], asset_hashes=policy['asset_hashes']),
+                achieved_reprojection=projection)
+
+
 def inspect_m2v(evidence: dict, eval_code: str) -> dict:
     """Require the real sealed 39 result, self tracking, video reprojection and shared asset."""
     directory = path(evidence['directory'])
@@ -544,29 +649,21 @@ def inspect_m2v(evidence: dict, eval_code: str) -> dict:
     count = stage['build']['frames']
     grid = pd.DataFrame(dict(world_index=np.zeros(count, int), frame_index=np.arange(count), object_slot=np.zeros(count, int)))
     policy = inspect_policy(directory, 39, None, grid, ['mini_dust_pan'], eval_code)
-    mocap_entry = evidence['mocap_metrics']
-    mocap = read(checked(mocap_entry))
-    if checked(mocap_entry) != directory / f'score-{FINAL_STEPS}/mocap_metrics.json':
-        raise ValueError('M2v label result does not belong to this policy')
-    record = read(checked(evidence['mocap_run']))
-    if (record.get('status') != 'completed' or record.get('stage0_sha256') != policy['stage0']['sha256']
-            or record.get('result') != mocap):
-        raise ValueError('M2v sealed scoring producer is incomplete')
-    require_tracking(mocap, 'M2v mocap')
-    if (mocap.get('verdict') != 'GO' or mocap.get('label_access') is not True
-            or mocap.get('checkpoint_sha256') != policy['learning']['checkpoint']['sha256']
-            or mocap.get('task_reference_sha256') != policy['reference_task']['sha256']):
-        raise ValueError('M2v sealed result fails GO or checkpoint/reference binding')
+    score = directory / f'score-{FINAL_STEPS}'
+    if (checked(evidence['mocap_metrics_aligned']) != score / 'mocap_metrics_aligned.json'
+            or checked(evidence['retained_first_verdict']['file']) != score / 'mocap_metrics.json'):
+        raise ValueError('Aligned/raw M2v files do not belong to this policy')
+    aligned = inspect_aligned_39(evidence, policy)
     inspect_m1(evidence['m1'], policy['reference_source'], 39, policy['asset_hashes'])
     projection = inspect_reprojection(evidence['achieved_reprojection'], policy['trajectory'], policy['reference_source'],
                                       policy['reference_record'], policy['asset_hashes'])
-    require_m2v(dict(episode=39, passed=True, verdict=mocap['verdict'], tracking=mocap,
-                     AUC=mocap['kit']['AUC'], reprojection=projection))
-    return policy
+    require_m2v(dict(episode=39, passed=True, verdict='GO', tracking=aligned['recomputed'],
+                     AUC=aligned['recomputed']['kit']['AUC'], reprojection=projection))
+    return dict(policy, aligned_mocap=aligned)
 
 
 def make_admission(directory_name: str, m2v_name: str, output_name: str, disclosure: str) -> Path:
-    """Build the exact admission/request envelopes from finished real producer folders."""
+    """Validate M1/M2v first, then build admission only when the scored policy is finished."""
     directory, m2v_dir, output = path(directory_name), path(m2v_name), path(output_name)
     if not output.is_relative_to(SCRATCH) and not output.is_relative_to(OUTPUT):
         raise ValueError('Admission output must be under mpack-dry or moving-pack outputs')
@@ -580,41 +677,43 @@ def make_admission(directory_name: str, m2v_name: str, output_name: str, disclos
         reference = read(folder / 'reference.json')
         binding = dict(reference_source=entry(reference['source_path']), asset_hashes=read(folder / 'asset.json')['hashes'])
         inspect_m1(m1_binding(binding), binding['reference_source'], episode, binding['asset_hashes'])
-    missing = []
-    for label, folder in (('38 policy', directory), ('M2v 39', m2v_dir)):
-        required = ('train.run.json', 'score-self.run.json', f'training/policy_{FINAL_STEPS}.safetensors',
-                    f'score-{FINAL_STEPS}/trajectory.parquet', f'score-{FINAL_STEPS}/official_metrics.json')
-        if label == 'M2v 39':
-            required += ('score-mocap.run.json', f'score-{FINAL_STEPS}/mocap_metrics.json')
-        for name in required:
-            if not (folder / name).is_file():
-                missing.append(f'{label}: {name}')
-        if (folder / 'train.run.json').is_file() and read(folder / 'train.run.json').get('status') != 'completed':
-            missing.append(f'{label}: training is not completed')
-    if missing:
-        raise ValueError('Final M1 passed on 38 and 39; missing finished policy/M2v evidence: ' + '; '.join(missing))
     roster, objects = official_roster()
     _, code = evaluator_inputs()
-    episode = read(directory / 'stage0.json')['episode']
-    if episode != 38:
-        raise ValueError('Current video recipe admits only scored episode 38')
-    policy = inspect_policy(directory, episode, None, roster[episode], objects[episode].object_names, code)
     m2v_stage = read(m2v_dir / 'stage0.json')
+    if m2v_stage['episode'] != 39:
+        raise ValueError('M2v must be the tuning-39 video run')
     import pandas as pd
     n = m2v_stage['build']['frames']
     grid = pd.DataFrame(dict(world_index=np.zeros(n, int), frame_index=np.arange(n), object_slot=np.zeros(n, int)))
     m2v_policy = inspect_policy(m2v_dir, 39, None, grid, ['mini_dust_pan'], code)
-    require_same_asset(policy['asset_hashes'], m2v_policy['asset_hashes'])
+    # Evidence is written in this slice's scratch tree even when the scored GPU
+    # job is unfinished. Its output folder remains untouched and reusable.
+    SCRATCH.mkdir(parents=True, exist_ok=True)
+    work = Path(tempfile.mkdtemp(prefix='m2v-admission-', dir=SCRATCH))
+    m2v_projection = produce_reprojection(work / 'reprojection', m2v_policy)
+    m2v = m2v_evidence(m2v_dir, m2v_policy, m2v_projection)
+    verified = inspect_m2v(m2v, code)
+    write(work / 'm2v-evidence.json', m2v)
+    write(work / 'm2v-validation.json', verified)
+    require_same_asset(read(directory / 'asset.json')['hashes'], verified['asset_hashes'])
+    missing = []
+    for name in ('train.run.json', 'score-self.run.json', f'training/policy_{FINAL_STEPS}.safetensors',
+                 f'score-{FINAL_STEPS}/trajectory.parquet', f'score-{FINAL_STEPS}/official_metrics.json'):
+        if not (directory / name).is_file():
+            missing.append(name)
+    if (directory / 'train.run.json').is_file() and read(directory / 'train.run.json').get('status') != 'completed':
+        missing.append('training is not completed')
+    if missing:
+        raise ValueError('Final M1 and aligned M2v passed; missing finished 38 policy evidence: '
+                         + '; '.join(missing) + f'; M2v evidence: {work.relative_to(ROOT)}')
+    episode = read(directory / 'stage0.json')['episode']
+    if episode != 38:
+        raise ValueError('Current video recipe admits only scored episode 38')
+    policy = inspect_policy(directory, episode, None, roster[episode], objects[episode].object_names, code)
     output.mkdir(parents=True, exist_ok=False)
     projection = produce_reprojection(output / 'ep38-reprojection', policy)
-    m2v_projection = produce_reprojection(output / 'ep39-reprojection', m2v_policy)
-    m2v = dict(directory=str(m2v_dir.relative_to(ROOT)), stage0=m2v_policy['stage0'],
-               mocap_metrics=entry(m2v_dir / f'score-{FINAL_STEPS}/mocap_metrics.json'),
-               mocap_run=entry(m2v_dir / 'score-mocap.run.json'), m1=m1_binding(m2v_policy),
-               achieved_reprojection=m2v_projection)
     admission = dict(schema_version=2, episode=episode, policy_directory=str(directory.relative_to(ROOT)),
-                     inputs={k: policy[v] if k != 'checkpoint' else policy['learning']['checkpoint']
-                             for k, v in (('trajectory', 'trajectory'), ('checkpoint', 'checkpoint'), ('reference', 'reference_task'))},
+                     inputs=dict(trajectory=policy['trajectory'], checkpoint=policy['learning']['checkpoint'], reference=policy['reference_task']),
                      m1=m1_binding(policy), m2v=m2v, achieved_reprojection=projection,
                      abstract_disclosure=entry(disclosure))
     write(output / 'admission.json', admission)
@@ -652,7 +751,8 @@ def admit(adoption: dict, grid, names: list, eval_code: str) -> dict:
     checked(disclosure)
     return dict(episode=episode, source='moving policy', **inputs, policy=policy,
                 m2v=admission['m2v'], m1=admission['m1'], abstract_disclosure=disclosure,
-                tracking=metrics, achieved_reprojection=admission['achieved_reprojection'])
+                tracking=metrics, achieved_reprojection=admission['achieved_reprojection'],
+                m2v_aligned_validation=m2v['aligned_mocap'])
 
 
 
@@ -704,7 +804,7 @@ def source_entries() -> list[dict]:
              ROOT / 'docs/chain/moving-m2v-protocol.md',
              ROOT / 'src/features/moving_reference/_object.py', ROOT / 'src/features/moving_reference/camera.py',
              ROOT / 'src/features/moving_reference/_final_gates.py', ROOT / 'src/features/moving_reference/final_gates.py',
-             ROOT / 'docs/chain/moving-m1-sealed.md']
+             ROOT / 'docs/chain/moving-m1-sealed.md', ROOT / 'docs/chain/moving-m2v-outcome.md']
     return [entry(p) for p in names]
 
 

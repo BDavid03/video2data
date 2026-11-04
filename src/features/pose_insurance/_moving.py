@@ -56,3 +56,22 @@ def reprojection_summary(ious: np.ndarray, usable: np.ndarray) -> dict:
     return dict(median_iou=float(np.median(values)) if len(values) else None,
                 p10_iou=float(np.percentile(values, 10)) if len(values) else None,
                 usable_fraction=float(use.mean()), frames=len(ious), usable_frames=int(use.sum()))
+
+
+def align_first_pose(achieved: np.ndarray, reference: np.ndarray) -> np.ndarray:
+    """Apply one rigid transform from frame-zero slot-zero poses, without scale or timing fits."""
+    turn = Rotation.from_quat(reference[0, 0, 3:]) * Rotation.from_quat(achieved[0, 0, 3:]).inv()
+    result = achieved.copy()
+    result[..., :3] = turn.apply((achieved[..., :3] - achieved[0, 0, :3]).reshape(-1, 3)).reshape(achieved[..., :3].shape) + reference[0, 0, :3]
+    result[..., 3:] = (turn * Rotation.from_quat(achieved[..., 3:].reshape(-1, 4))).as_quat().reshape(achieved[..., 3:].shape)
+    return result
+
+
+def aligned_tracking_metrics(achieved: np.ndarray, reference: np.ndarray) -> tuple[np.ndarray, dict]:
+    """Measure tuning motion after the scorer's one initial rigid alignment."""
+    aligned = align_first_pose(achieved, reference)
+    metrics = tracking_metrics(aligned, reference)[0]
+    position = np.linalg.norm(aligned[:, 0, :3] - reference[:, 0, :3], axis=-1)
+    angle = np.degrees((Rotation.from_quat(aligned[:, 0, 3:]) * Rotation.from_quat(reference[:, 0, 3:]).inv()).magnitude())
+    metrics.update(p95_E_m=float(np.percentile(position, 95)), p95_Theta_deg=float(np.percentile(angle, 95)))
+    return aligned, metrics
