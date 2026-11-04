@@ -261,3 +261,25 @@ once the existing training run releases its lease. Only a GPU can establish
 CUDA driver and sm_120 execution compatibility, Warp JIT, actual textured
 nvdiffrast rendering, predictor allocations, finite/plausible registration,
 latency and VRAM. No further installation blocker is known from CPU admission.
+
+
+## Pilot Amendment 1: dtype-only adapter repair
+
+The two initial cup attempts produced no pose or overlay, crashing at upstream
+`compute_crop_window_tf_batch` because float32 K met float64 crop points.
+The committed protocol's Amendment 1 authorizes exactly one further attempt.
+`register_one_frame.py` now passes `np.asarray(K, dtype=np.float64)` instead
+of float32; frozen intrinsics are already float64, so their values are retained.
+No input, mask, parameter, seed or refinement count changes. No upstream
+inference code is patched for this repair. Register timing and peak Torch
+allocation are persisted in `finally`, including failed calls. Both original
+crashes remain under `outputs/foundationpose/pilot/history/original/`.
+
+Amendment 1 outcome: the float64-K adapter repair produced all four predictions
+and textured overlays without another inference crash. The protocol's two-pair
+gate passed (train 12: 1.8102 cm / 2.3550 deg; train 31: 1.2313 cm / 8.8247 deg),
+sealed before mocap. Four post-output headroom stops required fresh GPU
+admissions while preserving completed outputs; no successful register repeated.
+GPU release was verified at 05:15:31 UTC. Results and full crash/retry/resource
+disclosures are in `outputs/foundationpose/pilot/summary.md`. These used train
+pairs are not independent validation; tracking is not benchmarked.

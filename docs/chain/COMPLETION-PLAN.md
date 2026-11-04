@@ -91,9 +91,9 @@ Record final scores, complete the report, carry W3 on full budgets if the owner 
 
 | When (UTC) | Context does | GPU |
 | --- | --- | --- |
-| Now to about 05:50 | M0c (the same recipe from nothing, seed 1) | about 45 min |
-| About 05:50 | FoundationPose kill test and pilot, only as a capped tracking candidate | at most 20 min |
-| To about 06:30 | Build M2's task builder and Stage 0 (CPU, running now); M1's protocol and its per-frame estimate on 39 and 38 (masks by SAM2 on GPU when free; stereo; camera motion from the background) | short |
+| Now to about 06:05 | M0c (the same recipe from nothing, seed 1), launched 05:19 | about 45 min |
+| Done 05:20 | FoundationPose pilot **PASS** on two used train pairs, 1.81 cm / 2.4 deg and 1.23 cm / 8.8 deg (`foundationpose-pilot-outcome.md`). Its full panel and its tracking mode as M1's leading candidate are now in play | |
+| To about 06:30 | Build M2's task builder and Stage 0 (CPU, running now); M1's protocol, with FoundationPose tracking first and stereo plus masks as the fallback, on 39 and 38, with camera motion from the background; the FoundationPose panel's protocol, which needs physical admission solved | short |
 | 06:30 to 08:30 | M2: mocap-39, the upper bound (about 50 min). Then M1's gate, then M2v: video-39 (about 50 min) | about 2 h |
 | 08:30 to 10:30 | Scored policies for whatever passed: 38 first, then 35-37 if their references admit, about 45 min each; **budget for two, three as a stretch** | rest |
 | To 12:00 | One gated pack, abstract, `check_release.sh`, push and upload | none |
