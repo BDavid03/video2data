@@ -50,7 +50,11 @@ Six Kaggle boards. CD-O scores shapes: lower is better. AUC, SP-SR, MP-SR, RPE, 
 
 ## What next
 
-- Owner run upload command. Get first real pose score.
+- Owner run upload command. All six boards, same one file: form want same single submission per track. Get first real pose score. CD-O maybe worse than 0.53562: pot 5 and pitcher 20 use old v4 shape, not fancy Hunyuan.
+- Owner mark that file final on all six boards in browser.
+- Form need: submission IDs, report PDF link, GitHub link shared with Nvidia-V2D-Challenge, commit link, container link. No form, entry not valid.
+- Kaggle say boards close 22:00 UTC. Chain still plan 17:00 UTC until owner say.
+- Container need Docker. This account no Docker. Owner fix or build.
 - Finish episode 38 report text.
 - Critics review. Final hand-off.
 
