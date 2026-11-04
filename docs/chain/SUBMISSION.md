@@ -317,7 +317,7 @@ Evidence and run records:
 Reproduce using the existing measure runs:
 
 ```bash
-PYTHONPATH=. .runtime/linux-cuda/bin/python -m track3.features.mesh_extents build --request scripts/track3/requests/d1/build-v2-r2.json
+PYTHONPATH=. .runtime/linux-cuda/bin/python -m track3.features.mesh_extents build --request track3/features/mesh_extents/requests/build-v2-r2.json
 .runtime/kit-env/bin/python track3/features/mesh_eval/local_cdo.py --candidates outputs/mesh_extents/build/<new-run>/objects --out outputs/mesh_eval/<new-score>.json
 .runtime/kit-env/bin/python upstream/v2d_submission_kit/v2d_submission_kit/tools/pack_reconstruction.py track3-meshes \
   --meshes outputs/mesh_extents/build/<new-run>/meshes \

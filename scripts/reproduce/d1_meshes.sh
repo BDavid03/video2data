@@ -41,7 +41,7 @@ def relative(value):
     return path.relative_to(root).as_posix() if path.is_absolute() else str(value)
 
 
-request = Path("scripts/track3/requests/d1") / ("build-v2-r2.json" if a.version == "v2" else f"build-{a.version}.json")
+request = Path("track3/features/mesh_extents/requests") / ("build-v2-r2.json" if a.version == "v2" else f"build-{a.version}.json")
 build_run = Path(rebase(m["build_run"]))
 record = json.loads((root / build_run).read_text())
 request_data = json.loads(request.read_text())

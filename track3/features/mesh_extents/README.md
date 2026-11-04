@@ -30,7 +30,7 @@ PYTHONPATH=. CUDA_VISIBLE_DEVICES='' .runtime/linux-cuda/bin/python -B -m track3
 ```
 
 `build` requests name `measure_runs`, shape/rule and optional frozen attributes; `<build.json>` is
-one request. Existing examples include `scripts/track3/requests/d1/build-v2-r2.json` and `build-v3.json`.
+one request. Existing examples include `track3/features/mesh_extents/requests/build-v2-r2.json` and `build-v3.json`.
 
 ```bash
 PYTHONPATH=. CUDA_VISIBLE_DEVICES='' .runtime/linux-cuda/bin/python -B -m track3.features.mesh_extents build --request <build.json>
@@ -112,7 +112,7 @@ PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THRE
 ```
 
 It builds all eleven objects and 36 pair files from the 23 frozen measure runs through the production
-builder (`scripts/track3/requests/d1/build-v5.json` is the standalone request). Dry artifacts and the
+builder (`track3/features/mesh_extents/requests/build-v5.json` is the standalone request). Dry artifacts and the
 resumable ledger live in `outputs/mesh_extents/rules-round4/dry/`; production run paths are in its
 `summary.json`. The audited first invocation built 11 candidates; resume added zero. All nine
 untouched scanned objects and the spoon match v4; the rack SHA-256 is
@@ -126,7 +126,7 @@ is the read-only plan followed by the same build request and comparison of all 4
 
 ```bash
 bash scripts/reproduce/d1_meshes.sh https://github.com/OWNER-PLACEHOLDER-not-final/video2data/commit/0000000000000000000000000000000000000000 --version v4
-PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' .runtime/linux-cuda/bin/python -B -m track3.features.mesh_extents build --request scripts/track3/requests/d1/build-v4.json
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' .runtime/linux-cuda/bin/python -B -m track3.features.mesh_extents build --request track3/features/mesh_extents/requests/build-v4.json
 ```
 
 **Phase B only, after the lead commits the queue, code and geometry hashes:** run development
@@ -326,3 +326,7 @@ recorded JSON/Markdown artifacts. Earlier shorthand paths are retained with thei
 Additional indexed evidence: `outputs/mesh_eval/rules-round2/job-a-files.txt`; `outputs/mesh_extents/maintenance/20261102T055350Z/round2/summary.md`; `outputs/mesh_extents/round3-job-b/reproduction-v4/`.
 
 R10 video-only kill test: `PYTHONPATH=. CUDA_VISIBLE_DEVICES='' .runtime/linux-cuda/bin/python -B -m track3.features.mesh_extents.profiles_diagnostic --output outputs/mesh_extents/round4-profiles-rerun` (`--verify` rechecks saved arithmetic; the report retains its historical reproduction text).
+
+This checkout refuses to resume or `--verify` the recorded outputs, because the diagnostic and
+its build-request path changed after they were written: verify them at their recorded commit, and
+use a fresh output directory for a new run.

@@ -23,7 +23,7 @@ bash scripts/reproduce/d1_meshes.sh 'https://github.com/<owner>/<repo>/commit/<s
 
 The default source is the newest timestamped `submissions/*-d1-v2/manifest.json`.
 Its `build_run` identifies the recorded build. The script checks that its request
-equals the committed `scripts/track3/requests/d1/build-v2-r2.json`, then rebuilds
+equals the committed `track3/features/mesh_extents/requests/build-v2-r2.json`, then rebuilds
 from that request's **23 recorded measure runs**. It does not regenerate depth or
 measurements. The build handler writes a fresh immutable
 `outputs/mesh_extents/build/<new-run>/run.json`; its printed path supplies the
@@ -204,10 +204,13 @@ inventory is `.runtime/tmp/reproduce-d3-audit-eTmAqxDt/files-changed.txt`.
 | D2 | v1: `submissions/20261101T1703Z-d2-v1/{manifest,run}.json`, loop ledger/completion; v2: `submissions/20261101T2315Z-d2-v2/{manifest,run}.json`, per-export `source`/SHA-256 and `composition`, `outputs/pose_insurance/v2/report.md` |
 | D3 | `docs/report/track3/README.md` provenance table; `docs/report/track3/main.log`; new command/output log when executed |
 
-`verify.sh <manifest.json>` is read-only and CPU only. It streams SHA-256 for the
-packed file and **every nested entry with a path/file and sha256**, including
-exports, inputs and source hashes. Missing files print `MISMATCH`. Exit status is
-0 when all match, 1 on any mismatch. Paths must resolve inside this checkout.
+`verify.sh <manifest.json>` is read-only and CPU only. It accepts either a top-level
+`file` + `sha256` or `file: {path, sha256}`, and streams SHA-256 for the packed file
+and every explicit nested path/file + sha256 entry. If an original path is missing,
+`scripts/reproduce/moved-paths.json` redirects it to the moved file with the same
+pinned digest and prints the relocation. Missing files or differing digests remain
+`MISMATCH`. Exit status is 0 when all match, 1 on any mismatch. Paths must resolve
+inside this checkout. It does not consult Git or interpret source-hash dictionaries.
 
 Coverage is exactly what the supplied manifest records; it does not recursively
 follow unhashed run-record paths. In particular, the old D1 manifest lists only

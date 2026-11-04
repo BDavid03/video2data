@@ -150,7 +150,7 @@ def run(request_path, destination):
                         inputs=[request_path, *[path for trial in request['queue'] for path in trial['runs']]])
     sources = {str(path.relative_to(ROOT)): sha256_file(path) for path in (
         Path(__file__), FEATURE/'_profiles.py', FEATURE/'_profiles_report.py', FEATURE/'_geometry.py', FEATURE/'_shapes.py',
-        ROOT/'scripts/track3/requests/d1/build-v4.json')}
+        ROOT/'track3/features/mesh_extents/requests/build-v4.json')}
     identity = hashlib.sha256(json.dumps(dict(recipe=recipe, queue=request['queue'], sources=sources), sort_keys=True).encode()).hexdigest()
     directory = output_path(ROOT, destination)
     directory.mkdir(parents=True, exist_ok=True)

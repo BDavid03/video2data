@@ -15,6 +15,7 @@ root = Path.cwd()
 manifest = Path(sys.argv[1]).resolve()
 manifest.relative_to(root)
 data = json.loads(manifest.read_text())
+moved_paths = json.loads((root / "scripts/reproduce/moved-paths.json").read_text())
 entries = []
 
 def collect(value):
@@ -31,11 +32,16 @@ def collect(value):
             collect(child)
 
 collect(data)
-if not entries or (data["file"], data["sha256"]) not in entries:
+packed = data["file"]
+packed_entry = (packed["path"], packed["sha256"]) if isinstance(packed, dict) else (packed, data["sha256"])
+if not entries or packed_entry not in entries:
     raise ValueError("Manifest must record its packed file and SHA-256")
 bad = 0
 for name, expected in entries:
     path = (root / name).resolve()
+    moved = moved_paths.get(name) if not path.exists() else None
+    if moved is not None:
+        path = (root / moved).resolve()
     path.relative_to(root)  # No external paths, including symlinks out of the checkout.
     try:
         with path.open("rb") as stream:
@@ -46,7 +52,8 @@ for name, expected in entries:
         detail = str(error)
     ok = actual == expected
     bad += not ok
-    print(f"{'OK' if ok else 'MISMATCH'} {name}")
+    relocation = f" (moved to {moved})" if moved is not None else ""
+    print(f"{'OK' if ok else 'MISMATCH'} {name}{relocation}")
     if not ok:
         print(f"  expected {expected}\n  actual   {detail}")
 print(f"SUMMARY {len(entries)} entries: {len(entries) - bad} OK, {bad} MISMATCH")
