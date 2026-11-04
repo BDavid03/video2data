@@ -24,7 +24,7 @@
 \newcommand{\ThirtyEightIoUPten}{0.707}
 \newcommand{\ThirtyEightNoReset}{yes}
 \newcommand{\ThirtyEightMinutes}{at least 63}
-\newcommand{\SpoonStatus}{The same method on spoon clips 35, 36 and 37 stopped at the mask-coverage check; all three keep their static exports.}
+\newcommand{\SpoonStatus}{The same method on spoon clips 35, 36 and 37 stopped at the mask-usability check, before any tracking; all three keep their static exports.}
 % Leaderboard values arrived after every method choice and steered nothing.
 \newcommand{\LBCDO}{[pending]}
 \newcommand{\LBAUC}{[pending]}
@@ -51,7 +51,7 @@
 \textbf{Abstract:}
 \ifmoving
 \MovingStatus\ Our Track 3 entry uses its learned moving rollout and keeps
-v5's static poses on nineteen episodes. The final pack follows this report.
+v5's static poses on nineteen episodes, packed as one file on 4 November.
 \else
 This static fallback retains v5's policy poses on all twenty episodes.
 It excludes the admitted moving rollout on 38.
@@ -72,8 +72,9 @@ Track 3 scores video-derived meshes and simulated policy rollouts~\cite{challeng
 We combine MoGe-2~\cite{moge2}, procedural shapes and FlashCHORD~\cite{flashchord};
 Hunyuan3D-2mini~\cite{hunyuan3d2} supplied development shapes.
 AI coding agents led and implemented the work under a human owner's direction.
-We report a traced combined entry, scan-informed shape gains that did not
-reach the final file, and object-path tracking without recovered human hands.
+We report a traced combined entry with scan-informed procedural shapes, two
+pretrained shape gains that stayed out of the final file, and object-path
+tracking without recovered human hands.
 The evidence does not establish transfer or dexterity.
 
 \section{Approach}
@@ -93,20 +94,21 @@ Meshes use rollout body frames, with
 \ifmoving31\else32\fi\ shared coordinate maps, two recorded rotations on 19,
 and pot 5/pitcher 20's procedural v4 shapes from the same constructor;
 their pretrained shapes have no recorded map. Shared coordinates do not imply
-equal surfaces. Pooled D1 dimensions are retained, not resized to simulation bounds.
+equal surfaces; pooled D1 dimensions are kept.
 The same single file goes to all six boards, so pose and CD-O shapes are identical.
 \ifmoving
 38 uses its simulated rollout mesh instead of the static pan's procedural
-shape, changing CD-O by an unmeasured amount. The container runs nineteen
-static policies and 38's learned moving policy through the unedited evaluator
-with these meshes.
+shape, changing CD-O by an unmeasured amount. The container is to run nineteen
+static policies and 38's moving policy through the unedited evaluator; at
+writing only the all-static fallback is staged and no image is built.
 \else
 The container runs twenty static policies through the unedited evaluator
 with these meshes and excludes moving 38.
 \fi
 
-\textbf{Moving experiment.} Fixed SAM2.1/Grounding DINO prompts select the
-smallest box above a fixed threshold; highest score selected 38's table.
+\textbf{Moving experiment.} After highest-score selection picked 38's table,
+we fixed a smallest-qualifying-box rule for SAM2.1/Grounding DINO prompts and
+applied it to both pan clips.
 Background KLT bundle adjustment estimates camera motion; stereo and
 silhouettes track our video-derived pan. Per-frame tracking uses no scan or
 mocap; one public-scan constant sets bounding axes, origin and handle convention
@@ -114,32 +116,33 @@ on both clips, creates no motion and enters no mesh/asset. A 2\,cm overlay ring
 offset is unresolved. FoundationPose is not in the entry.
 FlashSAC trains from scratch with 1,024 worlds, seed 0, update ratio 2,
 a compressed curriculum and 66,763,776 transitions; final assistance is off.
-A fixed rigid grasp replaces recovered human hands. Fingers stay fixed,
-and video hands start in place without prepended rest. Contact alone moves the
+A fixed rigid grasp replaces recovered human hands. The constructed hand
+references keep fixed fingers and start in grasp position without a rest phase. Contact alone moves the
 object. Hand--support collisions are off; mass 0.3\,kg and diagonal inertia
 0.001\,kg\,m$^2$ are example values, not measured. A thin support lies below
 the hulls. The shared simulated profile is oversized (25.6 by 21.3 versus
 18.2 by 16.6\,cm), altering grasp/contact.
 
 \section{Experiments and Results}
-\textbf{Shape findings.} G2's pretrained pot 5/pitcher 20 shapes were measured
-but did not reach the final file. Packed equal-object/pair CD-O fell
-0.6534/0.6629 to 0.5644/0.6208\,cm on ten reused public scans, 26/36 entries;
-ten spoon entries remain unmeasured. Adaptive scan selection prevents
-new-object validation. Admission is unvalidated; the packed veto supported
-the gain, mostly pitcher. Generation varies by seed; pot 5 was a favourable
-draw. G3 and silhouette vetoes failed; fusion stopped before scoring.
+\textbf{Shape findings.} Pretrained pot 5/pitcher 20 shapes were measured
+but did not reach the final file. For the historical mesh-only packs, local
+equal-object/pair CD-O fell 0.6534/0.6629 to 0.5644/0.6208\,cm on ten reused
+public scans, 26/36 entries; ten spoon entries remain unmeasured, and the final
+moving file has no corresponding measured CD-O. Adaptive scan selection prevents
+new-object validation; the video-only admission screen is unvalidated; the
+scan-based veto supported the gain, mostly pitcher; generation varies by seed
+and pot 5 was a favourable draw. Automatic masks, silhouette heading selection
+and fusion all failed or stopped before adoption.
 
 \textbf{Static findings, old scorer.} Eight equal-weight train episodes,
 one seed: AUC 0.2690 to 0.2767, success rates zero; one episode gives the
 gain, four changed episodes retain 51--130$^\circ$ direction errors.
-The shrinkage control does not isolate calibration from shorter offsets.
-Selection used train initial-frame errors despite incomplete fresh confirmation.
-Simulation consistency does not measure mocap accuracy.
+Shrinkage is not separated from calibration; selection used train initial-frame
+errors despite incomplete fresh confirmation; simulation consistency is not
+mocap accuracy.
 V5 changes heading only on 19 via scan-to-stereo registration, supported by
-train 18 alone (old AUC 0.30 to 0.47, one seed).
-Its pre-written selected/flipped stress rule passed, conditional on transfer,
-not calibrated heading probability; a wrong basin can hurt 19.
+train 18 alone (old AUC 0.30 to 0.47, one seed); its pre-written stress rule
+passed, but a wrong basin can hurt 19.
 Even true initial poses held static reach only old-scorer train AUC 0.532.
 
 \textbf{Both scorers.} The organisers replaced the kit on 2 November;
@@ -148,11 +151,9 @@ every earlier local pose number used the old scorer. New-scorer
 0.302 (0.292/0.293 at other registration seeds) versus old 0.2767,
 on frozen kinematic projections, not eight train RL exports.
 On 39's real video-policy export: 0.669 with the simulated mesh, 0.591 with
-the tracking mesh, versus old 0.775; MP-SR falls 1 to 0. Public visual scans,
-centroid anchors, 500 sampled vertices and assumed PCA axes substitute for
-unpublished host geometry/anchors/axes/points. Primitive registration flips
-up to 179.93$^\circ$, making body rotation arbitrary. These diagnostics changed
-no method, gate or threshold.
+the tracking mesh, versus old 0.775; MP-SR falls 1 to 0. Public scans, centroid anchors,
+sampled vertices and PCA axes stand in for unpublished host geometry. Primitive registration can flip
+180$^\circ$, making body rotation arbitrary. They changed no method or gate.
 
 \noindent\begin{minipage}{\columnwidth}
 \centering\small
@@ -169,28 +170,32 @@ Policy on video & \MtwovAUC & \MtwovE & \MtwovTheta \\
 \end{tabular}
 \captionof{table}{Tuning 39, single first-pose alignment to mocap, old scorer.
 $E$/angle: mean translation/rotation error. One sealed tracker label pass;
-the path is not a rollout, mocap training is an upper bound.
-38's ground-truth accuracy is \textbf{unknown}.}
+the path is not a rollout; the mocap-trained policy is a privileged-reference
+comparison, not a proven ceiling. 38's accuracy against ground truth is
+\textbf{unknown} to us.}
 \end{minipage}\par
 
 38's self-reference $(T,Q,E,\Theta)=(\ThirtyEightSelfT,\ThirtyEightSelfQ,\ThirtyEightSelfE\,\mathrm{cm},\ThirtyEightSelfTheta^\circ)$
 passes $(\geq0.50,\geq0.50,\leq3\,\mathrm{cm},\leq15^\circ)$;
 $T$ is displacement gain; $Q$ is one minus normalised squared error of
 15-frame position increments (zero held still). The policy completed all 263 frames without a reset. The first pose
-0.30\,cm/0.27$^\circ$ passes 1\,cm/2$^\circ$; mask IoU median/p10/coverage
-\ThirtyEightIoUMedian/\ThirtyEightIoUPten/100\% passes 0.60/0.30/90\%. These old-protocol gates show goal
+0.30\,cm/0.27$^\circ$ passes 1\,cm/2$^\circ$; the tracking mesh projected at
+achieved poses gives mask IoU median/p10/coverage
+\ThirtyEightIoUMedian/\ThirtyEightIoUPten/100\% against 0.60/0.30/90\%
+(not the submitted simulation mesh's silhouette). These old-protocol gates show goal
 following, not truth or superiority to static v5.
 \ifmoving
 38 passed at 12:58 UTC, after our planned noon cut-off, which the owner then
-moved (about 13:25 UTC); admission passes and packing follows this report.
+moved (about 13:25 UTC); it was packed at 14:03 UTC, and its upload, final
+selection and six scores were unrecorded at writing.
 \else
 This fallback excludes 38 despite its admission after the owner moved the cut-off.
 \fi
 
 
-Across three attempts, 38 took \ThirtyEightMinutes\ minutes. The second record
-is stale; the bound uses its last log write. The 34.3--40.4M stretch was kept.
-\SpoonStatus\ Usable-mask fractions were 10.9, 8.8 and 0.7\% against the 90\% rule.
+Across three attempts, 38 took \ThirtyEightMinutes\ minutes (a bound: the
+second record lacks a finish time); the 34.3--40.4M stretch was kept.
+\SpoonStatus\ Usable fractions were 10.9, 8.8 and 0.7\% against the 90\% rule, with non-empty masks in every frame.
 
 \textbf{Integrity.} The tracker failed its frozen rule and amendment.
 A conditional third rule moved pixel limits/instruments after seeing both
@@ -200,7 +205,7 @@ clips' video gates, before one sealed same-object mocap pass on 39, breaking
 withheld tracks passed. This is weaker than prospective validation.
 A constant-frame bug was fixed before labels. Camera error cancels in
 reprojection; silhouette fit partly measures its own objective. Withheld
-table/long-baseline landmarks address some drift, not object truth.
+landmarks address some drift, not object truth.
 M2v's NULL became GO after retrospective first-pose alignment, unspecified
 in its protocol; the NULL remains, labels were read twice for arithmetic,
 though the policy was scored once. Alignment hides initial placement/heading,
@@ -215,7 +220,8 @@ MP-SR: \LBMPSR; RPE: \LBRPE; MPPE: \LBMPPE.
 Scores came after every method choice and steered nothing.
 
 \section{Conclusion}
-38 has no labels; its accuracy is unknown and nothing shows it beats its static export.
+38 has no ground-truth labels available to us; its accuracy is unknown and
+nothing shows it beats its static export.
 On 39 (one clip/seed), new-scorer public-geometry AUC is 0.175 held still
 and 0.669 moving.
 \ifmoving
@@ -224,23 +230,20 @@ and 0.669 moving.
 \textbf{Industry Innovation (static counted poses; moving findings separate).}
 \fi
 \textbf{Economic Viability:} On 39, 66.76M transitions took 58--62 minutes per
-policy on one 16\,GB GPU (sampled peak 11.4\,GiB); cost at scale is unshown
-(one object/seed,
-38 restarted twice).
-\textbf{Data Flywheel:} No flywheel is shown: two clips reuse one hashed
-asset and video-only gates frozen after revisions, but nothing improves itself
-over time.
+policy on one 16\,GB GPU; cost at scale is unshown (one object/seed, 38
+restarted twice).
+\textbf{Data Flywheel:} none shown: two clips reuse one asset and frozen
+gates, and nothing improves itself over time.
 \textbf{Complexity Reduction:} Stereo video, fixed prompts and our shape
 with rigid-grasp hands simplify inputs; a scan constant, two failed rules and
 one sealed label pass leave deployment savings unshown.
-\textbf{Innovation:} Testing whether recovered human hands are necessary,
-a video-path policy reached old AUC 0.775 versus held-still 0.18 (new
-public-geometry 0.669/0.591), with a non-human hold, oversized stand-in and
-one tuning clip;
+\textbf{Innovation:} a video-path policy without recovered human hands
+reached old AUC 0.775 versus held-still 0.18 (new public-geometry 0.669/0.591)
+on one tuning clip, with a non-human hold and an oversized stand-in;
 \ifmoving
-this method is in the counted entry on 38, while nineteen episodes stay static.
+it is in the counted entry on 38 only.
 \else
-this method is not in the counted entry unless the moving branch is used.
+it is not in the counted entry unless the moving branch is used.
 \fi
 
 \par\label{maintextend}
