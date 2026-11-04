@@ -31,9 +31,21 @@ GO-1 needed `T >= 0.50`, `Q >= 0.50`, `E <= 3.44 cm`. The reference travels up t
 - **Throughput was also misjudged.** Probes measured 26,189 to 35,495 transitions/s against D1's 13,000, at far higher update ratios. D1 saved a 158 MiB checkpoint pair every five collections; this run saved every 493 collections. That fits the difference, but no run has isolated it. **This run itself averaged 21,100 transitions/s** (45.19M in 35.7 minutes), so the 1.25 planning margin was all used: a full 66.76M from nothing would take about 53 minutes, not the probe's 43. That is still far below the plan's earlier 95.
 - **This may bear on the leaderboard's 0.99, but nothing here shows it.** The method behind that score is still unknown. This task's reference and mesh are high quality, and 0.98 here says nothing yet about a challenge episode.
 
+## M0c: the same recipe from nothing, on seed 1 (`moving-m0c-protocol.md`): GO-1
+
+Evidence: `outputs/dynamic_feasibility/m0c/` (`summary.md`, `final.json`). Fresh start, no resume, seed 1, 130,382 learner updates. All five validity checks passed; the lead's separate script reproduces `T`, `Q` and `E` from the parquets.
+
+| Checkpoint | Saved VOC | Wall minutes from start | T | Q | Position cm | ADD-AUC |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 16,154,624 | 0.25 | 15.0 | 0.9683 | 0.8315 | 0.940 | 0.9606 |
+| 32,814,080 | 0.01 | 26.6 | 0.9930 | 0.8607 | 0.605 | 0.9798 |
+| **66,763,776, gated** | 0 | 49.3 | **0.9917** | **0.8715** | **0.516** | **0.9790** |
+
+**So the recipe does not rely on D1's prefix,** on this task. The earliest row meeting GO-1's thresholds, by the protocol's budget rule, is 16,154,624, 15 minutes including startup, though it was still training with assistance at VOC 0.25; the evaluator removed that assistance for its score. **Two seeds now agree, on an easy task.** Whether a harder task finishes this early is unknown: 39 moves about eight times faster and rotates 109 degrees.
+
 ## Limits
 
-One seed, with a warm start. The contact diagnostic was skipped within the protocol's allowance, so whether the hands hold the box as a person would is not measured; the box's motion is. A palm-under lift would satisfy every metric here. These metrics see position; orientation error here is 0.50 degrees, reported beside them.
+Two seeds, one with a warm start. The contact diagnostic was skipped within the protocol's allowance, so whether the hands hold the box as a person would is not measured; the box's motion is. A palm-under lift would satisfy every metric here. These metrics see position; orientation error here is 0.50 degrees, reported beside them.
 
 **This task is easy in ways challenge episodes are not (Claude critic 25).** 93.7 % of the reference's displacement energy is vertical, its peak speed is 9.08 cm/s, and it rotates only 5.4 degrees. The held-still arm already has AUC 0.459. Early frames are not tracked: at frames 0 to 60 the box moves 0.31 cm against 1.55 cm, and the largest error is at frame 40. Tuning episode 39, by comparison, travels 39.1 cm, peaks at 71 cm/s and rotates 109 degrees, so GO-1 here predicts little about it.
 
