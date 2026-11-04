@@ -12,6 +12,8 @@ M2's protocol and Amendment 1. T1 on 39 is 0.175; position perfect with rotation
 
 **Scan-free.** No scan builds, tunes or selects a reference (the chain's reading until the owner answers `NEEDS-YOU.md`). **The one disclosed exception, for the body convention below.** Mocap on 39 is read once, in the sealed scoring pass. 41, 43 and 44 are never read; validation 2/13/22/24/27 are not used. Masks come from Grounding DINO and SAM2.1 with fixed object-name prompts.
 
+**Mask box rule, code defect fixed 07:26 UTC, before any tracker ran.** "Highest score" selected the round table on 38 (0.552, 10.9 % of the image) over the pan (0.471, 2.0 %). DINO returned the same two regions on 39, where the pan scored higher (0.505, 1.5 %, against 0.421, 10.7 %). The rule is now the same on both: **the smallest box above G3's threshold from the same prompt.** 39's selection does not change. No threshold or prompt moved, nothing was scored and neither episode's labels were read. The first 38 masks stay in `ep38/masks/` and the new ones go in `ep38/masks-smallest/`.
+
 ## Method, frozen before scoring
 
 1. **World frame.** Frame-0 table points from calibrated stereo give the plane; its normal, oriented up, gives z. Metres come from stereo. A level table is assumed, and stated.
