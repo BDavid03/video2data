@@ -6,7 +6,7 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
 
 ## Open
 
-**READ THIS FIRST, 2026-11-04 15:10 UTC. The moving file is uploaded and scored; three things are yours.**
+**READ THIS FIRST, 2026-11-04 14:45 UTC. The moving file is uploaded and scored; three things are yours.**
 
 1. **Mark moving v5 as your Final Submission on all six boards** (Kaggle, each competition, My Submissions, tick
    "Track3 combined v5 ... Moving v5 ... (b476eb1c)" uploaded 14:28 UTC). Its scores: AUC **0.32339** (57987857), SP-SR **0.20**
@@ -15,7 +15,7 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
    selection Kaggle counts the best per board, which would be D1 v5 on CD-O (old-kit pack, not in the container) and maybe the
    static file on the two tied boards; the container must reproduce every counted file and is staged for this one only.
 2. **Fill in the form** (table below).
-3. **Uploads need your approval** (your line, about 15:05 UTC). If the GPU work below yields a better file, the chain puts it
+3. **Uploads need your approval** (your line, about 14:40 UTC). If the GPU work below yields a better file, the chain puts it
    here with its check and one command, and waits for you.
 
 **Running now (your line "improve the model", 14:40 UTC):** a learned moving policy for the two-object episodes (one object
@@ -35,7 +35,7 @@ pretrained pot and pitcher shapes can enter the combined file with an unambiguou
 
 **Hard close 17:00 UTC today (your line, 14:30 UTC: "submission is 5pm UTC").** Your lines today, recorded in `PROGRAM.md`
 section 0: "keep strict integrity gates" (14:08 UTC), "improve the model and metrics" (14:40), "dont upload to kaggle without
-approval" (15:05).
+approval" (about 14:40).
 
 **Earlier text, for the record (13:05 UTC):** combined v5 was the file; the pose file D2 v5 was rejected on all five boards
 because the organisers replaced the kit on 2 November; D1 v5 scored CD-O 0.53562 cm. The items below stand as written then.
