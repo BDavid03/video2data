@@ -641,3 +641,25 @@ PYTHONPATH=. data/.runtime/linux-cuda/bin/python -B data/outputs/moving_referenc
 ```
 
 Each episode's `candidate-c/` contains `gates-amended-3.json`, `table-tracks-observations.npz`, `table-tracks-inputs.json`, `table-tracks-overlay.png`, `table-tracks-worst.png`, `table-tracks-diagnostic.png`, `table-tracks-verification.json`, and `run-table-tracks.json`. Episode 39 also holds the queue, ledger, summary and `results-table-tracks.md` with commands, reference hashes and the inspected overlay findings. No camera fit or reference generation is part of this operation.
+
+## Final sealed-conditional gate record
+
+```bash
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' \
+  data/.runtime/linux-cuda/bin/python -B -m src.features.moving_reference.final_gates
+```
+
+This CPU operation writes `candidate-c/gates-final.json` for 39 and 38. It copies
+`gates-amended-3.json` exactly apart from the world-residual instrument/value and
+its resulting pass flags, then adds provenance. It uses the perpendicular world
+residual at the unchanged 10 mm **only when both** `reference_passed` and
+`allowance_passed` in 39's actual sealed record are true. Otherwise it refuses
+before writing. The old 3D value, failed noise-floor control and every other
+measurement/limit remain in the record. Every one of the 28 gates must pass.
+
+Provenance hashes the four earlier gate records, the sealed decision and the
+unchanged sealed reference, and records the one-line conditional rule from
+`docs/chain/moving-m1-sealed.md` clause 2. Re-running verifies the existing record
+rather than replacing it. No reference or Stage 0 record is rewritten. The packer
+reconstructs the decision from those inputs; a final record claiming PASS with a
+failed sealed decision is refused. Both actual final records pass 28/28 gates.

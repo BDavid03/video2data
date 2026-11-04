@@ -343,8 +343,8 @@ never eligible for release.
 
 These commands are for the lead after the producer finishes. They do not train,
 render simulation, push or upload. Both runs must have completed training and
-final evaluator outputs; 39 must also have its sealed mocap GO. Both amended M1
-references and Stage 0 must pass. **If those gates fail, retain v5.** The lead
+final evaluator outputs; 39 must also have its sealed mocap GO. Both final M1
+records and Stage 0 must pass. **If those gates fail, retain v5.** The lead
 first reviews/commits the implementation and the actual report disclosure, and
 uses that commit's URL below. A changed abstract also requires the usual D3
 report build/hash update before the final release check can pass.
@@ -447,8 +447,8 @@ valid worlds, and the full uniform frame clock. Explicit reset mode, end fractio
 and evaluator records are bound to the same immutable Stage 0/task.
 
 M1 comes exclusively from each source reference's
-`candidate-c/gates-amended.json`. The first `gates.json` is historical evidence,
-not an admission file. The admission hashes **both** the amended gates file and
+`candidate-c/gates-final.json`. Earlier gate files are retained as hashed
+historical evidence, not direct admission files. The admission hashes **both** the amended gates file and
 the source reference; no `reference_sha256` field is required inside the gates
 file. The amended producer's `frozen_rule.label_free` supplies provenance when
 there is no top-level `label_free`. All amended measurements are checked against
@@ -457,7 +457,7 @@ these limits; `passed=true` alone is insufficient:
 | Measure | Limit |
 | --- | --- |
 | Held-out camera reprojection median / p95 at 640 width | ≤0.5 / 2 px |
-| Held-out camera world residual | ≤1 cm; perpendicular instrument only with the recorded explaining noise-floor control; otherwise retain original 3D residual |
+| Held-out camera world residual | ≤1 cm; perpendicular instrument only under the verified sealed reference-and-allowance pass; old 3D residual retained descriptively |
 | Held-out tracks / image regions / camera coverage | ≥30 / 4 / 98% |
 | Table fit residual / disjoint-patch normal | ≤5 mm / 3° |
 | Usable masks / longest missing interval | ≥90% / ≤2 frames |
@@ -538,7 +538,7 @@ asset/reference/reprojection refusal loop. They append ledgers and resume cases.
 - The separate fake 0..5° rotation changes 262/263 episode-38 rows and leaves
   all 8,857 other-episode rows text-identical. The fake remains marked and refused;
   its successful kit shape/preflight is not scientific admission.
-- **Actual amended M1 results on 38 and 39 fail.** The packer preserves those
+- **At the earlier follow-up, amended M1 results on 38 and 39 failed.** The packer preserves those
   refusals. No successful real moving admission or moving-release READY is
   claimed. The current release remains v5; see final scratch command logs and
   evidence summaries for the final refusal counts and `check_release.sh` output.
@@ -559,3 +559,30 @@ real M2 learning check remains on its original completed process/checkpoint.
 The final float32 fake-reference replay differs from M1's double-precision
 reference raster IoUs by at most `8.84e-5` (median/p10 remain 0.86443/0.81040);
 the earlier geometry replay had zero difference. Neither replay is admissible.
+
+### Final M1 handoff, 4 November 2026
+
+The current admission file is **`candidate-c/gates-final.json`**. Earlier
+`gates-amended*.json` files remain hashed historical inputs. Generate it once with:
+
+```bash
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' \
+  data/.runtime/linux-cuda/bin/python -B -m src.features.moving_reference.final_gates
+```
+
+The final record preserves `gates-amended-3.json`, every other limit and the old
+3D world residual. Under the sealing record's clause 2 it gates the perpendicular
+world residual at the unchanged 10 mm, only after both sealed reference and
+allowance pass. It hashes all earlier gate records and the actual sealed decision.
+Admission re-derives the entire final record from those inputs; the old noise-floor
+requirement does not override the explicitly authorized sealed-pass condition.
+A failed seal, altered limit, forged measurement or missing provenance is refused.
+Every gate still has to pass. Both actual records pass 28/28; the references keep
+their sealed hashes, and no Stage 0 record changes.
+
+The existing `--make-admission` sequence now passes M1 on both episodes, then
+refuses with an explicit list of missing finished 38-policy/M2v records. No
+adoption request or pack is written until those producer outputs exist and pass.
+The release remains v5. Current evidence and final per-gate table are under
+`data/.runtime/tmp/mpack-dry/final-gates-proof/`; command logs and the empty v5
+reproduction are under `data/.runtime/tmp/mpack-dry/`.

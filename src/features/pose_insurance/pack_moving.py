@@ -18,6 +18,8 @@ import pyarrow.parquet as pq
 from src.paths import current_name
 from src.provenance import sha256_file
 from ._moving import tracking_metrics, translation_errors, pose_matrices, reprojection_summary
+from src.features.moving_reference._final_gates import FINAL_LIMITS as M1_LIMITS
+from src.features.moving_reference.final_gates import verify_final
 
 ROOT = Path(__file__).resolve().parents[3]
 KIT = ROOT / 'upstream/v2d_submission_kit/v2d_submission_kit'
@@ -27,26 +29,7 @@ V5_MANIFEST_HASH = '0fcbfd7d48dc137fc5598adbcb8d609c5de3dd717a87ceb886b9b885e793
 SCRATCH = ROOT / 'data/.runtime/tmp/mpack-dry'
 OUTPUT = ROOT / 'data/outputs/pose_insurance/moving-pack'
 POSE = [f'{kind}_{axis}' for kind, axes in (('position', 'xyz'), ('quaternion', 'xyzw')) for axis in axes]
-M1_LIMITS = {
-    'camera_heldout_reprojection_median_px640': ('le', .5),
-    'camera_heldout_reprojection_p95_px640': ('le', 2.),
-    'camera_heldout_world_residual_median_m': ('le', .01),
-    'camera_heldout_tracks_min': ('ge', 30), 'camera_heldout_regions_min': ('ge', 4),
-    'camera_coverage_fraction': ('ge', .98), 'table_residual_rms_m': ('le', .005),
-    'table_disjoint_patch_normal_max_deg': ('le', 3.), 'mask_usable_fraction': ('ge', .9),
-    'mask_longest_unusable_interval_frames': ('le', 2),
-    'object_30_stereo_correspondence_fraction': ('ge', .9),
-    'object_fb_translation_median_m': ('le', .01), 'object_fb_rotation_median_deg': ('le', 5.),
-    'object_speed_max_m_s': ('le', 1.5), 'object_angular_rate_max_deg_s': ('le', 540.),
-    'object_reference_valid_fraction': ('ge', .9),
-    'reprojection_iou_median': ('ge', .6), 'reprojection_iou_p10': ('ge', .3),
-    'reprojection_coverage_fraction': ('ge', .9), 'frame0_base_gap_m': ('le', .005),
-    'frame0_penetration_m': ('le', .005),
-    'table_offset_max_frame_median_m': ('le', .01), 'table_offset_p95_frame_medians_m': ('le', .015),
-    'table_late_normal_change_deg': ('le', 2.), 'table_drift_used_fraction': ('ge', .80),
-    'table_landmark_max_frame_median_m': ('le', .01),
-    'table_landmark_p95_frame_medians_m': ('le', .02), 'table_landmark_used_fraction': ('ge', .80),
-}
+
 
 
 def path(value: str | Path) -> Path:
@@ -106,7 +89,7 @@ def require_tracking(data: dict, label: str) -> None:
 
 
 def require_m1(data: dict, episode: int) -> None:
-    label_free = data.get('label_free', data.get('frozen_rule', {}).get('label_free'))
+    label_free = data.get('label_free', data.get('frozen_rule', {}).get('label_free', data.get('finalization', {}).get('label_free')))
     if data.get('episode') != episode or label_free is not True or data.get('passed') is not True:
         raise ValueError('Clause 2 requires this episode\'s passed label-free M1 evidence')
     for key, (direction, limit) in M1_LIMITS.items():
@@ -116,7 +99,10 @@ def require_m1(data: dict, episode: int) -> None:
         if value < 0 or fraction_invalid or (value > limit if direction == 'le' else value < limit) or row.get('passed') is not True:
             raise ValueError(f'Clause 2 M1 fails {key}')
     world = data['gates']['camera_heldout_world_residual_median_m']
-    if world.get('instrument') == 'perpendicular':
+    if world.get('instrument') == 'perpendicular under sealed-pass clause 2':
+        if not data.get('finalization', {}).get('sealed_condition_verified') or world['value'] != world.get('perpendicular_median_m'):
+            raise ValueError('Clause 2 conditional world residual has no verified sealed-pass condition')
+    elif world.get('instrument') == 'perpendicular':
         control = world.get('control', {})
         if (number(control.get('pairs'), 'noise floor pairs') < 100
                 or number(control.get('frames'), 'noise floor frames') < 3
@@ -135,9 +121,10 @@ def inspect_m1(binding: dict, source: dict, episode: int, assets: dict) -> None:
     if binding['reference'] != source:
         raise ValueError('Clause 2 M1 evidence does not bind the adopted source reference')
     checked(binding['reference'])
-    if gates.name != 'gates-amended.json' or gates.parent != path(source['path']).parent:
-        raise ValueError('Clause 2 requires candidate-c/gates-amended.json beside the source reference')
+    if gates.name != 'gates-final.json' or gates.parent != path(source['path']).parent:
+        raise ValueError('Clause 2 requires candidate-c/gates-final.json beside the source reference')
     require_same_asset(binding.get('asset_hashes'), assets)
+    verify_final(gates, episode)
     require_m1(read(gates), episode)
 
 
@@ -587,12 +574,25 @@ def make_admission(directory_name: str, m2v_name: str, output_name: str, disclos
         raise FileExistsError('Use a new immutable admission output directory')
     def m1_binding(p):
         source = p['reference_source']
-        return dict(gates=entry(path(source['path']).parent / 'gates-amended.json'), reference=source,
+        return dict(gates=entry(path(source['path']).parent / 'gates-final.json'), reference=source,
                     asset_hashes=p['asset_hashes'])
     for episode, folder in ((38, directory), (39, m2v_dir)):
         reference = read(folder / 'reference.json')
         binding = dict(reference_source=entry(reference['source_path']), asset_hashes=read(folder / 'asset.json')['hashes'])
         inspect_m1(m1_binding(binding), binding['reference_source'], episode, binding['asset_hashes'])
+    missing = []
+    for label, folder in (('38 policy', directory), ('M2v 39', m2v_dir)):
+        required = ('train.run.json', 'score-self.run.json', f'training/policy_{FINAL_STEPS}.safetensors',
+                    f'score-{FINAL_STEPS}/trajectory.parquet', f'score-{FINAL_STEPS}/official_metrics.json')
+        if label == 'M2v 39':
+            required += ('score-mocap.run.json', f'score-{FINAL_STEPS}/mocap_metrics.json')
+        for name in required:
+            if not (folder / name).is_file():
+                missing.append(f'{label}: {name}')
+        if (folder / 'train.run.json').is_file() and read(folder / 'train.run.json').get('status') != 'completed':
+            missing.append(f'{label}: training is not completed')
+    if missing:
+        raise ValueError('Final M1 passed on 38 and 39; missing finished policy/M2v evidence: ' + '; '.join(missing))
     roster, objects = official_roster()
     _, code = evaluator_inputs()
     episode = read(directory / 'stage0.json')['episode']
@@ -702,7 +702,9 @@ def source_entries() -> list[dict]:
              ROOT / 'scripts/reproduce/d2_poses_moving.sh', ROOT / 'scripts/reproduce/check_release.sh',
              ROOT / 'docs/chain/moving-m1-protocol.md', ROOT / 'docs/chain/moving-m2-protocol.md',
              ROOT / 'docs/chain/moving-m2v-protocol.md',
-             ROOT / 'src/features/moving_reference/_object.py', ROOT / 'src/features/moving_reference/camera.py']
+             ROOT / 'src/features/moving_reference/_object.py', ROOT / 'src/features/moving_reference/camera.py',
+             ROOT / 'src/features/moving_reference/_final_gates.py', ROOT / 'src/features/moving_reference/final_gates.py',
+             ROOT / 'docs/chain/moving-m1-sealed.md']
     return [entry(p) for p in names]
 
 
