@@ -18,7 +18,22 @@ SP-SR 0.15 (57987381), MP-SR 0.0 (57987383), RPE 20.10764 cm (57987384), MPPE 14
 log `data/outputs/chain/uploads-28.log`. First pose scores of this entry; they match the local new-scorer diagnostic (train AUC
 about 0.30) and the expected CD-O cost of the procedural pot 5 and pitcher 20 (0.566 vs D1 v5's 0.536).
 
-**Moving v5, final pack 14:22 UTC (context 29), NOT UPLOADED (chain upload denied twice), the file to upload and mark final:**
+**Moving v5 UPLOADED 14:28 to 14:33 UTC (context 30; the owner's command `bash data/.runtime/tmp/upload-moving-29.sh`, run
+once by the chain, message hash label corrected from the superseded `1570037a` to `b476eb1c`), all six boards: AUC 0.32339
+(57987857), SP-SR 0.20 (57987860), MP-SR 0.0 (57987864), RPE 20.10764 cm (57987868), MPPE 14.29607 cm (57987871), CD-O
+0.56471 cm (57987875).** Receipt `submission/20261104T1422Z-d2-moving-v5/track3_combined_v5.parquet.3ae0818c3b96.kaggle-receipt.json`,
+log `data/outputs/chain/uploads-29.log`. Equal or better than combined v5 on every board; RPE and MP-SR tie. **Mark it final on
+all six boards**: with none selected Kaggle counts the best per board, which would be D1 v5 on CD-O (0.53562, old-kit pack, not in
+the container) and possibly combined v5 on the two ties; the container (`scripts/container/`) covers this one file only.
+
+**Documentation-only change after the upload (context 30):** the report's six `\LB...` lines and the abstract's last sentence
+now carry these scores (`97dfd5e`), and the PDF pin moved to `bb422006` (`204b88f`, also at
+`docs/report/final/track3-technical-report.pdf`). The uploaded manifest pins the earlier `main.tex`, so
+`check_release.sh --combined` on it now fails at HEAD with "Input hash mismatch: docs/report/track3/main.tex" (combined pose
+provenance), every other step OK. It still passes at its URL commit `c8ff8c1`, which is what the container checks out. The
+uploaded file was not repacked.
+
+**Moving v5, final pack 14:22 UTC (context 29), uploaded 14:28 UTC (above):**
 `submission/20261104T1422Z-d2-moving-v5/track3_combined_v5.parquet`, SHA-256
 `b476eb1c2bc1ee6fab2df72f42f377d87e5d265c06140f3e47fc2fc67f8ff81d`, URL commit `c8ff8c1` (pushed), manifest beside it
 (`df66435e...`). Two earlier packs of the same content at earlier report commits (`1570037a` at `a3ab0f6`, 14:03 UTC;
