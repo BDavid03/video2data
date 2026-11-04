@@ -93,13 +93,14 @@ Record final scores, complete the report, carry W3 on full budgets if the owner 
 | --- | --- | --- |
 | Now to about 06:05 | M0c (the same recipe from nothing, seed 1), launched 05:19 | about 45 min |
 | Done 05:20 | FoundationPose pilot **PASS** on two used train pairs, 1.81 cm / 2.4 deg and 1.23 cm / 8.8 deg (`foundationpose-pilot-outcome.md`). Its full panel and its tracking mode as M1's leading candidate are now in play | |
-| To about 06:30 | Build M2's task builder and Stage 0 (CPU, running now); M1's protocol, with FoundationPose tracking first and stereo plus masks as the fallback, on 39 and 38, with camera motion from the background; the FoundationPose panel's protocol, which needs physical admission solved | short |
-| 06:30 to 08:30 | M2: mocap-39, the upper bound (about 50 min). Then M1's gate, then M2v: video-39 (about 50 min) | about 2 h |
-| 08:30 to 10:30 | Scored policies for whatever passed: 38 first, then 35-37 if their references admit, about 45 min each; **budget for two, three as a stretch** | rest |
+| **First, now** | **Settle M2's Stage 0 (`moving-m2-protocol.md`, "State"): it stopped, so M2 needs a disclosed amendment or a recorded stop before any GPU minute is planned around it.** Decide on upstream's route (`route-v2d-25`, owner's pointer to `video_to_data`), and fix M2's gates as critic 25 asks. CPU | none |
+| To about 07:00 | Amended task through Stage 0; M1's protocol on 39 and 38, with camera motion from the background. Scan-free stereo plus masks unless the owner allows scan tracking on scored episodes (`NEEDS-YOU.md`). Also build a moving pack path: `pose_insurance/handler.py:79` refuses drift above 1 cm, and no moving pack path exists | short |
+| 07:00 to 09:00 | M2: mocap-39, the upper bound (about 55 min). Then M1's gate, then M2v: video-39 (about 55 min) | about 2 h |
+| 09:00 to 10:30 | Scored policy for whatever passed: **realistically 38 alone**, about 55 min | rest |
 | To 12:00 | One gated pack, abstract, `check_release.sh`, push and upload | none |
 | To 17:00 | Chain records scores, works W6 report items | none |
 
-**Cut:** W4, MediaPipe, MANO integration, W2a's rotation model, and broad restoration of the recycled slices; a narrow direct task builder replaces them. First to go if time runs short after that: FoundationPose, then M2v's second variation. **The biggest unproven link is still transfer to a packable challenge policy: task assembly, embodiment, reference quality and physical tracking.** Name it in any W3 pass; do not call a shipped-task result a challenge result. Earliest kill check: Stage 0's grasp closure and first-frame support. If M2 is NULL, W3 closes for this deadline and D2 v5 stands.
+**Cut:** W4, W2a's rotation model, the FoundationPose static panel (static, physical admission unsolved), spoon expansion, and broad restoration of the recycled slices. MediaPipe is cut unless `route-v2d-25` shows it can feed upstream's retargeting. First to go if time runs short after that: M2v's second variation. **The biggest unproven link is still transfer to a packable challenge policy: task assembly, embodiment, reference quality and physical tracking.** Name it in any W3 pass; do not call a shipped-task result a challenge result. Earliest kill check: Stage 0's grasp closure and first-frame support. If M2 is NULL, W3 closes for this deadline and D2 v5 stands.
 
 ## 6. What done means
 

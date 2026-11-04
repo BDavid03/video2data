@@ -6,6 +6,8 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
 
 ## Open
 
+**Your decision, 2026-11-04 05:35 UTC: may a scan-based tracker produce the object trajectory for a scored episode?** The chain assumes no until you say otherwise. Your 01:53 UTC line allows scans to train a rotation model and to extend the H3 heading method. Using FoundationPose with a scan to generate a scored episode's moving reference goes further, and the FAQ speaks of reconstructing the objects to generate trajectories. FoundationPose's licence is also noncommercial, and the challenge asks for Apache-2.0 winning code. A learned policy would still produce the rollout, and the scan would still enter no mesh or simulated asset. It is approved so far for measuring on train. If yes, write a dated line such as "2026-11-04: FoundationPose tracking with scans allowed for scored references". Without it, the chain looks for a scan-free reference (our reconstructions, stereo and masks).
+
 **Your layout, 2026-11-04 03:55 UTC. Nothing here blocks the chain's work.**
 1. **`data/.runtime` needs repair if you want to use it from the main checkout.** Its venvs still name the old absolute path, so `data/.runtime/linux-cuda/bin/python` does not start. The chain's worktree now has its own private copies, so your moves cannot break its runs, and it writes nothing in your folder.
 2. **When your layout is final, say so or commit it,** and the chain ports the branch to it. Until then, commands in the main checkout fail, because the code still names `track3/`, `outputs/` and so on, and the running driver will recreate a top-level `outputs/` the next time it opens its log. Details: `docs/chain/layout-migration-plan.md`.

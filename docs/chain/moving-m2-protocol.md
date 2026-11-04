@@ -1,5 +1,14 @@
 # M2 protocol: does the recipe transfer to a challenge-type episode? (`COMPLETION-PLAN.md` W3; fixed before any number below exists)
 
+## State (4 Nov 2026, 05:35 UTC): Stage 0 STOPPED; no training has run; awaiting a disclosed amendment
+
+The narrow builder ran on real 39 (`outputs/moving_policy/ep39/stage0.json`, `final-checks.json`). **Failed, after the one allowed repair:** check 4, wrist speed 1.59 m/s, 7.43 times the example against a limit of 2; check 5, the object reaches 10.5 m in 11 CPU physics steps with 0.73 degrees of rotation, which looks like a solver blow-up (hands start 4 to 6 cm inside the support), not a fall. Passed: schema, closure, penetration, truth; closure and truth are close to vacuous for a rigid grasp and an identical reference.
+
+**The next context settles this before any GPU minute is planned around it: a disclosed amendment, or a recorded stop.** No training number exists, so a redesign remains clean. Inputs to it:
+- **Upstream's own route (owner, about 05:30 UTC: "worth using: https://github.com/nvidia-isaac/video_to_data.git"):** the pinned checkout has `reconstruction/`, `ego_recon_to_sharpa.py`, `contact_labels.py`, `generate_rigid_urdfs.py`, `reconstruct_support_surfaces.py`, `data_quality_checks/` and `docs/e2e_workflow.md`. See Codex `route-v2d-25`.
+- **Check 4's limit was a guess from one example,** and human motion on 39 is genuinely fast: 71 against 9 cm/s. Decide it on what the tracker can follow, not by loosening it silently.
+- **Gate fixes from critic 25, to take with the amendment.** AUC 0.275 is too weak: with position perfect and rotation held, 39 reaches 0.413 from a static 0.178, so GO must include rotation or a higher AUC. Scored adoption clause 3 scores against its own reference, so a wrong path passes; it needs `E` and an orientation bound, and a **label-free reprojection of achieved poses on the video's masks**, since residual camera motion could become a trackable, wrong reference. Clause 2 is undefined until M1's protocol. Check 5 cannot literally precede all simulation; it is a CPU physics check. The spoon inherits no scan-free labelled test.
+
 ## Question
 
 M0b's recipe tracks the shipped tissue box (`moving-m0b-outcome.md`). That task has a captured hand reference and its own mesh. A challenge policy has neither. M2 asks whether a policy tracks an object on a challenge episode when the hands come from the object's own trajectory. **Tuning episode 39 (dust pan), single object, mocap reference: an upper bound.** A failure here rejects this recipe for this deadline, not the idea. A pass says nothing yet about a video-derived reference; that is M2v below. Route: Codex `route-w3-25`.

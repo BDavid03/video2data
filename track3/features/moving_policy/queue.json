@@ -1,0 +1,12 @@
+{
+  "episode": 39,
+  "acquisition_seconds": 0.5,
+  "seed": 0,
+  "protocol": "docs/chain/moving-m2-protocol.md",
+  "measurement": "outputs/mesh_extents/public/episode_000039/20261101T103712.508161Z-a07ab7a6/run.json",
+  "attributes": "track3/features/mesh_extents/attributes-round3.json",
+  "selection": "outputs/dynamic_feasibility/d1/sizing-fixed/selection.json",
+  "boundary_steps": 32814080,
+  "final_steps": 66763776,
+  "maximum_seconds": 4500
+}

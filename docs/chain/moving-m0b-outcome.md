@@ -26,17 +26,19 @@ GO-1 needed `T >= 0.50`, `Q >= 0.50`, `E <= 3.44 cm`. The reference travels up t
 
 ## Reading
 
-- **The earlier NO-GO reflected the budget, not the method.** D1 had 2,632 learner updates, and the boundary policy has 24,566. **Ratio, replay capacity, horizon and transitions all changed together, so this does not say which one mattered,** only that the old recipe was far short.
-- **Most of the gain arrives early.** The boundary policy, 11.2M transitions and about 14 minutes after the resume, is already at `T` 0.986 and AUC 0.963. It had a warm start from D1's 21.6M transitions, so a fresh run's time is not yet measured.
-- **Throughput was also misjudged.** Probes measured 26,189 to 35,495 transitions/s against D1's 13,000, at far higher update ratios. D1 saved a 158 MiB checkpoint pair every five collections; this run saved every 493 collections. That fits the difference, but no run has isolated it. Either way, the plan's budgets were pessimistic: a 66.76M schedule takes about 43 minutes at the measured rate, not 95.
+- **The revised recipe succeeds where the earlier, incomplete one failed.** D1 never ran its full schedule, so it was never a test of that recipe. At the boundary, transitions are 1.5 times D1's and learner updates 9.3 times. **Ratio, replay capacity, horizon and transitions all changed together, so this does not say which one mattered.** M0c tests the warm start.
+- **Most of the gain arrives early.** The boundary policy, 11.2M transitions after the resume, is already at `T` 0.986 and AUC 0.963. It had a warm start from D1's 21.6M transitions, so a fresh run's time is not yet measured.
+- **Throughput was also misjudged.** Probes measured 26,189 to 35,495 transitions/s against D1's 13,000, at far higher update ratios. D1 saved a 158 MiB checkpoint pair every five collections; this run saved every 493 collections. That fits the difference, but no run has isolated it. **This run itself averaged 21,100 transitions/s** (45.19M in 35.7 minutes), so the 1.25 planning margin was all used: a full 66.76M from nothing would take about 53 minutes, not the probe's 43. That is still far below the plan's earlier 95.
 - **This may bear on the leaderboard's 0.99, but nothing here shows it.** The method behind that score is still unknown. This task's reference and mesh are high quality, and 0.98 here says nothing yet about a challenge episode.
 
 ## Limits
 
-One seed, with a warm start. The contact diagnostic was skipped within the protocol's allowance, so whether the hands hold the box as a person would is not measured; the box's motion is. These metrics see position; orientation error here is 0.50 degrees, which is reported beside them.
+One seed, with a warm start. The contact diagnostic was skipped within the protocol's allowance, so whether the hands hold the box as a person would is not measured; the box's motion is. A palm-under lift would satisfy every metric here. These metrics see position; orientation error here is 0.50 degrees, reported beside them.
+
+**This task is easy in ways challenge episodes are not (Claude critic 25).** 93.7 % of the reference's displacement energy is vertical, its peak speed is 9.08 cm/s, and it rotates only 5.4 degrees. The held-still arm already has AUC 0.459. Early frames are not tracked: at frames 0 to 60 the box moves 0.31 cm against 1.55 cm, and the largest error is at frame 40. Tuning episode 39, by comparison, travels 39.1 cm, peaks at 71 cm/s and rotates 109 degrees, so GO-1 here predicts little about it.
 
 **The biggest unproven link is unchanged, and it is now the whole question:** transfer to a challenge episode. That needs task assembly, an embodiment, a video-derived reference of good enough quality, and physical tracking of a noisier reference than this one.
 
 ## Consequence, by the protocol
 
-Learning moves the object on the hand reference. M2 and M3 run on this recipe under their own gates; M1 becomes eligible. `COMPLETION-PLAN.md` section 5 is revised accordingly.
+Learning moves the object on the hand reference. M2 and M3 may use this recipe under their own gates; M1 becomes eligible. **M2's Stage 0 has since stopped** (see `moving-m2-protocol.md`, "State"), so a challenge-type task does not yet exist. `COMPLETION-PLAN.md` section 5 is revised accordingly.
