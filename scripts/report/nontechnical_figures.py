@@ -21,6 +21,9 @@ ROOT = Path(__file__).resolve().parents[2]
 OUTPUT = ROOT / "data/outputs/visuals"
 REPORT = ROOT / "docs/report/nontechnical"
 FIGURES = REPORT / "figures"
+
+EP38_IN_ENTRY = False
+POSE_SCORES = "none yet"
 os.environ["CUDA_VISIBLE_DEVICES"] = ""
 os.environ["JAX_PLATFORMS"] = "cpu"
 os.environ["MPLCONFIGDIR"] = str(OUTPUT / "matplotlib")
@@ -965,12 +968,57 @@ def video_path_comparison() -> dict:
             "angle_error_saved_mean_difference_degrees": float(abs(angle_error.mean()-sealed["mean_rotation_error_deg"]))}
 
 
-def video_policy_chart() -> dict:
-    """Plot M2v's saved measurements and the scorer's first-pose alignment."""
+def video_policy_chart(episode: int = 39) -> dict:
+    """Plot saved video-policy results: aligned practice 39 or self-reference 38."""
     used = []
-    base = "data/outputs/moving_policy/ep39-v1"
+    base = f"data/outputs/moving_policy/ep{episode}-v1"
     read_bytes("docs/chain/moving-m2v-outcome.md", used)
     read_bytes(f"{base}/result.md", used)
+    if episode == 38:
+        own = read_json(f"{base}/score-66763776/self_metrics.json", used)
+        first = read_json(f"{base}/score-66763776/first-pose.json", used)
+        reprojection = read_json(f"{base}/score-66763776/reprojection.json", used)
+        final = pd.read_parquet(io.BytesIO(read_bytes(f"{base}/score-66763776/trajectory.parquet", used))).sort_values("step")
+        midpoint_path = f"{base}/boundary-gpu-32814080/trajectory.parquet"
+        runs = [("Scheduled end: 66.76M", final, BLUE, "-")]
+        if (ROOT / midpoint_path).is_file():
+            midpoint = pd.read_parquet(io.BytesIO(read_bytes(midpoint_path, used))).sort_values("step")
+            runs.insert(0, ("Failed midpoint: 32.81M", midpoint, AMBER, "--"))
+        fig, axes = plt.subplots(1, 2, figsize=(14.6, 7.5))
+        fig.subplots_adjust(left=.075, right=.98, top=.77, bottom=.27, wspace=.30)
+        fig.suptitle("38 follows its video goal at the end; the midpoint failed.",
+                     x=.025, ha="left", y=.98, fontsize=22)
+        fig.text(.025, .90, "Goal from video, not truth; no labels • unaligned saved exports • no challenge score", fontsize=12)
+        measured = {}
+        for label, frame, colour, line in runs:
+            error = np.linalg.norm(positions(frame, "achieved")-positions(frame, "reference"), axis=1)*100
+            angle = orientation_error_degrees(
+                frame[[f"achieved_quaternion_{a}" for a in "xyzw"]].to_numpy(),
+                frame[[f"reference_quaternion_{a}" for a in "xyzw"]].to_numpy())
+            measured[label] = {"position_cm": float(error.mean()), "angle_degrees": float(angle.mean())}
+            for axis, values, unit in zip(axes, (error, angle), ("cm", "deg")):
+                axis.plot(frame.time_s, values, color=colour, ls=line,
+                          label=f"{label}: mean {values.mean():.2f} {unit}")
+        for axis, value, unit, title in zip(axes, (own["E_S_m"]*100, own["Theta_S_deg"]),
+                                           ("cm", "deg"), ("Position difference", "Turning difference")):
+            axis.axhline(value, color=GREY, ls=":", label=f"Held still: mean {value:.2f} {unit}")
+            axis.set(title=title, xlabel="Clip time (s)", ylabel=f"Error from video goal ({unit})\nNot truth; no labels", ylim=(0, None))
+            axis.legend(fontsize=9, loc="upper left")
+        final_values = measured["Scheduled end: 66.76M"]
+        if abs(final_values["position_cm"]-own["E_m"]*100)>1e-5 or abs(final_values["angle_degrees"]-own["Theta_deg"])>1e-5:
+            raise ValueError("Figure 20 does not reproduce the saved final self-reference errors")
+        caption = ("Goal from video, not truth; no labels. Curves show error over the clip at two saved checkpoints, not a training curve. "
+                   "Held still is a mean over the clip, not its per-frame error. Why the midpoint failed is undiagnosed. "
+                   "Following this goal does not show that the goal is right or that 38 beats its still-object export.")
+        footnote(fig, caption, 147)
+        save(fig, "20-episode38-video-goal.png", used, caption)
+        return {"position_cm": own["E_m"]*100, "angle_degrees": own["Theta_deg"],
+                "held_still_position_cm": own["E_S_m"]*100, "held_still_angle_degrees": own["Theta_S_deg"],
+                "checkpoints": measured, "first_pose_cm": first["position_error_cm"],
+                "first_pose_degrees": first["rotation_error_deg"], "reprojection_median": reprojection["median_iou"],
+                "reference_end_fraction": own["reference_end_fraction"],
+                "completed_without_reset": own["completed_without_reset"], "frames": len(final),
+                "label_access": False, "in_entry": EP38_IN_ENTRY}
     aligned = read_json(f"{base}/score-66763776/mocap_metrics_aligned.json", used)
     raw = read_json(f"{base}/score-66763776/mocap_metrics.json", used)
     own = read_json(f"{base}/score-66763776/self_metrics.json", used)
@@ -1018,12 +1066,15 @@ def video_policy_chart() -> dict:
             "aligned_angle_mean_difference_degrees":float(abs(theta.mean()-aligned["Theta_deg"])),"bars":values}
 
 
-def video_policy_footage() -> dict:
+def video_policy_footage(episode: int = 39) -> dict:
     """Draw the actual official stand-in and CPU replay hands in the frozen camera."""
     from src.features.moving_reference._object import render
     from src.features.moving_reference.camera import apply, project
 
-    used=[];base="data/outputs/moving_policy/ep39-v1";replay_base="data/outputs/visuals/policy-hands/ep39-video"
+    used=[];base=f"data/outputs/moving_policy/ep{episode}-v1";replay_base=f"data/outputs/visuals/policy-hands/ep{episode}-video"
+    figure_name = "19-policy-on-real-footage" if episode == 39 else "21-episode38-on-real-footage"
+    episode_label = "Practice 39" if episode == 39 else "38 | No labels"
+    review_name = "review-policy-on-real-footage.png" if episode == 39 else "review-episode38-on-real-footage.png"
     reference=read_json(f"{base}/reference.json",used)
     asset=read_json(f"{base}/asset.json",used)
     shift=np.asarray(reference["translation_m"])
@@ -1038,7 +1089,7 @@ def video_policy_footage() -> dict:
     # The simulation OBJ is already in body coordinates; apply no extra M1 body
     # constant and no scale correction. This deliberately shows the larger asset.
     mesh=trimesh.load(io.BytesIO(read_bytes(f"{base}/mini_dust_pan.obj",used)),file_type="obj",force="mesh",process=False)
-    tracking="data/outputs/moving_reference/ep39/candidate-c"
+    tracking=f"data/outputs/moving_reference/ep{episode}/candidate-c"
     with np.load(io.BytesIO(read_bytes(f"{tracking}/tracking.npz",used))) as data:
         cameras,k=data["world_T_camera"],data["intrinsics"]
     with np.load(io.BytesIO(read_bytes(f"{tracking}/reference.npz",used))) as data:
@@ -1046,7 +1097,7 @@ def video_policy_footage() -> dict:
     task_reference=positions(frame,"reference")-shift
     relocation_error=float(np.abs(task_reference-source[:,:3]).max())
     if relocation_error>1e-6:raise ValueError("Recorded task translation does not recover the frozen video path")
-    moments=[0,64,127,191,254,318];cache={};colours={"left":np.array([28,175,180]),"right":np.array([181,94,209])}
+    moments=([0,64,127,191,254,318] if episode == 39 else np.rint(np.linspace(0,len(frame)-1,6)).astype(int).tolist());cache={};colours={"left":np.array([28,175,180]),"right":np.array([181,94,209])}
 
     def pair(index):
         if index in cache:return cache[index]
@@ -1080,7 +1131,7 @@ def video_policy_footage() -> dict:
         cv2.drawContours(policy_view,contours,-1,(235,135,20),3,cv2.LINE_AA)
         view=np.full((420,960,3),250,np.uint8)
         view[40:340,:480]=cv2.resize(mask_view,(480,300));view[40:340,480:]=cv2.resize(policy_view,(480,300))
-        cv2.putText(view,f"Practice 39 | {times[index]:.2f} s | Pan mask",(10,26),cv2.FONT_HERSHEY_SIMPLEX,.53,(32,40,51),1,cv2.LINE_AA)
+        cv2.putText(view,f"{episode_label} | {times[index]:.2f} s | Pan mask",(10,26),cv2.FONT_HERSHEY_SIMPLEX,.53,(32,40,51),1,cv2.LINE_AA)
         cv2.putText(view,"Exported pan + CPU robot hands",(490,26),cv2.FONT_HERSHEY_SIMPLEX,.53,(32,40,51),1,cv2.LINE_AA)
         cv2.putText(view,f"Replay / official: mean {comparison['mean_m']*100:.3f} cm, max {comparison['max_m']*100:.3f} cm",(12,366),cv2.FONT_HERSHEY_SIMPLEX,.55,(32,40,51),1,cv2.LINE_AA)
         cv2.putText(view,"Orange: larger simulation pan | Teal / purple: robot hands, not the person's",(12,396),cv2.FONT_HERSHEY_SIMPLEX,.53,(32,40,51),1,cv2.LINE_AA)
@@ -1089,8 +1140,8 @@ def video_policy_footage() -> dict:
 
     sheet=Image.new("RGB",(1920,1260),"white")
     for n,index in enumerate(moments):sheet.paste(Image.fromarray(pair(index)),((n%2)*960,(n//2)*420))
-    sheet.save(FIGURES/"19-policy-on-real-footage.png")
-    video=FIGURES/"19-policy-on-real-footage.mp4"
+    sheet.save(FIGURES/f"{figure_name}.png")
+    video=FIGURES/f"{figure_name}.mp4"
     writer=cv2.VideoWriter(str(video),cv2.VideoWriter_fourcc(*"mp4v"),10.,(960,420))
     if not writer.isOpened():raise RuntimeError("Policy-on-footage MP4 encoder unavailable")
     sampled=list(range(0,len(frame),2))
@@ -1107,11 +1158,14 @@ def video_policy_footage() -> dict:
     if decoded!=len(sampled):raise ValueError("Incomplete policy-on-footage video")
     review=Image.new("RGB",(1920,840),"white")
     for i,picture in enumerate(previews):review.paste(picture,((i%2)*960,(i//2)*420))
-    review.save(OUTPUT/"review-policy-on-real-footage.png")
+    review.save(OUTPUT/review_name)
     caption=(f"CPU replay differs from official by {comparison['mean_m']*100:.3f} cm mean and {comparison['max_m']*100:.3f} cm maximum. "
              "Official achieved pan poses and CPU replay robot hands projected through the frozen camera after undoing the recorded task translation. "
              "The simulated hands are not the person's, and the larger stand-in is drawn as simulated, without shrinking or a new camera fit.")
-    register(FIGURES/"19-policy-on-real-footage.png",used,caption,source_steps=moments)
+    if episode == 38:
+        caption += (" No labels. Floating robot hands are not the person's grip; foreground occlusion is ignored. "
+                    "Image agreement is blind to camera drift. The 0.778 overlap used the smaller tracker mesh, not this larger stand-in.")
+    register(FIGURES/f"{figure_name}.png",used,caption,source_steps=moments)
     register(video,used,caption,frames=decoded,fps=10,bytes=video.stat().st_size)
     return {"official_comparison":comparison,"translation_undone_m":shift.tolist(),
             "reference_translation_equivalence_m":relocation_error,"frames_decoded":decoded,"video_bytes":video.stat().st_size,
@@ -1168,6 +1222,11 @@ def write_report(table: str, metrics: dict) -> None:
     m2v = metrics["video_policy"]
     m2v_view = metrics["video_policy_footage"]
     m2v_replay = m2v_view["official_comparison"]
+    ep38 = metrics["episode38_video_policy"]
+    ep38_replay = metrics["episode38_video_policy_footage"]["official_comparison"]
+    entry_sentence = ("It is in the entry following the owner's cut-off decision." if EP38_IN_ENTRY else
+                      "It is not in the entry unless the owner moves the 12:00 UTC cut-off; the entry still uses 38's still-object export.")
+    read_bytes("docs/chain/SUBMISSION.md", used)
     read_bytes("docs/chain/moving-m2v-outcome.md", used)
     read_bytes("data/outputs/moving_policy/ep39-v1/result.md", used)
     read_bytes("docs/chain/moving-m1-sealed.md", used)
@@ -1175,13 +1234,17 @@ def write_report(table: str, metrics: dict) -> None:
     read_bytes("data/outputs/moving_reference/ep39/candidate-c/results-amended.md", used)
     text = f"""# Seeing what the models do
 
-Recorded state: 4 November 2026, including M2v's policy trained on a video-derived path on practice episode 39, and its disclosed retrospective alignment correction.
+Recorded state: 4 November 2026, including the shape leaderboard result, the rejected pose file, and episode 38's completed video-goal policy.
 
 ## What the challenge asks
 
 Watch a person's camera footage, reconstruct the objects, and reproduce their movement in simulation. A **policy** is a controller trained by trial and error in simulation. A **reference** is the goal path it tries to follow. **AUC** is a 0-to-1 fit score: higher means closer agreement across a range of allowed errors; it is not a percentage of tasks completed.
 
-**Nothing here is a challenge result yet.** A learned policy has now moved an object along a path taken from video on practice episode 39. Its first automatic verdict was NULL and was corrected after the fact for a coordinate-frame mistake; that matters when weighing the result. The moving tissue box is the example supplied with the tools. This report claims no upload, leaderboard score or measured success on episode 38.
+**A first real challenge score exists for the object shapes; pose scores are {POSE_SCORES}.** The moving policies below are separate experiments. Practice 39's first automatic verdict was NULL and was corrected after the fact for a coordinate-frame mistake; that matters when weighing the result. The moving tissue box is the example supplied with the tools. Episode 38 has no labels, so its completed run measures following a video goal, not challenge accuracy.
+
+### What the leaderboard has actually recorded
+
+The submitted object shapes scored **CD-O 0.53562 cm** on the leaderboard, a measure of shape difference where lower is better. The pose file was rejected on **all five pose boards** because the organisers replaced the submission kit on **2 November** and our copy was from **30 September**. Pose scores: **{POSE_SCORES}**. The new pose metrics register each submitted shape to the hidden scan to set the object's coordinate frame, so shapes affect pose scores too. **Every pose number in this report was measured with the old scorer.** A rough re-check with the new scorer's own code, on our labelled practice clips with public shapes, gives a sense of the change, though it is not a prediction: the still poses move from 0.277 to about 0.29 to 0.30 on the training clips, and the video-trained policy on 39 falls from **0.775 to 0.669** with its simulated shape, or 0.591 with the tracker's shape. Our box-like shapes can also register to the hidden scan the wrong way round, by up to about 180 degrees. A repaired pose file with unchanged poses has been built and checked; the upload was held for the owner's approval. The shape score does not establish how well the poses work. This report records the finding without using the leaderboard to tune a model.
 
 ## What we have prepared to submit so far
 
@@ -1341,19 +1404,29 @@ The saved 0.80 median image-overlap check used the smaller tracker mesh, whereas
 
 [Watch the video-trained policy on the real footage](figures/19-policy-on-real-footage.mp4)
 
-**This is not a challenge score. Episode 38 has no labels available to us, and there is no guarantee this policy beats a still object on 38, even if its video and physical checks pass.** This report does not inspect the live 38 policy run.
+### Episode 38: the finished run follows its own video goal
 
-**[38 policy outcome: the lead will fill in the reviewed result here.]**
+**38 has no labels. These measurements say it follows its video goal, not that the goal is right or that it beats the still object on 38.** Its midpoint check failed badly: movement along the goal was only about a quarter of what was asked, with mean position error 25.16 cm and turning error 74.56 degrees. Nobody yet knows why the midpoint failed so badly and the final result did not. The run was stopped twice, once by its own rule and once by the owner, then resumed, losing part of its training memory each time. It is therefore a different experiment from 39's uninterrupted fresh run.
+
+![38: midpoint and final errors against its video goal, not truth; no labels](figures/20-episode38-video-goal.png)
+
+At its scheduled end, after 66.76 million training transitions, it follows its goal at **{ep38['position_cm']:.2f} cm and {ep38['angle_degrees']:.2f} degrees** on average, across all **{ep38['frames']} frames with no resets**. Held still against that same goal gives **{ep38['held_still_position_cm']:.2f} cm and {ep38['held_still_angle_degrees']:.2f} degrees**. The first pose differs by **{ep38['first_pose_cm']:.2f} cm** without alignment. Its median outline overlap is **{ep38['reprojection_median']:.3f}**, measured with the smaller tracker shape against predicted masks; this check cannot see camera drift. **It passes every written check. {entry_sentence}** Those checks were written for the old scorer; any later adoption also needs a shape in the rollout's object frame under the replacement kit.
+
+![38: official achieved pan and CPU replay hands on real footage, beside the pan mask](figures/21-episode38-on-real-footage.png)
+
+The CPU replay differs from the official achieved path by **{ep38_replay['mean_m']*100:.3f} cm on average and {ep38_replay['max_m']*100:.3f} cm at most**, without alignment. As in figure 19, the pan uses the official achieved poses and the hands use the CPU replay, projected through the frozen camera after undoing the saved task translation. There is no new camera fit, scale fit or pose alignment. The larger, thicker stand-in has a filled handle and can overshoot the real pan. The floating robot hands are not the person's fingers; their translucent link hulls ignore foreground occlusion. The 0.778 overlap used the smaller tracker shape, not this larger orange outline. Both the picture and that overlap are blind to camera drift and establish neither a natural grasp nor the correctness of the video goal.
+
+[Watch 38's finished policy on the real footage](figures/21-episode38-on-real-footage.mp4)
 
 ---
 
 Rebuild all figures, animations, the table and this report on CPU:
 
 ```bash
-CUDA_VISIBLE_DEVICES='' JAX_PLATFORMS=cpu PYTHONPATH=. data/.runtime/linux-cuda/bin/python -B scripts/report/nontechnical_figures.py
+CUDA_VISIBLE_DEVICES='' JAX_PLATFORMS=cpu OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 PYTHONPATH=. nice -n 19 data/.runtime/linux-cuda/bin/python -B scripts/report/nontechnical_figures.py
 ```
 
-Add `--replay` to explicitly rebuild all three CPU diagnostics, `--replay-pan` for M2 or `--replay-video-policy` for M2v; the default reads saved arrays. See [replay instructions](README.md). Input SHA-256 hashes and per-figure source mappings: `data/outputs/visuals/inputs.json`; numeric checks and build details: `data/outputs/visuals/build-summary.json`. The default reads saved outputs, cached camera frames, installed visual meshes and recorded notes; it does not run a model or read a scan.
+Add `--replay` to explicitly rebuild all four CPU diagnostics, `--replay-pan` for M2, `--replay-video-policy` for M2v on 39 or `--replay-video-policy 38` for 38; the default reads saved arrays. See [replay instructions](README.md). Input SHA-256 hashes and per-figure source mappings: `data/outputs/visuals/inputs.json`; numeric checks and build details: `data/outputs/visuals/build-summary.json`. The default reads saved outputs, cached camera frames, installed visual meshes and recorded notes; it does not run a model or read a scan.
 
 Evidence: [box outcomes](../../chain/moving-m0b-outcome.md), [earlier policy](../../chain/moving-m0-outcome.md), [pose pilot](../../chain/foundationpose-pilot-outcome.md), [frame-zero panel](../../chain/frame0-panel-outcome.md), [pan outcome](../../chain/moving-m2-outcome.md), [video-policy outcome and correction](../../chain/moving-m2v-outcome.md), [video-path sealing record](../../chain/moving-m1-sealed.md), [episode-39 protocol](../../chain/moving-m2-protocol.md), [entry facts](../../chain/COMPLETION-PLAN.md#1-where-the-entry-really-stands).
 """
@@ -1367,7 +1440,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--replay", action="store_true", help="Rebuild the CPU diagnostic before rendering")
     parser.add_argument("--replay-pan", action="store_true", help="Rebuild only the pan CPU diagnostic before rendering")
-    parser.add_argument("--replay-video-policy", action="store_true", help="Rebuild only M2v's CPU hand replay before rendering")
+    parser.add_argument("--replay-video-policy", nargs="?", const=39, type=int, choices=(38, 39), help="Rebuild only this video-policy CPU hand replay (default: 39)")
     args = parser.parse_args()
     for directory in (OUTPUT, FIGURES):
         directory.mkdir(parents=True, exist_ok=True)
@@ -1391,15 +1464,15 @@ def main() -> None:
                             "--output", str(replay_output),
                             "--official", str(base / "score-66763776/trajectory.parquet")],
                            cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True)
-    if args.replay or args.replay_video_policy:
-        replay_output = OUTPUT / "policy-hands/ep39-video"
+    for episode in ([39, 38] if args.replay else ([args.replay_video_policy] if args.replay_video_policy else [])):
+        replay_output = OUTPUT / f"policy-hands/ep{episode}-video"
         replay_output.mkdir(parents=True, exist_ok=True)
-        base = ROOT / "data/outputs/moving_policy/ep39-v1"
+        base = ROOT / f"data/outputs/moving_policy/ep{episode}-v1"
         with (replay_output / "replay.log").open("w") as log:
             subprocess.run([str(ROOT / "data/.runtime/flashchord/venv/bin/python"), "-u", "-B",
                             str(ROOT / "scripts/report/policy_hands.py"),
                             "--checkpoint", str(base / "training/policy_66763776.safetensors"),
-                            "--task", str(base / "motion/sequence_id=episode_000039/robot_name=sharpa_wave/task.parquet"),
+                            "--task", str(base / f"motion/sequence_id=episode_{episode:06d}/robot_name=sharpa_wave/task.parquet"),
                             "--output", str(replay_output),
                             "--official", str(base / "score-66763776/trajectory.parquet")],
                            cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True)
@@ -1422,6 +1495,8 @@ def main() -> None:
     video_comparison = video_path_comparison()
     m2v = video_policy_chart()
     m2v_footage = video_policy_footage()
+    ep38 = video_policy_chart(38)
+    ep38_footage = video_policy_footage(38)
     review = review_previews()
     summary = {"learning": learning, "error": error, "policy_visuals": policy,
                "policy_hands": policy_hands, "pan_masks": pan_masks,
@@ -1429,13 +1504,15 @@ def main() -> None:
                "pan_learning": pan_result, "pan_policy_hands": pan_hands,
                "tracked_pan": tracked_pan, "video_path_comparison": video_comparison,
                "video_policy": m2v, "video_policy_footage": m2v_footage,
+               "episode38_video_policy": ep38, "episode38_video_policy_footage": ep38_footage,
+               "leaderboard": {"shape_CD_O_cm": 0.53562, "pose_scores": POSE_SCORES, "pose_scorer": "old kit throughout this report"},
                "artifact_review": review,
-               "missing": ["No challenge score or labelled episode-38 policy assessment.",
+               "missing": ["No pose challenge score or labelled episode-38 policy assessment.",
                            "No labels or world-path accuracy measurement for episode 38.",
                            "No independent panel registration estimate on pair 12.",
                            "Warm-start middle checkpoint has only a logged time bound."],
                "checks": {"CPU_only": os.environ["CUDA_VISIBLE_DEVICES"] == "",
-                          "frames_from_recorded_exports": True, "new_model_execution": args.replay or args.replay_pan or args.replay_video_policy}}
+                          "frames_from_recorded_exports": True, "new_model_execution": bool(args.replay or args.replay_pan or args.replay_video_policy)}}
     write_report(table, summary)
     summary["files_written"] = sorted([
         "scripts/report/nontechnical_figures.py", "data/outputs/visuals/build-summary.json",

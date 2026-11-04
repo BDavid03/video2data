@@ -1,12 +1,16 @@
 # Seeing what the models do
 
-Recorded state: 4 November 2026, including M2v's policy trained on a video-derived path on practice episode 39, and its disclosed retrospective alignment correction.
+Recorded state: 4 November 2026, including the shape leaderboard result, the rejected pose file, and episode 38's completed video-goal policy.
 
 ## What the challenge asks
 
 Watch a person's camera footage, reconstruct the objects, and reproduce their movement in simulation. A **policy** is a controller trained by trial and error in simulation. A **reference** is the goal path it tries to follow. **AUC** is a 0-to-1 fit score: higher means closer agreement across a range of allowed errors; it is not a percentage of tasks completed.
 
-**Nothing here is a challenge result yet.** A learned policy has now moved an object along a path taken from video on practice episode 39. Its first automatic verdict was NULL and was corrected after the fact for a coordinate-frame mistake; that matters when weighing the result. The moving tissue box is the example supplied with the tools. This report claims no upload, leaderboard score or measured success on episode 38.
+**A first real challenge score exists for the object shapes; pose scores are none yet.** The moving policies below are separate experiments. Practice 39's first automatic verdict was NULL and was corrected after the fact for a coordinate-frame mistake; that matters when weighing the result. The moving tissue box is the example supplied with the tools. Episode 38 has no labels, so its completed run measures following a video goal, not challenge accuracy.
+
+### What the leaderboard has actually recorded
+
+The submitted object shapes scored **CD-O 0.53562 cm** on the leaderboard, a measure of shape difference where lower is better. The pose file was rejected on **all five pose boards** because the organisers replaced the submission kit on **2 November** and our copy was from **30 September**. Pose scores: **none yet**. The new pose metrics register each submitted shape to the hidden scan to set the object's coordinate frame, so shapes affect pose scores too. **Every pose number in this report was measured with the old scorer.** A rough re-check with the new scorer's own code, on our labelled practice clips with public shapes, gives a sense of the change, though it is not a prediction: the still poses move from 0.277 to about 0.29 to 0.30 on the training clips, and the video-trained policy on 39 falls from **0.775 to 0.669** with its simulated shape, or 0.591 with the tracker's shape. Our box-like shapes can also register to the hidden scan the wrong way round, by up to about 180 degrees. A repaired pose file with unchanged poses has been built and checked; the upload was held for the owner's approval. The shape score does not establish how well the poses work. This report records the finding without using the leaderboard to tune a model.
 
 ## What we have prepared to submit so far
 
@@ -169,18 +173,28 @@ The saved 0.80 median image-overlap check used the smaller tracker mesh, whereas
 
 [Watch the video-trained policy on the real footage](figures/19-policy-on-real-footage.mp4)
 
-**This is not a challenge score. Episode 38 has no labels available to us, and there is no guarantee this policy beats a still object on 38, even if its video and physical checks pass.** This report does not inspect the live 38 policy run.
+### Episode 38: the finished run follows its own video goal
 
-**[38 policy outcome: the lead will fill in the reviewed result here.]**
+**38 has no labels. These measurements say it follows its video goal, not that the goal is right or that it beats the still object on 38.** Its midpoint check failed badly: movement along the goal was only about a quarter of what was asked, with mean position error 25.16 cm and turning error 74.56 degrees. Nobody yet knows why the midpoint failed so badly and the final result did not. The run was stopped twice, once by its own rule and once by the owner, then resumed, losing part of its training memory each time. It is therefore a different experiment from 39's uninterrupted fresh run.
+
+![38: midpoint and final errors against its video goal, not truth; no labels](figures/20-episode38-video-goal.png)
+
+At its scheduled end, after 66.76 million training transitions, it follows its goal at **1.42 cm and 1.59 degrees** on average, across all **263 frames with no resets**. Held still against that same goal gives **10.26 cm and 50.12 degrees**. The first pose differs by **0.30 cm** without alignment. Its median outline overlap is **0.778**, measured with the smaller tracker shape against predicted masks; this check cannot see camera drift. **It passes every written check. It is not in the entry unless the owner moves the 12:00 UTC cut-off; the entry still uses 38's still-object export.** Those checks were written for the old scorer; any later adoption also needs a shape in the rollout's object frame under the replacement kit.
+
+![38: official achieved pan and CPU replay hands on real footage, beside the pan mask](figures/21-episode38-on-real-footage.png)
+
+The CPU replay differs from the official achieved path by **0.632 cm on average and 1.838 cm at most**, without alignment. As in figure 19, the pan uses the official achieved poses and the hands use the CPU replay, projected through the frozen camera after undoing the saved task translation. There is no new camera fit, scale fit or pose alignment. The larger, thicker stand-in has a filled handle and can overshoot the real pan. The floating robot hands are not the person's fingers; their translucent link hulls ignore foreground occlusion. The 0.778 overlap used the smaller tracker shape, not this larger orange outline. Both the picture and that overlap are blind to camera drift and establish neither a natural grasp nor the correctness of the video goal.
+
+[Watch 38's finished policy on the real footage](figures/21-episode38-on-real-footage.mp4)
 
 ---
 
 Rebuild all figures, animations, the table and this report on CPU:
 
 ```bash
-CUDA_VISIBLE_DEVICES='' JAX_PLATFORMS=cpu PYTHONPATH=. data/.runtime/linux-cuda/bin/python -B scripts/report/nontechnical_figures.py
+CUDA_VISIBLE_DEVICES='' JAX_PLATFORMS=cpu OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 PYTHONPATH=. nice -n 19 data/.runtime/linux-cuda/bin/python -B scripts/report/nontechnical_figures.py
 ```
 
-Add `--replay` to explicitly rebuild all three CPU diagnostics, `--replay-pan` for M2 or `--replay-video-policy` for M2v; the default reads saved arrays. See [replay instructions](README.md). Input SHA-256 hashes and per-figure source mappings: `data/outputs/visuals/inputs.json`; numeric checks and build details: `data/outputs/visuals/build-summary.json`. The default reads saved outputs, cached camera frames, installed visual meshes and recorded notes; it does not run a model or read a scan.
+Add `--replay` to explicitly rebuild all four CPU diagnostics, `--replay-pan` for M2, `--replay-video-policy` for M2v on 39 or `--replay-video-policy 38` for 38; the default reads saved arrays. See [replay instructions](README.md). Input SHA-256 hashes and per-figure source mappings: `data/outputs/visuals/inputs.json`; numeric checks and build details: `data/outputs/visuals/build-summary.json`. The default reads saved outputs, cached camera frames, installed visual meshes and recorded notes; it does not run a model or read a scan.
 
 Evidence: [box outcomes](../../chain/moving-m0b-outcome.md), [earlier policy](../../chain/moving-m0-outcome.md), [pose pilot](../../chain/foundationpose-pilot-outcome.md), [frame-zero panel](../../chain/frame0-panel-outcome.md), [pan outcome](../../chain/moving-m2-outcome.md), [video-policy outcome and correction](../../chain/moving-m2v-outcome.md), [video-path sealing record](../../chain/moving-m1-sealed.md), [episode-39 protocol](../../chain/moving-m2-protocol.md), [entry facts](../../chain/COMPLETION-PLAN.md#1-where-the-entry-really-stands).

@@ -3,7 +3,7 @@
 From the checkout root, using existing environments only:
 
 ```bash
-CUDA_VISIBLE_DEVICES='' JAX_PLATFORMS=cpu PYTHONPATH=. data/.runtime/linux-cuda/bin/python -B scripts/report/nontechnical_figures.py
+CUDA_VISIBLE_DEVICES='' JAX_PLATFORMS=cpu OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 PYTHONPATH=. nice -n 19 data/.runtime/linux-cuda/bin/python -B scripts/report/nontechnical_figures.py
 ```
 
 This rebuilds the report, figures, table and videos from saved outputs. It reads
@@ -23,8 +23,9 @@ official export. Quaternion order is xyzw in both records. The per-step angle
 arrays and bounds diagnosis are in `data/outputs/visuals/goal-box-angle-audit.json`.
 The large apparent angle in the earlier drawing was a bounds-frame error.
 
-To rerun all three CPU policy diagnostics before rebuilding, add `--replay`.
-Use `--replay-pan` for M2, or `--replay-video-policy` for M2v. Default builds read
+To rerun all four CPU policy diagnostics before rebuilding, add `--replay`.
+Use `--replay-pan` for M2, or `--replay-video-policy` for M2v on 39. Add `--replay-video-policy 38`
+to rebuild only 38's finished policy replay. Default builds read
 saved arrays. Rendering uses one OpenCV/BLAS thread to keep CPU use light.
 This launches the isolated FlashCHORD interpreter. It never scores or packs the
 diagnostic and never accesses the GPU. Its log is
@@ -49,7 +50,7 @@ frame window, speed, support, collision, timing and curriculum configuration.
 Its explicit changes are one world, CPU, deterministic inference, frame-zero
 reset and the upstream evaluation composition that removes assistance. CPU
 execution uses the same uncaptured `env.step`; GPU graph capture is omitted.
-The report renders the fixed M0c, M2 and M2v final artifacts. To show another saved
+The report renders the fixed M0c, M2, M2v and episode-38 final artifacts. To show another saved
 replay, add it deliberately to the report builder after inspecting it.
 
 The replay arrays contain each body's position and xyzw orientation after each
@@ -158,13 +159,45 @@ not describe this larger simulated outline.
 For a new M2v replay with no other replay rerun:
 
 ```bash
-CUDA_VISIBLE_DEVICES='' JAX_PLATFORMS=cpu OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 nice -n 10 data/.runtime/linux-cuda/bin/python -B scripts/report/nontechnical_figures.py --replay-video-policy
+CUDA_VISIBLE_DEVICES='' JAX_PLATFORMS=cpu OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 nice -n 19 data/.runtime/linux-cuda/bin/python -B scripts/report/nontechnical_figures.py --replay-video-policy
 ```
 
 The default command at the top rebuilds all presentation from saved arrays.
-The requested 38 policy-outcome placeholder is reserved for the lead. This job
-does not inspect that live run, read any 38 label, or imply that passing video
-and physical checks guarantees beating a still object on 38.
+`20-episode38-video-goal.png` compares the saved failed midpoint (32.81M)
+with the scheduled end (66.76M), against its own video goal, without alignment.
+Midpoint errors are **25.16 cm / 74.56 degrees**; final errors are
+**1.42 cm / 1.59 degrees**. Held still averages **10.26 cm / 50.12 degrees**.
+The grey lines are whole-clip means, not per-frame held-still errors. There are
+no labels and no challenge score on this chart.
+
+`21-episode38-on-real-footage.png` and `.mp4` reuse figure 19's renderer with
+an episode parameter. The official achieved pan is projected through the frozen
+camera beside its mask, with CPU replay robot hands. The replay differs from
+the official export by **0.632 cm mean / 1.838 cm maximum**, unaligned, across
+263 samples. The larger, solid-handled stand-in and floating robot hands are
+drawn as simulated. Occlusion is ignored; the camera can drift. The recorded
+0.778 outline overlap uses the smaller tracker mesh, not this larger pan.
+
+The report now records both stops/resumes and lost training memory, the
+undiagnosed midpoint failure, every final written check passing, and exclusion
+from the entry under the 12:00 UTC cut-off. It never reads or requests 38 labels.
+`EP38_IN_ENTRY = False` near the top of the generator controls the entry-status
+sentence; the lead can change that one value after an owner decision.
+`POSE_SCORES = "none yet"` controls pose-score text. The opening now records
+CD-O **0.53562 cm**, all five pose-board rejections, the replaced kit and the
+fact that every pose number shown uses the old scorer. No pose score is invented.
+
+To rebuild only 38's CPU diagnostic and then all presentation:
+
+```bash
+CUDA_VISIBLE_DEVICES='' JAX_PLATFORMS=cpu OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 PYTHONPATH=. nice -n 19 data/.runtime/linux-cuda/bin/python -B scripts/report/nontechnical_figures.py --replay-video-policy 38
+```
+
+This job ran the equivalent direct `policy_hands.py` command with checkpoint
+`ep38-v1/training/policy_66763776.safetensors`, episode 38's task, matching
+`score-66763776/trajectory.parquet` and output `policy-hands/ep38-video/`,
+then the default rebuild above. Replay log, status and comparison are in that
+output directory. No scoring, packing, GPU work or label access is involved.
 
 Provenance: `data/outputs/visuals/inputs.json` maps figures to hashed inputs;
 `build-summary.json` records numeric checks, decoded video frames and file paths.
