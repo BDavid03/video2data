@@ -54,7 +54,7 @@ rollouts do not reproduce the manipulation.
 
 Episode 38 uses a moving RL policy (FlashSAC under FlashCHORD, 66.76M transitions, seed 0) that reached its scheduled end following an object path tracked from the video. It finished after the 12:00 UTC last-pack cut-off, the owner moved the cut-off, and it passed the final numerical admission checks after disclosed tracker revisions, a retrospective alignment of the episode-39 prerequisite and an exception that allowed resumed training; it is packed as the moving v5 file. Training was stopped and
 resumed twice and lost its replay buffer each time. It failed its midpoint check, and we do not know why.
-Moving v5 (`1570037a`) is the intended final file and all-static combined v5 (`ddfc98b3`) is the fallback;
+Moving v5 (`b476eb1c`) is the counted file, uploaded 14:28 UTC; all-static combined v5 (`ddfc98b3`) is the fallback;
 [the submission ledger](docs/chain/SUBMISSION.md) records uploads and the final selection as they happen.
 
 ## Results
@@ -64,7 +64,7 @@ Leaderboard scores (public boards, 4 November 2026):
 | Leaderboard record | Boards | Result |
 | --- | --- | --- |
 | Combined v5 (all static), 14:15 UTC | All six | AUC 0.30715, SP-SR 0.15, MP-SR 0.0, RPE 20.108 cm, MPPE 14.624 cm, CD-O 0.56604 cm |
-| Moving v5 (episode 38 moving) | All six | not yet uploaded |
+| **Moving v5 (episode 38 moving), 14:28 UTC, the counted file** | All six | AUC 0.32339, SP-SR 0.20, MP-SR 0.0, RPE 20.108 cm, MPPE 14.296 cm, CD-O 0.56471 cm |
 | D1 v5 meshes | CD-O | 0.53562 cm, recorded but not the counted file |
 | D2 v5 poses | Five pose boards | Rejected: the kit replaced on 2 November needs poses and meshes in one file |
 
