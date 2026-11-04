@@ -285,3 +285,359 @@ Artifacts for review:
 The lead owns review, commit, the separate chain outcome/report documents and
 any sealed scoring decision. Candidate B, RL training and uploads were outside
 this CPU job. The sealed 39 labels remain unread by this job.
+
+## Candidate C: historical placement-only result (08:16 UTC)
+
+**C fails the measured 39 support rotation check; camera/object tracking and 38
+were not run.** This follows the ordered stop rule in the method-revision brief.
+A's source modules and `candidate-a*` outputs were unchanged. At that point no C
+full-clip reference was written. The completed continuation below supersedes this stop.
+
+Build/resume C's frame-0 geometry and its own-hull S2 check:
+
+```bash
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=2 data/.runtime/linux-cuda/bin/python -B -m src.features.moving_reference.candidate_c asset
+```
+
+The command reads only 39 frame 0 for fitting. It measures the silhouette's
+handle-hole center, heading, planar dimensions, width profile, head/neck and
+handle-ring dimensions. A refitted `thin_tool_profile` and a watertight mask
+extrusion are compared by frame-0 IoU; the closer fit is selected. The same asset
+is intended for 38. Its thickness is the 25th percentile of eroded stereo point
+heights above the table, **a floor-height proxy rather than an observed underside**.
+The canonical asset origin is its planar bounding center at half thickness;
+the resting pose constrains its base to table z=0, without inheriting world x as
+its heading. The pan scan is loaded once solely to re-derive the same bounding
+axis/origin body convention; the old and new transforms are recorded and agree.
+
+The earlier brief gated this camera-only command on placement; the continuation
+brief removes that restriction:
+
+```bash
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=2 data/.runtime/linux-cuda/bin/python -B -m src.features.moving_reference.candidate_c camera
+```
+
+**At that stage this operation had not run.** KLT, sparse BA, table refinement,
+model tracking, freezing and 38 were subsequently completed in the continuation below.
+
+The placement defect in A was an unconstrained height adjustment: its silhouette
+optimizer could lower the oversized mesh by 6 cm to make the projection smaller.
+C derives metric footprint from calibrated rays intersecting the table-parallel
+plane, and fixes contact height. Its 39-only measurements yield 0.18176 ×
+0.16621 m, with a 6.628 mm extrusion. The ring hole is retained. The selected mesh
+has 2744 vertices and 5488 faces and is watertight.
+
+| Measured gate | Frozen limit | A39 | C39 | A38 | C38 |
+|---|---:|---:|---:|---:|---|
+| Frame-0 base gap (mm) | ≤5 | 0 PASS | 0 PASS | 0 PASS | NOT RUN |
+| Frame-0 penetration (mm) | ≤5 | 54.5 FAIL | numerical zero PASS | 84.9 FAIL | NOT RUN |
+| Zero-action translation (mm) | ≤10 | 58695 FAIL | 4.920 PASS | 536.2 FAIL | NOT RUN |
+| Zero-action rotation (deg) | ≤2 | 146.45 FAIL | 4.754 FAIL | 174.65 FAIL | NOT RUN |
+
+`ep39/candidate-c/results.md` tabulates every original gate alongside A39/A38;
+unreached C gates are explicitly NOT RUN. C's frame-0 IoU improves from 0.4156
+for the original mesh resting flat to 0.6682 for the measured profile and 0.9105
+for the selected mask extrusion. This is a fit on that same frame, not a passing
+whole-clip reprojection gate. The initial table is still A's frame-0 definition
+(3.46 mm RMS, 6.54° patch disagreement); the scheduled multi-frame table revision
+was not reached and is not claimed as passing.
+
+The support check uses **this task's eight imported Newton/CoACD hulls**, a
+footprint-covering cylinder exactly 1 mm below their lowest vertex, mass 0.3 kg
+and diagonal inertia 0.001 kg m². No M2 pose, fixture placement or collision hull
+is reused. Shipped template hands are translated clear, contact references are
+zero, the evaluator runs on CPU with VOC scale 0 and zero actions, and no resets
+occur. The prospectively retained horizon is one second/20 steps. Its maximum
+rotation through step 19 is 0.721°; step 20 reaches 4.754°. The gate **fails** over
+the full horizon. The protocol states 1 cm/2° limits without a duration, so this
+gate is not fully specified; no shorter horizon is substituted to claim a pass.
+
+I viewed `asset/A-versus-C-frame0.png`, the full-frame C overlay and
+`support-diagnostic.png`. C's outer footprint fits much better, but the projected
+hole is slightly shifted/narrowed and the uniform thin extrusion flattens the
+visible raised walls. No motion/occlusion performance was measured or viewed.
+
+Provenance caveat: reading the named S2 `candidate.json` for setup also exposed
+pre-existing M2-derived motion/grasp metadata. No episode parquet label file was
+opened and none of those fields were used. Subsequent S2 reads were limited to
+its URDF and implementation. This incidental exposure is recorded in
+`output-audit.json` for the lead's research-integrity review.
+
+The first C support worker failed because the isolated FlashCHORD interpreter
+has no OpenCV. Imports were made lazy; nothing was installed. That failed log is
+preserved, and the corrected real CPU run produced the failure above. Compilation
+and CPU imports of all three new modules passed. No test suite or camera run ran.
+The final audit independently recomputes support motion, checks watertightness,
+base/table alignment, imported-hull clearance and input hashes, and verifies A's
+frozen sources remain unchanged. Artifacts and exact commands are inventoried
+inside `ep39/candidate-c/`; nothing in A's run directories was rewritten.
+
+## Candidate C: completed continuation, frozen 08:39:52 UTC
+
+**39 FAIL: 16/23 checks pass. 38 FAIL: 17/23 checks pass.** Both references are
+written with `gates_passed=false`; neither is admitted for policy training.
+Per-frame `valid` means an observed camera/model estimate, not global admission.
+The labelled overlays make this distinction explicit. No source module changed
+after the C freeze; 38 ran once. No labels or mocap were read or scored during
+this continuation, and no M2 task or motion fields were consumed.
+
+Run/resume the fixed two-item CPU support queue (S2, then exactly one S3):
+
+```bash
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. OPENBLAS_NUM_THREADS=1 data/.runtime/linux-cuda/bin/python -B -m src.features.moving_reference.support_drop run
+```
+
+Run the full ordered 39 pipeline; support failure is recorded and does not stop it:
+
+```bash
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=2 data/.runtime/linux-cuda/bin/python -B -m src.features.moving_reference.full_c run --episode 39
+```
+
+Freeze C's source hashes, settings, reference, visual asset and body convention:
+
+```bash
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. data/.runtime/linux-cuda/bin/python -B -m src.features.moving_reference.full_c freeze
+```
+
+Run 38 once with those exact sources/settings and the 39-only asset:
+
+```bash
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=2 data/.runtime/linux-cuda/bin/python -B -m src.features.moving_reference.full_c run --episode 38
+```
+
+The handler refuses changed frozen code on 38 and writes `once.json` before work.
+Cached stages avoid repeating finished work. An initial 35-evaluation BA and its
+full 39 output are preserved under `initial-35-evaluations/`; the final numerical
+budget is 200 evaluations on both episodes. Both hit that cap without convergence.
+The early OpenCV failures, rectification/mask identities and command logs are
+retained. The 39 post-processing reruns corrected complete-triangle reprojection
+and speed at the submitted body origin; they reuse the fitted tracks, do not move
+a threshold, and precede the freeze.
+
+`camera_ba.py` tracks a dense 16-pixel grid, using KLT forward/backward checks,
+calibrated LR-consistent stereo, and subpixel stereo LK where available. The
+fallback remains calibrated stereo, never monocular depth. Empty KLT tracks are
+handled explicitly. A deterministic quarter of grid tracks is held out at birth;
+its observations never enter PnP initialisation or BA. Training-track RANSAC
+outliers define moving-region exclusions, including the person at the left.
+BA optimises all frame poses and up to 1400 training landmarks with a sparse
+Jacobian, Huber loss and left/right pinhole residuals in metric scale. First camera
+pose fixes the gauge. Held-out metrics use the unchanged `gates.py` definitions.
+
+The table uses at most the first 12 frames, stopping at first dilated hand/pan
+intersection. The original four image-patch predicates and their size are kept.
+The pooled plane defines z and a rigid gauge update applied to all camera poses.
+Frame-0 placement is independently recovered on each episode with the fixed 39
+asset resting flat; it does not copy a world-axis heading or an old trajectory.
+
+`model_track.py` fits SE(3) from previous world pose and KLT motion prediction,
+using two-way distance-transform silhouette chamfer outside hands and robust
+stereo-to-sampled-own-surface distance. Weak fits use additional 180° starts about
+the long and normal axes. Forward and backward passes are compared at each frame.
+Only one five-frame, order-two Savitzky–Golay smoothing pass is applied. Final IoU
+uses every triangle of the unchanged visual mesh; the cap-outline approximation
+is used only inside the bounded optimiser. The independent audit reproduces the
+exact IoU on twelve real frames per episode with zero difference.
+
+| Measurement | A39 | C39 | A38 | C38 |
+|---|---:|---:|---:|---:|
+| Camera coverage | 56.1% FAIL | 100% PASS | 62.7% FAIL | 100% PASS |
+| Held-out median / p95 px at 640 width | .942 / 7.181 FAIL | .359 / 1.641 FAIL | .804 / 6.901 FAIL | .312 PASS / 1.421 FAIL |
+| Held-out world residual mm | 36.6 FAIL | 25.4 FAIL | 29.3 FAIL | 19.5 FAIL |
+| Table patch disagreement ° | 6.54 FAIL | 2.286 FAIL | 4.03 FAIL | 2.634 FAIL |
+| Original ≥30 KLT correspondence coverage | 81.8% FAIL | 81.8% FAIL | 86.7% FAIL | 86.7% FAIL |
+| C ≥30 stereo-pixel coverage, separate diagnostic | — | 100% | — | 100% |
+| FB translation mm / rotation ° | 4.25 / .501 PASS | .703 / .697 PASS | 4.06 / .471 PASS | .415 / .407 PASS |
+| Mesh IoU median / p10 | .493 FAIL / .481 PASS | .859 / .827 PASS | .551 FAIL / .540 PASS | .864 / .810 PASS |
+| Reprojection coverage | 16.0% FAIL | 100% PASS | 18.6% FAIL | 100% PASS |
+| Initial gap / penetration mm | 0 / 54.5 FAIL | .465 / 0 PASS | 0 / 84.9 FAIL | 0 / .673 PASS |
+
+Every frozen threshold and pass/fail value appears in `epNN/candidate-c/gates.json`
+and the full A/C table in `results.md`. The original 30-correspondence gate is
+explicitly **A's KLT/RANSAC inlier count**. C's dense supported mask pixels are
+reported separately and are not substituted into that gate. This gate remains
+well-defined numerically but is specific to the feature-tracking method; both
+counts are retained for the lead. A's archived speed is at its asset center;
+C measures speed at the submitted body origin. Both pass their unchanged limit.
+
+The two 60-step hands-cleared drops are both failures:
+
+| Collision variant | Thickness | Hulls | Max translation | Max rotation | First >2° |
+|---|---:|---:|---:|---:|---:|
+| S2 | 6.628 mm | 8 | 1.876 m FAIL | 177.18° FAIL | step 20, 1.00 s |
+| S3, exactly one change | ≥10 mm | 12 | .2023 m FAIL | 168.45° FAIL | step 6, .30 s |
+
+Both use unedited CoACD, 0.3 kg, diagonal 0.001 inertia, one-mm hull clearance,
+zero actions and no resets, with 81 stationary reference frames to cover the full
+60-step horizon. S3 changes only z thickness of the collision proxy; the tracking
+and exported visual mesh hash is unchanged. The isolated drop importer uses the
+collision proxy file; no thicker shape is rendered into the video reference.
+The gate table records the shared S3 asset drop on both episodes, not an extra
+38 support trial. S2 is also reported in full. Nothing was iterated beyond these
+two queued drops.
+
+The first S2 jump is **tilt-dominated**, axis [-.379, -.925, -.022] in world xyz.
+Own hull shape 110 rises from 691 N to 1155 N peak contact force at that interval;
+shape 114 peaks at 1313 N. S3's first failed rotation is also tilt-dominated;
+contact is lost at that control step. `support-drop-summary.json` retains per-hull
+forces around the first failure and the largest later rotation jump;
+`support-drop-comparison.png` shows rotation/tilt, displacement and hull-force
+heatmaps. These large numerical excursions are failed support diagnostics,
+not motion measured in the video.
+
+I viewed both full twelve-frame strips, enlarged samples, tracking plots and
+world top/side trajectories. The reconstructed outline follows lifting and
+rotation much better than A. On 39 the grip/ring around sampled frames 87 and
+202 remains occluded, and the low walls are flattened. On 38 the frame-0 fit is
+weaker than the later samples, the rim/handle at 71/167 remains uncertain under
+the hand, and the late returned pan has a small boundary mismatch. No sampled
+identity switch or gross off-object drift is apparent. High silhouette IoU and
+small forward/backward error do **not** prove world pose accuracy; camera gates
+still fail. Each trajectory uses its own table/initial-view world gauge, with
+video time colours and the submitted body origin, and contains no mocap curve.
+
+Final reference SHA-256:
+
+- 39: `46a6fc97eb42c09e5611cd4853455f55e730564b6269ad22b1e594a97a34b56e`.
+- 38: `1c84c24447e3c901ab03315a733c901a2a7860fb872676214f92d468245a58cb`.
+
+The independent campaign audit finds no input/source hash mismatch, verifies the
+same frozen code/body/asset on 38, exact PTS and frame identities, finite unit
+quaternions, body-convention composition to 2.22e-16, and exactly one smoothing
+pass. Independent gate aggregates agree within 1.4e-12. All five C modules compile
+and CPU-import. No test suite, GPU, install, upload, mutating git or label scoring
+ran. The earlier placement-only report is preserved in `placement-only-report/`;
+its script is historical and must not be used to overwrite the completed run.
+
+## Amendment 1, 09:15 UTC hand-off
+
+The protocol amendment is explicit and was not edited. The frozen `gates.json`
+files remain byte-for-byte intact. `gates-amended.json` keeps their values beside
+the new instruments and thresholds. **Both episodes still FAIL.**
+
+| Rule/instrument | 39 | 38 |
+|---|---:|---:|
+| Original frozen rule | FAIL, 16/23 pass | FAIL, 17/23 pass |
+| Amended rule | FAIL, 22/28 pass | FAIL, 24/28 pass |
+| Held-out median / p95, px | .359 / 1.641 PASS | .312 / 1.421 PASS |
+| Patch normal, <=3 degrees | 2.286 PASS | 2.634 PASS |
+| Table max frame-median offset, <=10 mm | 92.62 FAIL | 93.46 FAIL |
+| Table p95 frame medians, <=15 mm | 79.31 FAIL | 82.25 FAIL |
+| Late table normal, <=2 degrees | 3.46 FAIL | 49.80 FAIL |
+| Table/landmark usable coverage, >=80% | 72.41% FAIL | 91.63% PASS |
+| Long-baseline max median / p95, <=10/20 mm | 6.29 / 4.63 PASS | 5.22 / 4.23 PASS |
+| Stereo-pixel coverage, >=90% | 100% PASS | 100% PASS |
+| Old KLT count retained beside new | 81.8% | 86.7% |
+
+The noise-floor control does **not** explain the original 3D residual: near-static
+same-track controls are 15.21/12.53 mm, versus old 25.37/19.46 mm. The original
+instrument therefore stands and fails. The perpendicular number is recorded but
+is not used to claim a pass. Near-static means <=1 mm camera translation and
+<=0.2 degrees rotation between consecutive frames, fixed before measurement.
+The conservative explanation rule and all control frame identities are recorded.
+
+No camera change was retained. On 39 only 21.3% of the high-error tail lies in the
+outer image tenth, versus 17.1% of all tracks; its median location is [.481,.441],
+depth 1.03 m and age 33 frames. That is not an isolated edge/calibration defect
+justifying a correction. Held-out selection and camera matrices are unchanged.
+
+The independent table region is a fixed frame-0 image ellipse centered at
+[.52W,.72H], radii [.17W,.25H], excluding the 21-pixel-dilated frame-0 pan/hands.
+Training-only points define its frame-0 plane; held-out IDs are lifted at first
+sight, never re-anchored, and projected back to that image-region rule. No pan
+pixels enter the table checks. Too few points is a failure. The fixed disc/cloth
+region does not supply a stable plane here; the failed offsets/normals are not
+presented as a precise measurement of camera error alone.
+
+The body constant **was wrong**: asset coordinates were treated as bounding
+axes. The orthographic overlay exposed a 12.3407-degree in-plane offset. The
+near-equal planar bounding dimensions are disambiguated by the asset's handle
+hole, and the known construction +z avoids the symmetric extrusion's ambiguous
+area-median sign. The scan floor sign itself is correct: the interior floor lies
+below the rim. The corrected bounding-frame transform and both old/new values
+are in `asset/body-convention.json`; `asset/body-overlay.png` shows labelled top,
+side and end views and was inspected. Both references were re-expressed under
+this fixed transform; geometry, trajectories and camera were not refitted.
+Old references are preserved as `reference-before-amendment.npz`.
+
+Run 39 amended diagnostics: `PYTHONPATH=. data/.runtime/linux-cuda/bin/python -B -m src.features.moving_reference.amendment run --episode 39`.
+Freeze: `PYTHONPATH=. data/.runtime/linux-cuda/bin/python -B -m src.features.moving_reference.amendment freeze`.
+Run 38 once: `PYTHONPATH=. data/.runtime/linux-cuda/bin/python -B -m src.features.moving_reference.amendment run --episode 38`.
+The amended freeze precedes the single amended 38 diagnostic pass. No label
+scoring ran. `results-amended.md` lists every amended gate and final hashes.
+Support is retained as a diagnostic and excluded from amended admission.
+
+
+### Table instrument audit after sealing
+
+The table instrument had contamination and fitting defects. Its fixed ellipse included the lap below the table; its SVD/clipping fit produced frame-0 normals 63.21 degrees (39) and 48.80 degrees (38) away from world up. RANSAC on frame-0 training tracks identifies a table footprint, carried by a plane-induced image mapping. Held-out errors never select members. The 15 mm RANSAC tolerance is inherited from the original estimator, fixed for both clips before corrected measurements; all gate limits remain unchanged. The late plane uses the same RANSAC rule. References, camera poses, old gates and masks are unchanged.
+
+| Instrument | Limit | 39 before → after | 38 before → after |
+|---|---:|---:|---:|
+| Maximum frame median offset | 10 mm | 92.62 → 4.03 | 93.46 → 3.54 |
+| p95 frame median offset | 15 mm | 79.31 → 3.22 | 82.25 → 3.19 |
+| Late normal change | 2 degrees | 3.460 → 0.409 | 49.801 → 0.621 |
+| Table / landmark coverage | at least 80% | 72.41 → **23.51 FAIL** | 91.63 → **33.08 FAIL** |
+| Maximum in-plane frame median | 10 mm | 6.29 → 2.28 | 5.22 → 2.47 |
+
+**Both still fail: 25/28 gates each.** Only 75/319 and 87/263 frames retain at least 30 table tracks. Those sparse subsets do not establish full-clip camera accuracy. The original world residual remains failed. No conditional rule based on labels was applied. With all original contaminated observations retained, robust fitting alone gives late normal changes 0.287/0.587 degrees, while maximum offset remains 44.06/36.78 mm. This isolates both fitting and contamination effects. Old offset calculations reproduce exactly (0 m maximum difference).
+
+Batch audit, 39 then 38, refusing to overwrite existing audit results:
+
+```bash
+MPLCONFIGDIR=data/outputs/moving_reference/ep39/candidate-c/figure-cache OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 PYTHONPATH=. data/.runtime/linux-cuda/bin/python -B -m src.features.moving_reference.table_audit
+```
+
+Independent real-data equivalence/control:
+
+```bash
+OPENBLAS_NUM_THREADS=1 PYTHONPATH=. data/.runtime/linux-cuda/bin/python -B data/outputs/moving_reference/ep39/candidate-c/table-audit-verify.py
+```
+
+Report generation:
+
+```bash
+PYTHONPATH=. data/.runtime/linux-cuda/bin/python -B data/outputs/moving_reference/ep39/candidate-c/table-audit-report.py
+```
+
+Outputs in each candidate-c directory: `gates-amended-2.json`, `table-drift-before-after.png`, `table-points-audit.png`, `table-region-corrected.png`, `table-audit-points.npz`, `table-audit-equivalence.json`, `run-table-audit.json`. Full interpretation, commands and hashes: episode 39's `results-table-audit.md`. Early diagnostic outputs remain under `table-audit-initial/`. The inspected overlays show lap and table-edge contamination; grip/arm boundaries remain imperfect, particularly 39 frame 60. Coverage is reported as failure rather than enlarging the region or adding tracks after measurement.
+
+
+### Independent dense table measurement, one attempt
+
+The same fixed code ran once on 39, then 38: an 8-pixel KLT grid seeded every 5 frames, avoiding active tracks within 4 pixels. The exact corrected footprint, original 21-pixel exclusions and forearm rays, forward/backward flow and stereo rules are retained. These new tracks never enter the frozen camera fit. First-sight stereo anchors persist for each ID through every seeding event; dead IDs are not revived. No cadence, mask, footprint or threshold adjustment followed either result.
+
+| Measure | Limit | 39 previous → fresh | 38 previous → fresh |
+|---|---:|---:|---:|
+| Maximum frame-median offset | 10 mm | 4.032 → 4.815 | 3.536 → 3.182 |
+| p95 frame-median offset | 15 mm | 3.220 → 3.217 | 3.195 → 2.830 |
+| Late normal change | 2 degrees | 0.409 → 0.204 | 0.621 → 0.494 |
+| Table and landmark coverage | at least 80% | 23.51 → **98.75% PASS** | 33.08 → **100% PASS** |
+| Maximum in-plane median | 10 mm | 2.279 → 8.010 | 2.471 → 8.188 |
+| p95 in-plane medians | 20 mm | 1.786 → 5.195 | 1.876 → 5.939 |
+
+**All table and landmark gates pass on both clips. Complete records remain FAIL, 27/28 each, solely on the unchanged world-residual gate.** The references, camera poses and all older gate records are byte-for-byte unchanged. No conditional label-based rule was applied here.
+
+39 has 315/319 covered frames; 69, 89, 108 and 109 remain uncovered, with 14/27/20/16 observations. They stay in the denominator. 38 covers all 263 frames, minimum 176 observations. No frame has fewer than 30 visible grid candidates under the unchanged masks; 39's remaining misses reflect temporal/stereo attrition between fixed seed frames. The lowest unmasked footprint fraction is 19.77% on 39 and 63.87% on 38. Grip/wrist segmentation is imperfect, so mask-based capacity is not exact physical visibility.
+
+The independent real-data audit found zero first-sight anchor error, no revived/reset IDs, and at most 4.34e-19 m difference when recomputing the metrics. Observation ages have median/p95 13/59 frames (39), 17/91 (38); 62 and 195 landmarks last at least 100 frame intervals. Fresh births count in the unchanged statistic, so this does not claim every track spans the clip.
+
+Fixed queue batch (skips matching completed records; never retries a started incomplete attempt):
+
+```bash
+MPLCONFIGDIR=data/outputs/moving_reference/ep39/candidate-c/figure-cache OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 PYTHONPATH=. data/.runtime/linux-cuda/bin/python -B -m src.features.moving_reference.table_tracks --queue data/outputs/moving_reference/ep39/candidate-c/table-tracks-queue.json
+```
+
+Anchor and metric audit:
+
+```bash
+OPENBLAS_NUM_THREADS=1 PYTHONPATH=. data/.runtime/linux-cuda/bin/python -B data/outputs/moving_reference/ep39/candidate-c/table-tracks-verify.py
+```
+
+Report generation:
+
+```bash
+PYTHONPATH=. data/.runtime/linux-cuda/bin/python -B data/outputs/moving_reference/ep39/candidate-c/table-tracks-report.py
+```
+
+Each episode's `candidate-c/` contains `gates-amended-3.json`, `table-tracks-observations.npz`, `table-tracks-inputs.json`, `table-tracks-overlay.png`, `table-tracks-worst.png`, `table-tracks-diagnostic.png`, `table-tracks-verification.json`, and `run-table-tracks.json`. Episode 39 also holds the queue, ledger, summary and `results-table-tracks.md` with commands, reference hashes and the inspected overlay findings. No camera fit or reference generation is part of this operation.

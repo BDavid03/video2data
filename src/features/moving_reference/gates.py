@@ -4,6 +4,52 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 
 
+def _amended_check(value, threshold, comparison='le'):
+    finite=value is not None and np.isfinite(value)
+    return dict(value=float(value) if finite else None,threshold=threshold,comparison=comparison,
+                passed=bool(finite and (value<=threshold if comparison=='le' else value>=threshold)))
+
+
+def table_drift_gate(medians, normal_degrees, used_fraction):
+    values=np.asarray(medians,float);values=values[np.isfinite(values)]
+    return dict(table_offset_max_frame_median_m=_amended_check(float(values.max()) if len(values) else None,.01),
+                table_offset_p95_frame_medians_m=_amended_check(float(np.percentile(values,95)) if len(values) else None,.015),
+                table_late_normal_change_deg=_amended_check(normal_degrees,2),
+                table_drift_used_fraction=_amended_check(used_fraction,.8,'ge'))
+
+
+def long_baseline_gate(medians, used_fraction):
+    values=np.asarray(medians,float);values=values[np.isfinite(values)]
+    return dict(table_landmark_max_frame_median_m=_amended_check(float(values.max()) if len(values) else None,.01),
+                table_landmark_p95_frame_medians_m=_amended_check(float(np.percentile(values,95)) if len(values) else None,.02),
+                table_landmark_used_fraction=_amended_check(used_fraction,.8,'ge'))
+
+
+def perpendicular_world_gate(perpendicular_median, old_median, control):
+    explained=bool(control['pairs']>=100 and control['frames']>=3 and
+                   control['norm_median_m'] is not None and control['norm_median_m']>=old_median and
+                   control['along_median_m']>=3*control['perpendicular_median_m'])
+    result=_amended_check(perpendicular_median if explained else old_median,.01)
+    result.update(old_3d_median_m=old_median,perpendicular_median_m=perpendicular_median,
+                  noise_floor_explains_old=explained,instrument='perpendicular' if explained else 'original 3D retained',control=control)
+    return result
+
+
+def stereo_pixel_gate(counts,klt_counts):
+    result=_amended_check(float(np.mean(np.asarray(counts)>=30)),.9,'ge')
+    result.update(original_klt_fraction=float(np.mean(np.asarray(klt_counts)>=30)),minimum_stereo_pixels=int(min(counts)))
+    return result
+
+
+def amended_reprojection_gate(median,p95):
+    return dict(camera_heldout_reprojection_median_px640=_amended_check(median,.5),
+                camera_heldout_reprojection_p95_px640=_amended_check(p95,2))
+
+
+def amended_patch_normal_gate(value):
+    return _amended_check(value,3)
+
+
 def evaluate(table, camera_rows, object_rows, times, poses, valid, ious, usable, first_base, support):
     result = {}
 
