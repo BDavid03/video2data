@@ -42,7 +42,7 @@ costs, and where the evidence is weak.
 \textbf{Shapes.} For each object we pool MoGe-2 depth above the table
 inside its mask over many frames, dropping views merged with another object
 or cut by the image edge, then fit a hand-designed procedural shape to the
-measured extents. Public scans of the training objects guided how we
+measured extents. Public scans of the objects guided how we
 designed and selected this method; no scan geometry, dimension or template
 enters any submitted mesh or simulated asset. Pretrained Hunyuan3D-2mini
 shapes~\cite{hunyuan3d2} for the pot (episode 5) and the pitcher
@@ -52,7 +52,14 @@ frame to the simulation's, so the counted file keeps the procedural shapes.
 \textbf{Static poses (19 episodes).} Stereo mask centroids place the
 second object with 1\,cm clearance, assuming the public calibration
 transfers; heading is unknown except on episode 19, where it comes from
-registering a public scan to the stereo points. Per-episode policies,
+registering a public scan to the stereo points. On episode 25,
+FoundationPose~\cite{foundationpose} registers public scans of both objects to
+the first stereo frame, and their relative pose, mapped onto our own meshes,
+places the second object; the scans set only this start, and a policy is
+retrained from it. On training pairs 12 and 31 this placement raised kinematic
+AUC from 0.260 to 0.573 and from 0.098 to 0.504. Its adoption limits were
+relaxed after the first scored results to the margins of those training
+registrations; episodes 14 and 20 then failed the physical check. Per-episode policies,
 trained by reinforcement learning with box-shaped objects, parked hands and
 a 512-step budget, are exported through the unedited evaluator. Their objects stay where they start, so these rollouts
 are learned placements, not learned manipulation.
