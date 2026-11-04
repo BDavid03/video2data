@@ -119,3 +119,9 @@ cached label-free outputs. Scan GLBs are linked read-only.
 
 Details: `data/outputs/foundationpose/pilot/summary.md` and
 [the pilot outcome](chain/foundationpose-pilot-outcome.md).
+
+## 2026-11-04 20:30 UTC: safetensors in the project venv
+
+On the owner's instruction, `safetensors==0.8.0` (the version already in the FlashCHORD venv) was added to
+`data/.runtime/linux-cuda` with `UV_CACHE_DIR=data/.cache/uv data/.runtime/uv/uv pip install --python data/.runtime/linux-cuda/bin/python "safetensors==0.8.0"`;
+the frame-0 retrain reads checkpoints in-process. torch stayed 2.7.1+cu128. Freeze before: `data/.runtime/tmp/backup/20261104T2030Z/`.
