@@ -15,7 +15,7 @@ from .combined_frames import ROOT,OUTPUT,KIT
 from . import pack_moving as moving
 from . import pack_combined as base
 from . import counted
-from .frame0_fp_policy import inspect_admission
+from .frame0_fp_policy import inspect_admission,inspect_export
 
 PARENT=ROOT/'submission/20261104T1422Z-d2-moving-v5/track3_combined_v5.manifest.json'
 
@@ -34,7 +34,7 @@ def compare(target, admissions, allow_url):
             raise ValueError(f'Untouched row values changed: {column}')
     roster,objects=moving.official_roster();_,code=moving.evaluator_inputs()
     for episode,item in admissions.items():
-        frame,poses=moving.inspect_export(moving.checked(item['trajectory']),item['checkpoint']['sha256'],
+        frame,poses=inspect_export(moving.checked(item['trajectory']),item['checkpoint']['sha256'],
             episode,roster[episode],objects[episode].object_names,code)
         expected={f'track_3/e{episode:06d}/w{int(w):03d}/f{int(f):06d}/o{int(o)}':v
             for (w,f,o),v in zip(frame[['environment_id','reference_frame','object_body_id']].itertuples(index=False,name=None),poses.reshape(-1,7))}

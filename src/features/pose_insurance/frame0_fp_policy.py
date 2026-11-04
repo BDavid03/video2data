@@ -25,6 +25,21 @@ REGISTRATIONS = ROOT / 'data/outputs/pose_insurance/frame0-fp/corrected'
 PARENT = ROOT / 'submission/20261104T1422Z-d2-moving-v5/track3_combined_v5.manifest.json'
 
 
+def inspect_export(trajectory, checkpoint_hash, episode, grid, names, code):
+    """Run the pinned evaluator check; the new kit omits episode_index, so prove it from the task path first."""
+    table = pq.read_table(trajectory)
+    meta = dict(table.schema.metadata or {})
+    if b'flash_chord.episode_index' not in meta:
+        task = BASE / f'ep{episode}/policy-resume/task.parquet'
+        if meta.get(b'flash_chord.reference_parquet', b'').decode() != str(task):
+            raise ValueError('Evaluator trajectory is not bound to this episode task')
+        meta[b'flash_chord.episode_index'] = str(episode).encode()
+        temporary = ROOT / f'data/.runtime/tmp/fp/check-ep{episode}.parquet'
+        pq.write_table(table.replace_schema_metadata(meta), temporary)
+        trajectory = temporary
+    return moving.inspect_export(trajectory, checkpoint_hash, episode, grid, names, code)
+
+
 def checkpoint_data(directory):
     code = """import json,sys
 from pathlib import Path
@@ -107,7 +122,7 @@ def run(episode, placement):
         record['gpu'] = lease.report()
     roster, objects = moving.official_roster()
     _, code = moving.evaluator_inputs()
-    frame, poses = moving.inspect_export(trajectory, sha256_file(checkpoint), episode, roster[episode],
+    frame, poses = inspect_export(trajectory, sha256_file(checkpoint), episode, roster[episode],
                                         objects[episode].object_names, code)
     parent = json.loads(PARENT.read_text())
     old_export = next(e for e in parent['exports'] if e['episode'] == episode)
@@ -175,7 +190,7 @@ def inspect_admission(path):
     episode = item['episode']
     roster, objects = moving.official_roster()
     _, code = moving.evaluator_inputs()
-    frame, poses = moving.inspect_export(checked['trajectory'], item['checkpoint']['sha256'], episode,
+    frame, poses = inspect_export(checked['trajectory'], item['checkpoint']['sha256'], episode,
                                         roster[episode], objects[episode].object_names, code)
     columns = ['reference_' + key for key in moving.POSE]
     exported_reference = frame[columns].to_numpy(float).reshape(-1, 2, 7)
