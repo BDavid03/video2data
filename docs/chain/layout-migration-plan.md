@@ -1,5 +1,7 @@
 # Layout migration plan
 
+**Superseded for the main checkout. Owner, live, 2026-11-04 about 03:42 UTC: "organised the folder myself".** The owner moved the main checkout's folders by hand, and their arrangement differs from the target below, so **theirs wins**: for example the package's contents are directly in `src/`, and `configs`, `templates`, `reports`, `manifests`, the dataset and `.cache` are under `data/`. L2's script was stopped unfinished, and nothing from it was applied. See "State" at the end. The rest of this file is kept as the record of what was planned.
+
 **Owner, live, 2026-11-04 about 03:27 UTC:** "top level folders hsould be scripts, docs, .claude, src, data, submission, models everything else has to be organised under these". Route: Codex `route-layout-25` (read-only). `AGENTS.md` stays pinned by D2 v5's manifest and keeps its old path names; this file and `CLAUDE.md` are the translation.
 
 ## Target
@@ -54,6 +56,10 @@ Stop on any failure. `git status` on the main checkout showed files staged under
 
 ## State
 
-- L1: done in the commit that added this file; `check_release.sh` READY before and after.
-- L2: not started.
-- L3: not started.
+- L1: done on this branch (`432f2f6`); `check_release.sh` READY before and after. The owner's main checkout puts `templates` under `data/`, so the two differ until they are reconciled.
+- L2: stopped at about 03:42 UTC, unfinished and unapplied. Its partial files are under `.runtime/tmp/layout-abandoned/`, untracked. The live tree and the branch's code still use the old paths.
+- L3: not started and not needed unless the owner asks.
+
+**Where things stand.** This branch and its worktree keep the old layout, so a run in progress and every recorded path stay valid. The main checkout holds the owner's layout, as uncommitted moves. Code in the main checkout still names `track3`, `outputs/` and so on, so its commands fail there until paths are updated: for example, `python -m track3...` has no package named `track3`, and the driver's log directory `outputs/chain` will be recreated at the top level on its next open. Seven of the worktree's `.runtime` entries are links into the main checkout's `.runtime`, so moving that folder would break this worktree and any run in it.
+
+**To reconcile, once the owner's layout is final:** port the branch to it. The route analysis in `route-layout-25` still applies: one path mapping so old records resolve, an explicit historical verification mode for v5's frozen sources, and `check_release.sh` READY as the pass condition. Until then, nothing here touches the main checkout.

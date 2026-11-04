@@ -6,6 +6,10 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
 
 ## Open
 
+**Your layout, 2026-11-04 03:45 UTC. Two things, neither blocks the chain's other work.**
+1. **Please do not move `.runtime` for now.** Seven of the worktree's `.runtime` entries (`linux-cuda`, `flashchord`, `python`, `uv`, `tools` and two more) are links into the main checkout's `.runtime`. Moving it would break the worktree's environments and the M0b training run.
+2. **When your layout is final, say so or commit it,** and the chain ports the branch to it. Until then, commands in the main checkout fail, because the code still names `track3/`, `outputs/` and so on, and the running driver will recreate a top-level `outputs/` the next time it opens its log. The worktree keeps the old layout, so its work is not affected. Details: `docs/chain/layout-migration-plan.md`.
+
 **Your decision, 2026-11-04: the GitHub repository is private, so the commit URLs in the packed files do not resolve for anyone else.** The kit checks only the URL's pattern (`submit/v2d_submit.py:120,166`), so uploading is not blocked. Making it public is your call and the chain will not change it: doing so publishes the whole history, including the coursework notebooks and four episode-41 frames.
 
 **Update 2026-11-04 02:00 UTC: the chain is running again, on `docs/chain/COMPLETION-PLAN.md`, and your four answers are recorded
