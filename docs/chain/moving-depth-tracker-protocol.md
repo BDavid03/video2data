@@ -273,3 +273,88 @@ Call campaign two_object_facing.reference_tracks unchanged, including its origin
 ## Revision 5 hybrid public 42 white_pot — 2026-11-04T18:10:48.145463+00:00
 
 C pose/validity are preserved exactly on C-valid frames. On other frames fit mask+depth, initialized from the last C-valid pose (never feed the bridge into C). If C has no valid pose yet, use its own frame-zero initializer and disclose fallback-alone. Frozen fit residual validity, same mesh and unchanged quality/accuracy bars. Cups solve only position and directed axis. No new scored or holdout access.
+
+## Revision 6: position-only decisive test — 2026-11-04T18:57:03.383031+00:00
+
+One fixed CPU recipe on every completed public train/tuning cache, episodes
+0/11/12/18/21/23/26/31/39/42 only. No scored or excluded episode, scan geometry,
+GPU, new mask, parameter sweep or pass-bar change. Episode 11 remains identity
+ambiguous. Reuse each saved C's frame-zero own-mesh pose and recorded camera
+trajectory; compute missing C baselines through the unchanged campaign reference
+handler. Never use C's subsequent object positions in the position estimator.
+
+For each frame erode the object mask by 3x3 pixels, exclude the existing hand mask
+dilated by 7x7 pixels, and take finite depth_valid stereo points at z>0.05m.
+Depth cut: retain points within two robust sigmas of median camera z, where sigma
+is max(1.4826 * median absolute depth deviation, 0.001m). Position observation
+is the coordinate-wise median of the retained points. N=30 retained points is
+fixed before running. Fewer points carries the previous final output position;
+if frame zero is unsupported, use C's frame-zero position.
+
+Visible-surface correction uses only our existing candidate mesh, sampled at
+40,000 area-weighted surface points with seed 6. Project those points at C's
+frame-zero mesh pose and retain the nearest z sample per in-image rounded pixel.
+The arithmetic mean of that frontmost visible cloud estimates its visible-surface
+centroid. Project (mesh origin minus that centroid) onto its unit camera view ray,
+fixing one signed distance per object before tracking. Each frame adds this fixed
+distance along that observation's view ray before transforming into the recorded
+camera's world. No scale, offset, ray sign or mesh choice is fitted to labels.
+No visible mesh sample is an explicit failure, never a zero-offset substitution.
+
+Orientation is the exact saved C frame-zero orientation held in world coordinates
+through the clip. Apply a causal coordinate-wise median of the last five raw
+world positions (startup uses the available prefix); unsupported frames append
+the held raw position but preserve the preceding final filtered output exactly.
+No other smoothing, reset or pose fit. The point-count observation flag is recorded
+separately. Per-frame validity still requires the frozen full non-hand depth and
+silhouette residual thresholds and camera observation; N=30 is an additional
+requirement, not a replacement for fit validity. Preserve existing pass bars and
+report campaign admission as false.
+
+Freeze source/input hashes before tracking, seal every output and then the whole
+batch before any new label access. Only then call unchanged kit_score on static,
+C and position variants with identical own meshes, conventions, native object
+order and common-world camera transforms; never filter invalid frames. Public
+reference geometry remains evaluation-only and its host proxy limitation explicit.
+Static holds C's saved frame-zero pose. Missing C is reported explicitly if its
+unchanged handler cannot run. No method choice is made on these train outcomes.
+
+Report each object's median centre error after mocap motion onset (>5mm for three
+consecutive frames, same frozen audit definition). Primary medians use the kit's
+registered body centres and shared scene alignment, replaying its unchanged array
+functions from the exact scored Parquet rows and checking all four scalar metrics.
+Also retain independent M1 initial-pose-aligned centre diagnostics for comparison.
+A motionless object has no post-onset median (N/A), rather than a fabricated zero.
+This is one disclosed position-only revision, not proof of the original pass bar.
+
+## Revision 5 C baseline public 18 mini_sweeper — 2026-11-04T19:00:22.499407+00:00
+
+Call campaign two_object_facing.reference_tracks unchanged, including its original initializer, features, keyframes, symmetry/facing decisions and smoothing. No gate edits, no labels before output sealing. Independent camera/table/support admission remains outside this experiment.
+
+## Revision 5 C baseline public 18 mini_dust_pan — 2026-11-04T19:02:46.167472+00:00
+
+Call campaign two_object_facing.reference_tracks unchanged, including its original initializer, features, keyframes, symmetry/facing decisions and smoothing. No gate edits, no labels before output sealing. Independent camera/table/support admission remains outside this experiment.
+
+## Revision 5 C baseline public 31 mini_sweeper — 2026-11-04T19:04:11.315766+00:00
+
+Call campaign two_object_facing.reference_tracks unchanged, including its original initializer, features, keyframes, symmetry/facing decisions and smoothing. No gate edits, no labels before output sealing. Independent camera/table/support admission remains outside this experiment.
+
+## Revision 5 C baseline public 12 plastic_dish_rack — 2026-11-04T19:06:17.067131+00:00
+
+Call campaign two_object_facing.reference_tracks unchanged, including its original initializer, features, keyframes, symmetry/facing decisions and smoothing. No gate edits, no labels before output sealing. Independent camera/table/support admission remains outside this experiment.
+
+## Revision 5 C baseline public 26 plastic_dish_rack — 2026-11-04T19:07:41.243481+00:00
+
+Call campaign two_object_facing.reference_tracks unchanged, including its original initializer, features, keyframes, symmetry/facing decisions and smoothing. No gate edits, no labels before output sealing. Independent camera/table/support admission remains outside this experiment.
+
+## Revision 5 C baseline public 31 plastic_dish_rack — 2026-11-04T19:08:51.288571+00:00
+
+Call campaign two_object_facing.reference_tracks unchanged, including its original initializer, features, keyframes, symmetry/facing decisions and smoothing. No gate edits, no labels before output sealing. Independent camera/table/support admission remains outside this experiment.
+
+## Revision 5 C baseline public 23 wooden_piece_1 — 2026-11-04T19:10:53.610873+00:00
+
+Call campaign two_object_facing.reference_tracks unchanged, including its original initializer, features, keyframes, symmetry/facing decisions and smoothing. No gate edits, no labels before output sealing. Independent camera/table/support admission remains outside this experiment.
+
+## Revision 5 C baseline public 23 wooden_piece_2 — 2026-11-04T19:12:06.427145+00:00
+
+Call campaign two_object_facing.reference_tracks unchanged, including its original initializer, features, keyframes, symmetry/facing decisions and smoothing. No gate edits, no labels before output sealing. Independent camera/table/support admission remains outside this experiment.

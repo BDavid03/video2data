@@ -368,3 +368,54 @@ actual capture_time run near 20Hz; the separate timestamp column follows metadat
 20.254Hz. The kit joins frame IDs, not timestamps. Unifying independent world
 gauges fixes episode assembly without changing any tracker. This implements the
 local-scoring part of to-do 6, not its full moving-policy/admission requirement.
+
+### Position-only revision 6
+
+`position_track.py` tests whether masked stereo translation helps before adding a
+larger tracker. `_position_track.py` contains its pure centre/offset/smoothing
+operations. It removes dilated hand pixels, cuts depth at two robust sigmas,
+requires 30 retained points, and takes a coordinate-wise median. A fixed signed
+view-ray offset comes from 40,000 own-mesh surface samples, retaining the
+frontmost sample per projected pixel at C's initial pose. Orientation stays at that pose; a causal five-frame median smooths world
+positions. Unsupported frames preserve the last output exactly. Full-cloud fit
+residual validity and the original accuracy bars remain unchanged.
+
+The dated recipe and SHA256 are frozen in
+`data/outputs/moving_reference/depth-track/position-v6/protocol-seal.json`.
+`prepare` creates the fixed input queue once; the following foreground CPU command
+resumes its completed objects and computes missing C baselines unchanged:
+
+```bash
+CUDA_VISIBLE_DEVICES='' PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 \
+  OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=2 \
+  data/.runtime/linux-cuda/bin/python -B -m src.features.moving_reference.position_track run
+```
+
+Only after every trajectory and the whole batch have been sealed, evaluate:
+
+```bash
+CUDA_VISIBLE_DEVICES='' PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 \
+  OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=2 \
+  data/.runtime/linux-cuda/bin/python -B -m src.features.moving_reference.position_score
+```
+
+`position_score.py` uses `kit_score` unchanged for static/C/position-only on every
+prepared train/tuning episode. Its post-motion centre medians replay the exact kit
+body registration and shared scene alignment, independently reproducing all four
+scalar scores; M1-aligned medians are retained separately. Results, per-object
+point counts and residual gates, input/output seals, ledger and comparison figure
+are under `data/outputs/moving_reference/depth-track/position-v6/`. These are public
+geometry proxy diagnostics, not policy outputs or campaign admission. Episode 11
+retains its duplicate cup-mask ambiguity. No two_object_* implementation is edited.
+
+Revision 6 completed all 18 objects (4,582 object-frames) in all ten requested
+train/tuning episodes. It beats static AUC on 3/10 episodes: 12 (+0.022790),
+39 (+0.136168), 42 (+0.014105). Excluding the identity-ambiguous episode 11, it
+wins on 2/5 cup/pot/pitcher-containing episodes; mean AUC change is -0.080843.
+On the target objects alone it improves 2/6, mean AUC change -0.037337. It does
+not justify changing the campaign reference. Every frame has >=30 retained
+stereo points, yet frozen fit-valid coverage is only 0–5% for the cups/pots/pitcher;
+the lid reaches 96%. No original quality/accuracy-bar PASS is claimed.
+All 30 four-metric kit cases completed; registered-array replay and previously
+complete static/C baseline regressions have maximum metric difference 0.
+See `position-v6/summary.md`, `post-onset.json` and `auc-comparison.png`.
