@@ -1,0 +1,172 @@
+{
+  "utc": "2026-11-04T20:56:31.643411+00:00",
+  "episodes": [
+    {
+      "episode": 11,
+      "names": [
+        "blue_cup",
+        "beige_cup"
+      ],
+      "frame0_mask_iou": 0.0,
+      "validation": {
+        "offset_cm": 0.5583960875638605,
+        "rotation_deg": 2.026322403878988,
+        "valid": true
+      },
+      "utc": "2026-11-04T20:51:25.722795+00:00",
+      "registrations": [
+        {
+          "name": "blue_cup",
+          "iou": 0.9236421264947414,
+          "depth_m": 0.010922908782958984,
+          "margin": 0.0034610594157129526
+        },
+        {
+          "name": "beige_cup",
+          "iou": 0.9373052959501558,
+          "depth_m": 0.008944988250732422,
+          "margin": 0.0035418649204075336
+        }
+      ]
+    },
+    {
+      "episode": 12,
+      "names": [
+        "blue_cup",
+        "plastic_dish_rack"
+      ],
+      "frame0_mask_iou": 2.5078998846366054e-05,
+      "validation": {
+        "offset_cm": 5.193201144767071,
+        "rotation_deg": 14.668963354076796,
+        "valid": false
+      },
+      "utc": "2026-11-04T20:52:54.413009+00:00",
+      "registrations": [
+        {
+          "name": "blue_cup",
+          "iou": 0.8997579500876388,
+          "depth_m": 0.009623304009437561,
+          "margin": 0.002772360574454069
+        },
+        {
+          "name": "plastic_dish_rack",
+          "iou": 0.8962858696695352,
+          "depth_m": 0.006590306758880615,
+          "margin": 0.001447876449674368
+        }
+      ]
+    },
+    {
+      "episode": 0,
+      "names": [
+        "white_pot",
+        "white_pot_lid"
+      ],
+      "error": "ValueError: No joint box assignment with pairwise IoU < 0.5",
+      "utc": "2026-11-04T20:53:03.587411+00:00"
+    },
+    {
+      "episode": 18,
+      "names": [
+        "mini_sweeper",
+        "mini_dust_pan"
+      ],
+      "error": "ValueError: No joint box assignment with pairwise IoU < 0.5",
+      "utc": "2026-11-04T20:53:11.469272+00:00"
+    },
+    {
+      "episode": 21,
+      "names": [
+        "blue_cup",
+        "water_pitcher"
+      ],
+      "frame0_mask_iou": 0.0002541324140369486,
+      "validation": {
+        "offset_cm": 1.4719383931235877,
+        "rotation_deg": 8.437910407058913,
+        "valid": true
+      },
+      "utc": "2026-11-04T20:54:28.664890+00:00",
+      "registrations": [
+        {
+          "name": "blue_cup",
+          "iou": 0.9240292628024761,
+          "depth_m": 0.010347038507461548,
+          "margin": 0.005010472610592842
+        },
+        {
+          "name": "water_pitcher",
+          "iou": 0.2910265731641532,
+          "depth_m": 0.4868389666080475,
+          "margin": 0.0049583096988499165
+        }
+      ]
+    },
+    {
+      "episode": 23,
+      "names": [
+        "wooden_piece_1",
+        "wooden_piece_2"
+      ],
+      "frame0_mask_iou": 0.0,
+      "validation": {
+        "offset_cm": 55.813925876473355,
+        "rotation_deg": 179.6193915732635,
+        "valid": false
+      },
+      "utc": "2026-11-04T20:55:27.284842+00:00",
+      "registrations": [
+        {
+          "name": "wooden_piece_1",
+          "iou": 0.894989019764424,
+          "depth_m": 0.0035213232040405273,
+          "margin": 0.002169625135138631
+        },
+        {
+          "name": "wooden_piece_2",
+          "iou": 0.9098377490244404,
+          "depth_m": 0.002635270357131958,
+          "margin": 0.0003818251134362072
+        }
+      ]
+    },
+    {
+      "episode": 26,
+      "names": [
+        "plastic_dish_rack",
+        "white_pot"
+      ],
+      "frame0_mask_iou": 0.017281803055513537,
+      "validation": {
+        "offset_cm": 0.8606023845067843,
+        "rotation_deg": 3.5775865770091606,
+        "valid": true
+      },
+      "utc": "2026-11-04T20:56:23.486327+00:00",
+      "registrations": [
+        {
+          "name": "plastic_dish_rack",
+          "iou": 0.6300038865137971,
+          "depth_m": 0.010938823223114014,
+          "margin": 0.002429865300655365
+        },
+        {
+          "name": "white_pot",
+          "iou": 0.7610007239964605,
+          "depth_m": 0.008750200271606445,
+          "margin": 0.004212860483676195
+        }
+      ]
+    },
+    {
+      "episode": 31,
+      "names": [
+        "mini_sweeper",
+        "plastic_dish_rack"
+      ],
+      "error": "ValueError: No joint box assignment with pairwise IoU < 0.5",
+      "utc": "2026-11-04T20:56:31.641368+00:00"
+    }
+  ]
+}

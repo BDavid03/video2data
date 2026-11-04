@@ -1,0 +1,248 @@
+{
+  "limits": {
+    "mask_iou_min": 0.9236421264947414,
+    "depth_residual_max_m": 0.4868389666080475,
+    "rival_margin_min": 0.0035418649204075336,
+    "train_pairs": [
+      {
+        "episode": 11,
+        "valid": {
+          "offset_cm": 0.5583960875638605,
+          "rotation_deg": 2.026322403878988,
+          "valid": true
+        },
+        "values": [
+          0.9236421264947414,
+          0.010922908782958984,
+          0.0035418649204075336
+        ]
+      },
+      {
+        "episode": 12,
+        "valid": {
+          "offset_cm": 5.193201144767071,
+          "rotation_deg": 14.668963354076796,
+          "valid": false
+        },
+        "values": [
+          0.8962858696695352,
+          0.009623304009437561,
+          0.001447876449674368
+        ]
+      },
+      {
+        "episode": 21,
+        "valid": {
+          "offset_cm": 1.4719383931235877,
+          "rotation_deg": 8.437910407058913,
+          "valid": true
+        },
+        "values": [
+          0.2910265731641532,
+          0.4868389666080475,
+          0.0049583096988499165
+        ]
+      },
+      {
+        "episode": 23,
+        "valid": {
+          "offset_cm": 55.813925876473355,
+          "rotation_deg": 179.6193915732635,
+          "valid": false
+        },
+        "values": [
+          0.894989019764424,
+          0.0035213232040405273,
+          0.0003818251134362072
+        ]
+      },
+      {
+        "episode": 26,
+        "valid": {
+          "offset_cm": 0.8606023845067843,
+          "rotation_deg": 3.5775865770091606,
+          "valid": true
+        },
+        "values": [
+          0.6300038865137971,
+          0.010938823223114014,
+          0.004212860483676195
+        ]
+      }
+    ],
+    "protocol_sha256": "7f7887d0db51434e0bd837c3df167d527ac31c0a1436c77385dae48ca315027d",
+    "utc": "2026-11-04T20:56:49.391604+00:00"
+  },
+  "episodes": [
+    {
+      "episode": 8,
+      "passed": false,
+      "failures": [
+        "white_pot IoU"
+      ],
+      "placement": "data/outputs/pose_insurance/frame0-fp/corrected/ep8/corrected-placement.json",
+      "placement_sha256": "a287edc842bc8e6992805cd15de51a294ac92991e219ca36d9eb7de510a1145e",
+      "measurements": [
+        {
+          "name": "beige_cup",
+          "iou": 0.9386291941496989,
+          "depth_m": 0.011694610118865967,
+          "margin": 0.0042677647434175014
+        },
+        {
+          "name": "white_pot",
+          "iou": 0.7480382459610946,
+          "depth_m": 0.01176542043685913,
+          "margin": 0.008854455314576626
+        }
+      ]
+    },
+    {
+      "episode": 10,
+      "passed": false,
+      "failures": [
+        "beige_cup IoU",
+        "B rival margin"
+      ],
+      "placement": "data/outputs/pose_insurance/frame0-fp/corrected/ep10/corrected-placement.json",
+      "placement_sha256": "a6aa82aeb3e0c4e49e6623b230eb3d0e537cb1ba79353b347e843721866a8dce",
+      "measurements": [
+        {
+          "name": "blue_cup",
+          "iou": 0.9313144329896907,
+          "depth_m": 0.01268342137336731,
+          "margin": 0.0028105678502470255
+        },
+        {
+          "name": "beige_cup",
+          "iou": 0.9061420947996233,
+          "depth_m": 0.010450884699821472,
+          "margin": 0.0023740835022181273
+        }
+      ]
+    },
+    {
+      "episode": 14,
+      "passed": false,
+      "failures": [
+        "blue_cup IoU",
+        "plastic_dish_rack IoU"
+      ],
+      "placement": "data/outputs/pose_insurance/frame0-fp/corrected/ep14/corrected-placement.json",
+      "placement_sha256": "6b68ce711f62572f8617107350e92ab4e99bc544dc6769a3cb9e2027887eda76",
+      "measurements": [
+        {
+          "name": "blue_cup",
+          "iou": 0.9119027303754266,
+          "depth_m": 0.009291321039199829,
+          "margin": 0.003922864329069853
+        },
+        {
+          "name": "plastic_dish_rack",
+          "iou": 0.8742562763024234,
+          "depth_m": 0.008827805519104004,
+          "margin": 0.0036150021478533745
+        }
+      ]
+    },
+    {
+      "episode": 19,
+      "passed": false,
+      "failures": [
+        "mini_sweeper IoU",
+        "mini_dust_pan IoU",
+        "mini_dust_pan depth",
+        "B rival margin"
+      ],
+      "placement": "data/outputs/pose_insurance/frame0-fp/corrected/ep19/corrected-placement.json",
+      "placement_sha256": "1b6980b3ab2ba9afbf0cc5ba5e77fd10f30646417304d4395138e14fcac249d1",
+      "measurements": [
+        {
+          "name": "mini_sweeper",
+          "iou": 0.5777571825764597,
+          "depth_m": 0.01772284507751465,
+          "margin": 0.0
+        },
+        {
+          "name": "mini_dust_pan",
+          "iou": 0.06926070038910506,
+          "depth_m": 0.49185219407081604,
+          "margin": 0.0014349074335768819
+        }
+      ]
+    },
+    {
+      "episode": 20,
+      "passed": false,
+      "failures": [
+        "blue_cup IoU"
+      ],
+      "placement": "data/outputs/pose_insurance/frame0-fp/corrected/ep20/corrected-placement.json",
+      "placement_sha256": "3867bc8a93ecb2fa985402b8de64c81153f4ed9b3e378a9677cf0c65e5ab280e",
+      "measurements": [
+        {
+          "name": "blue_cup",
+          "iou": 0.7074137703184882,
+          "depth_m": 0.010378330945968628,
+          "margin": 0.002343632746487856
+        },
+        {
+          "name": "water_pitcher",
+          "iou": 0.9607779578606159,
+          "depth_m": 0.009396523237228394,
+          "margin": 0.005038937088102102
+        }
+      ]
+    },
+    {
+      "episode": 25,
+      "passed": false,
+      "failures": [
+        "wooden_piece_2 IoU"
+      ],
+      "placement": "data/outputs/pose_insurance/frame0-fp/corrected/ep25/corrected-placement.json",
+      "placement_sha256": "5d46481237eee232fdb9e5a665d0b4ad57842be69f9a30467c33e7af377f8b6d",
+      "measurements": [
+        {
+          "name": "wooden_piece_1",
+          "iou": 0.9247367334296923,
+          "depth_m": 0.002643793821334839,
+          "margin": 0.02375296875834465
+        },
+        {
+          "name": "wooden_piece_2",
+          "iou": 0.8847774317640593,
+          "depth_m": 0.0037662386894226074,
+          "margin": 0.0037553647998720407
+        }
+      ]
+    },
+    {
+      "episode": 30,
+      "passed": false,
+      "failures": [
+        "mini_sweeper IoU",
+        "mini_sweeper depth",
+        "plastic_dish_rack IoU"
+      ],
+      "placement": "data/outputs/pose_insurance/frame0-fp/corrected/ep30/corrected-placement.json",
+      "placement_sha256": "05a68f05cafab2aab78593a5c37ab25d5ce065149763936cbcbf0b443ba100e6",
+      "measurements": [
+        {
+          "name": "mini_sweeper",
+          "iou": 0.022326909350463955,
+          "depth_m": 0.4992785155773163,
+          "margin": 0.0002251238183816895
+        },
+        {
+          "name": "plastic_dish_rack",
+          "iou": 0.8837381263864399,
+          "depth_m": 0.00883573293685913,
+          "margin": 0.0037085111252963543
+        }
+      ]
+    }
+  ],
+  "ready": [],
+  "utc": "2026-11-04T20:56:49.395356+00:00"
+}
