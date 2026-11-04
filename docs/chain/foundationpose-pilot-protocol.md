@@ -37,6 +37,10 @@ Train **12** (`blue_cup`, `plastic_dish_rack`) and **31** (`mini_sweeper`, `plas
 | PASS | A full panel protocol is written first, over 0, 11, 18, 21, 23, 26 and the cup-anchored scored roster, with TW's gates including a per-object stability measure. Nothing is packed from this pilot |
 | FAIL or infeasible | FoundationPose stops for this deadline; recorded in the outcome and the report. W2a's kill test goes next |
 
+## Amendment 1 (4 Nov 2026, about 05:08 UTC; no pose, no overlay and no label existed)
+
+The cup's first run and its one permitted retry both crashed inside upstream's crop projection, which mixes float32 intrinsics with float64 points (`outputs/foundationpose/pilot/summary.md`). Both passed the four-valid-point branch and generated 252 candidates, so neither produced a result, and neither shows anything about the method. **Allowed: one type-only fix at the adapter or a minimal disclosed upstream patch, then one further attempt under the same rules: a crash without output after that stops the pilot.** No parameter, input, mask, iteration count or seed changes; the hard cap of 05:45 UTC stands. The second retry is disclosed wherever this pilot is cited.
+
 ## Integrity
 
 Episodes 41, 43, 44 are never read. Validation 2, 13, 22, 24, 27 are not used. Scans enter only measurement; no scan geometry enters a submitted mesh or a simulated asset. The outcome goes in `docs/chain/foundationpose-pilot-outcome.md`, whichever way it falls, and the lead independently recomputes the pair errors before believing a PASS.
