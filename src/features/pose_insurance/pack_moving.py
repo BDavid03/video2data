@@ -304,9 +304,26 @@ with safe_open(sys.argv[1],framework="numpy") as f:
     return json.loads(result)
 
 
+def training_record(directory: Path) -> tuple[Path, Path]:
+    """Follow the producer's completed attempt, including its separately recorded resume."""
+    original = directory / 'train.run.json'
+    if read(original).get('status') == 'completed':
+        return original, directory / 'train.log'
+    completed = [p for p in directory.glob('train-resume-state_*.run.json')
+                 if read(p).get('status') == 'completed']
+    if len(completed) != 1:
+        raise ValueError('Exactly one completed final training attempt is required')
+    record, = completed
+    state = path(read(record)['resume_state'])
+    if record.name != f'train-resume-{state.stem}.run.json' or state.parent != directory / 'training':
+        raise ValueError('Completed resume does not bind this policy training directory')
+    return record, record.with_name(record.name.replace('.run.json', '.log'))
+
+
 def inspect_learning(directory: Path, checkpoint: Path, task: Path) -> dict:
     """Admit the real completed training record, final log count and checkpoint optimizer metadata."""
-    train = read(directory / 'train.run.json')
+    record_file, log = training_record(directory)
+    train = read(record_file)
     stage = entry(directory / 'stage0.json')
     prepared = read(directory / 'commands.json')
     argv = train.get('argv', prepared.get('train', []))
@@ -319,7 +336,6 @@ def inspect_learning(directory: Path, checkpoint: Path, task: Path) -> dict:
             or int(args.get('training.total_environment_steps', 0)) != FINAL_STEPS
             or path(args['task.parquet']) != task or path(args['output_dir']) != checkpoint.parent):
         raise ValueError('A completed learned training process with the frozen recipe is required')
-    log = path(directory / 'train.log')
     counts = [int(n.replace(',', '')) for n in re.findall(r'completed ([\d,]+) environment steps', log.read_text())]
     if not counts or max(counts) < FINAL_STEPS:
         raise ValueError('Training log does not prove completion of the recipe total')
@@ -328,9 +344,13 @@ def inspect_learning(directory: Path, checkpoint: Path, task: Path) -> dict:
             or meta['algorithm'] != 'flash_sac' or meta['kind'] != 'policy' or path(meta['task']) != task
             or checkpoint.name != f'policy_{FINAL_STEPS}.safetensors'):
         raise ValueError('Checkpoint has no actual learned updates at the recipe total or binds another task')
-    return dict(train_run=entry(directory / 'train.run.json'), train_log=entry(log),
+    result = dict(train_run=entry(record_file), train_log=entry(log),
                 checkpoint=entry(checkpoint), commands=entry(directory / 'commands.json'),
                 stage0=stage, logged_steps=max(counts), checkpoint_metadata=meta)
+    if train.get('resume_state'):
+        result['resume_state'] = entry(train['resume_state'])
+        result['prior_attempts'] = [entry(p) for p in sorted(directory.glob('train*.run.json')) if p != record_file]
+    return result
 
 
 def load_reference(value: Path) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -701,8 +721,8 @@ def make_admission(directory_name: str, m2v_name: str, output_name: str, disclos
                  f'score-{FINAL_STEPS}/trajectory.parquet', f'score-{FINAL_STEPS}/official_metrics.json'):
         if not (directory / name).is_file():
             missing.append(name)
-    if (directory / 'train.run.json').is_file() and read(directory / 'train.run.json').get('status') != 'completed':
-        missing.append('training is not completed')
+    if (directory / 'train.run.json').is_file():
+        training_record(directory)
     if missing:
         raise ValueError('Final M1 and aligned M2v passed; missing finished 38 policy evidence: '
                          + '; '.join(missing) + f'; M2v evidence: {work.relative_to(ROOT)}')

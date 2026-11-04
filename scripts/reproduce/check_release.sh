@@ -59,8 +59,11 @@ for track in ('track_3_mesh', 'track_3'):
     check(track+' preflight', lambda: command(track, ['data/.runtime/kit-env/bin/python', '-B', 'upstream/v2d_submission_kit/v2d_submission_kit/tools/preflight.py', '--track', track, '--skip-kaggle'] + ([] if track == 'track_3_mesh' else ['--results', str(Path(current_name(json.loads(Path(release['pose']['manifest']).read_text())['exports'][0]['path'])).parent)]), 'Ready to submit'))
 if combined_manifest:
     combined_spec = release['combined_pose']
+    combined_kind = json.loads(Path(combined_manifest).read_text()).get('kind')
+    combined_module = ('src.features.pose_insurance.pack_combined_moving'
+                       if combined_kind == 'pose_insurance.combined_moving_pack' else combined_spec['module'])
     if check('combined pose provenance', lambda: command('combined-provenance', [
-            'data/.runtime/linux-cuda/bin/python', '-B', '-m', combined_spec['module'],
+            'data/.runtime/linux-cuda/bin/python', '-B', '-m', combined_module,
             '--verify-manifest', combined_manifest, '--release'])):
         combined = json.loads(Path(combined_manifest).read_text())
         check('combined pose file', lambda: match(combined['file']))

@@ -739,11 +739,43 @@ for the same single submission on each leaderboard of a track, and marks failure
 possible delay or forfeit. So this file also becomes the CD-O entry, and D1 v5's upload
 stays on that board unselected.
 
-The optional `check_release.sh --combined MANIFEST` adds current-kit verification
-without changing the selected historical v5 entries in `release.json` or removing
-their checks. No real-URL release pack or upload is made by this job. If the owner
-extends episode 38's cut-off, `pack_moving.py` would need to use this kit, build a
-full body-frame-correct 36-mesh tree (including the moving asset in its rollout
-frame), pack `--meshes` to Parquet, compare preserved v5 rows within their CSV
-printing interval and stamp the new packer/uploader provenance. Its existing
-adoption gates and 38-label prohibition must stay intact. That change is not made.
+The optional moving variant re-admits episode 38 through the frozen gates, substitutes its official evaluator export and simulated pan mesh, and preserves the other nineteen episodes.
+It lives in `pack_combined_moving.py` because the historical combined manifest pins `pack_combined.py`, and writes a separate `meshes-moving/` tree and `release-moving/` pack without changing the originals.
+
+The disclosure gate verifies the report file's hash only; the lead must review its
+wording, including 39's retrospective alignment correction and 38's two resumed
+training attempts with lost replay buffers. The rehearsal admission binds the
+scratch report and is never release eligible. The first `evidence-v1` pass predates
+the release-selector update; `evidence-v2` is the current rehearsal evidence.
+No episode-38 labels exist or are read. In the current kit its public grid is
+263 frames, `0..262`, world 0, slot 0, matching the full evaluator export.
+
+After promoting and reviewing `docs/report/track3/main.tex`, the lead runs these
+commands from the checkout root. Admission outputs and release directories must
+be fresh; choose a new evidence suffix if `evidence-promoted-v1` already exists.
+
+```bash
+export PYTHONPATH=. CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
+EVIDENCE=data/outputs/pose_insurance/moving-pack/evidence-promoted-v1
+nice -n 19 data/.runtime/linux-cuda/bin/python -B -m src.features.pose_insurance.pack_moving \
+  --make-admission data/outputs/moving_policy/ep38-v1 \
+  --m2v-output data/outputs/moving_policy/ep39-v1 \
+  --abstract-disclosure docs/report/track3/main.tex --out "$EVIDENCE"
+# Lead only: review the diff, then commit these explicit source paths and the promoted report.
+git add src/features/pose_insurance/pack_moving.py src/features/pose_insurance/pack_combined_moving.py src/features/pose_insurance/README.md scripts/reproduce/check_release.sh docs/report/track3/main.tex
+git commit -m 'Pack admitted moving episode 38 with its simulated body-frame mesh'
+COMMIT_URL="https://github.com/BDavid03/video2data/commit/$(git rev-parse HEAD)"
+nice -n 19 data/.runtime/linux-cuda/bin/python -B -m src.features.pose_insurance.pack_combined_moving \
+  --adoptions "$EVIDENCE/adoptions.json" --code-commit "$COMMIT_URL" \
+  --output data/outputs/pose_insurance/combined-v5/release-moving
+MANIFEST=data/outputs/pose_insurance/combined-v5/release-moving/track3_combined_v5.manifest.json
+nice -n 19 data/.runtime/linux-cuda/bin/python -B -m src.features.pose_insurance.pack_combined_moving --verify-manifest "$MANIFEST" --release
+nice -n 19 bash scripts/reproduce/check_release.sh --combined "$MANIFEST"
+```
+
+`check_release.sh --combined` selects the moving verifier by the manifest kind,
+re-admits the policy and retains the historical mesh, pose and report checks.
+Without `--adoptions`, the extension delegates to the untouched static packer;
+the original URL reproduces `ddfc98b3e6d9bd10b31092903fdc93e1e22624d1f2ddc545b1d8f64c4ebf9342` byte for byte.
+The current kit needs no adjacent metrics JSON for Track 3 packing: the evaluator
+Parquet carries all three provenance hashes, and packing uses `--skip-crosscheck`.

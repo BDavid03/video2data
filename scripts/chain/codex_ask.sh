@@ -17,6 +17,7 @@
 #   CODEX_RESUME=<earlier answer.md or session id>  sends the brief as a follow-up in that
 #     Codex session (it keeps everything it read and did), e.g. "fix these review defects".
 #   CODEX_TIMEOUT_MIN  cap in minutes (default 60 read-only, 180 for job modes).
+#   CODEX_TIER         service tier (default priority, Codex's Fast: 2x speed, more usage; owner, 4 Nov 2026).
 #   CODEX_MEMORY_MAX   memory cap for Codex and everything it runs (default 20G). Past it the
 #     kernel kills the job alone; without it a runaway script fills the WSL VM and WSL dies.
 #
@@ -103,6 +104,7 @@ EOF
 } > "$stem.brief.md"
 
 common=(-m "$model" -c "model_reasoning_effort=\"$effort\"" -c "sandbox_mode=\"$sandbox\""
+        -c "service_tier=\"${CODEX_TIER:-priority}\""
         --skip-git-repo-check -o "$stem.answer.md")
 # Codex and its children share one memory-capped cgroup, so a runaway job is killed on its own.
 cap=()
