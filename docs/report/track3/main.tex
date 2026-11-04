@@ -19,8 +19,9 @@ its estimated starting pose. On episode 38 a policy trained from scratch
 follows an object path tracked in the video. Changing only episode 38 (its
 moving rollout and its simulated mesh) lifts the leaderboard AUC from 0.307
 (all static) to 0.323 and SP-SR from 0.15 to 0.20. The main finding is where
-the score goes: the objects move in every labelled clip, and true starting
-poses held still reach only 0.53 AUC on training episodes (old scorer).
+the score goes: the objects move in every labelled clip, so our static
+poses reach about 0.30 AUC on the training episodes, while a policy that
+follows a video path reaches 0.67 on the tuning clip.
 \end{abstract}
 
 \begin{document}
@@ -71,6 +72,16 @@ trained by reinforcement learning with box-shaped objects, parked hands and
 a 512-step budget, are exported through the unedited evaluator. Their objects stay where they start, so these rollouts
 are learned placements, not learned manipulation.
 
+\textbf{The policy.} Every pose comes from a FlashSAC policy (soft
+actor-critic) trained in FlashCHORD for a pair of simulated Sharpa hands.
+It observes wrist pose and velocity, hand joint state, the object's pose and
+the reference it must reach; it outputs residual wrist-pose and finger-joint
+targets, smoothed and clipped, around a reference hand motion. The reward
+favours the object reaching its reference pose and supporting contact, and
+penalises unintended contact, early termination and large or jerky actions.
+The official evaluator rolls the learned checkpoint out once from the first
+frame and records the object poses we submit.
+
 \textbf{Moving pose (episode 38).} Masks come from SAM2.1 and Grounding
 DINO with a box-prompt rule fixed before tracking. Camera motion comes from
 bundle adjustment on background features; stereo depth and silhouette
@@ -91,29 +102,26 @@ $\geq0.60$).
 
 \section{Experiments and Results}
 \textbf{Can a policy follow a video path?} Tuning episode 39 has motion
-capture, so we test the idea there (Table~1, old scorer, one clip, one seed).
-Held still, the pose scores 0.18 AUC. The tracked video path itself reaches
-0.833. A policy trained on that video path reaches 0.775 after one run
-of about an hour on a 16\,GB GPU; trained on motion capture instead it
-reaches 0.982, suggesting (one seed) that most of the loss comes from the
-tracked path, not the policy.
+capture, so we test the idea there (Table~1, one clip, one seed). Held
+still, the pose scores 0.175 AUC. The tracked video path itself reaches
+0.652. A policy trained on that video path reaches 0.669 after one run of
+about an hour on a 16\,GB GPU, so the policy follows the path closely and
+most of the remaining loss comes from the tracked path.
 
 \noindent\begin{minipage}{\columnwidth}
 \centering\small
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{lrrr}
 \toprule
-Episode 39 (old scorer) & AUC & $E$ cm & angle deg \\
+Episode 39 & AUC & $E$ cm & angle deg \\
 \midrule
-Held still & 0.18 & 16.43 & 51.08 \\
-Video path alone & 0.833 & 2.16 & 8.57 \\
-Policy on motion capture & 0.982 & 0.62 & 0.92 \\
-Policy on video path & 0.775 & 2.67 & 8.31 \\
+Held still & 0.175 & 16.43 & 51.08 \\
+Video path alone & 0.652 & 2.16 & 8.57 \\
+Policy on video path & 0.669 & 2.67 & 8.31 \\
 \bottomrule
 \end{tabular}
 \captionof{table}{Tuning episode 39, poses aligned to motion capture at the
-first frame. $E$ and angle are mean translation and rotation errors. The
-motion-capture policy uses information a real entry does not have.}
+first frame. $E$ and angle are mean translation and rotation errors.}
 \end{minipage}\par
 
 \textbf{Episode 38.} The same pipeline passed every admission gate:
@@ -130,13 +138,12 @@ static. The other sixteen scored episodes have two objects, which this
 route does not yet handle.
 
 \textbf{Why static poses score low.} On the eight training episodes our
-static poses score 0.277 AUC with the old scorer, and true starting poses
-held still score only 0.532. About half the metric is lost to motion that
-no static pose can follow; the rest is placement error, worst in heading.
+static poses score 0.302 AUC. Much of the metric is lost to motion that no
+static pose can follow; the rest is placement error, worst in heading.
 Four changed episodes keep 51--130$^\circ$ heading errors. The episode-19
 heading rests on one training episode (0.30 to 0.47) and a near-equal rival
 $180^\circ$ away could make it worse; static choices used training labels,
-so 0.277 is not held out.
+so 0.302 is not held out.
 
 \textbf{Shapes.} On 26 of 36 public-scan pairs, also used for selection,
 the pretrained shapes lowered local CD-O from 0.653 to 0.564\,cm, mostly
@@ -144,13 +151,11 @@ through the pitcher; pot 5 was a lucky seed. The mesh-only
 pack with them scored 0.536\,cm on the leaderboard, against 0.565\,cm for
 our counted file with procedural shapes.
 
-\textbf{Scorer change.} The organisers replaced the kit on 2 November; its
-pose metrics register the submitted mesh to the hidden scan. Our earlier
-numbers use the old scorer. Rechecked with the new scorer's code on public
-scans (diagnostics only), static training AUC from kinematic projections is
-about 0.30 and episode 39's video policy 0.669 (0.591 with the tracking
-mesh; MP-SR falls from 1 to 0); a box-like shape can register up to
-$180^\circ$ off.
+\textbf{Local scoring.} The kit's pose metrics register the submitted mesh
+to the hidden scan; our local numbers run the kit's own metric code with the
+public scans in its place. With the tracking mesh instead of the simulated
+mesh, episode 39's video policy scores 0.591, and a box-like shape can
+register up to $180^\circ$ off.
 
 \noindent\begin{minipage}{\columnwidth}
 \centering\footnotesize
@@ -160,7 +165,8 @@ $180^\circ$ off.
 File & AUC & SP-SR & MP-SR & RPE & MPPE & CD-O \\
 \midrule
 Static & 0.307 & 0.15 & 0 & 20.11 & 14.62 & 0.566 \\
-38 moving & \textbf{0.323} & \textbf{0.20} & 0 & 20.11 & \textbf{14.30} & \textbf{0.565} \\
+38 moving & \textbf{0.323} & \textbf{0.20} & 0 & \textbf{20.11} & \textbf{14.30} & \textbf{0.565} \\
++ episode 25 & 0.323 & 0.20 & 0 & 20.71 & 15.12 & 0.565 \\
 \bottomrule
 \end{tabular}
 \captionof{table}{Leaderboard, 4 November (RPE, MPPE, CD-O in cm). The moving
@@ -181,10 +187,12 @@ losing its replay buffer each time. Everything rests on one object type, one
 seed and a non-human grasp, so it shows neither transfer nor dexterity.
 
 \section{Conclusion}
-On training clips (old scorer) static poses reach about half the AUC; on
-the tuning clip a video-path policy scores 0.775 against 0.18 held still
-(0.669 against 0.175 under the new scorer), and one moving episode gave a
-measured gain on the leaderboard.
+On training clips static poses reach about 0.30 AUC; on the tuning clip a
+video-path policy scores 0.669 against 0.175 held still, and one moving
+episode gave a measured gain on the leaderboard. Re-placing episode 25 from
+scan registration left AUC, SP-SR, MP-SR and CD-O unchanged and worsened
+RPE (20.71 against 20.11\,cm) and MPPE (15.12 against 14.30\,cm), so the
+moving file stays our final entry.
 \textbf{Economic viability:} one moving policy costs about an hour on one
 16\,GB GPU and needs no motion capture; cost at scale is not yet shown. \textbf{Data flywheel:} not shown; each episode is processed once.
 \textbf{Innovation:} the policy learns from a path tracked in ordinary
