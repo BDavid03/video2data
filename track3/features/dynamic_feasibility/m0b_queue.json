@@ -1,0 +1,95 @@
+{
+  "protocol": "docs/chain/moving-m0b-protocol.md",
+  "protocol_sha256": "4531e748861f8a42525a39eee84407787945fbc70eb8659955ee9e008f2712ab",
+  "input_state": ".runtime/tmp/dynamic-scaling-seed0-k62pzjmq/training/state_21575680.safetensors",
+  "state_sha256": "33056ac8d5fa719654c56e13cf37a2572ae2e21a92f6cee6482ee503ef43c872",
+  "input_policy": ".runtime/tmp/dynamic-scaling-seed0-k62pzjmq/training/policy_21575680.safetensors",
+  "policy_sha256": "95593f93cbf1592109da04070e1093d3b5c3de33403338df292182a14e983976",
+  "start_steps": 21575680,
+  "final_steps": 66763776,
+  "boundary_steps": 32814080,
+  "world_count": 1024,
+  "minimum_size": 6400,
+  "n_step": 3,
+  "warmup_action": "policy",
+  "checkpoint_interval": 504832,
+  "curriculum_thresholds": [
+    5240832,
+    9180160,
+    13119488,
+    17057792,
+    20997120,
+    24936448,
+    28875776,
+    32814080,
+    36753408,
+    53410816,
+    66763776
+  ],
+  "lr_horizons": {
+    "0.5": 32599,
+    "1.0": 65199,
+    "2.0": 130398
+  },
+  "smoke": {
+    "total_steps": 21584896,
+    "ratio": 0.5,
+    "capacity": 16384,
+    "checkpoint_interval": 5120,
+    "maximum_seconds": 110
+  },
+  "probe_seconds": 300,
+  "ring_full_seconds": 60,
+  "train_seconds": 6000,
+  "score_seconds": 300,
+  "maximum_peak_mib": 13824,
+  "headroom_mib": 1024,
+  "admission_allowance_mib": 6000,
+  "probes": [
+    {
+      "arm": "a",
+      "ratio": 0.5,
+      "capacity": 16384
+    },
+    {
+      "arm": "b",
+      "ratio": 2.0,
+      "capacity": 16384
+    },
+    {
+      "arm": "c",
+      "ratio": 0.5,
+      "capacity": 1048576
+    },
+    {
+      "arm": "d",
+      "ratio": 2.0,
+      "capacity": 1048576
+    }
+  ],
+  "evidence": {
+    "outputs/dynamic_feasibility/task.npz": "0f8872594d747aacd0119648131b66ffc983cd43ddc4b6409cdd8d61a1faa4bd",
+    "outputs/dynamic_feasibility/m0/jump_hold_controls.json": "8a350968191cd8256266d9bb25b280d912413589d0102397b18d6c209201f2f1",
+    "outputs/dynamic_feasibility/m0/preflight.json": "ec68b68759e9582db4297a8a90dccaddbeb74122dcddb18a8ae3b21d755261a5",
+    "outputs/dynamic_feasibility/m0/final.json": "18585e17ae2da16282cd149f644e35c43a22a3caa8d5f30baa2dbd26d8f16869",
+    "outputs/dynamic_feasibility/d1/sizing-fixed/selection.json": "ef8d3e3d785ccada02c16d22b119c5e1ac1c78b7df6d088b0604b6e7aa22067d",
+    "outputs/dynamic_feasibility/m0/run.json": "b62b4305629ca11982f2ed87b8cb9f7bb4cadc4bb2b2528ad63dc77bfa59e87b",
+    "outputs/dynamic_feasibility/comparator_S.json": "222d31f96f3771e6e0a00c35da7eddc35cf777d93aa0d0f3003f3e1b6513a82c",
+    "outputs/dynamic_feasibility/runs/Z-seed0/trajectory.parquet": "9181d16d62ef4f22e4306881f714be3d8739acfdcc33e9bf6267e206f82ebb4e",
+    "outputs/dynamic_feasibility/runs/Z-seed0/official_metrics.json": "517b32e5448b244dd2eb8f93b67a9cf53a98f4e90eb62f1614b78203d84cdade",
+    "outputs/dynamic_feasibility/runs/L1-seed0/trajectory.parquet": "589bac87add269c5b86d50e3fb2611c7924fbc0af70cbd6f820dc5ddace355d9",
+    "outputs/dynamic_feasibility/runs/L1-seed0/official_metrics.json": "d8a5dd4ca6fe299bfd88a0e6f7f5dc144fb7663bfe86d648259d9fada9ca6907",
+    "outputs/dynamic_feasibility/runs/L1-seed1/trajectory.parquet": "5988df5d1ebc340d35e6e35d510ef30ab4b74734f71d656f505de8ef9422b8e3",
+    "outputs/dynamic_feasibility/runs/L1-seed1/official_metrics.json": "9b629265a6bf5a8221b14c5e618c2ef7250e8a77de2828f528f81b7fe1bd9c65",
+    "outputs/dynamic_feasibility/m0/runs/D1p-seed0/attempt0/trajectory.parquet": "8bb67ad31e5c808e6d59a254b63546d30a5db10ff1ab8872269ab56852dfb904",
+    "outputs/dynamic_feasibility/m0/runs/D1p-seed0/attempt0/official_metrics.json": "2a0d4fce00813afce6f67711cfa3725cbc3412d70d3511942539fa97ffd119ec",
+    "outputs/dynamic_feasibility/m0/runs/D1p-seed1/attempt0/trajectory.parquet": "dca8b78ddf5f39677d9128d570672b34c0c2b76520605270d8b690bd1daf0696",
+    "outputs/dynamic_feasibility/m0/runs/D1p-seed1/attempt0/official_metrics.json": "67757cb1954d36e96ee0bd3b63c1d65ac23ee5ea73146af0a7adb4e364986a4b",
+    "outputs/dynamic_feasibility/runs/Z-seed0/metrics.json": "ab8fa16da1fc7f60fdd89136626f820ba14e4ed5e8f7b1d1593695d47766da5f",
+    "outputs/dynamic_feasibility/runs/L1-seed0/metrics.json": "872953f82d757c1617006046168d4e423edf7c33be3f094ef7647ee65b7b7348",
+    "outputs/dynamic_feasibility/runs/L1-seed1/metrics.json": "53b17a46762133e885664b6a5a7c53364189e1818917c4d811dc6116b4e1d026"
+  },
+  "train_launch_deadline_utc": "2026-11-04T05:00:00+00:00",
+  "task_parquet": ".runtime/flashchord/video_to_data/robotic_grounding/source/robotic_grounding/robotic_grounding/assets/human_motion_data/ego_recon/processed/sequence_id=tissue_box_simple/robot_name=sharpa_wave/77ed746eca2449aeb395e51151f26d3c-0.parquet",
+  "task_parquet_sha256": "84f9b0aedd7ab254874d326885b7dc6f4611ccda7f54fbcb44691cb8f1f4f36c"
+}

@@ -1,14 +1,34 @@
 {
   "python": ".runtime/flashchord/venv/bin/python",
   "measurement_python": ".runtime/linux-cuda/bin/python",
-  "execution": {"run_authorized": true, "measure_authorized": true},
+  "execution": {
+    "run_authorized": true,
+    "measure_authorized": true
+  },
   "scope": "Shipped tissue_box_simple example only; no challenge episodes or submissions",
   "D1": {
-    "execution": {"run_authorized": true, "measure_authorized": true},
+    "execution": {
+      "run_authorized": true,
+      "measure_authorized": true
+    },
     "scope": "D1 on the unchanged shipped tissue-box example; no challenge episodes"
   },
   "M0": {
-    "execution": {"run_authorized": true, "measure_authorized": true},
+    "execution": {
+      "run_authorized": true,
+      "measure_authorized": true
+    },
     "scope": "Evaluation only: two fixed partial D1 policies on shipped tissue_box_simple; no training, challenge episodes or submissions"
+  },
+  "M0b": {
+    "execution": {
+      "smoke_authorized": true,
+      "probe_authorized": true,
+      "select_authorized": true,
+      "train_authorized": true,
+      "score_authorized": true,
+      "contact_authorized": true
+    },
+    "scope": "Frozen M0b protocol, seed 0, shipped tissue_box_simple only; no challenge episodes or submissions"
   }
 }

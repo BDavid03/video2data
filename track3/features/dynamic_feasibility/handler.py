@@ -147,6 +147,14 @@ def training_command(request, task, directory):
               "output_dir": str(directory / "training"), "hydra.run.dir": str(directory / "train_hydra")}
     if "curriculum_thresholds" in b:
         values["curriculum.thresholds"] = b["curriculum_thresholds"]
+    from .request import ResumeRequest
+    if isinstance(request, ResumeRequest):
+        values.update({"training.resume": True, "training.checkpoint_path": str(ROOT / request.resume_state),
+                       "training.checkpoint.load_optimizer": True,
+                       "training.checkpoint.load_reward_normalizer": True,
+                       "training.checkpoint.load_replay_path": None,
+                       "training.optimization.learning_rate_schedule_updates": b["learning_rate_schedule_updates"],
+                       "training.exploration.warmup_action": "policy", "training.replay.n_step": 3})
     overrides = [f"{key}={json.dumps(value, separators=(',', ':'))}" for key, value in values.items()]
     return [str(PYTHON), "-B", "-m", "track3.features.dynamic_feasibility._worker",
             str(FC / "scripts/train_flash_sac.py"), *overrides]

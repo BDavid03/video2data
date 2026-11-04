@@ -95,7 +95,7 @@ def measured_export(directory, task, kit, checkpoint_hash=None):
             "maniptrans_sr": official["metrics"]["maniptrans_sr"], "admission": "VALID"}
 
 
-def preflight(task, kit):
+def preflight(task, kit, cached_controls=None):
     """Check the real reference identities, reproduce D0 and score all 390 controls."""
     import numpy as np
     from ._metrics import jump_hold_controls, meets_m0, m0_thresholds, pose_metrics
@@ -121,14 +121,16 @@ def preflight(task, kit):
         errors = {key: abs(row[key] - saved[key]) for key in ("mean_position_cm", "add_auc")}
         reproduction[name] = {"absolute_errors": errors, "passed": max(errors.values()) <= 1e-9}
     thresholds = m0_thresholds(rows, static_saved["mean_position_cm"])
-    controls = []
-    for j, achieved in enumerate(jump_hold_controls(reference)):
-        row = {"j": j, **motion_metrics(achieved, reference),
-               "mean_position_cm": float(np.linalg.norm(achieved - reference, axis=-1).mean() * 100)}
-        row.update({f"meets_{name}": meets_m0(row, gate) for name, gate in thresholds.items()})
-        controls.append(row)
+    controls = [] if cached_controls is None else cached_controls
+    if cached_controls is None:
+        for j, achieved in enumerate(jump_hold_controls(reference)):
+            row = {"j": j, **motion_metrics(achieved, reference),
+                   "mean_position_cm": float(np.linalg.norm(achieved - reference, axis=-1).mean() * 100)}
+            row.update({f"meets_{name}": meets_m0(row, gate) for name, gate in thresholds.items()})
+            controls.append(row)
     control_hits = {name: [row["j"] for row in controls if row[f"meets_{name}"]] for name in thresholds}
-    write_json(OUTPUT / "jump_hold_controls.json", controls)
+    if cached_controls is None:
+        write_json(OUTPUT / "jump_hold_controls.json", controls)
     return {"rows": rows, "thresholds": thresholds, "control_hits": control_hits,
             "best_control_by_Q": max(controls, key=lambda row: row["Q"]),
             "best_control_by_T": max(controls, key=lambda row: row["T"]),
@@ -190,8 +192,20 @@ def measurement(phase):
     write_json(output_path(handler.ROOT, OUTPUT / f"{phase}.json"), result)
 
 
-def evaluate(trial, env, deadline, record):
+def evaluation_command(checkpoint, directory):
+    """Build the shared official evaluator argv without executing it."""
+    return [str(handler.PYTHON), "-B", "-m", "track3.features.dynamic_feasibility._worker",
+            str(handler.EVALUATOR), f"evaluation.checkpoint={checkpoint}",
+            "evaluation.world_count=1", "evaluation.reset_mode=explicit", "evaluation.start_frame=0",
+            f"evaluation.object_trajectories_output={directory / 'trajectory.parquet'}",
+            f"evaluation.metrics_output={directory / 'official_metrics.json'}",
+            f"hydra.run.dir={directory / 'hydra'}", "logging.mode=disabled"]
+
+
+def evaluate(trial, env, deadline, record, output=None, record_path=None):
     """Run the fixed evaluator once, allowing one disclosed retry only without an export."""
+    output = OUTPUT if output is None else output
+    record_path = output / "run.json" if record_path is None else record_path
     source, checkpoint = (handler.ROOT / trial[key] for key in ("source", "checkpoint"))
     trial["identity_passed"] = sha256_file(source) == sha256_file(checkpoint) == trial["sha256"]
     if not trial["identity_passed"]:
@@ -200,16 +214,33 @@ def evaluate(trial, env, deadline, record):
         if time.time() >= deadline:
             trial["budget_exhausted"] = True
             return
-        directory = OUTPUT / "runs" / trial["name"] / f"attempt{attempt}"
+        directory = output / "runs" / trial["name"] / f"attempt{attempt}"
+        if output != OUTPUT and directory.exists():
+            saved = json.loads((directory / "run.json").read_text())
+            if saved["checkpoint_sha256"] != trial["sha256"]:
+                raise ValueError("Existing evaluator attempt has a different checkpoint")
+            for name, digest in saved.get("artifacts", {}).items():
+                if sha256_file(directory / name) != digest:
+                    raise ValueError("Existing evaluator artifact changed")
+            if saved["status"] == "running" and any(
+                    Path(f"/proc/{saved[key]}").exists() for key in ("pid", "evaluation_pid") if key in saved):
+                raise RuntimeError("Existing evaluator child is still alive")
+            exported = (directory / "trajectory.parquet").exists()
+            trial["attempts"].append({"directory": str(directory.relative_to(handler.ROOT)),
+                                      "export_exists": exported, "seconds": saved.get("evaluation_seconds"),
+                                      "error": saved.get("evaluation_error", "Interrupted attempt"), "reused": True})
+            if exported:
+                trial["export_directory"] = str(directory.relative_to(handler.ROOT))
+                write_json(record_path, record)
+                return
+            if saved["status"] == "completed" and "evaluation_error" not in saved:
+                write_json(record_path, record)
+                return
+            continue
         attempt_record = {"kind": "dynamic_feasibility.m0_evaluation", "status": "running",
                           "checkpoint_sha256": trial["sha256"]}
         with recorded(directory, attempt_record):
-            command = [str(handler.PYTHON), "-B", "-m", "track3.features.dynamic_feasibility._worker",
-                       str(handler.EVALUATOR), f"evaluation.checkpoint={checkpoint}",
-                       "evaluation.world_count=1", "evaluation.reset_mode=explicit", "evaluation.start_frame=0",
-                       f"evaluation.object_trajectories_output={directory / 'trajectory.parquet'}",
-                       f"evaluation.metrics_output={directory / 'official_metrics.json'}",
-                       f"hydra.run.dir={directory / 'hydra'}", "logging.mode=disabled"]
+            command = evaluation_command(checkpoint, directory)
             try:
                 handler.execute(command, directory / "evaluation.log", env, deadline, attempt_record, "evaluation")
             except RuntimeError as error:
@@ -220,7 +251,7 @@ def evaluate(trial, env, deadline, record):
                                   "export_exists": exported,
                                   "seconds": attempt_record["evaluation_seconds"],
                                   "error": attempt_record.get("evaluation_error")})
-        write_json(OUTPUT / "run.json", record)
+        write_json(record_path, record)
         if exported:
             trial["export_directory"] = str(directory.relative_to(handler.ROOT))
             return

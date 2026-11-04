@@ -163,3 +163,83 @@ trajectories/contact forces are absent. `resume-facts.md` in that output folder
 records source-read M0b proposals: empty replay needs nine collections to become
 sampleable, and the exact 32,814,080 boundary checkpoint still records VOC 0.01.
 No GPU probe, resume or evaluator operation runs in this preparation.
+
+## M0b: finish one resumed curriculum
+
+The frozen [M0b protocol](../../../docs/chain/moving-m0b-protocol.md) has a fixed
+`m0b_queue.json`. Its six independent `M0b.execution.<operation>_authorized`
+flags default to **false**. After the lead authorizes the GPU session, run in
+order with the existing FlashCHORD interpreter:
+
+```bash
+PYTHONPATH=. .runtime/flashchord/venv/bin/python -B -m track3.features.dynamic_feasibility.m0b smoke
+PYTHONPATH=. .runtime/flashchord/venv/bin/python -B -m track3.features.dynamic_feasibility.m0b probe
+PYTHONPATH=. .runtime/flashchord/venv/bin/python -B -m track3.features.dynamic_feasibility.m0b select
+PYTHONPATH=. .runtime/flashchord/venv/bin/python -B -m track3.features.dynamic_feasibility.m0b train
+PYTHONPATH=. .runtime/flashchord/venv/bin/python -B -m track3.features.dynamic_feasibility.m0b score
+PYTHONPATH=. .runtime/flashchord/venv/bin/python -B -m track3.features.dynamic_feasibility.m0b contact
+```
+
+Append `--dry-run` to any command for exact argv without a flag, output creation,
+GPU access or training. Before selection, the training dry run prints all six
+possible selected recipes. `train` detaches itself, immediately prints PID/log
+and writes `launch.json`; completion is a terminal `trials/train/run.json` and a
+`train` ledger event. It refuses a new launch after **05:00 UTC, 4 November 2026**.
+A repeated launch command reports the existing launch. It never starts a second
+training run. A cooperative deadline cannot interrupt native compilation,
+checkpoint writes or a GPU collection; any overrun is recorded.
+
+All new artifacts live in `outputs/dynamic_feasibility/m0b/`. Permanent input
+copies match the pinned state and policy hashes; input/manifest.json records
+CPU counters, parameter fingerprints and finiteness. No original scratch input
+is needed once those copies exist. Each training trial has its own immutable
+terminal run record, commands, timestamped upstream progress, scalar replay and
+update counters, sampled memory and worker stop reason. The probe command skips
+completed arms, records failed arms as inadmissible and continues. The ledger
+has one terminal row per trial. Failed/interrupted training is never implicitly
+retried; a failed smoke blocks later stages. A dead training owner can have its
+last complete pair recovered into a separate record without editing run.json.
+
+The owned `_m0b_worker.py` changes progress reporting and cooperative stopping,
+not the SAC update or simulator math. It reports at roughly 1 Hz and exactly at
+ring fill, so the 60-second dwell and throughput windows include checkpoint wall
+time. An arm reaching its 300-second deadline remains admissible if its rate
+window is usable, even if its ring has been full for less than 60 seconds; that
+short dwell is explicit in the record. Selection is pure arithmetic in
+`_m0b.py`: capacity first, then 2.0/1.0/0.5 with each predicted time recorded.
+With one passing arm, only its observed ratio has a prediction; 1.0 requires
+two passing endpoints. **Protocol ambiguity resolved conservatively:** if 0.5
+failed and the sole passing 2.0 prediction exceeds 100 minutes, selection stops
+rather than choosing a failed 0.5 fallback. The memory ceiling applies to every
+admitted arm. No quality metric enters this decision.
+
+Upstream `runner.py:532` schedules multiples of the save interval **from zero**.
+`32,814,080 = 65 × 504,832`, so the exact boundary is saved without an upstream
+change. The final total is saved unconditionally (`runner.py:613-615`). Only
+complete matched finite policy/state pairs at the boundary and final/latest are
+copied into `retained/` and admitted for scoring; other generated checkpoints
+remain in the owned training directory, with no deletion (about 14 GiB for a
+full run). The boundary has VOC 0.01 in its saved metadata and is descriptive;
+D0/D1's existing zero-final-VOC refusal is unchanged.
+
+Scoring reuses `partial_eval.evaluation_command`, `evaluate`, `preflight` and
+`measured_export`. It rechecks M0 identities/reproduction, admits cached controls
+by task/artifact hash, enforces export/checkpoint admission, and gates only the
+final/latest policy. Existing exports are never rerun; only a crash without an
+export may use the one retry. A resumed scoring invocation preserves prior
+attempt records. Writes `summary.md`, `final.json`, `audit.json` and
+`score-finished.json`. The CPU audit recomputes T/Q/perpendicular error separately;
+a positive result still requires the lead's independent review. No training
+success field is fabricated when upstream logging is disabled.
+
+**Contact diagnostic skipped:** trustworthy force-bearing contact dwell and
+relative-slip instrumentation, with collapsed semantic frames and contact body
+ownership checked, exceeds the protocol's roughly 20-minute implementation
+allowance. `contact` records that skip and starts no GPU rollout.
+
+CPU build evidence is in `m0b/build/cpu-verification.json`: unchanged M0 evaluator
+argv/full measurements/default preflight, unchanged D1 request/training argv,
+mechanical selection branches, disabled-operation refusal and byte/hash checks
+of 14 historical run records. Source identities necessarily change with this
+new implementation and runtime block; old campaign records remain read-only,
+and no historical source-identity refusal is weakened.
