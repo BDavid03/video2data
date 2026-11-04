@@ -1,0 +1,21 @@
+{
+  "python": "data/.runtime/linux-cuda/bin/python",
+  "execution": {"masks_authorized": true},
+  "queue": [{"split": "public", "episode": 39}, {"split": "evaluation", "episode": 38}],
+  "stream": "ego_cam_c",
+  "pan_prompts": ["dust pan", "yellow dustpan", "scoop"],
+  "box_threshold": 0.4,
+  "text_threshold": 0.3,
+  "hand_prompt": "hand",
+  "hand_cadence_frames": 10,
+  "maximum_hands": 2,
+  "hand_nms_iou": 0.7,
+  "sam_config": "configs/sam2.1/sam2.1_hiera_l.yaml",
+  "maximum_input_side": 1024,
+  "offload_video_to_cpu": true,
+  "offload_state_to_cpu": true,
+  "bidirectional": true,
+  "logit_threshold": 0.0,
+  "memory_limit_mib": 16384,
+  "stop_utc": "2026-11-04T07:49:20+00:00"
+}
