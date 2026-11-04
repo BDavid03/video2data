@@ -55,6 +55,19 @@ print(json.dumps(dict(optimizer=optimizer_state(p),config=config)))
     return json.loads(result)
 
 
+def rebased_urdf(source, target_directory):
+    """Copy a URDF with its mesh filename attributes resolved to this checkout; the mesh bytes are untouched."""
+    import re
+    target_directory.mkdir(parents=True, exist_ok=True)
+    text = source.read_text()
+    rebased = re.sub(r'filename="([^"]+)"', lambda m: f'filename="{project_path(ROOT, m.group(1))}"', text)
+    target = target_directory / source.name
+    if target.exists() and target.read_text() != rebased:
+        raise ValueError(f'Rebased URDF differs from the existing copy: {target}')
+    target.write_text(rebased)
+    return target
+
+
 def run(episode, placement):
     directory = BASE / f'ep{episode}/policy-resume'
     directory.mkdir(parents=True, exist_ok=True)
@@ -72,6 +85,8 @@ def run(episode, placement):
     assets = []
     for field in ('object_mesh_paths', 'object_urdf_paths'):
         task[field] = [str(project_path(ROOT, name)) for name in original[field]]
+        if field == 'object_urdf_paths':
+            task[field] = [str(rebased_urdf(Path(name), directory / 'assets')) for name in task[field]]
         assets.extend(moving.entry(name) for name in task[field])
     allowed = {'object_body_position', 'object_body_wxyz', 'object_mesh_paths', 'object_urdf_paths'}
     if any(task[k] != original[k] for k in task if k not in allowed):
