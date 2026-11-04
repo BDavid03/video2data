@@ -411,3 +411,9 @@ preflight log in `submissions/20261101T2315Z-d2-v2/`. Reproduce: `bash scripts/r
 - Protocol and evidence: `docs/chain/refresh-20261104T2048Z/` (sealed rule, train registrations, limits, disclosed
   amendment after results). `check_release.sh --combined` reports NOT READY only on the two historical packed files
   missing since before today (D1 v5 parquet, D2 v5 CSV); report PDF `e8524609` matches its pin.
+- **Uploaded 21:35 UTC on 4 November 2026** (owner instruction "upload kaggle submission") with
+  `data/.runtime/tmp/refresh/upload.sh`, file SHA-256 `9efb1040fb9cd86b7851d318dc27ea0dcb9b62c80fb2471c927a55ed966843e4`.
+  Scores: AUC 0.32339 (57999364), SP-SR 0.20 (57999366), MP-SR 0.0 (57999369), RPE 20.71218 cm (57999373),
+  MPPE 15.12401 cm (57999376), CD-O 0.56471 cm (57999378). Against moving v5: AUC, SP-SR, MP-SR and CD-O equal; RPE
+  and MPPE worse. Moving v5 (b476eb1c) remains the better file to mark final. Receipt:
+  `data/outputs/refresh/combined/refresh-candidate-20261104T211325.940152Z/track3_combined_fp.parquet.d7e70c590a4c.kaggle-receipt.json`.

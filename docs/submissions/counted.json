@@ -299,7 +299,7 @@
     {
       "pack_folder": "data/outputs/refresh/combined/refresh-candidate-20261104T211325.940152Z",
       "file_name": "track3_combined_fp.parquet",
-      "status": "packed, not uploaded",
+      "status": "uploaded",
       "file": {
         "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211325.940152Z/track3_combined_fp.parquet",
         "size_bytes": 284171,
@@ -321,7 +321,29 @@
         "size_bytes": 1860,
         "sha256": "f4608e216f7d21fd44a52d959ce5e179d3fd192d4aa9b74b32cf5933c66890a6"
       },
-      "uploads": []
+      "uploads": [
+        {
+          "time_utc": "2026-11-04T21:35:24Z",
+          "kaggle_ids": {
+            "add_auc": "57999364",
+            "spider_sr": "57999366",
+            "maniptrans_sr": "57999369",
+            "rpe_cm": "57999373",
+            "mppe_cm": "57999376",
+            "cd_o_cm": "57999378"
+          },
+          "result": "COMPLETE",
+          "public_scores": {
+            "AUC": "0.32339",
+            "SP_SR": "0.20000",
+            "MP_SR": "0.00000",
+            "RPE_cm": "20.71218",
+            "MPPE_cm": "15.12401",
+            "CD_O_cm": "0.56471"
+          },
+          "evidence": "docs/chain/SUBMISSION.md"
+        }
+      ]
     }
   ]
 }
