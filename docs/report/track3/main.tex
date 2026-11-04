@@ -59,7 +59,8 @@ It excludes the admitted moving rollout on 38.
 One combined file supplies meshes and poses to all six boards.
 Pretrained shape gains remain development findings; scan reuse and amended
 moving gates limit the evidence.
-All counted-file scores remain pending.
+The all-static fallback scored AUC 0.307; the moving file's scores were
+pending at writing.
 \end{abstract}
 
 \begin{document}
@@ -83,9 +84,8 @@ and manually specified parts, excluding merged/clipped observations. Public scan
 but no scan geometry, dimensions or templates enter meshes or simulated assets.
 Static RL policies use boxes, inactive hands and 512-step budgets, with learned
 checkpoints exported through the unedited evaluator: this does not demonstrate
-learned manipulation. Stereo mask centroids place box 2 with 1\,cm clearance;
-merged masks retain earlier shrinkage. Calibration transfer is assumed;
-unknown heading rotates the aligned second-object direction.
+learned manipulation. Stereo mask centroids place box 2 with 1\,cm clearance; merged masks keep
+earlier shrinkage; calibration transfer is assumed and heading is unknown.
 
 \textbf{File and container.} The kit change forced repacking after the planned
 noon cut-off. The entry keeps
@@ -194,7 +194,7 @@ This fallback excludes 38 despite its admission after the owner moved the cut-of
 
 
 Across three attempts, 38 took \ThirtyEightMinutes\ minutes (a bound: the
-second record lacks a finish time); the 34.3--40.4M stretch was kept.
+second record lacks a finish time).
 \SpoonStatus\ Usable fractions were 10.9, 8.8 and 0.7\% against the 90\% rule, with non-empty masks in every frame.
 
 \textbf{Integrity.} The tracker failed its frozen rule and amendment.
@@ -214,10 +214,11 @@ two stops (kill rule, owner) lost replay twice. A resume disallowed by the
 kill rule was necessary; this differs from 39's fresh run. One object/seed,
 a non-human hold and unscored contact establish neither transfer nor dexterity.
 
-\textbf{Leaderboard.} D1 v5 scored 0.53562\,cm but is not the counted CD-O
-entry. Counted-file CD-O: \LBCDO; AUC: \LBAUC; SP-SR: \LBSPSR;
-MP-SR: \LBMPSR; RPE: \LBRPE; MPPE: \LBMPPE.
-Scores came after every method choice and steered nothing.
+\textbf{Leaderboard.} The all-static fallback (combined v5, 4 November
+14:15 UTC) scored CD-O 0.56604\,cm, AUC 0.30715, SP-SR 0.15, MP-SR 0, RPE
+20.108\,cm, MPPE 14.624\,cm; mesh-only D1 v5 scored CD-O 0.53562\,cm. The
+moving file: CD-O \LBCDO; AUC \LBAUC; SP-SR \LBSPSR; MP-SR \LBMPSR; RPE
+\LBRPE; MPPE \LBMPPE. Scores came after every method choice and steered nothing.
 
 \section{Conclusion}
 38 has no ground-truth labels available to us; its accuracy is unknown and
