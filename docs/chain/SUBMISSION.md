@@ -3,6 +3,15 @@
 Kept current by every chain context (see `PROGRAM.md` section 1). Deadline planned to **17:00 UTC 4 Nov 2026** (owner,
 AGENTS.md; the kit says 22:00 UTC); new packs done by 12:00 UTC 4 Nov.
 
+**Uploads (4 Nov, by the chain under `PROGRAM.md` section 0; check_release.sh READY at `24b608d`, pushed to `origin/main` first; log `data/outputs/chain/uploads-28.log`).**
+
+| Time UTC | File | SHA-256 | Boards | Result |
+| --- | --- | --- | --- | --- |
+| 12:27:38 | `submission/20261103T2058Z-d1-v5/track3_meshes_v5_final.parquet` | `bcb93d57...4e58` | CD-O | **COMPLETE, public 0.53562 cm** (local development 0.5644/0.6208 on public scans) |
+| 12:30:33 to 12:30:53 | `submission/20261103T2024Z-d2-v5/track3_poses_v5_final.csv` | `0b2606ae...1035` | AUC, SP-SR, MP-SR, RPE, MPPE | **ERROR on all five: "Track 3 requires reconstructed meshes. Repack with --meshes."** No pose score exists |
+
+**Why, read this: the organisers replaced the kit archive on 2 Nov 18:21 GMT (SHA-256 `7e1fdd00...`); ours is from 30 Sep (`a2de2aee...`), an unversioned URL that `sources.lock.json` warned about.** Nothing compared it for five days, and local preflight kept saying "Ready to submit" because it was the old kit's preflight. Pose metrics now register the submitted mesh to the scan, and **every pose number in this repository was measured with the old scorer.** Scores steer nothing.
+
 **Context 25 (4 Nov 05:35 UTC): no new pack; D1 v5 and D2 v5 stay the files to upload.** The frame-0 panel closed without one (`frame0-panel-outcome.md`). M0b's finished policy is on the shipped task and enters no file (`moving-m0b-outcome.md`). A peer session said it was uploading v5; **no upload, hash, time or score is recorded here, so whether v5 is on the leaderboard is unverified.** `check_release.sh` READY at `8cdd10b`, on the worktree's private environments. Requirement added by the owner: RL in simulation (`PROGRAM.md` section 0).
 
 **Current files to upload (context 20, 3 Nov 21:00 UTC): D1 v5 and D2 v5** (sections "D1 v5" and "D2 v5" under Packed
