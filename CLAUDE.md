@@ -21,7 +21,6 @@ bash scripts/reproduce/d1_meshes.sh https://github.com/BDavid03/video2data/commi
 PYTHONPATH=. data/.runtime/linux-cuda/bin/python -m src.features.<slice> <operation> --request <file.json>
 python3 -m py_compile <file>                     # syntax check (no deps needed)
 PYTHONPATH=. data/.runtime/linux-cuda/bin/python -c "import src.features.<slice>.<module>"   # CPU import check
-data/.runtime/linux-cuda/bin/python -B scripts/documentation/compile.py          # concatenate docs into docs/compiled/all-documentation.md
 ```
 
 There is no test runner installed (`src/tests/` predates a no-testing period and pytest is not in
@@ -66,8 +65,8 @@ See `scripts/reproduce/README.md` for commands and source-drift limitations.
 **Supporting slices.** `src/features/depth/`, `src/features/stereo_depth/`,
 `src/features/object_masks/` and `src/features/camera_motion/` retain perception
 and preparation tools. `src/features/policy_training/` stays because the D0 loop
-reads only its `budget.json`; compose, train, select and comparison require restoring
-the recycled retargeting, scene_assembly and policy_rollout producers before admitting new inputs.
+reads only its `budget.json`; compose, train, select and comparison need the retargeting,
+scene_assembly and policy_rollout producers, deleted on 4 Nov 2026 and in history before the cleanup commit.
 `src/features/mesh_fusion/` and
 `src/features/dynamic_feasibility/` retain evidence cited in the abstract.
 
@@ -87,12 +86,8 @@ split `data/configs/splits/public-v1.json`, dataset revision pinned in `data/con
 `episode_partition` refuses any deviation. Depth scores compare to MoGe2 pseudo-labels, not
 measured depth; say so in any write-up.
 
-The finished depth study and unrun scaffolding are preserved under
-`data/recycle/20261104T010336Z/`, with original paths and reasons in its
-[manifest](data/recycle/20261104T010336Z/MANIFEST.md). Restore the required dependency group
-to its original paths with Git moves as described there; archived sibling imports
-still use their original package names.
+The owner had old, unused files deleted on 4 Nov 2026 (the depth study, unrun scaffolding, older design and
+research notes, old hand-offs). They remain in Git history before the cleanup commit (parent `ef884fd`).
 
 Design references: `docs/design/README.md` (feature directory), `docs/design/artifact-contracts.md`,
-`docs/design/feature-template.md`. The historical plan is `docs/design/legacy-plan.md`; the research backlog
-is `docs/experiments/README.md`.
+`docs/design/feature-template.md`.

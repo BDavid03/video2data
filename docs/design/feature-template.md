@@ -119,10 +119,8 @@ intact. Read the edited prose/source as text to catch obvious inconsistencies;
 do not turn that reading into imports, compile checks, linting, test execution,
 link validation or a project operation.
 
-Update the owning README, affected [artifact contracts](artifact-contracts.md),
-[delivery ledger](version1.md) where scope/evidence changed, and the dated
-[implementation status](../../reports/implementation-status.md). State exactly
-what changed and what was not executed. If runtime evidence is required, leave
+Update the owning README and affected [artifact contracts](artifact-contracts.md).
+State exactly what changed and what was not executed. If runtime evidence is required, leave
 that requirement visible for a later authorized phase.
 
 A documentation-only change needs no new tests. Under the current instruction,
