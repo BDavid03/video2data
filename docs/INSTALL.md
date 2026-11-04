@@ -1,8 +1,10 @@
 # FoundationPose install
 
-A separate install for a one-off pose pilot (`src/features/foundationpose_pilot.py`). It is **not**
-part of the entry. The main environments are `scripts/linux/install-linux-cuda.sh`,
-`install-kit-env.sh` and `install-flashchord.sh` (see the [README](../README.md)).
+A separate install used for frame-zero placement: it registers the organisers' public scans to the
+first stereo frame so the second object's start can be measured (`src/features/pose_refresh/`). No scan
+geometry enters any submitted mesh or simulated asset. The main environments are
+`scripts/linux/install-linux-cuda.sh`, `install-kit-env.sh` and `install-flashchord.sh` (see the
+[README](../README.md) and [REPRODUCIBILITY.md](../REPRODUCIBILITY.md)).
 
 - Programs: `data/.runtime/foundationpose/`
 - Caches: `data/.cache/foundationpose/`

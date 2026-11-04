@@ -2,6 +2,12 @@
 
 Our entry in NVIDIA's V2D Challenge, Track 3.
 
+**Start here.** The two-page technical report is
+[docs/report/final/track3-technical-report.pdf](docs/report/final/track3-technical-report.pdf). The counted
+submission is moving v5 (`track3_combined_v5.parquet`, SHA-256 `b476eb1c…`), listed with every other uploaded
+file in [docs/submissions/counted.json](docs/submissions/counted.json). How to check and rebuild everything:
+[REPRODUCIBILITY.md](REPRODUCIBILITY.md). Code lives in `src/features/`, one folder per job, each with its own README.
+
 ## What we did
 
 1. **The task.** Track 3 gives human egocentric video of tabletop tasks. Each recording is an
@@ -137,7 +143,7 @@ bash scripts/reproduce/d3_report.sh
   from that commit; at a later commit the report hash no longer matches.
 - Use the full commit URL. It is packed into the file, so a short one changes the bytes.
 - The scripts refuse changed sources. Older runs may need their recorded commit.
-- Details: [scripts/reproduce/README.md](scripts/reproduce/README.md).
+- Details: [REPRODUCIBILITY.md](REPRODUCIBILITY.md) and [scripts/reproduce/README.md](scripts/reproduce/README.md).
 
 ## Layout
 
