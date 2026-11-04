@@ -6,6 +6,14 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
 
 ## Open
 
+**UPDATE 2026-11-04 17:45 UTC: no two-object episode has passed its tracking gates, so nothing new has trained and no better
+file exists yet; moving v5 (14:28 UTC, AUC 0.32339) is still the one to mark final.** All 16 two-object episodes were screened
+(several twice, with disclosed fixes); they stop on tracking quality (too few valid tracked frames on textureless cups and pots,
+facing ties, table flatness). The cause is the object tracker: it needs feature matches that plain objects do not give. A
+tracker that fits our own mesh to masks and stereo depth is being built and checked against labels on train clips (to-do 7). If
+anything passes before 19:45 UTC it trains, and a file comes to you for upload approval by about 21:15 UTC; otherwise nothing
+changes for the close.
+
 **READ THIS FIRST, 2026-11-04 15:32 UTC. The close is 22:00 UTC (your correction). Moving v5 is uploaded and scored; the
 GPU is now training moving policies for the two-object episodes (one attempt each, last start 19:45 UTC). If any pass, a better
 file comes to you for upload approval by about 21:00 UTC. Until then:**
