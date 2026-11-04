@@ -164,3 +164,207 @@ static pose. All three missed:
 
 Log: `data/outputs/moving_policy/spoon-ledger.jsonl` and `spoon-status.md`. Per-episode gates:
 `data/outputs/moving_reference/epNN/mask-gates.json`.
+
+## Feature-free depth tracker (revision 1)
+
+`depth_track.py` fits the campaign's byte-verified procedural mesh directly to
+cached SAM2 silhouettes and masked stereo points. It uses no object features or
+keyframes. `_depth_track.py` holds pure geometry and fitting; the handler owns
+input admission, the resumable batch, sealing and separate mocap evaluation.
+Cups optimize position and directed axis, lids resolve the pi-equivalent rotation,
+and other objects retain full rotation with a continuity prior. Hand pixels are
+excluded from silhouette fitting and IoU.
+
+The frozen rules are in
+[`moving-depth-tracker-protocol.md`](../../../docs/chain/moving-depth-tracker-protocol.md).
+The protocol hash is recorded before tracking. Only public train/tuning clips
+0/11/12/18/21/23/26/31/39/42 can enter this handler. The evaluator refuses to read
+mocap until the complete output batch is sealed, and reports motion accuracy after
+a single frame-zero alignment. It does not infer scan geometry or scan axes.
+
+```bash
+export CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=.
+export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=2
+# The protocol-seal.json must already match the frozen protocol.
+data/.runtime/linux-cuda/bin/python -B -m src.features.moving_reference.depth_track inventory
+data/.runtime/linux-cuda/bin/python -B -m src.features.moving_reference.depth_track run
+data/.runtime/linux-cuda/bin/python -B -m src.features.moving_reference.depth_track evaluate
+```
+
+Outputs live at `data/outputs/moving_reference/depth-track/`. `queue.json` lists
+cached clips; exact-identity checkpoints resume interrupted tracking. Completed
+outputs are skipped and hashes verified. Every clip writes `reference.npz`
+(position, xyzw quaternion, time, frame index, validity, world poses),
+`tracking.npz`, fit diagnostics, campaign instruments, input/source hashes and a
+seal. `outputs-seal.json` precedes any label access; `evaluation.csv` and
+`evaluation.json` are separate. `summary.md` contains per-clip measurements and
+exact commands for missing GPU masks and CPU stereo/camera preparation.
+
+At inventory, only episode 39 has full SAM2/stereo caches (319 frames). The other
+nine clips have 20–34 sparse stereo frames and no full SAM2 cache; FoundationPose
+has frame-zero inputs for 12 and 31, insufficient for motion evaluation. No allowed
+clip supplies a spoon. A pan result alone cannot admit this tracker for cups,
+pots, spoons or two-object episodes. The running campaign is unchanged;
+`reference.npz:gates_passed` remains false because campaign camera/table/support
+admission requires separate evidence.
+
+The nearest-triangle search is approximate: exact closest points on the faces
+attached to eight nearest surface samples. A CPU comparison with full-mesh exact
+distances on 20 procedural-pan points found a maximum 0.502 mm difference.
+Symmetry angles agree with the campaign's implementation within 1.1e-13 degrees
+on 200 fixed random rotations. These checks establish numerical conventions,
+not tracking accuracy. Latest real-clip measurements and any failures are in
+`data/outputs/moving_reference/depth-track/summary.md`.
+
+Revision 1's real CPU run completed 319 frames in 48.8 seconds, sealed before any
+mocap read, and **failed**: 192/319 valid (60.19%), valid-frame IoU median 0.6207,
+maximum speed 2.538 m/s. All 127 invalid frames exceeded 30 mm depth p90; every
+frame had at least 2,170 stereo pixels, so feature scarcity is no longer its
+validity predicate. The original evaluator stopped on a 0.199499 s video/mocap
+clock mismatch. A separately frozen frame-index diagnostic preserved that failure
+and measured medians 29.684 cm / 64.175 degrees, with only 1.88% of frames below
+both 3 cm and 30 degrees. It is not timestamp-aligned accuracy. No recipe or gate
+was changed after labels, and this revision must not enter the campaign.
+
+### Corrected evaluator and bounded tuning follow-up
+
+The same-session follow-up reproduced M1's evaluator on the saved candidate C.
+M1 uses equal frame indices and a single first-pose rigid alignment, without
+interpolating timestamps. The extra 1 ms clock rejection above was unsupported;
+removing it is an evaluator correction. C's saved errors are reproduced exactly
+in position and within 1.1e-14 degrees in rotation. C reaches 78.68% joint
+<3cm/<30deg frames, median 1.887 cm / 7.938 degrees. Its historical M1 pass stands;
+this tracker's new protocol still requires 90% joint success.
+
+`evaluate-m1.py` under the output directory records the correction and comparison
+of C and revision 1. The legacy `evaluate` command and its failed log belong to
+the original record; the follow-up uses `evaluate_m1_revision` in the handler.
+Revision 1's original source/protocol bytes are archived under `frozen-v1/`.
+`comparison.md` and the appended section of `summary.md` carry corrected comparisons.
+No old sealed reference or error file is overwritten.
+
+```bash
+CUDA_VISIBLE_DEVICES='' PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 \
+  OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=2 \
+  data/.runtime/linux-cuda/bin/python -B -m src.features.moving_reference.depth_track \
+  revisions --queue data/outputs/moving_reference/depth-track/revisions-queue.json
+```
+
+The resumable queue runs at most revisions 2–4 on tuning 39. Before each run it
+appends a dated protocol entry and seals a copy, then seals tracking outputs before
+the labelled check. It stops early only on the unchanged pass bars plus a better
+joint fraction and no larger median errors than C. These are development scores,
+not independent assessment. Trimming affects the fit only; validity still uses
+the full baseline non-hand cloud. Mesh bytes/scale and campaign thresholds stay fixed.
+
+`diagnosis-r1/` contains eight frames around the first failure, a depth-p90/hand
+overlap plot and counts. First invalid frame: 0; first position error >3cm: 1.
+Known hand pixels were already excluded. The evidence does not establish hand or
+background contamination as the cause. The recorded mesh rotation exposes a
+77.08-degree initialization error between asset z and canonical up, and the
+campaign mesh differs in dimensions from C's separately fitted shape.
+
+GPU cache preparation is a separate, unrun script:
+
+```bash
+TRACKER_STOP_UTC='<future ISO8601 UTC deadline>' \
+  bash data/.runtime/tmp/depth-track-gpu-prep.sh
+```
+
+It prepares 17 objects, cups first, then pot/lid/pitcher, sweeper/pan, racks and
+wooden pieces. No allowed spoon clip exists. Each unfinished mask job acquires
+`GpuLease`; completed stages and hash-verified completed objects are skipped.
+Interrupted mask stages restart deterministically; no files or live locks are
+removed. CPU stereo and camera preparation release the GPU. Log:
+`data/outputs/moving_reference/depth-track/gpu-prep.log`. Estimated first-pass
+runtime: 65–100 minutes, of which about 42 GPU minutes are extrapolated from the
+measured 319-frame SAM2 job. This script has not been executed here.
+
+The bounded follow-up finished all three trials and stopped. R2: 48.90% valid,
+4.165 cm / 44.760° median errors, 7.52% joint success. R3/R4: 45.77% valid,
+5.240 cm / 49.143°, 14.42% joint success. R4's recovery trigger fired zero times,
+so its reference is byte-identical to R3. None passes or beats C. The full
+instrument table and corrected error graph are in `summary.md` and
+`comparison-errors.png`. No new reference entered the running campaign.
+
+### Hybrid revision 5 and C initialization defect fix
+
+`depth_hybrid.py` owns the bounded CPU follow-up, with array-only operations in
+`_depth_hybrid.py`. It leaves the live GPU preparation process and campaign code
+alone. The preparation summary's missing `wall_seconds` field was fixed in
+`depth_track.prepare_inputs`; the first finished mask jobs that failed there can
+receive CPU-only recovery into `hybrid-v5/recovered-inputs/`.
+
+```bash
+export CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=.
+export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=2
+data/.runtime/linux-cuda/bin/python -B -m src.features.moving_reference.depth_hybrid init-fix
+data/.runtime/linux-cuda/bin/python -B -m src.features.moving_reference.depth_hybrid regression39
+data/.runtime/linux-cuda/bin/python -B -m src.features.moving_reference.depth_hybrid queue --until '<future ISO8601 UTC>'
+```
+
+The defect-fix initializer calls `full_c.initialize` on C's canonical own pan,
+uses its table-fixed base, and maps through the campaign asset's recorded
+`coordinate_rotation`. Its canonical matrix matches saved C forward frame zero
+exactly. Frame zero is retained without another fit. Revision 3's mesh and fitting
+parameters stay unchanged. The measured `rev 3 + init fix` result remains FAIL.
+
+Hybrid 39 resumes C's sealed reference. All 319 pose/validity arrays and reference
+bytes match exactly; no fallback is invoked. This is a preservation regression,
+not evidence that missing-keyframe recovery works. Historical pan C is model
+tracking; train C calls the campaign's `two_object_facing.reference_tracks`
+unchanged, which uses features/keyframes. Their distinction is recorded.
+
+On train, valid C poses are kept exactly. Other frames use the mask/depth fit
+from the last C-valid pose, with cups optimizing axis and position only. The bridge
+never updates C's state or keyframes. With no valid C anchor, the fit uses C's
+frame-zero start and records fallback-alone. Validity takes C's flag on accepted
+C frames, otherwise the frozen full-cloud residual rule. Pose jumps when C returns
+are included in all-frame speed/angular-rate maxima. No thresholds are relaxed.
+
+Each C, hybrid and defect-fix output is sealed before its labelled check, using
+M1's exact frame correspondence and first-pose alignment. Labels are public
+train/tuning only, matched by object name. Results are per-object development
+comparisons, not a joint two-object MP-SR/RPE assessment or campaign admission.
+See `data/outputs/moving_reference/depth-track/hybrid-v5/summary.md`, selection
+records, the append-only queue ledger and pending.json for status and continuation.
+
+### Local kit scorer (to-do 6)
+
+`kit_score.py` calls the installed AUC/MPPE/SP-SR/MP-SR modules' unchanged
+`score()` entrypoints, including mesh registration, body conversion, symmetry and
+shared scene alignment. It never interpolates timestamps or filters tracker-invalid
+frames. `_kit_score.py` contains pure coordinate/diagnostic array functions.
+
+```bash
+CUDA_VISIBLE_DEVICES='' PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 \
+  OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=2 \
+  data/.runtime/linux-cuda/bin/python -B -m src.features.moving_reference.kit_score \
+  score --request data/outputs/moving_reference/depth-track/kit-score/adapter-reuse-request.json
+```
+
+That runnable example scores an arbitrary `candidate` trajectory, with its own
+fresh output directory. Copy its JSON for another measurement: each case specifies
+an allowed public episode, object names, candidate meshes and NPZ trajectories
+(`position`, `quaternion_xyzw`, `frame_index`). `C` supplies the static frame-zero
+floor; named variants can reference any compatible one-world trajectory. Record
+`body_T_mesh` when poses and mesh use different body conventions. Independently
+tracked objects require fixed `world_T_shared_world` transforms derived from their
+common frame-zero camera, never fitted to labels. `prepare --output <fresh data/outputs path>`
+automatically discovers sealed C/hybrid inputs and these transforms; `run --request
+<queue.json>` resumes the frozen batch.
+
+Outputs include local solution/submission Parquet rows, input/code hashes, ledger,
+per-case metrics and summary.md. These are explicitly **non-policy diagnostics**,
+not uploadable submissions. Host geometry is unpublished: the adapter uses public
+visual geometry, surface-centroid anchors, PCA symmetry axes and the kit's 500-point
+sampler as a disclosed proxy. It reuses the installed kit environment for mesh
+budgeting; no dependency installation is needed. Missing companions remain missing,
+with partial-object AUC/MPPE labelled and full-episode SP-SR/MP-SR unavailable.
+
+The completed shared-world table and clock audit are at
+`data/outputs/moving_reference/depth-track/kit-score/summary.md`. Video PTS and
+actual capture_time run near 20Hz; the separate timestamp column follows metadata
+20.254Hz. The kit joins frame IDs, not timestamps. Unifying independent world
+gauges fixes episode assembly without changing any tracker. This implements the
+local-scoring part of to-do 6, not its full moving-policy/admission requirement.
