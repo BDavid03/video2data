@@ -11,7 +11,7 @@ import trimesh
 
 EPISODES = [0, 2, 11, 12, 13, 18, 21, 22, 23, 24, 26, 27, 31, 39, 40, 42, 45]
 KIT = "upstream/v2d_submission_kit/v2d_submission_kit/metric_code/track_3/AUC.py"
-ROOT = glob.glob("datasets--nvidia--video_to_data_challenge/snapshots/*/track_3/public")[0]
+ROOT = glob.glob("data/datasets--nvidia--video_to_data_challenge/snapshots/*/track_3/public")[0]
 
 
 def load_kit():

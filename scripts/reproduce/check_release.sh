@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$(readlink -f "$0")")/../.."
-export CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=.
-.runtime/linux-cuda/bin/python -B - "$@" <<'PY'
+export CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. V2D_HISTORICAL=1
+data/.runtime/linux-cuda/bin/python -B - "$@" <<'PY'
 import hashlib, json, re, subprocess, sys, tempfile
 from pathlib import Path
 release = json.loads(Path('scripts/reproduce/release.json').read_text())
-Path('outputs/report').mkdir(exist_ok=True)
-work = Path(tempfile.mkdtemp(prefix='release-', dir='outputs/report'))
+from src.paths import current_name  # recorded names may be in the old layout
+for _entry in release.values():
+    for _key in ('path', 'manifest'):
+        if _key in _entry:
+            _entry[_key] = current_name(_entry[_key])
+Path('data/outputs/report').mkdir(exist_ok=True)
+work = Path(tempfile.mkdtemp(prefix='release-', dir='data/outputs/report'))
 failed = []
 def check(label, action):
     try: ok, detail = action()
@@ -35,7 +40,7 @@ for name in ('mesh', 'pose'): check(name+' packed file', lambda: match(release[n
 for name in ('mesh', 'pose'): check(name+' manifest', lambda: command(name+'-manifest', ['bash', 'scripts/reproduce/verify.sh', release[name]['manifest']]))
 check('pose provenance', lambda: command('pose-provenance', ['bash', 'scripts/reproduce/d2_poses_v5.sh']))
 for track in ('track_3_mesh', 'track_3'):
-    check(track+' preflight', lambda: command(track, ['.runtime/kit-env/bin/python', '-B', 'upstream/v2d_submission_kit/v2d_submission_kit/tools/preflight.py', '--track', track, '--skip-kaggle'] + ([] if track == 'track_3_mesh' else ['--results', str(Path(json.loads(Path(release['pose']['manifest']).read_text())['exports'][0]['path']).parent)]), 'Ready to submit'))
+    check(track+' preflight', lambda: command(track, ['data/.runtime/kit-env/bin/python', '-B', 'upstream/v2d_submission_kit/v2d_submission_kit/tools/preflight.py', '--track', track, '--skip-kaggle'] + ([] if track == 'track_3_mesh' else ['--results', str(Path(current_name(json.loads(Path(release['pose']['manifest']).read_text())['exports'][0]['path'])).parent)]), 'Ready to submit'))
 if check('report build', lambda: command('report', ['bash', 'scripts/reproduce/d3_report.sh', '--run'])): check('report upload file', report_file)
 print('NOT READY' if failed else 'READY', flush=True)
 sys.exit(bool(failed))

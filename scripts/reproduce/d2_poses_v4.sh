@@ -4,4 +4,4 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 export PYTHONPATH="$ROOT" PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES=''
-exec .runtime/linux-cuda/bin/python -B -m track3.features.pose_insurance.scored_stereo_pack "$@"
+exec data/.runtime/linux-cuda/bin/python -B -m src.features.pose_insurance.scored_stereo_pack "$@"

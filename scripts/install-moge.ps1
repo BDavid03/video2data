@@ -4,7 +4,7 @@ param()
 $ErrorActionPreference = 'Stop'
 $track3Root = Split-Path -Parent $PSScriptRoot
 . "$PSScriptRoot/use-local-artifacts.ps1"
-$track3InstallDirectory = Join-Path $track3Root 'reports/installation/moge-20260925'
+$track3InstallDirectory = Join-Path $track3Root 'data/reports/installation/moge-20260925'
 New-Item -ItemType Directory -Force -Path $track3InstallDirectory | Out-Null
 $track3InstallSteps = [System.Collections.Generic.List[object]]::new()
 $track3InstallRecord = [ordered]@{
@@ -13,9 +13,9 @@ $track3InstallRecord = [ordered]@{
     authorization = 'User approved the MoGe2 installation proposal; no testing or model execution.'
     started_utc = [DateTime]::UtcNow.ToString('o')
     status = 'installing'
-    environment = '.runtime/moge-python313'
-    package_lock = 'configs/perception/moge/pylock.python313.toml'
-    source_pins = 'manifests/models/moge-source-pins.json'
+    environment = 'data/.runtime/moge-python313'
+    package_lock = 'data/configs/perception/moge/pylock.python313.toml'
+    source_pins = 'data/manifests/models/moge-source-pins.json'
     model = [ordered]@{
         repo_id = 'Ruicheng/moge-2-vitl-normal'
         revision = 'cb0e8bbd6b1e243589717c78e750b1ba4c093acf'
@@ -42,7 +42,7 @@ function Invoke-Track3InstallStep {
         arguments = $Arguments
         started_utc = [DateTime]::UtcNow.ToString('o')
         status = 'running'
-        log = "reports/installation/moge-20260925/$Name.log"
+        log = "data/reports/installation/moge-20260925/$Name.log"
     }
     $track3InstallSteps.Add($track3Step)
     Save-Track3Installation
@@ -62,13 +62,13 @@ try {
     # Existing destinations are not removed or cleared. uv reuses this dedicated
     # project environment on a resume; only it is synchronized to the lock.
     Invoke-Track3InstallStep -Name 'environment' -Executable 'uv' -Arguments @(
-        'venv', '.runtime/moge-python313', '--allow-existing', '--python',
+        'venv', 'data/.runtime/moge-python313', '--allow-existing', '--python',
         'C:/Users/db009/AppData/Roaming/uv/python/cpython-3.13.14-windows-x86_64-none/python.exe',
         '--no-python-downloads'
     )
     Invoke-Track3InstallStep -Name 'packages' -Executable 'uv' -Arguments @(
-        'pip', 'sync', 'configs/perception/moge/pylock.python313.toml',
-        '--python', '.runtime/moge-python313/Scripts/python.exe',
+        'pip', 'sync', 'data/configs/perception/moge/pylock.python313.toml',
+        '--python', 'data/.runtime/moge-python313/Scripts/python.exe',
         '--only-binary', ':all:', '--no-python-downloads'
     )
     $track3Sources = @(

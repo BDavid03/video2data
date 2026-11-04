@@ -109,7 +109,7 @@ def run(root, journal):
             missing += 1
             continue
         resolved += 1
-        if "/sources/" in name or name.endswith((".py", ".sh")) or name.startswith(("src/", "track3/", "scripts/", "docs/", "AGENTS.md")):
+        if "/sources/" in name or name.endswith((".py", ".sh")) or current_name(name).startswith(("src/", "scripts/", "docs/", "AGENTS.md")):
             continue  # sources legitimately drift; the historical mode covers them
         checked += 1
         mismatched += sha(target) != digest

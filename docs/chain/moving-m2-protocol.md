@@ -2,7 +2,7 @@
 
 ## State (4 Nov 2026, 05:35 UTC): Stage 0 STOPPED; no training has run; awaiting a disclosed amendment
 
-The narrow builder ran on real 39 (`outputs/moving_policy/ep39/stage0.json`, `final-checks.json`). **Failed, after the one allowed repair:** check 4, wrist speed 1.59 m/s, 7.43 times the example against a limit of 2; check 5, the object reaches 10.5 m in 11 CPU physics steps with 0.73 degrees of rotation, which looks like a solver blow-up (hands start 4 to 6 cm inside the support), not a fall. Passed: schema, closure, penetration, truth; closure and truth are close to vacuous for a rigid grasp and an identical reference.
+The narrow builder ran on real 39 (`data/outputs/moving_policy/ep39/stage0.json`, `final-checks.json`). **Failed, after the one allowed repair:** check 4, wrist speed 1.59 m/s, 7.43 times the example against a limit of 2; check 5, the object reaches 10.5 m in 11 CPU physics steps with 0.73 degrees of rotation, which looks like a solver blow-up (hands start 4 to 6 cm inside the support), not a fall. Passed: schema, closure, penetration, truth; closure and truth are close to vacuous for a rigid grasp and an identical reference.
 
 **The next context settles this before any GPU minute is planned around it: a disclosed amendment, or a recorded stop.** No training number exists, so a redesign remains clean. Inputs to it:
 - **Upstream's own route (owner, about 05:30 UTC: "worth using: https://github.com/nvidia-isaac/video_to_data.git"):** the pinned checkout has `reconstruction/`, `ego_recon_to_sharpa.py`, `contact_labels.py`, `generate_rigid_urdfs.py`, `reconstruct_support_surfaces.py`, `data_quality_checks/` and `docs/e2e_workflow.md`. See Codex `route-v2d-25`.

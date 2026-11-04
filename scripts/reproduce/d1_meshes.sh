@@ -4,10 +4,10 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 export PYTHONPATH="$ROOT" PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES=''
-printf '+ .runtime/linux-cuda/bin/python -B -'
+printf '+ data/.runtime/linux-cuda/bin/python -B -'
 for arg in "$@"; do printf ' %q' "$arg"; done
 printf '\n'
-.runtime/linux-cuda/bin/python -B - "$@" <<'PY'
+data/.runtime/linux-cuda/bin/python -B - "$@" <<'PY'
 import argparse
 import hashlib
 import json
@@ -24,7 +24,7 @@ p.add_argument("--version", choices=("v2", "v3", "v4"), default="v2")
 p.add_argument("--run", action="store_true", help="execute; otherwise print the plan")
 a = p.parse_args()
 root = Path.cwd()
-manifests = sorted(root.glob(f"submissions/*-d1-{a.version}/manifest.json"))
+manifests = sorted(root.glob(f"submission/*-d1-{a.version}/manifest.json"))
 manifest = a.manifest or manifests[-1]
 m = json.loads(manifest.read_text())
 recorded_python = Path(m["pack_command"][0])
@@ -41,7 +41,7 @@ def relative(value):
     return path.relative_to(root).as_posix() if path.is_absolute() else str(value)
 
 
-request = Path("track3/features/mesh_extents/requests") / ("build-v2-r2.json" if a.version == "v2" else f"build-{a.version}.json")
+request = Path("src/features/mesh_extents/requests") / ("build-v2-r2.json" if a.version == "v2" else f"build-{a.version}.json")
 build_run = Path(rebase(m["build_run"]))
 record = json.loads((root / build_run).read_text())
 request_data = json.loads(request.read_text())
@@ -51,10 +51,10 @@ url = a.commit_url or m["code_commit_url"]
 if a.run and a.commit_url is None:
     p.error("--run requires an explicit commit URL")
 print(f"Manifest: {manifest}\nRecorded build: {build_run}\nMeasure runs: {len(request_data['measure_runs'])}", flush=True)
-scratch = root / ".runtime/tmp"
+scratch = root / "data/.runtime/tmp"
 if a.run:
     scratch.mkdir(parents=True, exist_ok=True)
-work = Path(tempfile.mkdtemp(prefix=f"reproduce-d1-{a.version}-", dir=scratch)) if a.run else Path(f".runtime/tmp/reproduce-d1-{a.version}-<new>")
+work = Path(tempfile.mkdtemp(prefix=f"reproduce-d1-{a.version}-", dir=scratch)) if a.run else Path(f"data/.runtime/tmp/reproduce-d1-{a.version}-<new>")
 print(f"Outputs/logs: {work}", flush=True)
 commands = []
 
@@ -112,7 +112,7 @@ def command(argv, log, env=None):
         with (work / log).open("w") as stream:
             subprocess.run(argv, stdout=stream, stderr=subprocess.STDOUT, check=True, env=env)
 
-build = [".runtime/linux-cuda/bin/python", "-B", "-m", "track3.features.mesh_extents", "build", "--request", request]
+build = ["data/.runtime/linux-cuda/bin/python", "-B", "-m", "src.features.mesh_extents", "build", "--request", request]
 command(build, "build.log")
 new_run = Path((work / "build.log").read_text().strip().splitlines()[-1]) if a.run else Path("<new-build>/run.json")
 new_run = Path(relative(new_run))
@@ -124,7 +124,7 @@ score_temp = work / "tmp"
 if a.run:
     score_temp.mkdir()
 score_env = dict(os.environ, TMPDIR=str(score_temp), TEMP=str(score_temp), TMP=str(score_temp))
-command([".runtime/kit-env/bin/python", "-B", "track3/features/mesh_eval/local_cdo.py", "--candidates", new_run.parent / "objects", "--out", work / "cdo.json"], "score.log", env=score_env)
+command(["data/.runtime/kit-env/bin/python", "-B", "src/features/mesh_eval/local_cdo.py", "--candidates", new_run.parent / "objects", "--out", work / "cdo.json"], "score.log", env=score_env)
 # Rebase the recorded commands so the checkout can move without editing run IDs.
 pack = [rebase(s) for s in m["pack_command"]]
 packed = work / f"track3_meshes_{a.version}.parquet"

@@ -18,18 +18,18 @@ No transport value has ever been computed for any arm. The author has seen no D1
 
 | Arm | Checkpoint or export | Note |
 | --- | --- | --- |
-| D1p-seed0 | `.runtime/tmp/dynamic-scaling-seed0-k62pzjmq/training/policy_21580800.safetensors` | the latest policy in that scratch directory |
-| D1p-seed1 | `.runtime/tmp/dynamic-scaling-seed1-kzy3z0pr/training/policy_22604800.safetensors` | the latest policy in that scratch directory |
-| Z, L1-seed0, L1-seed1 | existing `outputs/dynamic_feasibility/runs/*/trajectory.parquet`, read only | no re-run |
+| D1p-seed0 | `data/.runtime/tmp/dynamic-scaling-seed0-k62pzjmq/training/policy_21580800.safetensors` | the latest policy in that scratch directory |
+| D1p-seed1 | `data/.runtime/tmp/dynamic-scaling-seed1-kzy3z0pr/training/policy_22604800.safetensors` | the latest policy in that scratch directory |
+| Z, L1-seed0, L1-seed1 | existing `data/outputs/dynamic_feasibility/runs/*/trajectory.parquet`, read only | no re-run |
 | S | computed: the reference's first pose held for all frames | transport is 0 by construction |
 
 Earlier checkpoints in those directories are never scored, so there is no best-of selection. Each checkpoint's SHA-256 and metadata
 (`voc_scale`, steps) go in the record before its evaluation starts, and the policy file is copied beside the record, because
-`.runtime/tmp` is scratch.
+`data/.runtime/tmp` is scratch.
 
 ## Operation
 
-An evaluation-only operation in `track3/features/dynamic_feasibility/`, under `GpuLease`, with the slice's `environment()`. The
+An evaluation-only operation in `src/features/dynamic_feasibility/`, under `GpuLease`, with the slice's `environment()`. The
 training handler and its nonzero-VOC refusal do not change. Each checkpoint runs once with the kit's `evaluate_policy.py` and the
 settings D0 used: `evaluation.world_count=1 evaluation.reset_mode=explicit evaluation.start_frame=0`. The evaluator removes
 assistance itself (`harness.py:230,438,458`); the record cites what shows it did. Allowance: 5 GPU-minutes in total. A run that
@@ -99,4 +99,4 @@ If the result is GO or SIGNAL, the lead recomputes `T`, `Q` and perpendicular er
 believing it (`PROGRAM.md` section 4). The outcome goes in `docs/chain/moving-m0-outcome.md`, whichever way it falls.
 
 **Scope.** No challenge episode is read. Nothing here touches a pack manifest, `AGENTS.md` or a recorded `run.json`. New files only,
-under `outputs/dynamic_feasibility/m0/`.
+under `data/outputs/dynamic_feasibility/m0/`.

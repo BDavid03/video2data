@@ -30,8 +30,8 @@ is involved.
 - All root-level `.md` files, including the README and current instructions.
 - The historical plan at `docs/design/legacy-plan.md` and the research backlog
   under `docs/experiments/`, discovered recursively through `docs/`.
-- Markdown recursively under `docs/`, `track3/`, `configs/`, `scripts/` and
-  `reports/`, including feature READMEs and historical review snapshots.
+- Markdown recursively under `docs/`, `src/`, `data/configs/`, `scripts/` and
+  `data/reports/`, including feature READMEs and historical review snapshots.
 - This script's own documentation.
 
 The main README and design pages appear first in a fixed reading order. Remaining

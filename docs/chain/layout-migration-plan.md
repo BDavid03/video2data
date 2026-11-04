@@ -1,5 +1,14 @@
 # Layout migration plan
 
+**Done on this branch, 2026-11-04 about 06:15 UTC. Owner, live: "fix all the paths to the new folder system with sonnet sub-agent then restart the chain".** A Sonnet sub-agent built and tested `scripts/layout/migrate.py` in a scratch clone; the lead applied it after M0c ended. The layout is the owner's: `src/` holds the package directly (`src.features...`), and `data/` holds `outputs`, `configs`, `reports`, `manifests`, `recycle`, `runs`, `templates`, the dataset, `.runtime`, `.cache` and `.scratch`; `submissions` is now `submission/`. `upstream/` and `.agents/` stay at the top because the owner left them there.
+
+- **Old records resolve without being rewritten:** `src/paths.py` maps recorded names (`current_name`, `historical_name`). Hand-offs, outcome documents, run records, manifests and `AGENTS.md` keep their old path text, so read them through the table below.
+- **v5's frozen sources** are checked against their recorded Git commit by `src/historical.py`; current-source drift is reported. `check_release.sh` sets this mode itself, and live refusals stay.
+- **Verified on the real tree:** `migrate.py --verify` 0 failures; `check_release.sh` READY, abstract `62967a99...`; D1 v5 and D2 v5 verify; 825 recorded digests compared, 0 differ; packs byte-identical; CUDA from `linux-cuda`, `flashchord`, `foundationpose`. No rollback mode exists; the pre-migration commit is `6e1ae31`.
+- **The main checkout is not migrated by the chain.** It holds the owner's manual moves on an older commit, with far less data than this worktree. The worktree remains where the work happens. To reconcile it later, the owner's working tree has to be compared with `origin/worktree-chain-ctx01`.
+
+Everything below this line is the earlier plan, kept as a record; where it differs, this section wins.
+
 **Superseded for the main checkout. Owner, live, 2026-11-04 about 03:42 UTC: "organised the folder myself".** The owner moved the main checkout's folders by hand, and their arrangement differs from the target below, so **theirs wins**: for example the package's contents are directly in `src/`, and `configs`, `templates`, `reports`, `manifests`, the dataset and `.cache` are under `data/`. L2's script was stopped unfinished, and nothing from it was applied. See "State" at the end. The rest of this file is kept as the record of what was planned.
 
 **Owner, live, 2026-11-04 about 03:27 UTC:** "top level folders hsould be scripts, docs, .claude, src, data, submission, models everything else has to be organised under these". Route: Codex `route-layout-25` (read-only). `AGENTS.md` stays pinned by D2 v5's manifest and keeps its old path names; this file and `CLAUDE.md` are the translation.

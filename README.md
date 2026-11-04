@@ -7,11 +7,11 @@ hashes and limitations are in [the submission ledger](docs/chain/SUBMISSION.md).
 
 ## Current entry points
 
-- Meshes: [mesh extents](track3/features/mesh_extents/README.md),
-  [pretrained shapes](track3/features/mesh_generative/README.md) and
-  [packed mesh evaluation](track3/features/mesh_eval/README.md). D1 v5 retains
+- Meshes: [mesh extents](src/features/mesh_extents/README.md),
+  [pretrained shapes](src/features/mesh_generative/README.md) and
+  [packed mesh evaluation](src/features/mesh_eval/README.md). D1 v5 retains
   v4 meshes except the two video-admitted pot/pitcher replacements.
-- Poses: [pose insurance](track3/features/pose_insurance/README.md) owns the
+- Poses: [pose insurance](src/features/pose_insurance/README.md) owns the
   shipped static-pose policy line and its frozen diagnostics. This entry does
   not claim moving-object reconstruction.
 - Report: [report sources and evidence](docs/report/track3/README.md).
@@ -25,19 +25,19 @@ The full commit URL below is packed into the file; shortening it changes the pac
 ```bash
 bash scripts/reproduce/d1_meshes.sh https://github.com/BDavid03/video2data/commit/b1617234a85e316baa4a67b7f10ff053f5f92c4d --version v4
 bash scripts/reproduce/d1_meshes_v5.sh https://github.com/BDavid03/video2data/commit/b1617234a85e316baa4a67b7f10ff053f5f92c4d
-bash scripts/reproduce/verify.sh submissions/20261103T2058Z-d1-v5/track3_meshes_v5_final.manifest.json
+bash scripts/reproduce/verify.sh submission/20261103T2058Z-d1-v5/track3_meshes_v5_final.manifest.json
 bash scripts/reproduce/d3_report.sh
 ```
 
 The v4 command reads the unchanged build request at
-`track3/features/mesh_extents/requests/build-v4.json`; the v5 command checks the
+`src/features/mesh_extents/requests/build-v4.json`; the v5 command checks the
 passing G2 production artifacts. Execution requires a separately authorized
 `--run`; follow the linked reproduction documentation for its requirements.
 
 ## Architecture and execution
 
 Each vertical slice owns its requests, handlers, integrations, runtime flags,
-persistence and README. Shared code in `track3/` provides stable path, geometry,
+persistence and README. Shared code in `src/` provides stable path, geometry,
 provenance, episode-admission and GPU-lease primitives. The
 [feature directory](docs/design/README.md#feature-directory) lists all eleven
 retained slices, including perception preparation and unsuccessful routes kept
@@ -53,14 +53,14 @@ installations or uploads are implied by these commands.
 ## Archived research and scaffolding
 
 The finished depth study and unrun general-pipeline slices now live under
-`recycle/20261104T010336Z/`; their recorded outputs remain in place. The
-[recycle manifest](recycle/20261104T010336Z/MANIFEST.md) lists all 17 slices and
+`data/recycle/20261104T010336Z/`; their recorded outputs remain in place. The
+[recycle manifest](data/recycle/20261104T010336Z/MANIFEST.md) lists all 17 slices and
 companion scripts, with the reason for each move. Restore a required dependency
 group to its original paths with Git moves before using the archived commands;
 the archived code still imports siblings by their original package names.
 
-The [depth-study README](recycle/20261104T010336Z/track3/features/learning_experiments/README.md)
-and [closed-loop README](recycle/20261104T010336Z/track3/features/auto_research/README.md)
+The [depth-study README](data/recycle/20261104T010336Z/track3/features/learning_experiments/README.md)
+and [closed-loop README](data/recycle/20261104T010336Z/track3/features/auto_research/README.md)
 retain historical measurements against MoGe2 pseudo-labels. Those measurements
 are separate from the challenge entry's mesh and policy results.
 
@@ -69,12 +69,12 @@ are separate from the challenge entry's mesh and policy results.
 Read-only inputs: dataset `nvidia/video_to_data_challenge` at
 `5f68335f3acc802033d1e80728c1633197521de8`; FlashCHORD at
 `aee95f25ae0943f335d8bb42fa95b6a9acfa266f`; the Submission Kit under `upstream/`, hashed in
-`configs/sources.lock.json`.
+`data/configs/sources.lock.json`.
 
-- [Data audit](reports/data-audit/README.md), [calibration](reports/calibration/README.md),
-  [metric protocol](reports/metric-protocol.md) and [frozen split](configs/splits/public-v1.json).
-- [Official contract](reports/contract.md): what is submitted and how it is scored.
-- [Model readiness](reports/model-readiness/README.md): models, licences and version pins.
+- [Data audit](data/reports/data-audit/README.md), [calibration](data/reports/calibration/README.md),
+  [metric protocol](data/reports/metric-protocol.md) and [frozen split](data/configs/splits/public-v1.json).
+- [Official contract](data/reports/contract.md): what is submitted and how it is scored.
+- [Model readiness](data/reports/model-readiness/README.md): models, licences and version pins.
 
 Public labels are diagnostic references only. Evaluation task identities and labels are not
 inferred.
@@ -83,7 +83,7 @@ inferred.
 
 Start with the [design index](docs/design/README.md),
 [research volumes](docs/research/README.md) and
-[dated implementation history](reports/implementation-status.md). Older documents
+[dated implementation history](data/reports/implementation-status.md). Older documents
 retain their original scope and dates; the design index explains recycled paths.
 
 The [documentation compiler](scripts/documentation/README.md) writes

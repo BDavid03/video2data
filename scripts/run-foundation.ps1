@@ -3,12 +3,12 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $track3Root = Split-Path -Parent $PSScriptRoot
-$track3Policy = Get-Content -LiteralPath (Join-Path $track3Root 'configs/project.json') -Raw | ConvertFrom-Json
+$track3Policy = Get-Content -LiteralPath (Join-Path $track3Root 'data/configs/project.json') -Raw | ConvertFrom-Json
 if ($track3Policy.execution_policy.allow_validation_runs -ne $true) {
     throw 'Foundation checks are disabled by the current user instruction: absolutely no testing.'
 }
 . "$PSScriptRoot/use-local-artifacts.ps1"
-$track3ReportDir = Join-Path $track3Root 'reports/foundation'
+$track3ReportDir = Join-Path $track3Root 'data/reports/foundation'
 New-Item -ItemType Directory -Force -Path $track3ReportDir | Out-Null
 $track3Stages = [System.Collections.Generic.List[object]]::new()
 $track3AnyFailure = $false
@@ -27,20 +27,20 @@ function Invoke-Track3Stage {
         finished_utc = [DateTime]::UtcNow.ToString('o')
         exit_code = $stageExit
         status = $(if ($stageExit -eq 0) { 'passed' } else { 'failed' })
-        log = "reports/foundation/$Name.log"
+        log = "data/reports/foundation/$Name.log"
     })
     if ($stageExit -ne 0) { $script:track3AnyFailure = $true }
-    Write-Output "$Name exit=$stageExit; reports/foundation/$Name.log"
+    Write-Output "$Name exit=$stageExit; data/reports/foundation/$Name.log"
 }
 
 Push-Location $track3Root
 try {
     Invoke-Track3Stage -Name 'tests' -StageArguments @('-m', 'unittest', 'discover', '-s', 'tests', '-v')
-    Invoke-Track3Stage -Name 'data-audit' -StageArguments @('-m', 'track3.data.audit', '--decode')
+    Invoke-Track3Stage -Name 'data-audit' -StageArguments @('-m', 'src.data.audit', '--decode')
     Invoke-Track3Stage -Name 'calibration' -StageArguments @(
-        '-m', 'track3.calibration.audit', '--snapshot',
-        'datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8',
-        '--output', 'reports/calibration', '--image-check'
+        '-m', 'src.calibration.audit', '--snapshot',
+        'data/datasets--nvidia--video_to_data_challenge/snapshots/5f68335f3acc802033d1e80728c1633197521de8',
+        '--output', 'data/reports/calibration', '--image-check'
     )
     $track3Run = [ordered]@{
         schema_version = 1
@@ -51,8 +51,8 @@ try {
         outstanding = @('full_video_reconstruction', 'simulator_step_and_render', 'official_evaluator_contract')
     }
     $track3Run | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath (Join-Path $track3ReportDir 'run.json') -Encoding utf8
-    & $Python -m track3 provenance --output manifests/runs/foundation.json --label foundation `
-        --artifact-dir reports --artifact-dir manifests/dataset --artifact-dir manifests/models
+    & $Python -m src provenance --output data/manifests/runs/foundation.json --label foundation `
+        --artifact-dir reports --artifact-dir data/manifests/dataset --artifact-dir data/manifests/models
     if ($LASTEXITCODE -ne 0) { $track3AnyFailure = $true }
 } finally {
     Pop-Location

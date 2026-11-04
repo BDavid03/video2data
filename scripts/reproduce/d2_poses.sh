@@ -4,10 +4,10 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 export PYTHONPATH="$ROOT" PYTHONDONTWRITEBYTECODE=1
-printf '+ .runtime/linux-cuda/bin/python -B -'
+printf '+ data/.runtime/linux-cuda/bin/python -B -'
 for arg in "$@"; do printf ' %q' "$arg"; done
 printf '\n'
-.runtime/linux-cuda/bin/python -B - "$@" <<'PY'
+data/.runtime/linux-cuda/bin/python -B - "$@" <<'PY'
 import argparse
 import csv
 import hashlib
@@ -28,7 +28,7 @@ p.add_argument("--version", choices=("v1", "v2", "v3"), help="select the recorde
 p.add_argument("--run", action="store_true", help="execute (v1 requires an authorised GPU job; v2/v3 are CPU only)")
 a = p.parse_args()
 root = Path.cwd()
-manifest = a.manifest or sorted(root.glob(f"submissions/*-d2-{a.version or 'v*'}/manifest.json"))[-1]
+manifest = a.manifest or sorted(root.glob(f"submission/*-d2-{a.version or 'v*'}/manifest.json"))[-1]
 m = json.loads(manifest.read_text())
 # Older manifests encode their version in the packed filename, not a version key.
 version = m.get("version", Path(m["file"]).stem.rsplit("_", 1)[-1])
@@ -52,7 +52,7 @@ results.relative_to(root)
 if version == "v1" and a.run and results.exists() and any(results.iterdir()):
     p.error(f"{results} already holds exports; pass a new, empty RESULTS_DIR so recorded exports stay intact")
 prefix = "reproduce-d2-"
-work = Path(tempfile.mkdtemp(prefix=prefix, dir=root / ".runtime/tmp")) if a.run else Path(f".runtime/tmp/{prefix}<new>")
+work = Path(tempfile.mkdtemp(prefix=prefix, dir=root / "data/.runtime/tmp")) if a.run else Path(f"data/.runtime/tmp/{prefix}<new>")
 if version in ("v2", "v3"):
     os.environ["CUDA_VISIBLE_DEVICES"] = ""
     results = work / "results"
@@ -112,7 +112,7 @@ def command(argv, log):
 
 inputs = []
 if version == "v1":
-    queue = json.loads(Path("track3/features/pose_insurance/queue.json").read_text())
+    queue = json.loads(Path("src/features/pose_insurance/queue.json").read_text())
     queue["budgets"]["learned"] = m["budget"]
     queue["evaluation_episodes"] = episodes
     queue_path = work / "queue.json"
@@ -120,9 +120,9 @@ if version == "v1":
         queue_path.write_text(json.dumps(queue, indent=2) + "\n")
         inputs.append({"path": str(queue_path.relative_to(root)), "sha256": digest(queue_path)})
     # Bind the existing loop destination; its handlers, ledger and lease are unchanged.
-    entry = "import sys; from pathlib import Path; from track3.features.pose_insurance import loop; loop.RESULTS = Path(sys.argv.pop(1)); loop.main()"
+    entry = "import sys; from pathlib import Path; from src.features.pose_insurance import loop; loop.RESULTS = Path(sys.argv.pop(1)); loop.main()"
     for phase in ("tasks", "evaluation"):
-        command([".runtime/flashchord/venv/bin/python", "-B", "-c", entry, results, "--phase", phase, "--queue", queue_path], phase + ".log")
+        command(["data/.runtime/flashchord/venv/bin/python", "-B", "-c", entry, results, "--phase", phase, "--queue", queue_path], phase + ".log")
 else:
     # Verify all sources before copying any; never import the GPU campaign for v2.
     composition = m["composition"]
@@ -142,13 +142,13 @@ else:
         source.relative_to(root)
         if version == "v2":
             folder = "rebuilt-v2" if episode in composition["K1a"] else "results-v1"
-            expected = root / "outputs/pose_insurance" / folder / Path(export["path"]).name
+            expected = root / "data/outputs/pose_insurance" / folder / Path(export["path"]).name
             valid_path = source == expected
         elif episode in composition["S1"]:
-            valid_path = (source.is_relative_to(root / "outputs/pose_insurance/run-v3")
+            valid_path = (source.is_relative_to(root / "data/outputs/pose_insurance/run-v3")
                           and source.name == "trajectory.parquet" and source.parent.name == f"episode_{episode:06d}")
         else:
-            valid_path = source == root / "outputs/pose_insurance/results-v2" / Path(export["path"]).name
+            valid_path = source == root / "data/outputs/pose_insurance/results-v2" / Path(export["path"]).name
         if not valid_path or digest(source) != export["sha256"]:
             raise ValueError(f"Recorded export source/path hash mismatch: {source}")
         inputs.append({"path": str(source.relative_to(root)), "sha256": export["sha256"]})

@@ -23,7 +23,7 @@ chain does not stop for owner-only items while a workstream is open.**
    `git push origin worktree-chain-ctx01:main`, from the worktree. Upload only a file that passed its gate and with
    `check_release.sh` READY for it, once per pack; record file, hash, time and scores in `SUBMISSION.md`. Accepting competition rules
    and creating the Kaggle token stay the owner's. Scores still steer nothing (section 4).
-4. FoundationPose install approved, in its own venv under `.runtime/`, with its licence recorded in `INSTALL.md` and the abstract.
+4. FoundationPose install approved, in its own venv under `data/.runtime/`, with its licence recorded in `INSTALL.md` and the abstract.
 
 **Owner, live, 2026-11-04 about 03:27 UTC: "top level folders hsould be scripts, docs, .claude, src, data, submission, models
 everything else has to be organised under these".** Recorded here because the D2 v5 manifest pins `AGENTS.md`. Plan and state:
@@ -71,13 +71,13 @@ frame-0 poses held static reaches only 0.532, so about half of AUC is lost to ob
    14:15 UTC). Order: (a) a written inventory first (each top-level directory, each slice, each script: used by a
    deliverable, by a recorded result, or by nothing), committed as a plan with the target layout; (b) moves with
    `git mv` only; nothing is deleted: everything to be removed is moved into the recycle folder
-   `recycle/<UTC stamp>/<original path>` (tracked files by `git mv`, untracked clutter by plain `mv`, with a
-   `recycle/<UTC stamp>/MANIFEST.md` listing each original path and why), never `git rm` or `rm -rf` (owner,
+   `data/recycle/<UTC stamp>/<original path>` (tracked files by `git mv`, untracked clutter by plain `mv`, with a
+   `data/recycle/<UTC stamp>/MANIFEST.md` listing each original path and why), never `git rm` or `rm -rf` (owner,
    2026-11-03 14:20 UTC: "can move everything thats gonna be deleted into a recycle folder"); (c) imports, READMEs,
    reproduction scripts and request paths updated in the same commit, and `py_compile` plus a CPU import of every
-   slice afterwards. Files pinned by a pack manifest (`submissions/*/…manifest.json`) are moved only after the
+   slice afterwards. Files pinned by a pack manifest (`submission/*/…manifest.json`) are moved only after the
    12:00 UTC 4 Nov pack cut-off or as part of a new pack; the packed commits keep reproducing at their URLs either
-   way. Historical `outputs/` run records are never rewritten.
+   way. Historical `data/outputs/` run records are never rewritten.
    *Owner lines, 2026-11-04 about 00:34 UTC, recorded here because the D2 v5 manifest pins `AGENTS.md` (an edit there breaks
    `d2_poses_v5.sh`): "how about you just fucking do it", read as: phases 3-5 start now, which lifts the 12:00 UTC gate for
    this work and stands as the phase-5 sign-off in `docs/chain/restructure-plan.md`; never-move paths, packed URLs and the
@@ -100,13 +100,13 @@ The deliverables, tracked in `docs/chain/SUBMISSION.md`:
 | --- | --- | --- |
 | D1 | Track 3 mesh file: one triangle mesh per `(episode, object)` in `track_3_evaluation_objects.json`, packed to Parquet, scored on CD-O | kit `tracks/track_3/README.md`, "Mesh submission" |
 | D2 | Track 3 pose file: per-episode policy rollouts through the kit's `evaluate_policy.py`, packed to CSV, scored on AUC, SP-SR, MP-SR, RPE and MPPE | same file, "Pose submission" |
-| D3 | Technical report: the two-page extended abstract in `docs/templates/V2D_Challenge_Extended_Abstract_Template`, built to PDF. Award eligibility requires it | template `main.tex` header |
+| D3 | Technical report: the two-page extended abstract in `data/templates/V2D_Challenge_Extended_Abstract_Template`, built to PDF. Award eligibility requires it | template `main.tex` header |
 | D4 | Code release: the exact code at a GitHub `/commit/<sha>` URL, which both packed files must carry | kit `README.md`, "Shared setup" |
 | D5 | Reproduction: one recorded command (or short script) per deliverable, with its run records | `CLAUDE.md`, run ownership |
 | D6 | Packed files ready for the owner to upload, with a clean kit preflight apart from owner-only checks | kit `skills/v2d-submit/SKILL.md` |
 
 The kit lives at `upstream/v2d_submission_kit/v2d_submission_kit/`. It is a read-only input.
-Copy what you need to run into `outputs/` or `.runtime/`, never edit it in place.
+Copy what you need to run into `data/outputs/` or `data/.runtime/`, never edit it in place.
 
 **Triage rule.** A complete, valid, weaker submission beats an unfinished stronger one. Before
 the freeze, work on the critical path of whichever deliverable is closest to submittable. If a
@@ -128,7 +128,7 @@ What is known on 1 November 2026:
   yet, and the venv has no `hydra`. Docker is present. Two risks to measure before committing to
   a route: Isaac Sim does not list WSL2 as a supported target, and the RTX 5080 (Blackwell)
   needs a recent Isaac Sim release. Compare the routes (a pip install in its own environment
-  under `.runtime/`, the official container under Docker, or a native Windows install) with the
+  under `data/.runtime/`, the official container under Docker, or a native Windows install) with the
   cheapest probe that tells them apart, and record the result. FlashCHORD must run at
   `nvidia-isaac/video_to_data@aee95f25`, the revision the kit's evaluator matches. Installing
   Isaac Sim asks you to accept NVIDIA's licence. The owner's approval of the install is taken to
@@ -136,11 +136,11 @@ What is known on 1 November 2026:
 - **A LaTeX engine is approved** (owner, 2026-11-01): a reputable, established one from its
   official source, not one we write. The Tectonic release binary from
   `github.com/tectonic-typesetting/tectonic` (checksum checked), installed under
-  `.runtime/tools/`, is the default; TeX Live is the fallback.
+  `data/.runtime/tools/`, is the default; TeX Live is the fallback.
 - **The owner uploads to Kaggle.** The chain produces the packed files under
-  `submissions/<UTC stamp>/`, runs the kit preflight, and writes the exact upload commands into
+  `submission/<UTC stamp>/`, runs the kit preflight, and writes the exact upload commands into
   `NEEDS-YOU.md`. It never uploads and never accepts competition rules. The kit's own
-  `requirements.txt` may be installed into a separate environment under `.runtime/kit-env/`,
+  `requirements.txt` may be installed into a separate environment under `data/.runtime/kit-env/`,
   because packing needs it (an orchestrator reading of the owner's "ill upload to kaggle").
 - **This checkout is a git repository** (initialised 2026-11-01, no remote). A GitHub
   `/commit/<sha>` URL still needs the owner to create the remote and push (`NEEDS-YOU.md`). Until
@@ -227,7 +227,7 @@ confidential reference, a holdout label, or anything a rule excludes.
 These rules make the numbers believable. They are not optional, and they bind every context.
 
 - Train, tuning and holdout are fixed: train 0/11/12/18/21/23/26/31, tuning 39/42, holdout
-  43/44, `configs/splits/public-v1.json`. Episode 41 is excluded everywhere.
+  43/44, `data/configs/splits/public-v1.json`. Episode 41 is excluded everywhere.
 - Choose every model, recipe, threshold and figure on tuning data only. Holdout 43/44 was
   already assessed once, on 2026-10-29, and those numbers must not steer anything. At most one
   more `--finalize` may run in the whole chain: in the last context before the package is
@@ -245,13 +245,13 @@ These rules make the numbers believable. They are not optional, and they bind ev
 1. **Read**, in order: `AGENTS.md` (new owner lines first), `CLAUDE.md`, this file, the newest
    `docs/chain/handoffs/HANDOFF-*.md`, `docs/chain/SUBMISSION.md`, `docs/chain/SCOREBOARD.md`,
    `docs/chain/IDEAS.md`, `docs/chain/NEEDS-YOU.md`. Then say in one line what you will do.
-2. **Check the machine.** Look at `ps`, `.runtime/gpu-stage.lock` and `git status`. Check the
+2. **Check the machine.** Look at `ps`, `data/.runtime/gpu-stage.lock` and `git status`. Check the
    processes the hand-off lists as running. A run still going is waited on, never relaunched.
 3. **Work** on the items chosen by section 2, with section 3 in mind, by briefing Codex: route,
    then build and run, then review (section 8). Codex does most of the hands-on work; you lead,
    review and commit. Keep the vertical-slice
    pattern: request, gate, `run.json`, hashed inputs and artifacts. Long GPU work is started
-   detached (`setsid nohup ... > outputs/<slice>/<name>.log 2>&1 &`), with its PID and log path
+   detached (`setsid nohup ... > data/outputs/<slice>/<name>.log 2>&1 &`), with its PID and log path
    written down at once.
 4. **Measure** every change by running it on real data (usually Codex's job), re-check the headline
    number yourself, and record where the evidence is.
@@ -273,26 +273,26 @@ Put those in `NEEDS-YOU.md`, in plain words with the exact action, and carry on 
 These come from `AGENTS.md`, `CLAUDE.md` and incidents in this project.
 
 - Work only in `/home/ceolwolf/repos/video2data`. Never read or write `/mnt/z`. Keep every
-  generated file, cache, tool and temp file under `outputs/`, `.cache/`, `.runtime/` or
-  `submissions/`. The dataset snapshot, `upstream/` and `models/` are immutable.
+  generated file, cache, tool and temp file under `data/outputs/`, `data/.cache/`, `data/.runtime/` or
+  `submission/`. The dataset snapshot, `upstream/` and `models/` are immutable.
 - **Never `rm -rf` or `shutil.rmtree` anything except a directory you created yourself under
-  `.runtime/tmp/`.** On 2026-10-29 sub-agents deleted `coursework/` and most of it was lost.
+  `data/.runtime/tmp/`.** On 2026-10-29 sub-agents deleted `coursework/` and most of it was lost.
   Every sub-agent brief repeats this sentence.
 - **Git.** Commit each finished item by explicit path (`git add <paths>`, then `git commit`),
   never `git add -A` or `git add .`, and keep large or generated files out (the `.gitignore`
-  already excludes `outputs/`, `.runtime/`, `.cache/`, `models/`, `upstream/` and the dataset).
+  already excludes `data/outputs/`, `data/.runtime/`, `data/.cache/`, `models/`, `upstream/` and the dataset).
   Never rewrite history, force anything or touch a remote. Sub-agents run no mutating git; the
   context that owns the work commits it. Files git ignores are still copied to
-  `.runtime/tmp/backup/<UTC stamp>/` before being rewritten, and a historical `run.json` is never
+  `data/.runtime/tmp/backup/<UTC stamp>/` before being rewritten, and a historical `run.json` is never
   changed.
-- One GPU operation at a time, through the lock in `track3/gpu.py`. Never touch a live owner's
+- One GPU operation at a time, through the lock in `src/gpu.py`. Never touch a live owner's
   lock, and never kill a process you did not start.
 - No test suites. Verify the way `CLAUDE.md` describes: `py_compile`, a CPU import, an
   old-versus-new equivalence script for pure functions, and real runs as the evidence.
 - **Approved installs** (owner, 2026-11-01): Isaac Lab, FlashCHORD and what they pull in; one
   reputable LaTeX engine; the kit's `requirements.txt` in its own environment. Install each in
-  its own environment under `.runtime/`, record the exact versions and commands in the hand-off,
-  and never modify the main `.runtime/linux-cuda` venv for them.
+  its own environment under `data/.runtime/`, record the exact versions and commands in the hand-off,
+  and never modify the main `data/.runtime/linux-cuda` venv for them.
 - **Owner-only, written to `NEEDS-YOU.md`, never done:** uploading to Kaggle or accepting
   competition rules; creating or pushing a GitHub repository; any other new dependency (write a
   concrete proposal so the owner can approve it in one line); anything that spends money.
@@ -312,7 +312,7 @@ Sections, in this order:
 2. `## Findings` — what was learned, with numbers and artifact paths. Include a `### Codex`
    list: each call's label and answer path, what it found, and what you took or declined and
    why. End it with the call count for this context and for the chain (`wc -l
-   outputs/chain/codex/calls.jsonl`).
+   data/outputs/chain/codex/calls.jsonl`).
 3. `## State` — a table: item, state, evidence path, next step.
 4. `## Running` — every process still running: PID, command, log, how to tell it has finished.
 5. `## Changed` — commits (hashes), runtime flags turned on, installs made.
@@ -351,15 +351,15 @@ down where you disagree and why.
 **One helper, always.** Call Codex only through
 `bash scripts/chain/codex_ask.sh <label> <brief.md> [mode] [model] [effort]`. Never hand-roll a
 `codex exec` command. The helper adds the safety rules to every brief, keeps the brief, answer and
-log under `outputs/chain/codex/`, and logs each call (with its session id) in
-`outputs/chain/codex/calls.jsonl`. Launch it with `run_in_background`, end the turn, and read the
-answer when you are woken. Never poll it. Write each brief to a file under `.runtime/tmp/` first.
+log under `data/outputs/chain/codex/`, and logs each call (with its session id) in
+`data/outputs/chain/codex/calls.jsonl`. Launch it with `run_in_background`, end the turn, and read the
+answer when you are woken. Never poll it. Write each brief to a file under `data/.runtime/tmp/` first.
 
 | Mode | Use it for | Sandbox | Default model |
 | --- | --- | --- | --- |
 | `read-only` | routes, ideas, defect reviews, critic, report reading | read-only | `gpt-6-astra` high |
 | `workspace-write` | code, docs, figures, CPU runs and analysis | writes inside the checkout only; **no GPU** (blocked on this WSL machine) | `gpt-6.1-sol` high |
-| `gpu` | anything that needs CUDA: teacher depth, training, prediction, scoring on GPU, ONNX checks | **none** (danger-full-access, owner-approved 2026-11-02); one `gpu` job at a time, enforced by `outputs/chain/codex/gpu.lock` | `gpt-6.1-sol` high |
+| `gpu` | anything that needs CUDA: teacher depth, training, prediction, scoring on GPU, ONNX checks | **none** (danger-full-access, owner-approved 2026-11-02); one `gpu` job at a time, enforced by `data/outputs/chain/codex/gpu.lock` | `gpt-6.1-sol` high |
 
 Job modes are capped at 180 minutes (`CODEX_TIMEOUT_MIN` changes it); Codex starts anything
 longer detached and reports PID, log and the finish signal. **Follow-ups keep context:**
@@ -390,7 +390,7 @@ so the brief names them explicitly and says which runtime flags and episodes are
 
 **Parallel work.** Up to three Codex jobs may run at once when their write paths are disjoint;
 at most one of them in `gpu` mode, and never while this context or a detached run holds the GPU
-(check `.runtime/gpu-stage.lock` and `ps` first). Never give Codex and a Claude sub-agent the same
+(check `data/.runtime/gpu-stage.lock` and `ps` first). Never give Codex and a Claude sub-agent the same
 paths. While jobs run, review the previous job's output or write the next brief; do not redo
 Codex's job yourself.
 
@@ -424,11 +424,11 @@ removal list is `docs/design/simplification-standard.md`; the slice layout is
     figures. Then it exits.
   - The agent starts it detached, ends its turn, reads the summary, edits the input and starts
     it again. Agents never hand-run trials one by one or babysit a running loop.
-  - Reuse what exists: `track3/features/mesh_generative/` demonstrates a fixed G3 queue,
-    source/input checks and resumable admission ledger in `track3/features/mesh_generative/g3.py`.
-    The former depth-loop example is preserved under `recycle/20261104T010336Z/`.
+  - Reuse what exists: `src/features/mesh_generative/` demonstrates a fixed G3 queue,
+    source/input checks and resumable admission ledger in `src/features/mesh_generative/g3.py`.
+    The former depth-loop example is preserved under `data/recycle/20261104T010336Z/`.
     A new stage gets the same shape inside its own slice.
-  Within each trial, let existing code do the work: NumPy, SciPy, OpenCV, torch, the `track3/`
+  Within each trial, let existing code do the work: NumPy, SciPy, OpenCV, torch, the `src/`
   primitives, the official kit and the pinned upstream tools. Hand-rolled maths, parsers,
   loaders or training loops that a library already provides are defects.
 - **Do not over-engineer.** Build the smallest thing that does the job and measure it. No
@@ -437,15 +437,15 @@ removal list is `docs/design/simplification-standard.md`; the slice layout is
   Prefer deleting code to adding it.
 - **Library code versus implementation.**
   - *Library code* computes: pure functions on arrays and plain values, with no file I/O, no
-    paths, no gates, no prints and no run records. It lives in `track3/` (shared, stable
+    paths, no gates, no prints and no run records. It lives in `src/` (shared, stable
     primitives used by two or more slices) or in a slice's private modules (`_geometry.py`,
     `_model.py`, `_losses.py`), and it can be imported and called on its own.
   - *Implementation* orchestrates: the slice's handler parses the request, calls `authorize`
     and `heavy_execution`, reads inputs, calls library functions, writes artifacts and
     `run.json`. It holds no maths. `__main__.py` and `scripts/` are thin entry points.
-  - Move code into `track3/` only when a second slice needs it and its contract is stable.
+  - Move code into `src/` only when a second slice needs it and its contract is stable.
 - **Vertical slices.** A feature owns its request, handler, library modules, runtime flags,
-  request drafts and README in `track3/features/<slice>/`. No horizontal service or repository
+  request drafts and README in `src/features/<slice>/`. No horizontal service or repository
   layers.
 - **Build clean and presentable.** Short functions with clear names and type hints, one
   sentence of docstring, no dead or commented-out code, no history or policy prose in comments.

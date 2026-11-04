@@ -13,7 +13,7 @@ Each context leads and Codex does most of the hands-on work (docs/chain/PROGRAM.
 Usage (in WSL, from the checkout):
   python3 scripts/chain/session_chain.py --dry-run     # print the next launch and exit
   python3 scripts/chain/session_chain.py               # run the chain in this terminal
-  nohup python3 scripts/chain/session_chain.py > outputs/chain/driver.log 2>&1 &   # or in tmux
+  nohup python3 scripts/chain/session_chain.py > data/outputs/chain/driver.log 2>&1 &   # or in tmux
   python3 scripts/chain/session_chain.py --max-contexts 6       # every context runs on Opus unless --model says
 
 The chain stops, with the reason on the last line, when:
@@ -23,15 +23,15 @@ The chain stops, with the reason on the last line, when:
   BUDGET    --max-contexts contexts were launched, or the jobs this run launched reached --token-budget
   STALLED   a context sat idle with nothing in flight and no new hand-off for --stall-minutes, a hand-off has no
             prompt section, or two contexts in a row ended inside --min-minutes
-  STOPPED   the file outputs/chain/STOP exists
-The file outputs/chain/PAUSE holds the next launch until it is deleted; use it to read or edit a hand-off first.
+  STOPPED   the file data/outputs/chain/STOP exists
+The file data/outputs/chain/PAUSE holds the next launch until it is deleted; use it to read or edit a hand-off first.
 Hand-offs are read from this checkout and from every worktree under .claude/worktrees/ (contexts commit on a
 worktree branch), so the chain never waits for a merge; merging that branch into main is the owner's housekeeping.
 
 A blocked context that is not a usage limit (for example a permission prompt) is reported and waited on: answer it
 with `claude attach <id>` and the chain carries on.
 
-Standard library only. It writes only outputs/chain/; it never stops a session or a process.
+Standard library only. It writes only data/outputs/chain/; it never stops a session or a process.
 Exit codes: 0 COMPLETE, 2 BUDGET, 3 LIMIT, 4 STALLED, 5 STOPPED, 6 another driver is already running.
 Start it with `bash scripts/chain/run.sh`: a tmux session that keeps its window open and logs to driver.log.
 """
@@ -415,7 +415,7 @@ def main():
                    help="after a hand-off, launch even if the old context still has background tasks after this long")
     p.add_argument("--settle", type=float, default=90, help="seconds a new hand-off must stay unchanged")
     p.add_argument("--poll", type=float, default=60, help="seconds between checks")
-    p.add_argument("--log-dir", default="outputs/chain", help="chain.jsonl, PAUSE and STOP live here")
+    p.add_argument("--log-dir", default="data/outputs/chain", help="chain.jsonl, PAUSE and STOP live here")
     p.add_argument("--claude", default=find_claude(), help="claude executable")
     p.add_argument("--dry-run", action="store_true", help="print the next launch and exit")
     a = p.parse_args()

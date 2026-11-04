@@ -2,7 +2,7 @@
 
 Owner, 2026-11-04 about 01:40 UTC: "you still havent even got a model trained or submission written to improve on, why have
 you ended the chain, do a widespread plan for completion that the chain can target". `PROGRAM.md` section 0 points here.
-Numbers below were checked against code and records by a fresh Codex critic (`outputs/chain/codex/*plan-critic-23.answer.md`).
+Numbers below were checked against code and records by a fresh Codex critic (`data/outputs/chain/codex/*plan-critic-23.answer.md`).
 
 ## 1. Where the entry really stands
 
@@ -10,8 +10,8 @@ Numbers below were checked against code and records by a fresh Codex critic (`ou
 | --- | --- | --- |
 | A submission exists | D1 v5 and D2 v5 are packed and pass preflight locally. **Nothing is uploaded, so there is no leaderboard score.** No Kaggle token is on this machine | `SUBMISSION.md`, `NEEDS-YOU.md` |
 | Policies are trained | **Effectively not.** Every shipped policy ran a 512-step budget in one world. Objects stay where they start | D2 v5 manifest `budget` |
-| Pose quality | Train AUC 0.277, SP-SR 0, MP-SR 0, RPE 29 cm, MPPE 18 cm | `outputs/pose_insurance/stereo-placement/summary.md` |
-| Frame-0 oracles, static (ceilings, not forecasts) | Rotation only (O2): AUC 0.353, SP-SR 0.25. Rotation and full offset (O3): AUC 0.532, SP-SR 0.625, RPE 15 cm. Train 18 alone supplies 45 % of O2's gain, and its analogue, episode 19, already ships it | `outputs/pose_insurance/heading/summary.md` |
+| Pose quality | Train AUC 0.277, SP-SR 0, MP-SR 0, RPE 29 cm, MPPE 18 cm | `data/outputs/pose_insurance/stereo-placement/summary.md` |
+| Frame-0 oracles, static (ceilings, not forecasts) | Rotation only (O2): AUC 0.353, SP-SR 0.25. Rotation and full offset (O3): AUC 0.532, SP-SR 0.625, RPE 15 cm. Train 18 alone supplies 45 % of O2's gain, and its analogue, episode 19, already ships it | `data/outputs/pose_insurance/heading/summary.md` |
 | Moving objects | D0 NO-GO at the cheapest budget. **D1 was never scored**: both seeds timed out at about 22M transitions; the partial policies exist and load-check as complete, with assistance still at VOC 0.05. Stopping the route was a planning decision, not a finding | `dynamic-scaling-outcome.md` |
 | Meshes | Measured primitives plus two pretrained shapes, CD-O 0.56 cm on public scans; 10 of 36 scored pairs (the spoon) have no scan | `mesh-generative-outcome.md` |
 
@@ -66,7 +66,7 @@ Each step can kill the route; together they bound it.
 - **M0b (new, about 1.5 GPU-hours; Claude critic 24):** finish a policy. A probe of about 10 minutes at `updates_per_collection` 0.5 and 2.0 measures training throughput, then D1 seed 0 resumes from its saved state (`state_21575680`; replay was not saved, resume compatibility untested; `workflow/train_flash_sac.yaml:48-49`) to the schedule's zero-assistance stage at 32,814,080 and its end at 66,763,776, about 14 and 58 minutes at 13k/s and 0.125. `T` and `Q` are scored at both points with the 42-second evaluator, against the M0 table. Its own protocol comes first, including which ratio runs. It yields a finished unassisted policy on the shipped task, and tests the variable M0 could not. Before it, a CPU check of hand-object clearance against the reference, because the export shows a bump near frames 146-211 rather than a carry; hands are not in the trajectory export.
 - **M1 (about 2 h, no policy; deferred until some policy passes a transport screen, since it bounds a reference nothing can yet follow):** tracked masks, stereo and a per-frame rigid fit on train **11 and 12**, which each have one nearly stationary object for removing camera motion (object travel 0.49/25.20 and 22.23/0.41 cm). Score the kinematic reference with `static_pose_baseline.score`. Gate: beats the same episode's shipped T1 (0.500, 0.104) by a margin fixed first, plus a measured allowance for physical tracking error.
 - **M2 (about 2 h GPU):** **object-driven grasp reference** against the current hand reference on the tissue box, same compressed budget, same unassisted evaluator, transport metric. This replaces human-hand reconstruction as the first route (D0: hands alone move the box 1.5 of 17.4 cm). It is Codex's proposal, not a result. Floating hands are allowed by the FAQ and may be the easier embodiment. Budget it on D1's measured throughput; D1's rescaled 66.76M schedule takes about 95 minutes.
-- **M3 (only if M0-M2 pass, GPU free by 07:30 UTC):** complete compressed curricula on at most 3 episodes, single-object first (35-38: motion is all they lack). Restore `retargeting`, `scene_assembly` and `hand_motion` from `recycle/20261104T010336Z/` with `git mv` as needed; their integration is real extra work. Shared initialisation is separate work (resume validates schemas and articulation contracts), not assumed. Gate first on train, then adopt by frozen admission rules.
+- **M3 (only if M0-M2 pass, GPU free by 07:30 UTC):** complete compressed curricula on at most 3 episodes, single-object first (35-38: motion is all they lack). Restore `retargeting`, `scene_assembly` and `hand_motion` from `data/recycle/20261104T010336Z/` with `git mv` as needed; their integration is real extra work. Shared initialisation is separate work (resume validates schemas and articulation contracts), not assumed. Gate first on train, then adopt by frozen admission rules.
 - MediaPipe hands (approved) only if the object-driven route fails and hours remain. WiLoR + MANO need the owner's registration and gate nothing.
 - **Honest odds:** subjective, under 15 % of beating static on any scored episode by 12:00 UTC. It runs because the upper bound (AUC 1.0 against a static 0.53) is what the owner asked to go after, and M0 and M1 are cheap. If killed, the finding goes in the report and W6 continues it.
 
@@ -83,7 +83,7 @@ New prospective protocols only, never a repair of G3: multi-seed consensus and w
 
 ### W6. After the freeze
 
-Record final scores, complete the report, carry W3 on full budgets if the owner wants it, run independent-object mesh evaluation, settle `recycle/`, and reset this plan.
+Record final scores, complete the report, carry W3 on full budgets if the owner wants it, run independent-object mesh evaluation, settle `data/recycle/`, and reset this plan.
 
 ## 5. Order for the next contexts
 

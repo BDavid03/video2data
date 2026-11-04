@@ -3,15 +3,19 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
-export PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES=''
-printf '+ .runtime/linux-cuda/bin/python -B - %q\n' "${1:?usage: bash scripts/reproduce/verify.sh manifest.json}"
-.runtime/linux-cuda/bin/python -B - "$1" <<'PY'
+export PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' PYTHONPATH="$ROOT"
+if [[ "${1:-}" == --historical ]]; then export V2D_HISTORICAL=1; shift; fi
+printf '+ data/.runtime/linux-cuda/bin/python -B - %q\n' "${1:?usage: bash scripts/reproduce/verify.sh manifest.json}"
+data/.runtime/linux-cuda/bin/python -B - "$1" <<'PY'
 import hashlib
 import json
 from pathlib import Path
 import sys
 
 root = Path.cwd()
+sys.path.insert(0, str(root))
+from src import historical
+from src.paths import current_name
 manifest = Path(sys.argv[1]).resolve()
 manifest.relative_to(root)
 data = json.loads(manifest.read_text())
@@ -38,10 +42,10 @@ if not entries or packed_entry not in entries:
     raise ValueError("Manifest must record its packed file and SHA-256")
 bad = 0
 for name, expected in entries:
-    path = (root / name).resolve()
+    path = (root / current_name(name)).resolve()
     moved = moved_paths.get(name) if not path.exists() else None
     if moved is not None:
-        path = (root / moved).resolve()
+        path = (root / current_name(moved)).resolve()
     path.relative_to(root)  # No external paths, including symlinks out of the checkout.
     try:
         with path.open("rb") as stream:
@@ -51,6 +55,9 @@ for name, expected in entries:
         actual = None
         detail = str(error)
     ok = actual is not None and actual == expected
+    if not ok and historical.active() and historical.frozen_digest(name) == expected:
+        ok, detail = True, "frozen source at " + historical.commit()[:10]
+        historical.DRIFT[name] = expected
     bad += not ok
     relocation = f" (moved to {moved})" if moved is not None else ""
     print(f"{'OK' if ok else 'MISMATCH'} {name}{relocation}")

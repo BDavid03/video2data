@@ -11,7 +11,7 @@ from urllib.parse import quote
 ROOT = Path(__file__).resolve().parents[2]
 MARKER = "<!-- video2data:compiled-documentation:v1 -->"
 DEFAULT_OUTPUT = "docs/compiled/all-documentation.md"
-DOCUMENT_DIRECTORIES = ("docs", "track3", "configs", "scripts", "reports")
+DOCUMENT_DIRECTORIES = ("docs", "src", "data/configs", "scripts", "data/reports")
 SKIP_DIRECTORIES = {
     "compiled", "__pycache__", "node_modules", "upstream", "vendor",
     "datasets", "models", "outputs", "runs", "coursework",

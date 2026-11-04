@@ -2,7 +2,7 @@
 # This does not execute Python, import a model, or run any checks.
 . "$PSScriptRoot/use-local-artifacts.ps1"
 $track3Root = Split-Path -Parent $PSScriptRoot
-$env:VIRTUAL_ENV = Join-Path $track3Root '.runtime/moge-python313'
+$env:VIRTUAL_ENV = Join-Path $track3Root 'data/.runtime/moge-python313'
 $env:PATH = (Join-Path $env:VIRTUAL_ENV 'Scripts') + [IO.Path]::PathSeparator + $env:PATH
 $env:PYTHONPATH = @(
     (Join-Path $track3Root 'upstream/moge'),

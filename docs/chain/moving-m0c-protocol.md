@@ -37,4 +37,4 @@ The lead independently recomputes `T`, `Q` and `E` from the parquets for any row
 
 ## Integrity
 
-No challenge episode, no scan, no pack-pinned file, no recorded `run.json` is touched. New files under `outputs/dynamic_feasibility/m0c/`.
+No challenge episode, no scan, no pack-pinned file, no recorded `run.json` is touched. New files under `data/outputs/dynamic_feasibility/m0c/`.

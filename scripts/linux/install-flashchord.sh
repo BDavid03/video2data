@@ -10,15 +10,15 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 SHA=aee95f25ae0943f335d8bb42fa95b6a9acfa266f
 LFS_VERSION=3.7.1
-BASE="$ROOT/.runtime/flashchord"
+BASE="$ROOT/data/.runtime/flashchord"
 SRC="$BASE/video_to_data"
 VENV="$BASE/venv"
-LOGS="$ROOT/.runtime/flashchord/install-logs"
-mkdir -p "$BASE" "$LOGS" .runtime/tools .runtime/tmp .cache/uv
-export UV_PYTHON_INSTALL_DIR="$ROOT/.runtime/python" UV_CACHE_DIR="$ROOT/.cache/uv"
-export TMPDIR="$ROOT/.runtime/tmp" UV_HTTP_TIMEOUT=600 UV_LINK_MODE=copy
-export WARP_CACHE_PATH="$ROOT/.cache/warp"  # Warp's kernel cache defaults to ~/.cache/warp
-UV="$ROOT/.runtime/uv/uv"
+LOGS="$ROOT/data/.runtime/flashchord/install-logs"
+mkdir -p "$BASE" "$LOGS" data/.runtime/tools data/.runtime/tmp data/.cache/uv
+export UV_PYTHON_INSTALL_DIR="$ROOT/data/.runtime/python" UV_CACHE_DIR="$ROOT/data/.cache/uv"
+export TMPDIR="$ROOT/data/.runtime/tmp" UV_HTTP_TIMEOUT=600 UV_LINK_MODE=copy
+export WARP_CACHE_PATH="$ROOT/data/.cache/warp"  # Warp's kernel cache defaults to ~/.cache/warp
+UV="$ROOT/data/.runtime/uv/uv"
 
 step() {  # step <name> <command...>; one log per step, stop at the first failure
   local name="$1"; shift
@@ -28,10 +28,10 @@ step() {  # step <name> <command...>; one log per step, stop at the first failur
 }
 
 # 1. git-lfs release binary, checksum-checked against the release's sha256sums file.
-LFS_DIR="$ROOT/.runtime/tools/git-lfs-$LFS_VERSION"
+LFS_DIR="$ROOT/data/.runtime/tools/git-lfs-$LFS_VERSION"
 if [ ! -x "$LFS_DIR/git-lfs" ]; then
   step git-lfs bash -c "
-    set -e; d=\$(mktemp -d '$ROOT/.runtime/tmp/git-lfs.XXXX'); cd \"\$d\"
+    set -e; d=\$(mktemp -d '$ROOT/data/.runtime/tmp/git-lfs.XXXX'); cd \"\$d\"
     tar=git-lfs-linux-amd64-v$LFS_VERSION.tar.gz
     curl -fsSLO https://github.com/git-lfs/git-lfs/releases/download/v$LFS_VERSION/\$tar
     curl -fsSL https://github.com/git-lfs/git-lfs/releases/download/v$LFS_VERSION/sha256sums.asc -o sums

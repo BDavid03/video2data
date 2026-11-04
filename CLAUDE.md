@@ -10,26 +10,26 @@ is put together and how to run it. The Python code style to follow is
 ## Environment and commands
 
 Work only in this Linux checkout (`/home/ceolwolf/repos/video2data`). The interpreter is
-the project venv `.runtime/linux-cuda/bin/python` (uv-managed Python 3.13, torch 2.7.1+cu128,
+the project venv `data/.runtime/linux-cuda/bin/python` (uv-managed Python 3.13, torch 2.7.1+cu128,
 OpenCV, SciPy, matplotlib, onnx/onnxruntime). The system `python3` has no third-party packages.
 
 ```bash
-bash scripts/linux/install-linux-cuda.sh        # (re)create the venv; idempotent, logs under reports/installation/
+bash scripts/linux/install-linux-cuda.sh        # (re)create the venv; idempotent, logs under data/reports/installation/
 source scripts/linux/use-linux-cuda.sh          # venv on PATH + MoGe source trees on PYTHONPATH for a manual shell
 
 bash scripts/reproduce/d1_meshes.sh https://github.com/BDavid03/video2data/commit/b1617234a85e316baa4a67b7f10ff053f5f92c4d --version v4  # plan only; URL is packed into the file
-PYTHONPATH=. .runtime/linux-cuda/bin/python -m track3.features.<slice> <operation> --request <file.json>
+PYTHONPATH=. data/.runtime/linux-cuda/bin/python -m src.features.<slice> <operation> --request <file.json>
 python3 -m py_compile <file>                     # syntax check (no deps needed)
-PYTHONPATH=. .runtime/linux-cuda/bin/python -c "import track3.features.<slice>.<module>"   # CPU import check
-.runtime/linux-cuda/bin/python -B scripts/documentation/compile.py          # concatenate docs into docs/compiled/all-documentation.md
+PYTHONPATH=. data/.runtime/linux-cuda/bin/python -c "import src.features.<slice>.<module>"   # CPU import check
+data/.runtime/linux-cuda/bin/python -B scripts/documentation/compile.py          # concatenate docs into docs/compiled/all-documentation.md
 ```
 
-There is no test runner installed (`tests/` predates a no-testing period and pytest is not in
+There is no test runner installed (`src/tests/` predates a no-testing period and pytest is not in
 the venv). Verify changes with `py_compile`, a CPU import, and an old-vs-new equivalence script
-under `.runtime/tmp/` for pure functions. Never run two GPU operations at once:
-`track3/gpu.py` holds a cooperative lock at `.runtime/gpu-stage.lock` (stale locks from dead pids
+under `data/.runtime/tmp/` for pure functions. Never run two GPU operations at once:
+`src/gpu.py` holds a cooperative lock at `data/.runtime/gpu-stage.lock` (stale locks from dead pids
 are cleared by `clear_stale_lock`; a live owner is never touched). Keep all generated files, caches and
-temp files inside the checkout (`outputs/`, `.cache/`, `.runtime/`); the dataset snapshot,
+temp files inside the checkout (`data/outputs/`, `data/.cache/`, `data/.runtime/`); the dataset snapshot,
 `upstream/` and `models/` are immutable inputs.
 
 Collaboration and execution scope follow `docs/chain/PROGRAM.md` and the current task brief. Codex
@@ -39,37 +39,37 @@ config exists at `~/.codex/config.toml`; reply `/import` to scan it for importab
 
 ## Architecture
 
-**Vertical slices.** Retained features live under `track3/features/` and own their
+**Vertical slices.** Retained features live under `src/features/` and own their
 request, handler, integrations, persistence, runtime flags, drafts and README.
-Their module dispatchers are thin entry points. Shared primitives in `track3/paths.py`,
-`track3/provenance.py`, `track3/runs.py` and `track3/gpu.py` provide path constraints,
-provenance, run ownership, admission and the GPU lease; `track3/calibration/`,
-`track3/metrics/` and `track3/data/` hold shared geometry, metrics and input handling.
+Their module dispatchers are thin entry points. Shared primitives in `src/paths.py`,
+`src/provenance.py`, `src/runs.py` and `src/gpu.py` provide path constraints,
+provenance, run ownership, admission and the GPU lease; `src/calibration/`,
+`src/metrics/` and `src/data/` hold shared geometry, metrics and input handling.
 Do not add horizontal service or repository layers.
 
-**Shipping mesh line.** `track3/features/mesh_extents/` measures cached video depth
-and builds procedural meshes; `track3/features/mesh_generative/` owns the pretrained
-shape campaigns and video admission; `track3/features/mesh_eval/` scores packed meshes
+**Shipping mesh line.** `src/features/mesh_extents/` measures cached video depth
+and builds procedural meshes; `src/features/mesh_generative/` owns the pretrained
+shape campaigns and video admission; `src/features/mesh_eval/` scores packed meshes
 with the kit. `scripts/reproduce/d1_meshes.sh` rebuilds v2/v3/v4 from recorded measures;
 `scripts/reproduce/d1_meshes_v5.sh` repacks the passing G2 production tree.
-Mesh scoring and packing use `.runtime/kit-env/bin/python`; the project venv orchestrates builds.
+Mesh scoring and packing use `data/.runtime/kit-env/bin/python`; the project venv orchestrates builds.
 
 **Reinforcement learning in simulation is required** (owner, 2026-11-04): every policy behind a submitted pose is
 trained by RL in simulation and rolled out through the kit's evaluator. See `docs/chain/PROGRAM.md` section 0.
 
-**Shipping pose line.** `track3/features/pose_insurance/` owns scene preparation,
+**Shipping pose line.** `src/features/pose_insurance/` owns scene preparation,
 policy runs, frozen diagnostics and pose packing. `scripts/reproduce/d2_poses_v5.sh`
 verifies or packs the frozen v5 sources and artifacts. `scripts/reproduce/d3_report.sh`
 builds the report; `scripts/reproduce/verify.sh` checks explicit manifest hash entries.
 See `scripts/reproduce/README.md` for commands and source-drift limitations.
 
-**Supporting slices.** `track3/features/depth/`, `track3/features/stereo_depth/`,
-`track3/features/object_masks/` and `track3/features/camera_motion/` retain perception
-and preparation tools. `track3/features/policy_training/` stays because the D0 loop
+**Supporting slices.** `src/features/depth/`, `src/features/stereo_depth/`,
+`src/features/object_masks/` and `src/features/camera_motion/` retain perception
+and preparation tools. `src/features/policy_training/` stays because the D0 loop
 reads only its `budget.json`; compose, train, select and comparison require restoring
 the recycled retargeting, scene_assembly and policy_rollout producers before admitting new inputs.
-`track3/features/mesh_fusion/` and
-`track3/features/dynamic_feasibility/` retain evidence cited in the abstract.
+`src/features/mesh_fusion/` and
+`src/features/dynamic_feasibility/` retain evidence cited in the abstract.
 
 **Gates before work.** The owning slice checks its runtime flags, episode allowlist
 and required interpreter before execution. Heavy execution redirects caches into
@@ -78,18 +78,18 @@ this checkout; GPU operations use the shared lease. Episode 41 and holdout episo
 permission and does not override a source-drift refusal.
 
 **Run ownership.** Operations write request snapshots, hashed inputs and sources,
-provenance, status, timing and artifact inventories under `outputs/`. Consumers
+provenance, status, timing and artifact inventories under `data/outputs/`. Consumers
 admit completed producer records and re-hash the artifacts they use. Preserve
 historical run records and ledgers; changed identities require fresh outputs.
 
 **Frozen protocol.** Train episodes 0/11/12/18/21/23/26/31, tuning 39/42, holdout 43/44,
-split `configs/splits/public-v1.json`, dataset revision pinned in `configs/sources.lock.json`.
+split `data/configs/splits/public-v1.json`, dataset revision pinned in `data/configs/sources.lock.json`.
 `episode_partition` refuses any deviation. Depth scores compare to MoGe2 pseudo-labels, not
 measured depth; say so in any write-up.
 
 The finished depth study and unrun scaffolding are preserved under
-`recycle/20261104T010336Z/`, with original paths and reasons in its
-[manifest](recycle/20261104T010336Z/MANIFEST.md). Restore the required dependency group
+`data/recycle/20261104T010336Z/`, with original paths and reasons in its
+[manifest](data/recycle/20261104T010336Z/MANIFEST.md). Restore the required dependency group
 to its original paths with Git moves as described there; archived sibling imports
 still use their original package names.
 

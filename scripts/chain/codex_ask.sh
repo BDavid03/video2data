@@ -20,8 +20,8 @@
 #   CODEX_MEMORY_MAX   memory cap for Codex and everything it runs (default 20G). Past it the
 #     kernel kills the job alone; without it a runaway script fills the WSL VM and WSL dies.
 #
-# Writes outputs/chain/codex/<UTC>-<label>.{brief.md,answer.md,log} and appends one line to
-# outputs/chain/codex/calls.jsonl (with the session id). The last line printed is
+# Writes data/outputs/chain/codex/<UTC>-<label>.{brief.md,answer.md,log} and appends one line to
+# data/outputs/chain/codex/calls.jsonl (with the session id). The last line printed is
 # "CODEX <rc> <answer path>". Run it with run_in_background and end the turn; never poll it.
 set -u
 cd "$(dirname "$(readlink -f "$0")")/../.." || exit 64
@@ -39,7 +39,7 @@ minutes=${CODEX_TIMEOUT_MIN:-$minutes}
 codex=$(command -v codex || ls -1 "$HOME"/.nvm/versions/node/*/bin/codex 2>/dev/null | tail -1)
 [ -n "$codex" ] || { echo "codex CLI not found" >&2; exit 64; }
 
-dir=outputs/chain/codex; mkdir -p "$dir"
+dir=data/outputs/chain/codex; mkdir -p "$dir"
 if [ "$mode" = gpu ]; then
   exec 9>"$dir/gpu.lock"
   flock -n 9 || { echo "another Codex gpu job holds $dir/gpu.lock; wait for it" >&2; exit 75; }
@@ -65,17 +65,17 @@ You are collaborating with a Claude Code context on the video2data Track 3 chall
 context plans, briefs you, reviews your diff, re-checks your numbers and commits.
 AGENTS.md, CLAUDE.md and docs/chain/PROGRAM.md hold the rules; read the parts the request below
 points to. Rules that always bind you:
-- Never rm -rf or shutil.rmtree anything except a directory you created yourself under .runtime/tmp/.
+- Never rm -rf or shutil.rmtree anything except a directory you created yourself under data/.runtime/tmp/.
 - Run no mutating git command (no add, commit, checkout, reset, stash or clean).
 - Never stop or start a process you did not start; never kill anything.
 - Never read or write /mnt/z. Never use holdout episodes 43/44 or episode 41.
-- Write only inside /home/ceolwolf/repos/video2data: the paths the request names, plus outputs/,
-  .runtime/tmp/ and .cache/. The dataset snapshot, upstream/ and models/ are read-only.
+- Write only inside /home/ceolwolf/repos/video2data: the paths the request names, plus data/outputs/,
+  data/.runtime/tmp/ and data/.cache/. The dataset snapshot, upstream/ and models/ are read-only.
   List every file you changed.
 - GPU work only when the request is in gpu mode, one operation at a time, through the slice
-  handlers and the lease in track3/gpu.py (never touch a lock a live process owns). A run you
+  handlers and the lease in src/gpu.py (never touch a lock a live process owns). A run you
   expect to take longer than about two hours: start it detached
-  (setsid nohup ... > outputs/<slice>/<name>.log 2>&1 &) and report its PID, log and how to tell
+  (setsid nohup ... > data/outputs/<slice>/<name>.log 2>&1 &) and report its PID, log and how to tell
   it has finished, instead of waiting.
 - Never call trimesh .split() on a dataset scan mesh, or build one Trimesh per component:
   blue_cup.glb is ~99k disconnected faces and split() copies the texture into every piece
@@ -87,10 +87,10 @@ How to build (docs/chain/PROGRAM.md section 9): code runs the loop, agents steer
 repeated trials (sweeps, tuning, ablations, seeds) build a resumable loop script once: it reads
 an editable space/queue file, runs each trial through the slice handlers, skips finished trials,
 appends a ledger, and ends with a compact ranked summary to read; do not run trials one by one
-yourself. Within trials use existing code (NumPy/SciPy/OpenCV/torch, track3/, the kit); do not
+yourself. Within trials use existing code (NumPy/SciPy/OpenCV/torch, src/, the kit); do not
 over-engineer (smallest thing that works, no abstraction before its second use); keep library
 code (pure functions, no I/O, paths, gates or run records) apart from the slice handler that
-orchestrates them; keep each feature in its vertical slice track3/features/<slice>/; write clean,
+orchestrates them; keep each feature in its vertical slice src/features/<slice>/; write clean,
 presentable code and a README that says how to run it and what it found.
 Be concrete: cite files with line numbers, give numbers, say what you checked and what you only
 believe. Disagree when the evidence says so. End with: files changed, commands run, results

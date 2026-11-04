@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
-os.environ.setdefault("MPLCONFIGDIR", str(ROOT / ".runtime/tmp/report-matplotlib"))
+os.environ.setdefault("MPLCONFIGDIR", str(ROOT / "data/.runtime/tmp/report-matplotlib"))
 
 import matplotlib
 
@@ -15,11 +15,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
-SUMMARY = ROOT / "outputs/mesh_eval/rules/summary.json"
-POSE_SHRINK = ROOT / "outputs/pose_insurance/shrink/summary.json"
-SCORES = ROOT / "outputs/mesh_eval/pairs/mesh-round3-veto/summary.json"
-GENERATIVE = ROOT / "outputs/mesh_generative/g1-pilot"
-PACKED_V5 = ROOT / "outputs/mesh_generative/g2-packed-check"
+SUMMARY = ROOT / "data/outputs/mesh_eval/rules/summary.json"
+POSE_SHRINK = ROOT / "data/outputs/pose_insurance/shrink/summary.json"
+SCORES = ROOT / "data/outputs/mesh_eval/pairs/mesh-round3-veto/summary.json"
+GENERATIVE = ROOT / "data/outputs/mesh_generative/g1-pilot"
+PACKED_V5 = ROOT / "data/outputs/mesh_generative/g2-packed-check"
 TARGET = Path(__file__).with_name("d1-objects.pdf")
 BLUE = "#0072B2"
 ORANGE = "#D55E00"

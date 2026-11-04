@@ -9,8 +9,8 @@ bash scripts/reproduce/check_release.sh
 It hashes the two v5 upload files, verifies both manifests and pose provenance,
 runs both kit preflights with Kaggle checks skipped, and rebuilds the report.
 Every check prints OK or FAIL; READY means all matched `release.json`.
-Logs go into a fresh directory under `outputs/report/`. A matching PDF is published
-as `outputs/report/track3-abstract-62967a99.pdf`; a different existing file is never overwritten.
+Logs go into a fresh directory under `data/outputs/report/`. A matching PDF is published
+as `data/outputs/report/track3-abstract-62967a99.pdf`; a different existing file is never overwritten.
 The command never uploads, pushes or contacts Kaggle.
 
 Run from this checkout with the existing project environments. No installation is
@@ -22,31 +22,31 @@ execution stops on the first failing command. Nothing is deleted by these script
 ```bash
 bash scripts/reproduce/d1_meshes_v5.sh https://github.com/BDavid03/video2data/commit/b1617234a85e316baa4a67b7f10ff053f5f92c4d
 bash scripts/reproduce/d2_poses_v5.sh
-bash scripts/reproduce/verify.sh submissions/20261103T2058Z-d1-v5/track3_meshes_v5_final.manifest.json
-bash scripts/reproduce/verify.sh submissions/20261103T2024Z-d2-v5/track3_poses_v5_final.manifest.json
+bash scripts/reproduce/verify.sh submission/20261103T2058Z-d1-v5/track3_meshes_v5_final.manifest.json
+bash scripts/reproduce/verify.sh submission/20261103T2024Z-d2-v5/track3_poses_v5_final.manifest.json
 bash scripts/reproduce/d1_meshes.sh
 bash scripts/reproduce/d2_poses.sh
 bash scripts/reproduce/d3_report.sh
-bash scripts/reproduce/verify.sh submissions/20261101T1605Z-d1-v2/manifest.json
-bash scripts/reproduce/verify.sh submissions/20261101T1703Z-d2-v1/manifest.json
+bash scripts/reproduce/verify.sh submission/20261101T1605Z-d1-v2/manifest.json
+bash scripts/reproduce/verify.sh submission/20261101T1703Z-d2-v1/manifest.json
 ```
 
 ## D1: recorded measures → vessel-rule meshes → CD-O → pack → preflight
 
 ```bash
 bash scripts/reproduce/d1_meshes.sh 'https://github.com/<owner>/<repo>/commit/<sha>' --run
-# Optional: --manifest submissions/<recorded-d1-v2>/manifest.json
+# Optional: --manifest submission/<recorded-d1-v2>/manifest.json
 ```
 
-The default source is the newest timestamped `submissions/*-d1-v2/manifest.json`.
+The default source is the newest timestamped `submission/*-d1-v2/manifest.json`.
 Its `build_run` identifies the recorded build. The script checks that its request
-equals the committed `track3/features/mesh_extents/requests/build-v2-r2.json`, then rebuilds
+equals the committed `src/features/mesh_extents/requests/build-v2-r2.json`, then rebuilds
 from that request's **23 recorded measure runs**. It does not regenerate depth or
 measurements. The build handler writes a fresh immutable
-`outputs/mesh_extents/build/<new-run>/run.json`; its printed path supplies the
+`data/outputs/mesh_extents/build/<new-run>/run.json`; its printed path supplies the
 candidate and pair directories to subsequent commands.
 
-The kit interpreter runs `track3/features/mesh_eval/local_cdo.py` on the new object meshes
+The kit interpreter runs `src/features/mesh_eval/local_cdo.py` on the new object meshes
 (default sampling seeds from episodes 1/3/5), then the manifest's kit packing and
 preflight commands. Absolute command paths are rebased to the current checkout;
 mesh directory, output file and commit URL are substituted. CD-O uses public scans
@@ -54,14 +54,14 @@ only as scoring references. The recorded fitted score is **0.9251 cm**; the
 cross-fitted adoption headline remains **0.92572 cm**. The CPU reproduction below
 reran the fitted score and recovered **0.9251 cm**.
 
-A fresh `.runtime/tmp/reproduce-d1-<unique>/` holds `build.log`, `score.log`,
+A fresh `data/.runtime/tmp/reproduce-d1-<unique>/` holds `build.log`, `score.log`,
 `cdo.json`, `pack.log`, `preflight.log`, the Parquet and a new `manifest.json`
 with commands, hashes and the new build-record path. The source manifest and
 historical build are retained. D1 is CPU only, but its rebuild is still opt-in.
 
 ## D2: version-aware campaign or composition → pack → preflight
 
-The newest timestamped `submissions/*-d2-v*/manifest.json` is the default.
+The newest timestamped `submission/*-d2-v*/manifest.json` is the default.
 `--manifest` selects a particular recorded package. The script reads `version`
 when present, otherwise the packed filename's `_v1`/`_v2` suffix (the historical
 manifests have no explicit version key). Unsupported versions are refused.
@@ -73,14 +73,14 @@ Episodes 41/43/44 are refused.
 ```bash
 bash scripts/reproduce/d2_poses.sh \
   'https://github.com/OWNER-PLACEHOLDER-not-final/video2data/commit/c7f90116f11b41970d0e910375713037faab126f' \
-  --manifest submissions/20261101T2315Z-d2-v2/manifest.json --run
+  --manifest submission/20261101T2315Z-d2-v2/manifest.json --run
 ```
 
 The script verifies every export's recorded `source` SHA-256 before copying any
 files. It checks the recorded composition: **18 unchanged v1 exports** from
-`outputs/pose_insurance/results-v1/` and **K1a episodes 1/28** from
-`outputs/pose_insurance/rebuilt-v2/`. Episode 30 remains on v1. It copies those
-20 sources into a new `.runtime/tmp/reproduce-d2-<unique>/results/`; the historical
+`data/outputs/pose_insurance/results-v1/` and **K1a episodes 1/28** from
+`data/outputs/pose_insurance/rebuilt-v2/`. Episode 30 remains on v1. It copies those
+20 sources into a new `data/.runtime/tmp/reproduce-d2-<unique>/results/`; the historical
 results directories remain untouched. CUDA is hidden from its child commands.
 It never imports or launches the GPU campaign for this branch.
 
@@ -95,9 +95,9 @@ exports; it does not regenerate their GPU trajectories.
 ### v1: existing frozen loop campaign (GPU)
 
 ```bash
-bash scripts/reproduce/d2_poses.sh .runtime/tmp/reproduce-d2-campaign/results \
+bash scripts/reproduce/d2_poses.sh data/.runtime/tmp/reproduce-d2-campaign/results \
   'https://github.com/<owner>/<repo>/commit/<sha>' \
-  --manifest submissions/20261101T1703Z-d2-v1/manifest.json --run
+  --manifest submission/20261101T1703Z-d2-v1/manifest.json --run
 ```
 
 Use a new, empty results directory. The original `RESULTS_DIR COMMIT_URL` interface,
@@ -122,7 +122,7 @@ bash scripts/reproduce/d3_report.sh --run  # CPU; always creates a fresh directo
 ```
 
 The script pins HEAD, exports `docs/report/track3` with read-only `git archive`
-and `tar` into `.runtime/tmp/reproduce-d3-<unique>/src/`, then regenerates the
+and `tar` into `data/.runtime/tmp/reproduce-d3-<unique>/src/`, then regenerates the
 mesh panel, `--pose-offsets` panel and `--bars` legacy chart there. The checked-out
 figure generator reads the recorded inputs from this checkout; its only change
 from the archived generator is the output-directory option. All figure drawing,
@@ -134,12 +134,12 @@ The archived `main.tex`, classes, bibliography and assets are then built with th
 pinned Tectonic 0.17.0 using the exact `build_pdf.sh` engine arguments:
 `-X compile -Z continue-on-errors --keep-logs`. Matplotlib, temporary files and
 Tectonic's writable cache are private to the fresh work directory; the existing
-`.cache/tectonic` is copied as a read-only input. The wrapper's same microtype
+`data/.cache/tectonic` is copied as a read-only input. The wrapper's same microtype
 error filter is retained. `scripts/report/build_pdf.sh` needed no edit.
 
 `SOURCE_DATE_EPOCH` comes from the last commit touching `docs/report/track3`;
 commits outside that tree preserve the PDF bytes only while the figure inputs read
-from `outputs/` and upstream, and `.cache/tectonic`, also stay the same.
+from `data/outputs/` and upstream, and `data/.cache/tectonic`, also stay the same.
 Tectonic may need the network for fonts missing from that cache.
 A commit touching any report-tree file, including a README, bumps the epoch and
 changes the hash; `check_release.sh` detects the change.
@@ -154,10 +154,10 @@ Both used commit `9fb178a3fc74435ea193524cfddc15f753f4ea6a` and
 `SOURCE_DATE_EPOCH=1793578088` (2026-11-02 00:08:08 UTC).
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' .runtime/linux-cuda/bin/python -B \
-  .runtime/tmp/reproduce-d3-audit-eTmAqxDt/run_reproductions.py
-PYTHONDONTWRITEBYTECODE=1 .runtime/linux-cuda/bin/python -B \
-  .runtime/tmp/reproduce-d3-audit-eTmAqxDt/compare_pdfs.py
+PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' data/.runtime/linux-cuda/bin/python -B \
+  data/.runtime/tmp/reproduce-d3-audit-eTmAqxDt/run_reproductions.py
+PYTHONDONTWRITEBYTECODE=1 data/.runtime/linux-cuda/bin/python -B \
+  data/.runtime/tmp/reproduce-d3-audit-eTmAqxDt/compare_pdfs.py
 bash -n scripts/reproduce/d3_report.sh
 bash -n scripts/report/build_pdf.sh
 ```
@@ -204,24 +204,24 @@ Final artifacts and evidence:
 
 | Item | Path |
 | --- | --- |
-| Run 1 PDF | `.runtime/tmp/reproduce-d3-38r6BKup/src/docs/report/track3/main.pdf` |
-| Run 2 PDF | `.runtime/tmp/reproduce-d3-1cmKxGAh/src/docs/report/track3/main.pdf` |
+| Run 1 PDF | `data/.runtime/tmp/reproduce-d3-38r6BKup/src/docs/report/track3/main.pdf` |
+| Run 2 PDF | `data/.runtime/tmp/reproduce-d3-1cmKxGAh/src/docs/report/track3/main.pdf` |
 | Per-run records | Each run directory: `build.log`, `commit.txt`, `source-date-epoch.txt`, `figure-generator.sha256`, `sha256.txt`; figures and TeX logs under `src/docs/report/track3/` |
-| Audit | `.runtime/tmp/reproduce-d3-audit-eTmAqxDt/`: `ledger.jsonl`, `summary.json`, `run-{1,2}.log`, `comparison.json`, `hash-table.md`, `syntax.log`, `pdfinfo.log`, `tex-evidence.log` |
+| Audit | `data/.runtime/tmp/reproduce-d3-audit-eTmAqxDt/`: `ledger.jsonl`, `summary.json`, `run-{1,2}.log`, `comparison.json`, `hash-table.md`, `syntax.log`, `pdfinfo.log`, `tex-evidence.log` |
 
 The audit hashes the original report tree before/after the runs and confirms no
 file changed during execution. The only report-tree edit is the allowed
 `make_figures.py` output-directory option. Two preliminary builds before the
 final path-handling adjustment also succeeded; their evidence is retained under
-`.runtime/tmp/reproduce-d3-audit-xeEJsNaE/`. The complete generated/source file
-inventory is `.runtime/tmp/reproduce-d3-audit-eTmAqxDt/files-changed.txt`.
+`data/.runtime/tmp/reproduce-d3-audit-xeEJsNaE/`. The complete generated/source file
+inventory is `data/.runtime/tmp/reproduce-d3-audit-eTmAqxDt/files-changed.txt`.
 
 ## Run records and hash coverage
 
 | Deliverable | Recorded source |
 | --- | --- |
-| D1 | `submissions/20261101T1605Z-d1-v2/{manifest,run}.json`; the manifest's `build_run` and its request's measure producers |
-| D2 | v1: `submissions/20261101T1703Z-d2-v1/{manifest,run}.json`, loop ledger/completion; v2: `submissions/20261101T2315Z-d2-v2/{manifest,run}.json`, per-export `source`/SHA-256 and `composition`, `outputs/pose_insurance/v2/report.md` |
+| D1 | `submission/20261101T1605Z-d1-v2/{manifest,run}.json`; the manifest's `build_run` and its request's measure producers |
+| D2 | v1: `submission/20261101T1703Z-d2-v1/{manifest,run}.json`, loop ledger/completion; v2: `submission/20261101T2315Z-d2-v2/{manifest,run}.json`, per-export `source`/SHA-256 and `composition`, `data/outputs/pose_insurance/v2/report.md` |
 | D3 | `docs/report/track3/README.md` provenance table; `docs/report/track3/main.log`; new command/output log when executed |
 
 `verify.sh <manifest.json>` is read-only and CPU only. It accepts either a top-level
@@ -243,17 +243,17 @@ claiming an exact historical reproduction.
 ## Current verify results
 
 Checked on 2026-11-04 with `bash scripts/reproduce/verify.sh <manifest>` for every
-`*manifest*.json` under `submissions/`, including `manifest-final.json`.
-Manifest paths below are relative to `submissions/`. These checks hash the current
+`*manifest*.json` under `submission/`, including `manifest-final.json`.
+Manifest paths below are relative to `submission/`. These checks hash the current
 checkout and preserved artifacts; they do not run historical reproductions.
 
 | Manifest | Result (OK / entries) | Mismatches at HEAD |
 | --- | --- | --- |
 | `20261101T1605Z-d1-v2/manifest.json` | PASS: 1/1 | None |
-| `20261101T1703Z-d2-v1/manifest.json` | FAIL: 29/35 | `track3/features/pose_insurance/__main__.py`, `track3/features/pose_insurance/_scene.py`, `track3/features/pose_insurance/handler.py`, `track3/features/pose_insurance/loop.py`, `track3/features/pose_insurance/pack.py`, `track3/features/pose_insurance/scene.py` |
-| `20261101T2315Z-d2-v2/manifest.json` | FAIL: 103/107 | `track3/features/pose_insurance/__main__.py`, `track3/features/pose_insurance/_placement.py`, `docs/chain/pose-placement-protocol.md`, `scripts/reproduce/verify.sh` |
+| `20261101T1703Z-d2-v1/manifest.json` | FAIL: 29/35 | `src/features/pose_insurance/__main__.py`, `src/features/pose_insurance/_scene.py`, `src/features/pose_insurance/handler.py`, `src/features/pose_insurance/loop.py`, `src/features/pose_insurance/pack.py`, `src/features/pose_insurance/scene.py` |
+| `20261101T2315Z-d2-v2/manifest.json` | FAIL: 103/107 | `src/features/pose_insurance/__main__.py`, `src/features/pose_insurance/_placement.py`, `docs/chain/pose-placement-protocol.md`, `scripts/reproduce/verify.sh` |
 | `20261102T0032Z-d2-v3/manifest-final.json` | PASS: 42/42 | None |
-| `20261102T0032Z-d2-v3/manifest.json` | FAIL: 493/500 | `track3/features/pose_insurance/__main__.py`, `track3/features/pose_insurance/_placement.py`, `track3/features/pose_insurance/runtime.json`, `track3/features/stereo_depth/runtime.json`, `scripts/reproduce/d2_poses.sh`, `scripts/reproduce/README.md`, `scripts/reproduce/verify.sh` |
+| `20261102T0032Z-d2-v3/manifest.json` | FAIL: 493/500 | `src/features/pose_insurance/__main__.py`, `src/features/pose_insurance/_placement.py`, `src/features/pose_insurance/runtime.json`, `src/features/stereo_depth/runtime.json`, `scripts/reproduce/d2_poses.sh`, `scripts/reproduce/README.md`, `scripts/reproduce/verify.sh` |
 | `20261102T0313Z-d1-v3/manifest.json` | PASS: 1/1 | None |
 | `20261102T0516Z-d1-v4/manifest-final.json` | FAIL: 2/3 | `scripts/reproduce/d1_meshes.sh` |
 | `20261102T0516Z-d1-v4/manifest.json` | FAIL: 5/6 | `scripts/reproduce/d1_meshes.sh` |
@@ -265,9 +265,9 @@ The expected legacy mismatches are source files, runtime flags, protocol text
 and reproduction scripts that later commits changed. Use each older pack's
 recorded commit for historical reproduction; these HEAD mismatches are not
 failures of the v5 upload files. Both v5 manifests pass, and `check_release.sh`
-also hashes the actual files under `submissions/` against the release digests.
+also hashes the actual files under `submission/` against the release digests.
 The build-v4 request is accepted at its moved path with its original digest.
-Full command logs: `outputs/report/critic-checks-20261104T012723Z/`.
+Full command logs: `data/outputs/report/critic-checks-20261104T012723Z/`.
 
 ## CPU evidence, 2026-11-02
 
@@ -283,15 +283,15 @@ bash scripts/reproduce/d1_meshes.sh \
   'https://github.com/OWNER-PLACEHOLDER-not-final/video2data/commit/874ff6793721faa0035a71788b8f5a22f9b4b2d3' --run
 bash scripts/reproduce/d2_poses.sh \
   'https://github.com/OWNER-PLACEHOLDER-not-final/video2data/commit/c7f90116f11b41970d0e910375713037faab126f' \
-  --manifest submissions/20261101T2315Z-d2-v2/manifest.json --run
+  --manifest submission/20261101T2315Z-d2-v2/manifest.json --run
 bash -n scripts/reproduce/d1_meshes.sh
 bash -n scripts/reproduce/d2_poses.sh
-PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' .runtime/linux-cuda/bin/python -B \
-  .runtime/tmp/ctx05-d5-evidence/check_scripts.py
-PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' .runtime/kit-env/bin/python -B \
-  .runtime/tmp/ctx05-d5-evidence/compare_deliverables.py
-bash scripts/reproduce/verify.sh submissions/20261101T1605Z-d1-v2/manifest.json
-bash scripts/reproduce/verify.sh submissions/20261101T2315Z-d2-v2/manifest.json
+PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' data/.runtime/linux-cuda/bin/python -B \
+  data/.runtime/tmp/ctx05-d5-evidence/check_scripts.py
+PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' data/.runtime/kit-env/bin/python -B \
+  data/.runtime/tmp/ctx05-d5-evidence/compare_deliverables.py
+bash scripts/reproduce/verify.sh submission/20261101T1605Z-d1-v2/manifest.json
+bash scripts/reproduce/verify.sh submission/20261101T2315Z-d2-v2/manifest.json
 ```
 
 | Comparison | Recorded packed SHA-256 | Fresh SHA-256 | Result |
@@ -304,7 +304,7 @@ schema metadata and Parquet metadata also match. All **47 PLY files** (11 object
 meshes plus 36 scored-pair copies) match the historical build bytes, so the geometry
 is identical. There are no row-order, float, metadata or timestamp differences in
 the packed file. The fresh build is
-`outputs/mesh_extents/build/20261102T000114.850697Z-1a4c354e/run.json`.
+`data/outputs/mesh_extents/build/20261102T000114.850697Z-1a4c354e/run.json`.
 The fitted local CD-O is **0.9251 cm**, matching the recorded **0.9251 cm** at the
 scorer's four-decimal precision (delta **0.0000 cm**), over **10 public-scan objects**
 and the kit seeds for episodes **1/3/5**. This is the fitted reconstruction score,
@@ -320,10 +320,10 @@ Evidence directories (paths relative to this checkout):
 
 | Evidence | Directory / files |
 | --- | --- |
-| D1 reproduction | `.runtime/tmp/reproduce-d1-wbr3u3xl/`: `console.log`, `build.log`, `score.log`, `cdo.json`, `pack.log`, `preflight.log`, `track3_meshes_v2.parquet`, `manifest.json`, `comparison.json` |
-| D2 reproduction | `.runtime/tmp/reproduce-d2-wi7g6bmn/`: `console.log`, `sources.json`, `results/`, `pack.log`, `preflight.log`, `command_results.json`, `track3_poses_v2.csv`, `manifest.json`, `comparison.json` |
-| Comparisons and syntax | `.runtime/tmp/ctx05-d5-evidence/`: `comparisons.log`, `syntax.log`, `script-checks.json`, `script-checks.log`, `v1-plan-{old,new}.log`, comparison/check scripts |
-| Source-manifest verification | `.runtime/tmp/ctx05-d5-evidence/verify-{d1,d2}-v2.log` |
+| D1 reproduction | `data/.runtime/tmp/reproduce-d1-wbr3u3xl/`: `console.log`, `build.log`, `score.log`, `cdo.json`, `pack.log`, `preflight.log`, `track3_meshes_v2.parquet`, `manifest.json`, `comparison.json` |
+| D2 reproduction | `data/.runtime/tmp/reproduce-d2-wi7g6bmn/`: `console.log`, `sources.json`, `results/`, `pack.log`, `preflight.log`, `command_results.json`, `track3_poses_v2.csv`, `manifest.json`, `comparison.json` |
+| Comparisons and syntax | `data/.runtime/tmp/ctx05-d5-evidence/`: `comparisons.log`, `syntax.log`, `script-checks.json`, `script-checks.log`, `v1-plan-{old,new}.log`, comparison/check scripts |
+| Source-manifest verification | `data/.runtime/tmp/ctx05-d5-evidence/verify-{d1,d2}-v2.log` |
 
 The read-only D1 source-manifest verifier exited **0** (1/1 hash matches). The D2
 source-manifest verifier exited **1** (**106/107 match**): its only mismatch is the
@@ -353,9 +353,9 @@ not repeat stereo estimation, training or the physical evaluator.
 ```bash
 bash scripts/reproduce/d2_poses.sh \
   'https://github.com/OWNER-PLACEHOLDER-not-final/video2data/commit/bb8a3f02fac668e86ff7b6a3ad7c3ccaec40050d' \
-  --manifest submissions/<stamp>-d2-v3/manifest.json --run
+  --manifest submission/<stamp>-d2-v3/manifest.json --run
 ```
 
 New v3 reproduction artifacts are written beneath
-`.runtime/tmp/ctx05-scored-reproduce-d2-<new>/`. The v3 campaign evidence and final
-hash comparison are recorded in `outputs/pose_insurance/v3/report.md`.
+`data/.runtime/tmp/ctx05-scored-reproduce-d2-<new>/`. The v3 campaign evidence and final
+hash comparison are recorded in `data/outputs/pose_insurance/v3/report.md`.
