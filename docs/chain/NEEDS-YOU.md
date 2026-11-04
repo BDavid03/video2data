@@ -35,7 +35,7 @@ pushed) to **all six boards**, waits for the scores and logs to `data/outputs/ch
 | Code version | `https://github.com/BDavid03/video2data/commit/c8ff8c135c53a54f9959e20def5920becab87eec` | ready (the moving file's URL; combined v5's is `02117ac`) |
 | Container | a link openable without requesting access | staged on CPU for the moving file (`scripts/container/README.md`); needs Docker, which this account cannot reach: `sudo usermod -aG docker ceolwolf`, open a new WSL shell, fill `data/outputs/container/kaggle-ids.json` from its example, run `scripts/container/owner-build.sh` |
 
-Kaggle closes at **22:00 UTC**; the chain planned to 17:00 UTC. Your lines today, recorded in `PROGRAM.md` section 0: "keep
+**Hard close 17:00 UTC today (your line, 14:30 UTC: "submission is 5pm UTC").** Upload, mark final on all six, submit the form before then. Your lines today, recorded in `PROGRAM.md` section 0: "keep
 strict integrity gates" (about 14:08 UTC), so no spoon gate was waived and the GPU stays idle on purpose; "approved permission
 to run all git commands" (13:50 UTC).
 
