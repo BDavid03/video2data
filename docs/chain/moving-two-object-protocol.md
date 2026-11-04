@@ -114,3 +114,156 @@ same evidence rules, create a fresh candidate directory under
 pack, submission file, report, check_release, upload, install or commit changes.
 Hard close is 2026-11-04 17:00 UTC; do not launch work that cannot finish and
 leave time to pack before it. A failure or time stop produces no candidate.
+
+## Disclosed method revision: joint instance selection (4 November 2026, 15:42 UTC)
+
+The lead found that independent name prompts selected the same physical region
+for both objects in episodes 1 and 8: equal mask centres throughout episode 1;
+episode-8 mask IoU 1.000 at frames 0 and 50 and 0.999 at frame 150. This is a
+name-to-instance assignment defect. No labels or scans informed this revision.
+The earlier stops remain recorded and are superseded only as explicitly stated.
+
+Before segmentation, collect frame-0 Grounding DINO candidates for both names,
+with the unchanged text threshold 0.3 and box threshold 0.4. Among all pairs
+(one qualifying box per name), choose minimum box IoU. Resolve exact ties by
+smallest slot-0 box area, then smallest slot-1 box area, then original detector
+indices, preserving the previous smallest-area/index convention for each name.
+If no pair has IoU strictly below 0.5, STOP for missing instance separation.
+Use these selected boxes in the unchanged SAM2.1 propagation workers. If the
+propagated frame-0 object masks have IoU >=0.5, STOP for the same reason.
+
+Rerun episode-8 and episode-1 masks under this fixed assignment, preserving all
+old masks, requests, reports and stops. These are disclosed method-fix reruns,
+not independent replications. Existing completed masks with frame-0 object IoU
+<0.5 are retained, with their identity and reuse recorded; they are not rerun.
+An externally interrupted incomplete mask operation is preserved and may restart
+under this revision; it has supplied no completed result.
+
+The queue is now 8, 1, 10, 14, 15, 16, 19, 20, 25, 28, 30, 32, 33, 3, 5, 6.
+The lead's 15:32 answer waives both mask_usable_fraction and
+mask_longest_unusable_interval_frames at early and final M1 admission. These
+measurements are still reported. Stereo support >=0.9 and all other M1,
+Stage-0, A-policy and resting-B admission thresholds remain unchanged. Frame
+validity reflects observed camera/object fits; the waived texture flag is not
+reintroduced as an independent validity requirement.
+
+The owner-corrected close is 22:00 UTC. Train every episode passing reference
+and Stage 0, in passing order, at most once, with the unchanged episode-38 recipe
+and scheduled final checkpoint. Last training start is 19:45 UTC; cumulative
+candidate packs are targeted by 20:50 UTC. A new cumulative packer lives beside
+the pinned original module. No existing submission, pinned source, report,
+label, scan, install, upload or git mutation is authorized by this revision.
+
+The report must contain: "Both objects are detected jointly as distinct instances
+(box IoU below 0.5) before segmentation." Reused already-distinct masks must
+also be disclosed as retained evidence rather than a fresh segmentation result.
+
+## Disclosed method revision: declared axial symmetries (4 November 2026, 15:55 UTC)
+
+The lead found episode 8's opposite-facing margin 0.00596024 (unchanged rule:
+resolved only above 0.02). The organisers' current kit Track-3 task text declares
+beige_cup and blue_cup continuously symmetric around their central axes, and
+white_pot_lid symmetric under 0/180 degrees around its normal. AUC.py applies
+axial symmetry to pose errors. No scored label or scan informed this revision.
+
+Only for active beige_cup, blue_cup or white_pot_lid, identify the central/cap
+normal from the own procedural mesh's largest coherent unsigned face-normal
+area. This follows the vertical cylinder/revolved shell construction and uses
+no scan. Carry that model axis through the chosen initial pose into the stereo
+world; measure its unsigned angle to the stereo table normal. Record the model
+axis, world axis, angle, coherent face-area fraction, symmetry type, original
+margin, and original opposite_resolved value. If the original tie is unresolved
+and the axis angle is <=10 degrees, keep the original winning pose and mark
+opposite_resolved=True and resolved_by='declared scorer symmetry'. Otherwise
+keep the original rule. All other objects retain it without change.
+
+The helper is used only by the two-object reference path. Shared track.py and
+_object.py, the episode-38 path and the spoon path remain byte-identical. The
+CPU equivalence record must establish those source identities and unchanged
+unsupported-object initialization values before the revised reference runs.
+
+Rerun only episode 8's reference under this disclosed fix, retaining its masks,
+instance separation and all earlier stops. Continue from episode 10, retaining
+completed masks; retain episode 1's revised instance-separation STOP. All other
+reference and physical thresholds, the usability waiver, training budget,
+checkpoint rule, cumulative packing and no-label/no-scan rules stand unchanged.
+
+The report must also contain: "For cups and the pot lid, a tie between opposite
+facings is resolved by the organisers' declared symmetry." Passing this tie
+resolution establishes equivalence under the declared symmetry, not recovery
+of an unobservable cup heading or accuracy of the full video trajectory.
+
+## Disclosed method revisions: clip-wide instances and symmetry rotations (2026-11-04T16:15:25.887741+00:00)
+
+Lead decision after frame-zero detection stops in episodes 19 and 1: if no
+qualifying frame-zero pair has box IoU <0.5, apply the same joint detector at
+frames 5, 10, 15, ... in timestamp order. Keep box threshold 0.4 and text
+threshold 0.3; choose the lowest-IoU pair, breaking ties by the same smallest
+slot-0 box, smallest slot-1 box and detector indices. Stop at the first frame
+with IoU <0.5. Seed both SAM2.1 objects at that frame, propagate forward and
+backward through the full clip, and retain the unchanged propagated frame-zero
+mask IoU <0.5 check. If there is no separated pair anywhere on this cadence,
+STOP. Preserve every old detector and segmentation result. Episodes 19 and 1
+receive one disclosed method-fix attempt in a new directory. An externally
+interrupted operation has no completed gate result and may resume its completed
+workers without repeating them.
+
+For beige_cup and blue_cup (continuous axial symmetry) and white_pot_lid
+(order 2), evaluate rotation differences by swing-twist decomposition about the
+own procedural mesh central axis in the source object's body frame. For cups,
+retain swing and remove twist; for the lid reduce twist modulo 180 degrees.
+Apply this to every reference orientation gate (angular rate, forward-backward
+rotation, stationary-rotation control) and every joint policy/physical
+orientation gate. Threshold values remain unchanged. Translation, camera,
+table, stereo support, coverage, validity and reprojection measurements retain
+their original instruments. A valid flag may change only when a saved explicit
+rejection reason establishes that an otherwise-observed frame was rejected
+solely for a rotation spike removed by this symmetry; absent that evidence,
+restore zero frames. Record old/new measurements, axis, symmetry and counts.
+If the saved forward/backward closure matrices were not retained, do not infer
+their swing from scalar angles: record the metric as unrecomputable and retain
+the original conservative value. No re-tracking is authorized for episodes 8
+and 10: re-score only their saved tracks, preserve hashes and old results.
+
+Queue: 20, 25, 28, 30, 32, 33, 3, 5, 6, 19, 1, 8, 10. Last training start
+19:45 UTC; train every reference + Stage-0 passing episode immediately, one
+GPU job and one training attempt at a time, unchanged episode-38 recipe.
+No threshold changes, scored labels, scans, pinned-source edits or uploads.
+
+Read data/outputs/moving_policy/two-object/control.json between episodes.
+Keys are pause (bool), queue (allowed episode IDs, ordered, no duplicates),
+note (string). A pause waits without holding the GPU lease; queue changes only
+steer uncompleted work and never erase outcomes or authorize a new attempt.
+The lead can edit this file without killing the campaign.
+
+## Disclosed decision: conditional three-region camera coverage (2026-11-04T16:31:37.396593+00:00)
+
+Lead decision after episodes 19, 14 and 16 stopped at three held-out image
+regions while the measured direct camera subset passed. In the two-object
+path only, camera_heldout_regions_min may pass at >=3 instead of >=4 if ALL
+of these final unchanged instruments pass: held-out reprojection median
+<=0.5 px640, p95 <=2 px640, held-out tracks >=30, coverage >=0.98, and
+camera_heldout_world_residual_median_m <=0.01 m using the existing sealed-pass
+perpendicular instrument. This condition applies uniformly to every episode,
+including subsequent episodes. Four or more regions retain the old verdict.
+A missing direct measure cannot satisfy the condition.
+
+At the early camera subset, exactly three regions with all available direct
+checks passing may proceed provisionally to collect the final world-residual
+instrument. This is not a gate PASS: the world-residual condition is still
+pending. Only the final composed gate can grant the conditional acceptance.
+Preserve the original four-region measurement/verdict in the raw M1 reports;
+record the new conditional verdict and all five prerequisite values separately.
+Shared tracker, spoon path and episode38 behavior remain byte-identical.
+
+Rerun references from the camera stage for 19, then 14, then16, in new output
+directories. Reuse the completed instance results, masks, frozen A/B role and
+mask-gate measurements; preserve all previous stops. These are disclosed
+method-decision reruns, not independent trials. Continue remaining control-file
+episodes afterward. Train every reference+Stage0 pass immediately, one GPU job
+and one training attempt per episode, unchanged recipe, last start19:45 UTC.
+All other gates and prior disclosed revisions remain unchanged.
+
+Required report sentence: "The camera check accepts three image regions when
+held-out reprojection accuracy passes." The short sentence does not replace
+the full five-prerequisite rule in this protocol and admission evidence.
