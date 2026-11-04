@@ -5,6 +5,35 @@ recorded development evidence. The owner pushes the release commit and uploads
 packed files; repository commands do not upload them. Current package paths,
 hashes and limitations are in [the submission ledger](docs/chain/SUBMISSION.md).
 
+## Visualisations
+
+More figures and the full explanation are in the
+[non-technical report](docs/report/nontechnical/report.md). None of these is a
+challenge score.
+
+The trained policy on episode 38. Green is the pan mask from the video. Orange is
+the larger simulated pan and the coloured shapes are the robot hands, drawn through
+the fitted camera. Episode 38 has no labels, so this shows the policy following its
+video-derived goal, not that the goal is correct. [Watch the clip](docs/report/nontechnical/figures/21-episode38-on-real-footage.mp4).
+
+![Episode 38 policy drawn on real footage](docs/report/nontechnical/figures/21-episode38-on-real-footage.png)
+
+Tracking error against that same goal, at the failed midpoint check and at the end
+of training. Why the midpoint failed has not been diagnosed.
+
+![Episode 38 tracking error at the midpoint and at the end of training](docs/report/nontechnical/figures/20-episode38-video-goal.png)
+
+Practice episode 39, compared with motion capture at each stage. These numbers use
+the scorer from the kit we had before the organisers replaced it on 2 November. A
+rough re-check with the new scorer's code, using public shapes, moves the video
+policy from 0.775 to 0.669.
+
+![Episode 39 at each stage against motion capture](docs/report/nontechnical/figures/18-policy-on-video-path.png)
+
+The video tracker's pan outline on real footage from episodes 39 and 38. [Watch the clips](docs/report/nontechnical/figures/16-tracked-pan.mp4).
+
+![Tracked pan outline on real footage](docs/report/nontechnical/figures/16-tracked-pan.png)
+
 ## Current entry points
 
 - Meshes: [mesh extents](src/features/mesh_extents/README.md),
