@@ -54,6 +54,9 @@ with the kit. `scripts/reproduce/d1_meshes.sh` rebuilds v2/v3/v4 from recorded m
 `scripts/reproduce/d1_meshes_v5.sh` repacks the passing G2 production tree.
 Mesh scoring and packing use `.runtime/kit-env/bin/python`; the project venv orchestrates builds.
 
+**Reinforcement learning in simulation is required** (owner, 2026-11-04): every policy behind a submitted pose is
+trained by RL in simulation and rolled out through the kit's evaluator. See `docs/chain/PROGRAM.md` section 0.
+
 **Shipping pose line.** `track3/features/pose_insurance/` owns scene preparation,
 policy runs, frozen diagnostics and pose packing. `scripts/reproduce/d2_poses_v5.sh`
 verifies or packs the frozen v5 sources and artifacts. `scripts/reproduce/d3_report.sh`

@@ -32,6 +32,12 @@ everything else has to be organised under these".** Recorded here because the D2
 working in the worktree's old layout, and never move or edit the main checkout, until the owner's layout is final and the plan's
 reconcile step runs.
 
+**Owner, live, 2026-11-04 about 05:06 UTC: "put in docs, reinforcement learning required using simulations".** So poses that
+reach a submission must come from policies trained by reinforcement learning in simulation and rolled out in simulation, through the kit's
+evaluator (`COMPLETION-PLAN.md` section 3). Recorded here because the D2 v5 manifest pins `AGENTS.md`. FlashSAC under
+FlashCHORD, as in `moving-m0b-outcome.md`, is this route. The chain's reading, not the owner's words: the shipped static policies had a 512-step
+budget and did not move their objects, so the target is policies that have really trained, and v5 stands only as the fallback.
+
 Until the 4 November deadline, **structural improvements to the fundamentals come before refining the current
 entry.** The owner's words: "please take bigger structural improvements before really refining the details", "e.g.
 pretraining models, synthetic data generation, we're talking substantial improvements to the fundamentals". The
