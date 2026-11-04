@@ -103,6 +103,44 @@ frame-0 poses held static reaches only 0.532, so about half of AUC is lost to ob
    owner's pushing and uploading are unchanged. Then "your allowed to run opus / sonnet / haiku subagents", which adds Haiku
    to the 2026-09-30 model line in `AGENTS.md`; section 8 is otherwise unchanged.*
 
+**Owner to-do list, 4 Nov 2026 about 16:05 UTC ("these have been bandaided, this should be added as todo's in the chain").**
+**Highest priority (owner, 16:07 UTC): "creating the best possible model we can".** Items 6-8 (the model, tracking,
+two-object motion) come first and get the GPU; items 9-14 only when they serve the model or take minutes. Each item was patched
+for the deadline; fix the cause, not the symptom. Tick with the commit.
+
+6. [ ] **Build the model for the metric.** The scorer aligns our first frame to the true start (`_ALIGN_INITIAL_POSE`), then
+   scores every frame: AUC = ADD over 500 surface points, thresholds 1-9 cm; MPPE = six points at 5 cm radius; SP-SR = mean
+   centre error <= 10 cm and mean orientation <= 0.5 rad per episode; MP-SR = every object < 3 cm and < 30 deg; RPE = object B's
+   centre in A's frame (two-object episodes only); cups are continuous-symmetric about their axis, the lid 0/180 deg. So every
+   pose board rewards following the real motion; static poses cap AUC near 0.53. Done when every scored episode with a
+   trackable object has a learned moving rollout, and a local scorer run (train/tuning, new kit code) ranks the file before upload.
+7. [ ] **Fix video tracking itself, not its gates.** Today's two-object and spoon screens stopped on poor tracks (cup ep8: 62 %
+   valid frames, IoU 0.50, 1075 deg/s spikes; cups ep10: 24 % valid; spoon 35: 1895 deg/s orientation flips; 36/37 table
+   patches). The tracker (`src/features/moving_reference/`) was built around the pan. Needed: symmetry-aware tracking for cups and
+   the lid, thin-object handling for spoons, robust frame-to-frame orientation (no flips), and model-based tracking with our own
+   meshes (FoundationPose-style; scan use stays out of meshes). Done when a frozen protocol shows the tracker passing its
+   unchanged quality gates on train/tuning clips of each object class.
+8. [ ] **Two-object episodes properly (16 of 20).** The joint task (one object carried, the other a free resting body) is built
+   but untracked and unreviewed in `src/features/moving_policy/two_object_*.py`; review it, commit it, and extend it to BOTH
+   objects moving (MP-SR needs every object; RPE needs relative motion). Instance-separated detection was added mid-run; the pot
+   with its lid on (ep1) still cannot be separated.
+9. [ ] **Better shapes in the counted file.** Pretrained pot 5 / pitcher 20 meshes (CD-O 0.536 vs 0.565 counted) could not enter
+   the combined file because no mesh-to-simulation frame mapping was recorded at generation. Record that mapping when shapes are
+   generated, so pose and CD-O use the same better mesh.
+10. [ ] **Campaigns the lead can steer without killing them.** Today the lead halted the Codex campaign four times to change a
+   rule. Long runs must read a control file between episodes (pause, queue, decisions) and write status; one GPU job at a time.
+11. [ ] **Trained models live in `models/`.** Every counted checkpoint is copied to `models/policies/<pack>/` with SHA256SUMS
+   automatically at pack time (done by hand today for moving v5).
+12. [ ] **Counted files are durable.** `submission/` is git-ignored and two pack folders vanished on 4 Nov; keep every uploaded
+   file and manifest with a hash list somewhere that cannot silently disappear, and check it before each context ends.
+13. [ ] **Readable for outsiders.** README and docs must let someone unfamiliar with the build follow what was done for the task;
+   the technical report never mentions AI agents and reads as plain prose. Decide with the owner how the chain's own files
+   (`docs/chain/`, `AGENTS.md`, `CLAUDE.md`) are presented to judges.
+14. [ ] **Light process, core integrity.** Keep the core rules (no scored labels, no holdout, no leaderboard tuning, RL in
+   simulation, no scan geometry in meshes, decide before looking). Engineering gates are tools, not goals: when a gate blocks
+   progress, fix the method it measures. Metrics first; don't spend the owner's time on small things. Uploads need the owner's
+   explicit approval; the close is 22:00 UTC on 4 Nov 2026 (17:00 EST); after it, the work continues as research for the report.
+
 ## 1. The finish line
 
 The goal is the best honest Track 3 entry that can be submitted before the leaderboard freezes,
