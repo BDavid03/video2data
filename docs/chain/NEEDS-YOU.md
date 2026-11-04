@@ -6,10 +6,11 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
 
 ## Open
 
-**Update 2026-11-04 02:00 UTC: the chain is running again, on `docs/chain/COMPLETION-PLAN.md`.** Four decisions are in its
-section 7 (deadline, scan use, whether the chain may push and upload, FoundationPose). Each has a default, so nothing waits. You
-can still upload v5 now to get a first score: run `git push origin main` first, and note there is no Kaggle token on this
-machine yet (`~/.kaggle/access_token` or `KAGGLE_API_TOKEN`). To stop the chain: `touch outputs/chain/STOP` in the main checkout.
+**Update 2026-11-04 02:00 UTC: the chain is running again, on `docs/chain/COMPLETION-PLAN.md`, and your four answers are recorded
+(`PROGRAM.md` section 0). The chain now pushes and uploads. Only two things are still yours, because they need your login:**
+1. Accept the rules on all six Track 3 competitions in the browser (there is no API for this).
+2. Save your token from <https://www.kaggle.com/settings/api> to `~/.kaggle/access_token`. This machine has none yet.
+The chain uploads v5 as soon as both are done. To stop the chain: `touch outputs/chain/STOP` in the main checkout.
 
 **Update 2026-11-04 01:30 UTC: the files to upload have not changed, and there is now one check to run first.** The file
 restructure you asked for is done (your "just do it"). The packed files are byte-identical, and the upload commands below

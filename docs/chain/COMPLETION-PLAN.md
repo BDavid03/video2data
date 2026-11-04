@@ -103,11 +103,9 @@ Record final scores, complete the report, carry W3 on full budgets if the owner 
 | Presentation, Visualisations | 4 | Abstract describes what shipped and those findings |
 | Engineering | 4 | `check_release.sh` READY on the final files; D3's external inputs checked |
 
-## 7. Owner decisions (the chain runs the default until a line appears)
+## 7. Owner decisions (answered 2026-11-04 01:53 UTC; these override the "needs the line" notes above)
 
-Add the answer to `PROGRAM.md` section 0, not `AGENTS.md` (pinned by D2 v5), or say it in the session.
-
-1. **Keep the 12:00 pack cut-off and 17:00 deadline, or plan to the kit's 22:00 UTC?** Default: keep. 17:00 UTC is about 03:00 AEST; 22:00 UTC is 08:00 AEST. Moving the last pack to 20:00 UTC would almost double the GPU budget, and is what could make M3 real.
-2. **Scan use beyond measuring:** may scans train a rotation model, and may H3 extend past episode 19? Default: no. The FAQ says participants "should reconstruct the objects"; D2 v5's episode 19 is the only exception, by your approval.
-3. **May the chain push and upload?** Default: no; you do both, and every pack waits for you.
-4. **FoundationPose install?** Default: not installed. It needs a licence check as well as decision 2.
+1. **Deadline: unchanged.** Last pack 12:00 UTC, deadline 17:00 UTC, last GPU launch 10:30 UTC.
+2. **Scan use: yes.** Scans may train the rotation model (add a scan-render arm to W2a) and H3 may extend past episode 19 (W1.3). Still no scan geometry in a submitted mesh or simulated asset; disclose each use in the abstract.
+3. **Push and upload: yes, by the chain.** Terms in `PROGRAM.md` section 0. W0's upload runs as soon as the owner has accepted the rules and saved a token, which stay the owner's.
+4. **FoundationPose: yes.** W2b runs, with the licence recorded.

@@ -15,6 +15,16 @@ dated line in `AGENTS.md`. Check `AGENTS.md` for new lines at the start of every
 trained or submission written to improve on, why have you ended the chain"). Its section 3 overrides section 7 below: the
 chain does not stop for owner-only items while a workstream is open.**
 
+**Owner's answers to that plan's section 7, 2026-11-04 01:53 UTC ("deadline stays the same, 2. yes, 3. yes. 4. tes"):**
+1. Last pack 12:00 UTC, deadline 17:00 UTC, unchanged.
+2. Scans may be used beyond measuring: to train a rotation model and to extend the H3 heading method past episode 19. Still no
+   scan geometry in a submitted mesh or a simulated asset (the FAQ's reconstruction line); disclose every scan use in the abstract.
+3. **The chain may push and upload**, overriding section 1 and section 6 on those two only. Push fast-forward only, never force:
+   `git push origin worktree-chain-ctx01:main`, from the worktree. Upload only a file that passed its gate and with
+   `check_release.sh` READY for it, once per pack; record file, hash, time and scores in `SUBMISSION.md`. Accepting competition rules
+   and creating the Kaggle token stay the owner's. Scores still steer nothing (section 4).
+4. FoundationPose install approved, in its own venv under `.runtime/`, with its licence recorded in `INSTALL.md` and the abstract.
+
 Until the 4 November deadline, **structural improvements to the fundamentals come before refining the current
 entry.** The owner's words: "please take bigger structural improvements before really refining the details", "e.g.
 pretraining models, synthetic data generation, we're talking substantial improvements to the fundamentals". The
