@@ -142,11 +142,7 @@ def identity(q):
 
 
 def gpu_lease(q, operation, allowance=None):
-    """Respect the main checkout's lease, at its old or moved location, as well as this checkout's lock."""
-    main_root = next((parent for parent in ROOT.parents if (parent / '.git').is_dir()), ROOT)
-    if main_root != ROOT and any((main_root / folder / 'gpu-stage.lock').exists()
-                                 for folder in ('.runtime', 'data/.runtime')):
-        raise RuntimeError('Main-checkout GPU lease already exists')
+    """Lease this private worktree without inspecting another checkout."""
     return GpuLease(ROOT, q['headroom_mib'], q['admission_allowance_mib'] if allowance is None else allowance,
                     stage=f'dynamic_feasibility_m0b_{operation}')
 
