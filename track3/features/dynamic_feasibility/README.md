@@ -147,3 +147,19 @@ with end fraction 1.0 and success rate 0.0. Seed 0/1 transport is
 6.802541645 / 6.827838192 cm. Both miss SIGNAL's T >=0.20 and Q >=0.10 gates.
 All five validity checks pass; none of the 390 jump-and-hold controls meets GO
 or SIGNAL. NULL does not rule out transport or close the object-driven W3 route.
+
+## M0b preparation: CPU hand clearance
+
+```bash
+CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 .runtime/linux-cuda/bin/python -B -m track3.features.dynamic_feasibility.hand_clearance
+```
+
+Writes `outputs/dynamic_feasibility/m0b/clearance/{clearance.json,summary.md}`,
+CPU FK arrays/log/cache, and input hashes. The reference has opposing groups
+within 1 cm of real collision surfaces in **259/390 frames**, first frame 28;
+installed Newton CPU FK reproduces stored frames within 0.358 micrometres.
+Both hands rise during the carry, supporting a geometric grasp; policy hand
+trajectories/contact forces are absent. `resume-facts.md` in that output folder
+records source-read M0b proposals: empty replay needs nine collections to become
+sampleable, and the exact 32,814,080 boundary checkpoint still records VOC 0.01.
+No GPU probe, resume or evaluator operation runs in this preparation.
