@@ -38,6 +38,11 @@ evaluator (`COMPLETION-PLAN.md` section 3). Recorded here because the D2 v5 mani
 FlashCHORD, as in `moving-m0b-outcome.md`, is this route. The chain's reading, not the owner's words: the shipped static policies had a 512-step
 budget and did not move their objects, so the target is policies that have really trained, and v5 stands only as the fallback.
 
+**Owner, live, 2026-11-04 about 07:00 UTC: "id also like visualisations (graphs, and overlays of the model to know what its doing
+for the non-technical report)".** A non-technical report lives at `docs/report/nontechnical/`, separate from the two-page abstract (D3). It has
+graphs and overlays showing what the models do, in plain language. Every context that gets a new result adds its graph and overlay.
+Captions state plainly what a result is and is not; nothing is shown as a challenge result until one exists.
+
 Until the 4 November deadline, **structural improvements to the fundamentals come before refining the current
 entry.** The owner's words: "please take bigger structural improvements before really refining the details", "e.g.
 pretraining models, synthetic data generation, we're talking substantial improvements to the fundamentals". The
