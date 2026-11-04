@@ -1,0 +1,16 @@
+{
+  "mesh": {
+    "path": "submissions/20261103T2058Z-d1-v5/track3_meshes_v5_final.parquet",
+    "sha256": "bcb93d57d86b4dac06ed21af9af84ce39edffe52b3d9c35e28928391e47e4e58",
+    "manifest": "submissions/20261103T2058Z-d1-v5/track3_meshes_v5_final.manifest.json"
+  },
+  "pose": {
+    "path": "submissions/20261103T2024Z-d2-v5/track3_poses_v5_final.csv",
+    "sha256": "0b2606aed015fe0a64e31037ff790b5483680c3da7e7a5ae2d503edeb8261035",
+    "manifest": "submissions/20261103T2024Z-d2-v5/track3_poses_v5_final.manifest.json"
+  },
+  "report": {
+    "path": "outputs/report/track3-abstract-62967a99.pdf",
+    "sha256": "62967a997de730705c588f67fd02ff016ac92931c8135fb38310d9551946f814"
+  }
+}

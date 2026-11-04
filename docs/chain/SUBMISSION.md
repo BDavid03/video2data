@@ -9,6 +9,15 @@ pitcher 20 (`bcb93d57...`, URL commit `b161723`); D2 v5 = v4 plus H3 scan-to-ste
 (`0b2606ae...`, URL commit `db7b13f`). Both preflight "Ready to submit" (Kaggle skipped). The table below is history
 up to v4.
 
+**Restructure (4 Nov 01:30 UTC, owner go-ahead): the files above are byte-identical.** One check before upload:
+`bash scripts/reproduce/check_release.sh`, which must end `READY`. D3's file to upload is the one it writes,
+`outputs/report/track3-abstract-62967a99.pdf`; `d3_report.sh` now takes its epoch from the last commit touching
+`docs/report/track3`, so that hash holds at later commits that leave the report tree alone. Older rows below name paths
+as they were then: `scripts/track3/local_cdo.py` is now `track3/features/mesh_eval/local_cdo.py`, `scripts/track3/requests/d1/`
+is now `track3/features/mesh_extents/requests/`, and retired slices such as `object_mesh` are under
+`recycle/20261104T010336Z/`. `verify.sh` on `submissions/20261102T0516Z-d1-v4/` no longer gives the 6/6 recorded below,
+because `d1_meshes.sh` has changed since; current results per manifest are in `scripts/reproduce/README.md`.
+
 **G3 (context 21, 3 Nov 23:10 UTC): no new pack.** Automatic SAM2 / Grounding DINO pot masks passed control and development
 but failed the packed veto (0.56702 / 0.62678 cm vs v5 0.56443 / 0.62081; evaluation pot 6 worsened 0.851 -> 1.006 cm), so
 **D1 v5 stays the file to upload.** `docs/chain/mesh-generative-g3-protocol.md`, `outputs/mesh_generative/g3/summary.md`,

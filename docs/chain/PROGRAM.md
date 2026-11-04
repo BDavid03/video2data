@@ -40,7 +40,7 @@ frame-0 poses held static reaches only 0.532, so about half of AUC is lost to ob
 4. [~] Pretrained models and synthetic data where they serve 1-3 (proposals in `NEEDS-YOU.md` for any new install).
    *Context 20: Hunyuan3D-2mini installed on owner approval; G1 pilot FAIL (rack), G2 pot + pitcher PASS and packed as
    D1 v5 (`b161723`). SAM2.1 / grounding-dino / MediaPipe approved but not installed. Context 21: SAM2.1 and Grounding DINO installed for G3, which failed its packed veto (protocol `7bc865b`); MediaPipe not installed.*
-5. [~] *(phases 1-2 done, `907bf80`, `4caf513`; plan `docs/chain/restructure-plan.md`)* **Restructure the file system to be less scattered, and remove irrelevant components** (owner, 2026-11-03
+5. [x] *(phases 1-2 `907bf80`, `4caf513`; phases 3-5 `f16821d`, `ea01ab6`, `a5ff859`; plan `docs/chain/restructure-plan.md`)* **Restructure the file system to be less scattered, and remove irrelevant components** (owner, 2026-11-03
    14:15 UTC). Order: (a) a written inventory first (each top-level directory, each slice, each script: used by a
    deliverable, by a recorded result, or by nothing), committed as a plan with the target layout; (b) moves with
    `git mv` only; nothing is deleted: everything to be removed is moved into the recycle folder

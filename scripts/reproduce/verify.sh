@@ -50,7 +50,7 @@ for name, expected in entries:
     except OSError as error:
         actual = None
         detail = str(error)
-    ok = actual == expected
+    ok = actual is not None and actual == expected
     bad += not ok
     relocation = f" (moved to {moved})" if moved is not None else ""
     print(f"{'OK' if ok else 'MISMATCH'} {name}{relocation}")

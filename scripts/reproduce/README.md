@@ -1,5 +1,18 @@
 # Reproduce Track 3 deliverables
 
+Before uploading, run the complete CPU release check:
+
+```bash
+bash scripts/reproduce/check_release.sh
+```
+
+It hashes the two v5 upload files, verifies both manifests and pose provenance,
+runs both kit preflights with Kaggle checks skipped, and rebuilds the report.
+Every check prints OK or FAIL; READY means all matched `release.json`.
+Logs go into a fresh directory under `outputs/report/`. A matching PDF is published
+as `outputs/report/track3-abstract-62967a99.pdf`; a different existing file is never overwritten.
+The command never uploads, pushes or contacts Kaggle.
+
 Run from this checkout with the existing project environments. No installation is
 performed. The three deliverable scripts default to **plan only**: they read
 recorded metadata and print commands without creating run directories or importing
@@ -7,6 +20,10 @@ GPU libraries. `--run` enables execution. Commands are printed with shell quotin
 execution stops on the first failing command. Nothing is deleted by these scripts.
 
 ```bash
+bash scripts/reproduce/d1_meshes_v5.sh https://github.com/BDavid03/video2data/commit/b1617234a85e316baa4a67b7f10ff053f5f92c4d
+bash scripts/reproduce/d2_poses_v5.sh
+bash scripts/reproduce/verify.sh submissions/20261103T2058Z-d1-v5/track3_meshes_v5_final.manifest.json
+bash scripts/reproduce/verify.sh submissions/20261103T2024Z-d2-v5/track3_poses_v5_final.manifest.json
 bash scripts/reproduce/d1_meshes.sh
 bash scripts/reproduce/d2_poses.sh
 bash scripts/reproduce/d3_report.sh
@@ -120,11 +137,14 @@ Tectonic's writable cache are private to the fresh work directory; the existing
 `.cache/tectonic` is copied as a read-only input. The wrapper's same microtype
 error filter is retained. `scripts/report/build_pdf.sh` needed no edit.
 
-A single `SOURCE_DATE_EPOCH` setting, taken from the last commit that touched
-`docs/report/track3`, makes both Matplotlib and Tectonic reproducible, and keeps the
-PDF byte-identical across commits that do not touch the report. Existing report PDFs, logs and
-other report files are never rewritten. No metrics, GPU operation, install or
-upload is performed.
+`SOURCE_DATE_EPOCH` comes from the last commit touching `docs/report/track3`;
+commits outside that tree preserve the PDF bytes only while the figure inputs read
+from `outputs/` and upstream, and `.cache/tectonic`, also stay the same.
+Tectonic may need the network for fonts missing from that cache.
+A commit touching any report-tree file, including a README, bumps the epoch and
+changes the hash; `check_release.sh` detects the change.
+Existing report PDFs, logs and other report files are never rewritten. No metrics,
+GPU operation, install or upload is performed.
 
 ### Executed twice, 2026-11-02
 
@@ -219,6 +239,35 @@ all 23 measure producers. The build handler admits its recorded inputs on rebuil
 Hash agreement also does not establish numerical or bitwise reproducibility of a
 new GPU run. Align the checked-out sources with the recorded source hashes before
 claiming an exact historical reproduction.
+
+## Current verify results
+
+Checked on 2026-11-04 with `bash scripts/reproduce/verify.sh <manifest>` for every
+`*manifest*.json` under `submissions/`, including `manifest-final.json`.
+Manifest paths below are relative to `submissions/`. These checks hash the current
+checkout and preserved artifacts; they do not run historical reproductions.
+
+| Manifest | Result (OK / entries) | Mismatches at HEAD |
+| --- | --- | --- |
+| `20261101T1605Z-d1-v2/manifest.json` | PASS: 1/1 | None |
+| `20261101T1703Z-d2-v1/manifest.json` | FAIL: 29/35 | `track3/features/pose_insurance/__main__.py`, `track3/features/pose_insurance/_scene.py`, `track3/features/pose_insurance/handler.py`, `track3/features/pose_insurance/loop.py`, `track3/features/pose_insurance/pack.py`, `track3/features/pose_insurance/scene.py` |
+| `20261101T2315Z-d2-v2/manifest.json` | FAIL: 103/107 | `track3/features/pose_insurance/__main__.py`, `track3/features/pose_insurance/_placement.py`, `docs/chain/pose-placement-protocol.md`, `scripts/reproduce/verify.sh` |
+| `20261102T0032Z-d2-v3/manifest-final.json` | PASS: 42/42 | None |
+| `20261102T0032Z-d2-v3/manifest.json` | FAIL: 493/500 | `track3/features/pose_insurance/__main__.py`, `track3/features/pose_insurance/_placement.py`, `track3/features/pose_insurance/runtime.json`, `track3/features/stereo_depth/runtime.json`, `scripts/reproduce/d2_poses.sh`, `scripts/reproduce/README.md`, `scripts/reproduce/verify.sh` |
+| `20261102T0313Z-d1-v3/manifest.json` | PASS: 1/1 | None |
+| `20261102T0516Z-d1-v4/manifest-final.json` | FAIL: 2/3 | `scripts/reproduce/d1_meshes.sh` |
+| `20261102T0516Z-d1-v4/manifest.json` | FAIL: 5/6 | `scripts/reproduce/d1_meshes.sh` |
+| `20261103T0645Z-d2-v4/track3_poses_v4_final.manifest.json` | PASS: 60/60 | None |
+| `20261103T2024Z-d2-v5/track3_poses_v5_final.manifest.json` | PASS: 69/69 | None |
+| `20261103T2058Z-d1-v5/track3_meshes_v5_final.manifest.json` | PASS: 4/4 | None |
+
+The expected legacy mismatches are source files, runtime flags, protocol text
+and reproduction scripts that later commits changed. Use each older pack's
+recorded commit for historical reproduction; these HEAD mismatches are not
+failures of the v5 upload files. Both v5 manifests pass, and `check_release.sh`
+also hashes the actual files under `submissions/` against the release digests.
+The build-v4 request is accepted at its moved path with its original digest.
+Full command logs: `outputs/report/critic-checks-20261104T012723Z/`.
 
 ## CPU evidence, 2026-11-02
 

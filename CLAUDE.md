@@ -17,11 +17,11 @@ OpenCV, SciPy, matplotlib, onnx/onnxruntime). The system `python3` has no third-
 bash scripts/linux/install-linux-cuda.sh        # (re)create the venv; idempotent, logs under reports/installation/
 source scripts/linux/use-linux-cuda.sh          # venv on PATH + MoGe source trees on PYTHONPATH for a manual shell
 
-bash scripts/reproduce/d1_meshes.sh https://github.com/BDavid03/video2data/commit/b161723 --version v4  # plan only
+bash scripts/reproduce/d1_meshes.sh https://github.com/BDavid03/video2data/commit/b1617234a85e316baa4a67b7f10ff053f5f92c4d --version v4  # plan only; URL is packed into the file
 PYTHONPATH=. .runtime/linux-cuda/bin/python -m track3.features.<slice> <operation> --request <file.json>
 python3 -m py_compile <file>                     # syntax check (no deps needed)
 PYTHONPATH=. .runtime/linux-cuda/bin/python -c "import track3.features.<slice>.<module>"   # CPU import check
-python scripts/documentation/compile.py          # concatenate docs into docs/compiled/all-documentation.md
+.runtime/linux-cuda/bin/python -B scripts/documentation/compile.py          # concatenate docs into docs/compiled/all-documentation.md
 ```
 
 There is no test runner installed (`tests/` predates a no-testing period and pytest is not in
@@ -52,6 +52,7 @@ and builds procedural meshes; `track3/features/mesh_generative/` owns the pretra
 shape campaigns and video admission; `track3/features/mesh_eval/` scores packed meshes
 with the kit. `scripts/reproduce/d1_meshes.sh` rebuilds v2/v3/v4 from recorded measures;
 `scripts/reproduce/d1_meshes_v5.sh` repacks the passing G2 production tree.
+Mesh scoring and packing use `.runtime/kit-env/bin/python`; the project venv orchestrates builds.
 
 **Shipping pose line.** `track3/features/pose_insurance/` owns scene preparation,
 policy runs, frozen diagnostics and pose packing. `scripts/reproduce/d2_poses_v5.sh`
@@ -62,7 +63,9 @@ See `scripts/reproduce/README.md` for commands and source-drift limitations.
 **Supporting slices.** `track3/features/depth/`, `track3/features/stereo_depth/`,
 `track3/features/object_masks/` and `track3/features/camera_motion/` retain perception
 and preparation tools. `track3/features/policy_training/` stays because the D0 loop
-reads its budget; `track3/features/mesh_fusion/` and
+reads only its `budget.json`; compose, train, select and comparison require restoring
+the recycled retargeting, scene_assembly and policy_rollout producers before admitting new inputs.
+`track3/features/mesh_fusion/` and
 `track3/features/dynamic_feasibility/` retain evidence cited in the abstract.
 
 **Gates before work.** The owning slice checks its runtime flags, episode allowlist
@@ -87,6 +90,6 @@ The finished depth study and unrun scaffolding are preserved under
 to its original paths with Git moves as described there; archived sibling imports
 still use their original package names.
 
-Design references: `docs/design/README.md` (feature directory), `artifact-contracts.md`,
-`feature-template.md`. The historical plan is `docs/design/legacy-plan.md`; the research backlog
+Design references: `docs/design/README.md` (feature directory), `docs/design/artifact-contracts.md`,
+`docs/design/feature-template.md`. The historical plan is `docs/design/legacy-plan.md`; the research backlog
 is `docs/experiments/README.md`.

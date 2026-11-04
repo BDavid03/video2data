@@ -20,10 +20,11 @@ hashes and limitations are in [the submission ledger](docs/chain/SUBMISSION.md).
   original commit even when packed artifacts remain available.
 
 These commands print CPU reproduction plans or verify preserved artifacts:
+The full commit URL below is packed into the file; shortening it changes the packed bytes.
 
 ```bash
-bash scripts/reproduce/d1_meshes.sh https://github.com/BDavid03/video2data/commit/b161723 --version v4
-bash scripts/reproduce/d1_meshes_v5.sh https://github.com/BDavid03/video2data/commit/b161723
+bash scripts/reproduce/d1_meshes.sh https://github.com/BDavid03/video2data/commit/b1617234a85e316baa4a67b7f10ff053f5f92c4d --version v4
+bash scripts/reproduce/d1_meshes_v5.sh https://github.com/BDavid03/video2data/commit/b1617234a85e316baa4a67b7f10ff053f5f92c4d
 bash scripts/reproduce/verify.sh submissions/20261103T2058Z-d1-v5/track3_meshes_v5_final.manifest.json
 bash scripts/reproduce/d3_report.sh
 ```

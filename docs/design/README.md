@@ -55,6 +55,9 @@ source entry points, not execution readiness.
 | [Mesh fusion](../../track3/features/mesh_fusion/README.md) | Unsuccessful fusion route retained as cited evidence | fixed F1/F1b queues |
 | [Dynamic feasibility](../../track3/features/dynamic_feasibility/README.md) | D0/D1 dynamic-route evidence cited in the abstract | feasibility and scaling queues |
 
+Policy training compose, train, select and comparison need the recycled retargeting,
+scene_assembly and policy_rollout producers restored before admitting new inputs; D0 needs only `budget.json`.
+
 The other 17 slices and companion scripts are preserved in
 [the recycle folder](../../recycle/20261104T010336Z/MANIFEST.md), whose manifest
 explains restoration of dependent groups to their original paths.

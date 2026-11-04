@@ -6,6 +6,18 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
 
 ## Open
 
+**Update 2026-11-04 01:30 UTC: the files to upload have not changed, and there is now one check to run first.** The file
+restructure you asked for is done (your "just do it"). The packed files are byte-identical, and the upload commands below
+still work. Before uploading, run this in the worktree; it should end `READY`:
+```bash
+cd ~/repos/video2data/.claude/worktrees/chain-ctx01 && bash scripts/reproduce/check_release.sh
+```
+It re-hashes both packed files, verifies them, runs the kit preflight (Kaggle skipped) and builds the abstract. **Upload the
+abstract from the path it prints, `outputs/report/track3-abstract-62967a99.pdf`.** An older `docs/report/track3/main.pdf`
+was stale, so it was moved into `recycle/`. If your main checkout still has one at that path, do not upload that copy.
+Run it in the worktree, not the main checkout, because `outputs/` lives there. Adding a line to `AGENTS.md` makes this check
+report a mismatch on `AGENTS.md`, because D2 v5's manifest pins that file; the packed files are unaffected. Nothing was deleted: `recycle/20261104T010336Z/MANIFEST.md` lists all 17 retired slices with how to restore them.
+
 **Update 2026-11-04 00:05 UTC: nothing new to upload. D1 v5 and D2 v5 below are still the files.** A further attempt at
 pretrained pot shapes (G3) failed its final check on the packed file, so there is no v6. `git merge --ff-only
 worktree-chain-ctx01` now brings later commits too; they contain `b161723` and `db7b13f`, so the URLs in the packed files

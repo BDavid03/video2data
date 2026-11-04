@@ -419,3 +419,5 @@ Policy-environment installer and activation that hard-code the retired Z: mount;
 ## Untracked
 
 - `docs/report/track3/figures/d1-v4-objects.pdf`, at `untracked/docs/report/track3/figures/d1-v4-objects.pdf`: orphaned by a generator rename; `make_figures.py` now writes `d1-objects.pdf`. No tracked file uses it.
+- `docs/report/track3/figures/d1-v4-qualitative.pdf`, at `untracked/docs/report/track3/figures/d1-v4-qualitative.pdf`: stale generated copy (5ce15a36..., rebuilt 61ab41e8...). `d3_report.sh` regenerates this figure inside its own archive build; an in-place build needs `make_figures.py --qualitative` first.
+- `docs/report/track3/main.pdf`, at `untracked/docs/report/track3/main.pdf`: stale in-place build (7d7bece5...), moved so it cannot be mistaken for the abstract to upload (62967a99..., `scripts/reproduce/check_release.sh`).
