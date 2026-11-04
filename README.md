@@ -21,18 +21,21 @@ Our entry in NVIDIA's V2D Challenge, Track 3.
    path. It went into the file only after passing admission gates written before the run.
 5. **What we submitted.** One file, "moving v5": episode 38 moving, the other 19 static. Its
    scores are in the Results table below (AUC 0.32339, CD-O 0.56471 cm).
-6. **Where each piece lives.**
 
-| Step | Code (slice) | Reproduce | Outputs |
-| --- | --- | --- | --- |
-| 2 Shapes | `src/features/mesh_extents/` (depth: `src/features/depth/`) | `scripts/reproduce/d1_meshes.sh` | `data/outputs/mesh_extents/` |
-| 3 Static poses | `src/features/pose_insurance/` (stereo: `src/features/stereo_depth/`) | `scripts/reproduce/d2_poses_v5.sh` | `data/outputs/pose_insurance/` |
-| 4 Episode 38 | `src/features/moving_policy/` (video path: `src/features/moving_reference/`) | `scripts/reproduce/d2_poses_moving.sh` | `data/outputs/moving_policy/ep38-v1/` |
-| 5 Submitted file | `src/features/pose_insurance/` (packing) | `scripts/reproduce/check_release.sh` | `submission/20261104T1422Z-d2-moving-v5/` |
-| The 20 counted policies | | | `models/policies/track3-moving-v5/` |
-| Report | `docs/report/track3/main.tex` | `scripts/reproduce/d3_report.sh` | `docs/report/final/track3-technical-report.pdf` |
+## Where things are
 
-### Terms
+| Step | What it does | Code | Run | Result |
+| --- | --- | --- | --- | --- |
+| Shapes | Measure each object from video depth, build its mesh | `src/features/mesh_extents/` | `scripts/reproduce/d1_meshes.sh` | `data/outputs/mesh_extents/` |
+| Static poses | Place each object, train a static policy | `src/features/pose_insurance/` | `scripts/reproduce/d2_poses_v5.sh` | `data/outputs/pose_insurance/` |
+| Episode 38 | Track the pan in video, train the moving policy | `src/features/moving_policy/` | `scripts/reproduce/d2_poses_moving.sh` | `data/outputs/moving_policy/ep38-v1/` |
+| Submitted file | Pack and check the file we uploaded | `src/features/pose_insurance/` | `scripts/reproduce/check_release.sh` | `submission/20261104T1422Z-d2-moving-v5/` |
+| Report | Build the two-page report | `docs/report/track3/main.tex` | `scripts/reproduce/d3_report.sh` | `docs/report/final/track3-technical-report.pdf` |
+
+- **Trained policies:** the 20 behind the submitted file, in `models/policies/track3-moving-v5/`.
+- **Helpers:** depth `src/features/depth/`, stereo `src/features/stereo_depth/`, video tracking `src/features/moving_reference/`.
+
+## Terms
 
 - **Episode**: one recorded video of a person doing one task. Episodes are numbered.
 - **Slice**: one folder under `src/features/`. It holds all the code, settings and README for one job.
