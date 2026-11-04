@@ -1,7 +1,0 @@
-{
-  "teacher_runs": [],
-  "frame_stride": 5,
-  "max_image_side": 384,
-  "minimum_depth_m": 0.05,
-  "maximum_depth_m": 20.0
-}

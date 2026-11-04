@@ -1,6 +1,0 @@
-{
-  "dataset": "outputs/scratch_depth/prepare/20261018T113402.984050Z-d446c33e/dataset.json",
-  "seed": 31,
-  "python": "Z:/hugging-face/locals/.venv/Scripts/python.exe",
-  "execution": {"external_cuda_authorized": true}
-}

@@ -1,5 +1,0 @@
-{
-  "execution": {"initialise_authorized": false, "compose_authorized": false, "track_authorized": false,
-                "refine_authorized": false, "evaluation_authorized": false, "validation_authorized": false},
-  "authorized_episode_indices": {"public": [], "evaluation": []}
-}

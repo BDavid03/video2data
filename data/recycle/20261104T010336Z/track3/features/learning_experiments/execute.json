@@ -1,6 +1,0 @@
-{
-  "teacher_frames": 20,
-  "teacher_max_image_side": 768,
-  "prepared_max_image_side": 128,
-  "frame_stride": 5
-}

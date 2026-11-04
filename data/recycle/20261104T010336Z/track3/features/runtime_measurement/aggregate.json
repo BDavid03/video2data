@@ -1,8 +1,0 @@
-{
-  "episode_index": 39,
-  "receipts": [],
-  "max_wall_seconds": 900,
-  "max_cold_iterations": 3,
-  "max_warmup_iterations": 5,
-  "max_warm_iterations": 20
-}

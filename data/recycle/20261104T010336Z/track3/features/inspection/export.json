@@ -1,7 +1,0 @@
-{
-  "episode_index": 39,
-  "candidates": [{"label": "A", "preview_run": null, "depth_run": null, "masks_run": null, "hands_run": null, "camera_run": null, "scene_run": null, "stereo_run": null, "tracks_run": null, "annotations": null}],
-  "frame_indices": [0],
-  "depth_limits_m": [0.1, 3.0],
-  "manual_events": []
-}

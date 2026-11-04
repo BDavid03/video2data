@@ -1,5 +1,0 @@
-{
-  "receipt": "outputs/scratch_depth/research_train/REQUIRED_RUN/runtime_trace.json",
-  "receipt_sha256": "REQUIRED_EXACT_TRACE_SHA256",
-  "accounting_only": true
-}

@@ -1,5 +1,0 @@
-{
-  "execution": {"floor_authorized": false, "score_authorized": false, "frame_convention_authorized": false,
-                "validation_authorized": false, "oracle_authorized": false,
-                "agreement_authorized": false, "mesh_authorized": false}
-}

@@ -1,7 +1,0 @@
-{
-  "aggregate_authorized": false,
-  "aggregate_grouped_authorized": false,
-  "benchmark_authorized": false,
-  "validation_authorized": false,
-  "authorized_episode_indices": []
-}

@@ -1,8 +1,0 @@
-{
-  "checkpoint": "outputs/scratch_depth/research_train/REPLACE_WITH_RUN/research-checkpoint.pt",
-  "checkpoint_sha256": "REPLACE_WITH_COMPLETED_CHECKPOINT_SHA256",
-  "dataset": "outputs/scratch_depth/research_prepare/REPLACE_WITH_RUN/dataset.json",
-  "dataset_sha256": "REPLACE_WITH_PREPARED_DATASET_SHA256",
-  "episode_index": 39,
-  "calibration_depth_run": "outputs/depth/public/episode_000039/REPLACE_WITH_RUN/run.json"
-}
