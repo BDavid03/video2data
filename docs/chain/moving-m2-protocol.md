@@ -1,6 +1,6 @@
 # M2 protocol: does the recipe transfer to a challenge-type episode? (`COMPLETION-PLAN.md` W3; fixed before any number below exists)
 
-## State (4 Nov 2026, 05:35 UTC): Stage 0 STOPPED; no training has run; awaiting a disclosed amendment
+## State (4 Nov 2026, 05:35 UTC): Stage 0 STOPPED; no training has run; Amendment 1 below settles it (06:35 UTC)
 
 The narrow builder ran on real 39 (`data/outputs/moving_policy/ep39/stage0.json`, `final-checks.json`). **Failed, after the one allowed repair:** check 4, wrist speed 1.59 m/s, 7.43 times the example against a limit of 2; check 5, the object reaches 10.5 m in 11 CPU physics steps with 0.73 degrees of rotation, which looks like a solver blow-up (hands start 4 to 6 cm inside the support), not a fall. Passed: schema, closure, penetration, truth; closure and truth are close to vacuous for a rigid grasp and an identical reference.
 
@@ -8,6 +8,34 @@ The narrow builder ran on real 39 (`data/outputs/moving_policy/ep39/stage0.json`
 - **Upstream's own route (owner, about 05:30 UTC: "worth using: https://github.com/nvidia-isaac/video_to_data.git"):** the pinned checkout has `reconstruction/`, `ego_recon_to_sharpa.py`, `contact_labels.py`, `generate_rigid_urdfs.py`, `reconstruct_support_surfaces.py`, `data_quality_checks/` and `docs/e2e_workflow.md`. See Codex `route-v2d-25`.
 - **Check 4's limit was a guess from one example,** and human motion on 39 is genuinely fast: 71 against 9 cm/s. Decide it on what the tracker can follow, not by loosening it silently.
 - **Gate fixes from critic 25, to take with the amendment.** AUC 0.275 is too weak: with position perfect and rotation held, 39 reaches 0.413 from a static 0.178, so GO must include rotation or a higher AUC. Scored adoption clause 3 scores against its own reference, so a wrong path passes; it needs `E` and an orientation bound, and a **label-free reprojection of achieved poses on the video's masks**, since residual camera motion could become a trackable, wrong reference. Clause 2 is undefined until M1's protocol. Check 5 cannot literally precede all simulation; it is a CPU physics check. The spoon inherits no scan-free labelled test.
+
+## Amendment 1 (4 Nov 2026, 06:35 UTC): committed before any training number and before any wrist-tracking measurement
+
+Stage 0's stop stands as recorded in `data/outputs/moving_policy/ep39/`, which is immutable. This is a disclosed redesign, allowed because no training has run. Route: Codex `route-m2a-26`. **It is the only one: if the amended Stage 0 fails, M2 stops, W3 closes for this deadline and `D2 v5` stands.** Output goes to `data/outputs/moving_policy/ep39-a1/`. What was known when this was written: the failed numbers in "State"; the code facts below; a 1.524 mm hull overlap computed by Codex; a CPU diagnosis is running, and only its blow-up result may set the support rule, which stays under the same limit. Sections below this one hold except where this one replaces them.
+
+**Route: the narrow rigid grasp.** Upstream's `run_frame_ik()` needs 21 metric joints per hand that we do not have, seven new packages and an unmeasured 2 to 4 hours, and it would not repair the support or guarantee closure. `video_to_data` still supplies the pinned simulator and evaluator, and its thin-support geometry below.
+
+**Support (check 5).** Placed from the imported collision hulls as the evaluator builds them, never from raw mesh vertices, with a thin footprint-sized cylinder as the shipped task uses, or the smallest change the diagnosis shows is needed. The check remains a CPU physics check of the evaluator's composition with zero residual action, and its limits stay 1 cm and 2 degrees. It precedes training, not all simulation.
+
+**Grasp.** A fixed rule on geometry and the reference, the same on every episode, never revised after a score: among candidate opposing-face contact pairs on the asset (longitudinal ends, and transverse sides of the scoop at its centre), keep those passing closure and penetration, and take the one with the smallest peak wrist speed. Two hands, as there is no fixed handle pinch that passes closure. Robot-support collision is off in the evaluator's own configuration (`collision/training.yaml:5`), so hand-support clearance is recorded and is not a gate.
+
+**Acquisition.** The 0.5 s approach only if the object stays within 1 mm and 1 degree of frame 0 over that interval in the reference. Otherwise the hands start at the grasp, disclosed. No rest is prepended.
+
+**Check 4, replaced: what the tracker can follow.** The old 2x limit came from one example. Wrists are soft (kp 25, kd 6, about 0.24 s of lag per m/s; residual clip 0.2 m and 1 rad, `embodiments/sharpa_hands.py:56`, `runtime/residual.py`). The rule comes from GO itself, since an object carried by a hand cannot be tracked better than that hand:
+- **4a.** Finger joints inside limits at every frame, as before.
+- **4b, reachability.** In the evaluator's physics on CPU, with the object absent from the question, a diagnostic feed-forward residual computed only from the reference and inside the action bounds must hold each wrist, over all frames after acquisition, to mean position error at most **3 cm**, mean orientation error at most **15 degrees**, and maximum position error at most **15 cm**, training's wrist termination (`termination/tracking.yaml`). This controller exists only for this check. It is never exported, scored or packed, and every rollout still comes from a learned checkpoint.
+- **Reported beside it, not gated:** peak wrist speed, and zero-residual wrist error with `|e_p| + 2 r sin(theta / 2)` against 0.19 m.
+
+**Gate, replacing the section below.** `Theta` is mean geodesic orientation error against the reference, and `Theta_S` the same for the held-still arm.
+- **GO:** `T >= 0.50`, `Q >= 0.50`, `E <= min(0.5 E_S, 3 cm)`, `Theta <= min(0.5 Theta_S, 15 deg)`, kit AUC at least **0.45**. Position perfect with rotation held reaches 0.413 on 39, so GO needs rotation too.
+- **SIGNAL:** `T >= 0.20`, `Q >= 0.10`, `E <= min(E_S, 6 cm)`, `Theta <= min(0.9 Theta_S, 30 deg)`, AUC at least 0.20.
+- **NULL:** anything else.
+
+**Scoring.** Checkpoints 16,154,624 and 32,814,080 are scored once each and are descriptive; 66,763,776 is gated. The budget is 15 minutes to the first and about 55 minutes in all.
+
+**Scored adoption, clause 3, replaced.** On its own reference, GO's `T`, `Q`, `E` and `Theta` bounds, and the end reached without a reset. **Plus a label-free reprojection of the achieved poses on the video's masks with the frozen camera:** median IoU at least 0.60, tenth percentile at least 0.30, usable masks on at least 90 % of frames. Self-reference alone cannot catch residual camera motion turned into a trackable wrong reference; this can. Clause 2 is M1's quality rule, in `moving-m1-protocol.md`. M2v must pass the same reprojection on 39 before it is applied to 38, and a failure there is not repaired by loosening it.
+
+**Limits this leaves.** The asset is rigid-grasped from a template pose with fixed fingers, so a policy may hold it unlike a person: contact is not scored. The spoon inherits no scan-free labelled test.
 
 ## Question
 
