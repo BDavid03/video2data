@@ -365,6 +365,14 @@ def main() -> int:
         config = json.loads(metadata)
         saved_task = config["task"]["parquet"]
         task_target = f"tasks/episode_{ep:06d}/task.parquet"
+        sequence = next((parent for parent in task.parents if parent.name.startswith("sequence_id=")), None)
+        if sequence is not None:
+            # The evaluator finds a task's support surface two levels above its sequence folder
+            # (flash_chord.assets.registry.support_usda_for_parquet); keep that layout and the support file.
+            base = sequence.parent.parent
+            task_target = f"tasks/episode_{ep:06d}/{task.relative_to(base).as_posix()}"
+            for usda in sorted((base / "reconstructed_stage").glob("*_support.usda")):
+                copier.file(usda, f"tasks/episode_{ep:06d}/reconstructed_stage/{usda.name}")
         copier.file(task, task_target, task_entry["sha256"])
         aliases[saved_task] = task_target
         row = pq.read_table(task).to_pylist()[0]
