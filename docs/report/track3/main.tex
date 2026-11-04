@@ -58,29 +58,22 @@ FoundationPose~\cite{foundationpose} registers public scans of both objects to
 the first stereo frame, and their relative pose, mapped onto our own meshes,
 places the second object; the scans set only this start, and a policy is
 retrained from it. On training pairs 12 and 31 this placement raised kinematic
-AUC from 0.260 to 0.573 and from 0.098 to 0.504. Before the close we rebuilt
-this stage: object boxes are now assigned jointly across both objects (the two
-cups of training episode 11 had shared one mask), and the adoption limits were
-calibrated on eight training pairs with labels used only to validate each
-registration (five pairs registered, three agreed with the labels within 2\,cm
-and 10 degrees; nested objects defeated the detector). The silhouette limit from
-that rule rejected every scored episode, so it was relaxed after the results to
-the lowest valid training value, a change made after results and recorded as
-such; episodes 8, 14 and 20 then failed the physical check and only episode 25
-is adopted. Per-episode policies,
+AUC from 0.260 to 0.573 and from 0.098 to 0.504. Boxes are assigned jointly
+across objects (two cups had shared one mask), and adoption limits come from
+eight training pairs (three of five registrations matched labels within 2\,cm
+and 10 degrees). Their silhouette limit rejected every scored episode and was
+relaxed after results; episodes 8, 14 and 20 then failed the physical check,
+so only episode 25 is adopted. Per-episode policies,
 trained by reinforcement learning with box-shaped objects, parked hands and
 a 512-step budget, are exported through the unedited evaluator. Their objects stay where they start, so these rollouts
 are learned placements, not learned manipulation.
 
-\textbf{The policy.} Every pose comes from a FlashSAC policy (soft
-actor-critic) trained in FlashCHORD for a pair of simulated Sharpa hands.
-It observes wrist pose and velocity, hand joint state, the object's pose and
-the reference it must reach; it outputs residual wrist-pose and finger-joint
-targets, smoothed and clipped, around a reference hand motion. The reward
-favours the object reaching its reference pose and supporting contact, and
-penalises unintended contact, early termination and large or jerky actions.
-The official evaluator rolls the learned checkpoint out once from the first
-frame and records the object poses we submit.
+\textbf{The policy.} Each pose comes from a FlashSAC (soft actor-critic)
+policy for two simulated Sharpa hands in FlashCHORD. It observes wrist and
+hand state, the object pose and its reference, and outputs smoothed residual
+wrist and finger targets; the reward favours reaching the reference object
+pose with supporting contact and penalises stray contact, termination and
+jerky actions. The official evaluator rolls each checkpoint out once.
 
 \textbf{Moving pose (episode 38).} Masks come from SAM2.1 and Grounding
 DINO with a box-prompt rule fixed before tracking. Camera motion comes from
