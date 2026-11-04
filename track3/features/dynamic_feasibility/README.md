@@ -243,3 +243,41 @@ mechanical selection branches, disabled-operation refusal and byte/hash checks
 of 14 historical run records. Source identities necessarily change with this
 new implementation and runtime block; old campaign records remain read-only,
 and no historical source-identity refusal is weakened.
+
+## M0c: the selected recipe from zero, seed 1
+
+The committed [M0c protocol](../../../docs/chain/moving-m0c-protocol.md) fixes
+seed 1, no resume, ratio 2, capacity 1,048,576 and a 75-minute cooperative
+training deadline. The lead launches these commands from this checkout, with
+the GPU otherwise idle; this build does not launch either operation:
+
+```bash
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 .runtime/flashchord/venv/bin/python -B -m track3.features.dynamic_feasibility.m0c train
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 .runtime/flashchord/venv/bin/python -B -m track3.features.dynamic_feasibility.m0c score
+```
+
+`train` detaches and reports PID/log in `m0c/launch.json`; wait for
+`m0c/train-finished.json` before scoring. A failed terminal
+`m0c/trials/train/run.json` without that marker requires inspection, not a
+training retry. Each operation takes `GpuLease`; native calls may overrun the
+cooperative deadline, with the overrun recorded. All output, caches and temporary
+files are under `outputs/dynamic_feasibility/m0c/`. Both `M0c.execution` flags
+are in `runtime.json`, which M0b's identity does not hash.
+
+Append `--dry-run` for exact argv without execution. No D1 pruning is entered:
+all generated checkpoints remain (about 21 GiB for the full fresh schedule).
+Complete matched finite pairs at 16,154,624 (32 save intervals, stage 3/VOC 0.25),
+32,814,080 (65 intervals, stage 7/VOC 0.01), and 66,763,776 (unconditional final,
+stage 10/VOC 0) are hashed and copied to `retained/`. Incomplete training adds
+its last complete pair to the reached fixed rows. Each retained policy is
+evaluated at most once: a failed attempt is never retried. CPU measurement
+reuses M0b's five validity checks, metrics, final/latest gate and audit. Scoring
+writes `summary.md`, `final.json`, `audit.json`, the terminal ledger event and
+`score-finished.json`; the summary shows both seeds' rows and checkpoint times.
+There are no new performance results until the lead runs it.
+
+M0b's immutable `identity()` globs every slice `*.py`, so merely adding `m0c.py`
+changes its raw identity. `--check-m0b-identity` reports that refusal explicitly
+and separately verifies the original 199-entry source manifest, selection and
+retained pair hashes. No historical source/record is rewritten or admission
+rule weakened. CPU build evidence and exact argv are in `m0c/build/`.

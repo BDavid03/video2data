@@ -30,5 +30,12 @@
       "contact_authorized": true
     },
     "scope": "Frozen M0b protocol, seed 0, shipped tissue_box_simple only; no challenge episodes or submissions"
+  },
+  "M0c": {
+    "execution": {
+      "train_authorized": true,
+      "score_authorized": true
+    },
+    "scope": "Frozen fresh seed-1 M0c protocol; shipped tissue_box_simple only; no challenge episodes or submissions"
   }
 }

@@ -1,0 +1,38 @@
+{
+  "world_count": 1024,
+  "minimum_size": 6400,
+  "n_step": 3,
+  "warmup_action": "policy",
+  "checkpoint_interval": 504832,
+  "curriculum_thresholds": [
+    5240832,
+    9180160,
+    13119488,
+    17057792,
+    20997120,
+    24936448,
+    28875776,
+    32814080,
+    36753408,
+    53410816,
+    66763776
+  ],
+  "final_steps": 66763776,
+  "task_parquet": ".runtime/flashchord/video_to_data/robotic_grounding/source/robotic_grounding/robotic_grounding/assets/human_motion_data/ego_recon/processed/sequence_id=tissue_box_simple/robot_name=sharpa_wave/77ed746eca2449aeb395e51151f26d3c-0.parquet",
+  "task_parquet_sha256": "84f9b0aedd7ab254874d326885b7dc6f4611ccda7f54fbcb44691cb8f1f4f36c",
+  "headroom_mib": 1024,
+  "admission_allowance_mib": 6000,
+  "protocol": "docs/chain/moving-m0c-protocol.md",
+  "protocol_sha256": "e64aa20690a5cc7c1cf780aefddc7652615d9e6f68cbc965cb105f8df656ec9a",
+  "seed": 1,
+  "ratio": 2.0,
+  "capacity": 1048576,
+  "lr_horizon": 130398,
+  "train_seconds": 4500,
+  "score_seconds": 300,
+  "retain_steps": [
+    16154624,
+    32814080,
+    66763776
+  ]
+}
