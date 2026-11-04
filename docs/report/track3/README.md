@@ -1,16 +1,20 @@
 # Track 3 extended abstract
 
-The anonymous abstract describes video-derived primitives with selectively admitted
+The anonymous abstract describes video-derived primitives with gated
 Hunyuan3D-2mini shapes. D1 v5 changes only evaluation pot 5 and pitcher 20.
 Figure 1 shows packed v3/v4/v5 CD-O from recorded scores: equal-object means
 **0.7711 / 0.6534 / 0.5644 cm**, pair means **0.8115 / 0.6629 / 0.6208 cm**.
 These cover ten scanned objects and **26/36 pair entries**; the ten spoon
 entries have no public scan. Results reuse public scans adaptively; they are
 not untouched validation or leaderboard scores. Post-hoc five-seed repeats
-support the pitcher gain but expose variable pot quality; shipped pot 5 is a
+support the pitcher gain on public 21 (evaluation 20 not repeated), while pot 42's
+five-seed mean is **0.966 cm** versus v4's **0.863 cm**, and pot 5's is
+**0.813 cm** versus **0.873 cm**. Shipped pot 5 is a
 favourable draw of the seed fixed in advance, without re-roll or selection.
 G3's automatic masks passed controls and development, but its numeric packed
-veto failed; D1 v5 stands. The video residual ratio is not a validated CD-O signal.
+veto failed; D1 v5 stands. The video residual ratio provides no validated signal:
+nine dependent observations, Spearman **0.38** versus CD-O change. It rejected
+improving pots 3 and 8 and admitted the worsening pot 6.
 
 For static boxes with inactive hands, the **D2 v4** pose file replaces
 v3's scaled MoGe-2 layout with horizontal offsets between calibrated-stereo
@@ -75,7 +79,8 @@ Figure 1 places the two v5 changes first, then orders the other objects by
 v3-to-v4 improvement. Counts give scanned pair entries. V3 uses open blue
 circles, v4 orange crosses and v5 green diamonds, with small vertical offsets
 so ties remain visible. Only pot and pitcher are shaded and directly labelled
-with v4-to-v5 values. Spoon has an unmeasured text row and no artificial zero.
+with v4-to-v5 values placed to the left of their markers, centred in each row.
+Spoon has an unmeasured text row and no artificial zero.
 Both included figures use the same sans-serif font family.
 
 Figure 2 uses the fixed G1/G2 public-21 pitcher and tuning-42 pot examples.

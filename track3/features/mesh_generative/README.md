@@ -151,13 +151,18 @@ mask checks, crops, observed clouds, generated meshes, admissions, gate results,
 `summary.md`, `summary.json` and a labelled `comparison.png` for all six candidates.
 `run.json` records wall time and artifact inventories; each GPU subprocess records torch
 peaks and cooperative lease telemetry. Logs sit beside the run directories, outside their
-artifact inventories. The v6 reproduction script refuses unless control, development and
-packed veto all passed. This worker never executes a real-URL pack.
+artifact inventories. The G3 placeholder failed its numeric veto. No approved v6 exists; the obsolete reproduction
+script is in `recycle/20261103T235822Z/`, and its unused real-URL repack function was removed.
 
 G3 retains G1's rack-failure disclosure and G2's post-pilot object selection: every score is
 development evidence on reused public scans. Existing G1/G2 run records and the v5 script
 remain untouched. The v5 dry repack still works at HEAD; a G2 campaign rerun refuses the
 changed slice source inventory, as intended. V5 itself reproduces at URL commit `b161723`.
+G3 historical source hashes describe the commit that recorded the run, not current HEAD.
+Find that commit with `git log --format=%h -1 -- track3/features/mesh_generative/g3_queue.json`.
+At HEAD a completed G3 call returns its existing run path before preparation or source-drift
+checks; it changes no files and performs no inference, generation, packing or scoring.
+Incomplete runs still refuse source/input drift before continuing.
 
 Latest G3 result (2026-11-03 UTC): **control PASS; development PASS; packed veto FAIL;
 v5 stands**. Control IoUs were **0.91397899 / 0.74798665 / 0.75204068** (public 42,
@@ -210,14 +215,36 @@ Results and interpretation are in `summary.md` and
 `docs/chain/mesh-generative-outcome.md`.
 
 Latest result: 21 diagnostic rows (nine original shapes, twelve new generations).
-Admission ratio versus CD-O change has Spearman rho 0.38333 (n=9); it is not a
-reliable predictor here. Admitting every generated evaluation shape would give
+Admission ratio versus CD-O change has Spearman rho 0.38333 (n=9), or
+0.14286 within pots (n=7): no validated predictive signal from dependent observations. Admitting every generated evaluation shape would give
 0.63251184 cm pair-weighted / 0.56950499 cm equal-object, versus shipped v5
-0.62080727 / 0.56443301 cm. Admission reduces the counterfactual mean but still
-passes the harmful G3 pot-6 shape. Generation-seed CD-O sample SDs are
+0.62080727 / 0.56443301 cm. The mean difference comes from rejecting pot 28, offset by rejected pots 3/8
+that would improve; admission still passes the harmful G3 pot-6 shape. Generation-seed CD-O sample SDs are
 0.09122 / 0.56984 / 0.33492 cm for public pitcher 21 / public pot 42 /
 evaluation pot 5. Pooled pot seed variance is 7.49 times the variance across
 seven original pot views; this is descriptive, not a causal fraction explained.
 The campaign took 991.95 s; peak torch allocation/reservation was
 4620.69 / 5142 MiB, sampled device use 7142 MiB. All 255 protected historical
 hashes, including 36 shipped PLYs and the v5 parquet, matched before and after.
+
+Statistics live in `_insights_stats.py` (pure functions), rendering in
+`insights_report.py`, the isolated model worker in `insights_worker.py`, and
+orchestration in `insights.py`. The JSON queue owns pair identities, scoring
+seeds, generation seeds and mask sources. Resume uses the existing strict
+`mesh_extents.proxy.read_ledger`: only an incomplete final append is quarantined;
+malformed complete or interior records raise.
+
+CPU-only rerender and audit (no geometry loading, generation or scan scoring):
+
+```bash
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. .runtime/linux-cuda/bin/python -B outputs/mesh_generative/insights/critic-repair/repair_driver.py
+```
+
+The driver preserves `insights/run.json` and all historical campaign/submission
+bytes, checks old/new statistics exactly, and writes `rerender.json` separately.
+That sidecar explains the earlier post-completion finalizer additions and stale
+outcome-document hash. `finalize.py.txt` is the retained driver; do not execute it.
+Table A names cluster/SAM mask sources; handle visibility is confounded with mask
+source. Figures include v4 references and separate the limit label from the pitcher.
+A variance ratio of 7.49056 is descriptive, not a fraction of error explained.
+Pitcher replication covers public 21 only; pot 42's five-seed mean is worse than v4.

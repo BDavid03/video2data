@@ -1,7 +1,6 @@
-"""Byte-preserving v5 production extension and gated D1 v6 packing."""
+"""Byte-preserving v5 production extension and the rejected G3 placeholder check."""
 
 import json
-from pathlib import Path
 import shutil
 import subprocess
 
@@ -98,45 +97,3 @@ def build_and_check(queue, decisions):
                   production=input_file(ROOT, directory/'production.json'))
     write_json(path, result)
     return result
-
-
-def repack(url, out, execute=False):
-    """Repack only the exact production tree that passed both frozen G3 gates."""
-    from .g3 import authorize, OUT as RUN_OUT
-    authorize()
-    run = json.loads((ROOT/RUN_OUT/'run.json').read_text())
-    development = json.loads((ROOT/RUN_OUT/'development.json').read_text())
-    directory = ROOT/OUT
-    veto = json.loads((directory/'veto.json').read_text())
-    if run['status'] != 'completed' or run['control_verdict'] != 'PASS' or development['verdict'] != 'PASS' or veto['verdict'] != 'PASS':
-        raise PermissionError('G3 did not pass control, development and packed veto')
-    for entry in (veto['production'], veto['placeholder_file']):
-        if sha256_file(ROOT/entry['path']) != entry['sha256']:
-            raise ValueError('Passing G3 packed input changed')
-    production_path = ROOT/veto['production']['path']
-    for row in json.loads(production_path.read_text())['pairs']:
-        if sha256_file(ROOT/row['file']) != row['sha256']:
-            raise ValueError('Passing G3 production mesh changed')
-    if 'PLACEHOLDER' in url or '/commit/' not in url:
-        raise ValueError('Supply a real immutable GitHub commit URL')
-    destination = output_path(ROOT, out)
-    if not destination.is_relative_to(ROOT/'outputs/mesh_generative'):
-        raise ValueError('Repack output must remain under outputs/mesh_generative')
-    command = list(veto['pack_command'])
-    for flag, value in (('--meshes', str(directory/'meshes')), ('--commit', url), ('--out', str(destination))):
-        command[command.index(flag)+1] = value
-    print(' '.join(command), flush=True)
-    if execute:
-        if destination.exists():
-            raise FileExistsError('Preserve prior packs')
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        with destination.with_suffix('.log').open('w') as log:
-            subprocess.run(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True)
-        import pyarrow.parquet as pq
-        columns = ['row_id', 'x', 'y', 'z']
-        if not pq.read_table(ROOT/veto['placeholder_file']['path'], columns=columns).equals(pq.read_table(destination, columns=columns)):
-            raise ValueError('Repack geometry differs from passing placeholder')
-        write_json(destination.with_suffix('.manifest.json'), dict(status='completed', file=input_file(ROOT, destination),
-                   code_commit_url=url, pack_command=command, passing_veto=input_file(ROOT, directory/'veto.json'),
-                   production=input_file(ROOT, production_path), placeholder=veto['placeholder_file'], placeholder_geometry_identical=True))
-    return destination

@@ -128,8 +128,8 @@ def object_score_panel(rows: list[dict]) -> plt.Figure:
             ax.axhspan(i-0.48, i+0.48, color=GREEN, alpha=0.08, zorder=0)
             ax.plot([row["v4"], row["v5"]], [i, i+0.22],
                     color=GREEN, linewidth=1.4, zorder=2)
-            ax.text(1.59, i+0.43, f"{row['v4']:.3f} → {row['v5']:.3f}",
-                    ha="right", va="center", fontsize=7.5, color="#00664c")
+            ax.text(0.025, i, f"{row['v4']:.3f}→{row['v5']:.3f}",
+                    ha="left", va="center", fontsize=7.5, color="#00664c")
     ax.plot(before, y-0.22, linestyle="none", marker="o", markersize=4,
             markerfacecolor="none", markeredgewidth=1, color=BLUE,
             label="v3", zorder=3)

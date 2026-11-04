@@ -2,14 +2,14 @@
 
 \venue{From Human Videos to Dexterous Robot Capability (CoRL 2026)}
 \submissionID{Anonymous submission}
-\title{Selective Shape Priors and Static Poses}
-\shorttitle{Selective Shape Priors and Static Poses}
+\title{Pretrained Shape Priors and Static Poses}
+\shorttitle{Pretrained Shape Priors and Static Poses}
 \newdateformat{reportdate}{\THEYEAR-\twodigit{\THEMONTH}-\twodigit{\THEDAY}}
 \renewcommand{\monthyeardate}{\reportdate}
 
 \begin{abstract}
 \textbf{Abstract:}
-Our Track 3 v5 entry combines video-derived primitives with selectively admitted
+Our Track 3 v5 entry combines video-derived primitives with gated
 pretrained shapes, and static policy rollouts with stereo placement and a
 single-episode heading correction. On ten scanned objects covering 26/36 pair
 entries, mesh v5 reduces development equal-object/pair-mean CD-O from
@@ -53,7 +53,7 @@ parts are video-interpreted.
 Two five-object folds selected wall/radius ratio 0.10 from
 $\{0.02,0.05,0.10\}$; later fixed-rule changes reused inspected scans.
 
-\subsection{Selective pretrained shapes (v5)}
+\subsection{Gated pretrained shapes (v5)}
 \textbf{Generation.} Hunyuan3D-2mini (revision \texttt{bdaa271f}) takes each
 pair's frame-0 camera-A masked RGB crop, squared with 10\% margin and white
 outside the mask. One shape-only generation uses seed 12345, 30 steps,
@@ -67,13 +67,15 @@ regression limit. G2 selected pot and pitcher from their pilot gains,
 reusing those scans for gates: post-pilot development, not untouched validation.
 
 \textbf{Video-only admission rule.} Generated and v4 meshes each receive one
-Sim(3) fit to the pair's frame-0 MoGe points. Generation requires median
+Sim(3) fit to the pair's frame-0 MoGe points. Admission requires median
 point-to-surface residual $\leq1.5\times$ v4's; missing masks retain v4.
 Decisions precede new scan scoring.
 V5 rejects evaluation pot 8 (ratio 4.37) and retains v4 for pot 1/3/6/28,
 which had no masks in G2. Only evaluation pot 5 and pitcher 20 change.
-This ratio is not a validated shape-quality signal: post-hoc ratio versus
-CD-O change has Spearman $\rho=0.38$ ($n=9$); rejected and admitted shapes overlap.
+The ratio provides no validated signal: nine dependent observations,
+Spearman $\rho=0.38$ versus CD-O change. Rejected pots 3 and 8 would improve
+(0.8555 to 0.8257; 0.8591 to 0.7608\,cm), rejected pot 28 would worsen
+(0.8512 to 1.1282\,cm), and admitted pot 6 worsened.
 
 \noindent\begin{minipage}{\columnwidth}
 \centering
@@ -102,10 +104,11 @@ Three sampling seeds give pitcher/pot SDs 0.0034/0.0059\,cm,
 not new-object uncertainty. Evaluation uses the same scans (Fig.~\ref{fig:objects}).
 
 Post-hoc repeats of unchanged crops with five generation seeds, without
-re-roll or selection, give pitcher 0.42--0.62\,cm versus v4's 1.47;
-pot 42 and 5 span 0.49--1.82 and 0.59--1.40\,cm versus about 0.87.
-The pitcher gain is robust across these seeds; shipped pot 5 at 0.627\,cm
-is a favourable draw of seed 12345, fixed in advance.
+re-roll or selection, give public-21 pitcher 0.42--0.62\,cm versus v4's 1.47
+(evaluation 20 not repeated). Pot 42 spans 0.49--1.82\,cm, mean 0.966
+versus v4's 0.863\,cm; pot 5 spans 0.59--1.40\,cm, mean 0.813 versus
+v4's 0.873\,cm. Pitcher improves across the repeated public-crop seeds;
+shipped pot 5 at 0.627\,cm is a favourable draw of seed 12345, fixed in advance.
 
 G3 used automatic Grounding DINO + SAM2.1 masks for pot pairs missing masks.
 Controls and development passed, but the packed veto failed:

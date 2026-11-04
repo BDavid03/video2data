@@ -12,7 +12,7 @@ up to v4.
 **G3 (context 21, 3 Nov 23:10 UTC): no new pack.** Automatic SAM2 / Grounding DINO pot masks passed control and development
 but failed the packed veto (0.56702 / 0.62678 cm vs v5 0.56443 / 0.62081; evaluation pot 6 worsened 0.851 -> 1.006 cm), so
 **D1 v5 stays the file to upload.** `docs/chain/mesh-generative-g3-protocol.md`, `outputs/mesh_generative/g3/summary.md`,
-`docs/chain/mesh-generative-outcome.md`. No v6 exists; `scripts/reproduce/d1_meshes_v6.sh` refuses to run.
+`docs/chain/mesh-generative-outcome.md`. No approved v6 exists, only the failed placeholder under `outputs/mesh_generative/g3-packed-check/`.
 
 | Id | Deliverable | State | Evidence | Blocked on |
 | --- | --- | --- | --- | --- |

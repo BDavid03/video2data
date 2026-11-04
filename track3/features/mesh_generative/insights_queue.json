@@ -4,8 +4,115 @@
   "fit_queue": "track3/features/mesh_generative/g2_queue.json",
   "packed_scores": "outputs/mesh_generative/g2-packed-check/pairs/summary.json",
   "v5_manifest": "outputs/mesh_generative/g2-real-pack/track3_meshes_v5_final.manifest.json",
-  "generation_seeds": [12346, 12347, 12348, 12349],
-  "seed_crops": ["public-000021-water_pitcher", "public-000042-white_pot", "evaluation-000005-white_pot"],
+  "generation_seeds": [
+    12346,
+    12347,
+    12348,
+    12349
+  ],
+  "seed_crops": [
+    "public-000021-water_pitcher",
+    "public-000042-white_pot",
+    "evaluation-000005-white_pot"
+  ],
   "max_generations": 12,
-  "time_budget_seconds": 7200
+  "time_budget_seconds": 7200,
+  "pairs": [
+    {
+      "key": "public-000021-water_pitcher",
+      "source_split": "public",
+      "episode": 21,
+      "object": "water_pitcher",
+      "scoring_seeds": [
+        1000003,
+        3000009,
+        5000015
+      ],
+      "mask_source": "cluster"
+    },
+    {
+      "key": "public-000026-white_pot",
+      "source_split": "public",
+      "episode": 26,
+      "object": "white_pot",
+      "scoring_seeds": [
+        1000003,
+        3000009,
+        5000015
+      ],
+      "mask_source": "SAM"
+    },
+    {
+      "key": "public-000042-white_pot",
+      "source_split": "public",
+      "episode": 42,
+      "object": "white_pot",
+      "scoring_seeds": [
+        1000003,
+        3000009,
+        5000015
+      ],
+      "mask_source": "cluster"
+    },
+    {
+      "key": "evaluation-000003-white_pot",
+      "source_split": "evaluation",
+      "episode": 3,
+      "object": "white_pot",
+      "scoring_seeds": [
+        3000009
+      ],
+      "mask_source": "SAM"
+    },
+    {
+      "key": "evaluation-000005-white_pot",
+      "source_split": "evaluation",
+      "episode": 5,
+      "object": "white_pot",
+      "scoring_seeds": [
+        5000015
+      ],
+      "mask_source": "cluster"
+    },
+    {
+      "key": "evaluation-000006-white_pot",
+      "source_split": "evaluation",
+      "episode": 6,
+      "object": "white_pot",
+      "scoring_seeds": [
+        6000018
+      ],
+      "mask_source": "SAM"
+    },
+    {
+      "key": "evaluation-000008-white_pot",
+      "source_split": "evaluation",
+      "episode": 8,
+      "object": "white_pot",
+      "scoring_seeds": [
+        8000125
+      ],
+      "mask_source": "cluster"
+    },
+    {
+      "key": "evaluation-000020-water_pitcher",
+      "source_split": "evaluation",
+      "episode": 20,
+      "object": "water_pitcher",
+      "scoring_seeds": [
+        20000161
+      ],
+      "mask_source": "cluster"
+    },
+    {
+      "key": "evaluation-000028-white_pot",
+      "source_split": "evaluation",
+      "episode": 28,
+      "object": "white_pot",
+      "scoring_seeds": [
+        28000185
+      ],
+      "mask_source": "SAM"
+    }
+  ]
 }

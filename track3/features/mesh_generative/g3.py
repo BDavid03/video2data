@@ -10,6 +10,7 @@ from track3.paths import PROJECT as ROOT, output_path
 from track3.provenance import input_file, run_fields, sha256_file, write_json
 from track3.runs import now_utc, runtime_flag
 from . import g2
+from track3.features.mesh_extents.proxy import read_ledger
 
 FEATURE = Path(__file__).parent
 QUEUE = 'track3/features/mesh_generative/g3_queue.json'
@@ -117,8 +118,7 @@ def admissions(queue, prepared, directory, baseline):
     """Seal the six video-only choices before any development or packed scan scoring."""
     path = directory/'admissions.json'
     ledger = directory/'ledger.jsonl'
-    done = {r['key']:r for line in ledger.read_text().splitlines()
-            if (r := json.loads(line)).get('stage') == 'admission'}
+    done = {r['key']:r for r in read_ledger(ledger) if r.get('stage') == 'admission'}
     if path.exists():
         result = json.loads(path.read_text())
         for row in result['pairs']:
@@ -147,6 +147,10 @@ def admissions(queue, prepared, directory, baseline):
 
 def run():
     """Execute the fixed queue once, stopping immediately at each frozen failed gate."""
+    runtime_flag(FEATURE, 'g3_authorized', 'Frozen G3 campaign')
+    path = ROOT/OUT/'run.json'
+    if path.exists() and json.loads(path.read_text())['status'] == 'completed':
+        return path
     from .g3_mask import prepare, make_mask
     from .g3_report import publish
     start = time.perf_counter()
@@ -170,7 +174,7 @@ def run():
     record['sources'] += [input_file(ROOT, p) for p in (
         'track3/features/mesh_extents/_geometry.py', 'track3/features/object_masks/opening_clusters.py',
         'track3/features/mesh_eval/pairs.py', 'track3/features/mesh_eval/_metrics.py',
-        'scripts/track3/local_cdo.py', 'scripts/reproduce/d1_meshes_v6.sh',
+        'scripts/track3/local_cdo.py',
         'upstream/v2d_submission_kit/v2d_submission_kit/v2dlb/mesh_budget.py',
         'upstream/v2d_submission_kit/v2d_submission_kit/metric_code/track_3/CD-O.py')]
     if path.exists():
@@ -197,8 +201,7 @@ def run():
             mask = make_mask(pair, directory/ident, queue, prepared[ident], control=True)
             controls.append(dict(key=ident, iou=mask['control_iou'], passed=mask['control_iou'] >= queue['control_minimum_iou'],
                                  mask=mask))
-            if not any(json.loads(line).get('stage') == 'control' and json.loads(line).get('key') == ident
-                       for line in ledger.read_text().splitlines()):
+            if not any(r.get('stage') == 'control' and r.get('key') == ident for r in read_ledger(ledger)):
                 g2.append(ledger, dict(stage='control', key=ident, iou=mask['control_iou'],
                                       passed=controls[-1]['passed'], provenance='video_only', completed_utc=now_utc()))
             control_path = directory/'controls.json'

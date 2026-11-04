@@ -127,9 +127,6 @@ def publish(directory, queue, prepared, controls, decisions, development, packed
     for report in reports:
         wall = report.get('wall_seconds', report.get('total_seconds', 0))
         lines.append(f"| {report['key']} | {report['stage']} | {wall:.2f} | {report['peak_allocated_mib']:.2f} / {report['peak_reserved_mib']:.2f} |")
-    if record['packed_verdict'] == 'PASS':
-        lines += ['', 'After the lead commits the sources, the lead can repack (this worker never runs it):', '', '```bash',
-                  'bash scripts/reproduce/d1_meshes_v6.sh "https://github.com/BDavid03/video2data/commit/$(git rev-parse HEAD)" --run', '```']
     lines += ['', '![Every G3 candidate: masked crop, generated mesh and v4](comparison.png)', '',
               'A missing mask or mesh is labelled with its stop reason. Neutral material, independent display scales '
               'and orientations; generated Y-up is displayed Z-up. No scan geometry is used in this figure.', '']
