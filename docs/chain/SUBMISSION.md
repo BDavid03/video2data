@@ -3,6 +3,8 @@
 Kept current by every chain context (see `PROGRAM.md` section 1). Deadline planned to **17:00 UTC 4 Nov 2026** (owner,
 AGENTS.md; the kit says 22:00 UTC); new packs done by 12:00 UTC 4 Nov.
 
+**Context 25 (4 Nov 05:35 UTC): no new pack; D1 v5 and D2 v5 stay the files to upload.** The frame-0 panel closed without one (`frame0-panel-outcome.md`). M0b's finished policy is on the shipped task and enters no file (`moving-m0b-outcome.md`). A peer session said it was uploading v5; **no upload, hash, time or score is recorded here, so whether v5 is on the leaderboard is unverified.** `check_release.sh` READY at `8cdd10b`, on the worktree's private environments. Requirement added by the owner: RL in simulation (`PROGRAM.md` section 0).
+
 **Current files to upload (context 20, 3 Nov 21:00 UTC): D1 v5 and D2 v5** (sections "D1 v5" and "D2 v5" under Packed
 files; commands in `NEEDS-YOU.md`, top). D1 v5 = v4 plus pretrained Hunyuan3D-2mini shapes for evaluation pot 5 and
 pitcher 20 (`bcb93d57...`, URL commit `b161723`); D2 v5 = v4 plus H3 scan-to-stereo headings on episode 19 only
