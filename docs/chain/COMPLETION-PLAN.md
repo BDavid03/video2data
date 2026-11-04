@@ -43,7 +43,7 @@ video pipeline at 64 GPU-hours.
 ### W1. Frame-0 positions on merged episodes (installed tools; about 3 h, under 1 GPU-hour)
 
 Paired non-T1 exports are scored **1, 5, 28, 30** (1 and 28 have a zero offset; only 30 is a recorded mask fallback). Train 0, 26, 31 have the same problem. SAM2.1 and Grounding DINO are now installed.
-- **W1.0 done, position alone gains no AUC** (`position-oracle-outcome.md`): exact slot 1 on 0/26/31 is +0 AUC, position alone +0.012 and relative rotation alone +0.016, jointly +0.255. W1's masks stay worthwhile because they unlock the joint routes; a position-only pack does not. W1.1 to W1.3 now run as `frame0-panel-protocol.md`, which moves the vector gate to where a registered anchor supplies the rotation.
+- **W1.0 done, position alone gains no AUC** (`position-oracle-outcome.md`): exact slot 1 on 0/26/31 is +0 AUC, position alone +0.012 and relative rotation alone +0.016, jointly +0.255. W1's masks stay worthwhile because they unlock the joint routes; a position-only pack would have to earn its place on RPE and MPPE through Gate P. W1.1 to W1.3 now run as `frame0-panel-protocol.md`, which moves the vector gate to where a registered anchor supplies the rotation.
 - *Original text.* **W1.0, first (CPU, minutes):** position-only oracle on train. The recorded 0.387 for correcting 0/26/31 is a joint correction, not W1 alone, and T1 showed a correct length alone barely moves AUC, so expect RPE and MPPE more than AUC. Report marginal gains, and rank W1 against W2 by gain per hour.
 - **W1.1:** per-object frame-0 masks from fixed object-name prompts, direct stereo offset, on train 0/26/31. Gate fixed first, on **vector** body-origin error in the frame the T1 protocol uses, not length alone: at least two of three within 3 cm of mocap, with no train episode worse beyond a stated tolerance. A video rule decides genuinely stacked objects (episode 1's lid).
 - **W1.2:** kinematic train gate, about 30 s GPU per scored episode, the physical check, composition.
@@ -62,7 +62,8 @@ Reach: at most 9 of 20 episodes, the two-scan pairs 1, 8, 10, 14, 20, 25, 28, 30
 Each step can kill the route; together they bound it.
 - **M0 done, NULL** (`moving-m0-outcome.md`): `T` 0.035 / 0.009, `Q` 0.075 / 0.009, box moved at most 2.0 of 17.4 cm. It closes nothing by itself, and M2's protocol must now choose between a test matched to D1 and a completed curriculum.
 - *Original text.* **M0 (about 3 GPU-minutes, now):** score D1's partial policies `policy_21580800` and `policy_22604800` through `evaluate_policy.py`, using a new evaluation-only slice operation under `GpuLease`; the training handler refuses nonzero final VOC. Inventory and hash the actual latest checkpoints, because `partial_checkpoints.json` lists earlier ones. New metric, numeric gate fixed first: **transport** = sum(dp_achieved . dp_ref) / sum(|dp_ref|^2), with perpendicular error beside it (S scores 0). The project has never measured this.
-- **M1 (about 2 h, no policy):** tracked masks, stereo and a per-frame rigid fit on train **11 and 12**, which each have one nearly stationary object for removing camera motion (object travel 0.49/25.20 and 22.23/0.41 cm). Score the kinematic reference with `static_pose_baseline.score`. Gate: beats the same episode's shipped T1 (0.500, 0.104) by a margin fixed first, plus a measured allowance for physical tracking error.
+- **M0b (new, about 1.5 GPU-hours; Claude critic 24):** finish a policy. A probe of about 10 minutes at `updates_per_collection` 0.5 and 2.0 measures training throughput, then D1 seed 0 resumes from its saved state (`state_21575680`; replay was not saved, resume compatibility untested; `workflow/train_flash_sac.yaml:48-49`) to the schedule's zero-assistance stage at 32,814,080 and its end at 66,763,776, about 14 and 58 minutes at 13k/s and 0.125. `T` and `Q` are scored at both points with the 42-second evaluator, against the M0 table. Its own protocol comes first, including which ratio runs. It yields a finished unassisted policy on the shipped task, and tests the variable M0 could not. Before it, a CPU check of hand-object clearance against the reference, because the export shows a bump near frames 146-211 rather than a carry; hands are not in the trajectory export.
+- **M1 (about 2 h, no policy; deferred until some policy passes a transport screen, since it bounds a reference nothing can yet follow):** tracked masks, stereo and a per-frame rigid fit on train **11 and 12**, which each have one nearly stationary object for removing camera motion (object travel 0.49/25.20 and 22.23/0.41 cm). Score the kinematic reference with `static_pose_baseline.score`. Gate: beats the same episode's shipped T1 (0.500, 0.104) by a margin fixed first, plus a measured allowance for physical tracking error.
 - **M2 (about 2 h GPU):** **object-driven grasp reference** against the current hand reference on the tissue box, same compressed budget, same unassisted evaluator, transport metric. This replaces human-hand reconstruction as the first route (D0: hands alone move the box 1.5 of 17.4 cm). It is Codex's proposal, not a result. Floating hands are allowed by the FAQ and may be the easier embodiment. Budget it on D1's measured throughput; D1's rescaled 66.76M schedule takes about 95 minutes.
 - **M3 (only if M0-M2 pass, GPU free by 07:30 UTC):** complete compressed curricula on at most 3 episodes, single-object first (35-38: motion is all they lack). Restore `retargeting`, `scene_assembly` and `hand_motion` from `recycle/20261104T010336Z/` with `git mv` as needed; their integration is real extra work. Shared initialisation is separate work (resume validates schemas and articulation contracts), not assumed. Gate first on train, then adopt by frozen admission rules.
 - MediaPipe hands (approved) only if the object-driven route fails and hours remain. WiLoR + MANO need the owner's registration and gate nothing.
@@ -85,14 +86,18 @@ Record final scores, complete the report, carry W3 on full budgets if the owner 
 
 ## 5. Order for the next contexts
 
+Revised 4 Nov about 02:25 UTC after M0, W1.0 and critic 24. The rule behind it: reserve the training window for one complete moving-policy path, and cap everything else.
+
 | When (UTC) | Context does | GPU |
 | --- | --- | --- |
-| Now | Protocols; W1.0; M0 | minutes |
-| To 04:00 | W1.1-W1.2; M1; W2 kill test | about 1 h |
-| To 07:00 | M2; W2 train and gate if alive; W3 go or kill | about 3 h |
-| To 10:30 | W1/W2 scored runs; M3 if alive; W4 if idle | rest |
-| To 12:00 | Final pack, abstract, `check_release.sh`, `NEEDS-YOU.md` commands | none |
-| To 17:00 | Owner uploads. Chain records scores, works W6 report items | none |
+| Now | Panel Stage C and its gates (`frame0-panel-protocol.md`); if a gate passes, the scored stage and a pack | about 0.5 h |
+| To 04:30 | M0b (resume to a finished unassisted policy); FoundationPose pilot under a hard 90-minute cap, checking first that the scans have usable texture | about 3 h |
+| To 07:00 | W2a kill test, whatever FoundationPose showed: it is the route most likely to put a model we trained in a scored file. M2 after M0b, on whatever schedule M0b shows can finish | about 3 h |
+| To 10:30 | Scored runs for whatever passed; M1 and M3 only if a policy has passed a transport screen; W4 only if idle | rest |
+| To 12:00 | Final pack, abstract, `check_release.sh`, push and upload | none |
+| To 17:00 | Chain records scores, works W6 report items | none |
+
+First to go when time runs short: W4, MediaPipe, M3, M1, in that order. The biggest unproven link is still transfer from the tissue box to a packable challenge policy: task assembly, embodiment, reference quality and physical tracking. Name it in any W3 pass; do not call a shipped-task result a challenge result.
 
 ## 6. What done means
 

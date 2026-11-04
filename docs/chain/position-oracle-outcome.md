@@ -1,4 +1,4 @@
-# W1.0 outcome (4 Nov 2026, about 02:08 UTC): position alone wins no AUC; the gain is in the joint correction
+# W1.0 outcome (4 Nov 2026, about 02:08 UTC): position alone wins no AUC on W1's roster and +0.012 across train; the gain is in the joint correction
 
 Protocol `docs/chain/position-oracle-protocol.md`, committed `1ec1e90` before any new arm existed. Evidence: `outputs/pose_insurance/position-oracle/` (`summary.md`, `marginals.md`, `scenarios.md`). Train labels, oracle arms only, never a pack candidate. All five validity checks passed (T1, O2 and O3 reproduced exactly).
 
@@ -21,10 +21,10 @@ Protocol `docs/chain/position-oracle-protocol.md`, committed `1ec1e90` before an
 
 **Findings.**
 
-1. **Slot 1 exact at frame 0 gains no AUC at all on 0, 26 and 31**, in any direction. Their RPE and MPPE do improve. The plan's 0.387 for correcting those three came from O3, so nearly all of it belongs to the joint correction and none to position alone.
-2. **The levers interact strongly.** Position alone is +0.012 and relative rotation alone +0.016, while together they are +0.255. Either one first leaves about +0.24 for the other. Neither "position then rotation" nor "rotation then position" is a fair additive story, and a route that fixes only one looks nearly worthless on AUC whichever it is.
+1. **Slot 1 exact at frame 0 gains no AUC on 0, 26 and 31**, nor does any of the 24 yaw directions tested at the reference's height and radius. Their RPE and MPPE do improve. Across all eight episodes position alone gains +0.012, from 11 (+0.042) and 18 (+0.052). The plan's 0.387 for correcting those three came from O3, so under these constructions none of it belongs to position alone.
+2. **The levers interact strongly, on the mean.** Position alone is +0.012 and relative rotation alone +0.016, while together they are +0.255 (interaction +0.227). Either one first leaves about +0.24 for the other. The mean hides episodes: RC's whole gain is episode 23 (+0.128), PO's is 11 and 18, and 12 and 31 each jump exactly +0.5 under O3, which is 49 % of O3's gain. A likely mechanism, not established here: the kit counts frames with ADD under 1 to 9 cm per body (`AUC.py:19,87-94`), so a large rotation or position error alone earns nothing for that body.
 3. **Position alone is a real RPE and MPPE lever.** PO halves RPE (29.0 to 15.1 cm), and it equals O3 on RPE by construction, since RPE reads positions only.
-4. **Unsolved direction costs most of W1's gain on 26 and 31.** With yaw swept, 26's RPE averages 20.9 cm (11.3 to 29.4) against 18.7 for T1, so the mean is worse than the stack, and 31's averages 17.3 (9.6 to 23.1). Episode 0, a nearly vertical stack, barely depends on yaw.
+4. **Unsolved direction matters a lot on 26, less on 31.** With yaw swept, 26's RPE averages 20.9 cm (11.3 to 29.4) against 18.7 for T1, so all of the gain is lost on average and the mean is worse than the stack. 31's averages 17.3 cm (9.6 to 23.1) against T1's 30.4, keeping 63 % of PO's RPE gain. Episode 0, a nearly vertical stack, barely depends on yaw.
 
 **Scenario table (a calculation, not a schedule; AUC / RPE / MPPE per hour, scored reach out of 20).** Perfect-model figures for the rotation rows, so it favours them by construction:
 
@@ -35,6 +35,6 @@ Protocol `docs/chain/position-oracle-protocol.md`, committed `1ec1e90` before an
 | Rotation, W2a or H3 | 0.0042 / -0.628 / -0.455 |
 | Rotation and offset, W2b (4 h unverified) | 0.0248 / -1.285 / -0.958 |
 
-**Consequences.** W1 does not justify a position-only pack on AUC. Its masks are still worth building, because they unlock the joint routes: `frame0-panel-protocol.md` (committed `f6ba8bc`, before these results were read) gates rotation and offset together on 0, 26, 31 and 23. Pose estimation that recovers both is the largest figure in the table, and it reaches the cup-anchored pairs H3 cannot, so the FoundationPose pilot goes ahead of W2a training.
+**Consequences.** On AUC, W1 gives no reason to expect a position-only pack to pay; Gate P of `frame0-panel-protocol.md` still lets RPE and MPPE earn one, and W1.0 kills nothing. Its masks are still worth building, because they unlock the joint routes: that protocol (committed `f6ba8bc`, after W1.0 ran; the lead had not read the results, which is disclosed and not independently verifiable) gates rotation and offset together on 0, 26, 31 and 23. Pose estimation that recovers both is the largest figure in the table, by perfect-model assumption and on unverified hours, and it reaches the cup-anchored pairs H3 cannot. FoundationPose-before-W2a was decided by the route review before these results existed; they do not contradict it.
 
 **Independent check.** The lead recomputed T1 and PO from raw mocap with a different formula (`R0 R0_ref^T d_ref`), through the kit's functions: largest residual per episode 7e-15; means T1 0.276705, PO 0.288631, RPE 29.014 to 15.114. These arms repair full XYZ, so they do not forecast the XY-only placement code, and they are not upper bounds on whole-clip static AUC.
