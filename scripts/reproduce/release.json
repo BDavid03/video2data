@@ -15,8 +15,8 @@
     "selection": "Explicit --combined manifest required; existing mesh and pose remain frozen"
   },
   "report": {
-    "path": "outputs/report/track3-technical-report-f694040f.pdf",
-    "sha256": "f694040f8eb742e58f1633215493bc66394b91e977499faa1aba2e3fe08501ca",
-    "epoch": 1793803210
+    "path": "outputs/report/track3-technical-report-08021ded.pdf",
+    "sha256": "08021ded0405f96e5ac04574daaeebf612f922c9152d845da7b9428da02096b0",
+    "epoch": 1793803727
   }
 }
