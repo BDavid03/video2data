@@ -61,10 +61,43 @@ def ranked_seeds(rows: list[dict], queue: dict) -> list[str]:
     return lines
 
 
+def conclusions(original: list[dict], summary: dict) -> tuple[str, str, str]:
+    """Describe the saved counterfactual effects and public-pot seed mean."""
+    pots = {r['episode']: r for r in summary['counterfactual_pairs'] if r['object'] == 'white_pot'}
+    changes = {episode: pots[episode]['all_generated'] - pots[episode]['combined_admission']
+               for episode in (28, 3, 8)}
+    rejection = {episode: 'helped' if change > 0 else 'hurt' if change < 0 else 'did not change'
+                 for episode, change in changes.items()}
+    means = summary['means']
+    difference = means['all_generated']['pair_weighted_cm'] - means['combined_admission']['pair_weighted_cm']
+    count = len(summary['counterfactual_pairs'])
+    other_effects = (f"{rejection[3]} pots 3 and 8" if rejection[3] == rejection[8]
+                     else f"{rejection[3]} pot 3 and {rejection[8]} pot 8")
+    pair_effects = (f"The {difference:+.8f} cm all-generated minus combined-admission pair-mean difference comes from "
+                   f"pot 28 ({changes[28]:+.8f} cm / {count}), offset by pots 3 and 8 "
+                   f"({changes[3]:+.8f} and {changes[8]:+.8f} cm / {count}). "
+                   f"Rejection {rejection[28]} pot 28 but {other_effects}; this is not validated protection.")
+    pot6 = next(r for r in original if r['source_split'] == 'evaluation' and r['episode'] == 6
+                and r['object'] == 'white_pot')
+    admitted = 'passed' if pot6['historical_decision'] == 'generated' else 'failed'
+    worsening = pots[6]['combined_admission'] - pots[6]['candidate']
+    effect = 'hurt' if worsening > 0 else 'helped' if worsening < 0 else 'did not change'
+    admission = (f"Pot 6 {admitted} video admission and {effect} G3; the packed numerical veto kept v5. "
+                 "No diagnostic seed or counterfactual is selected for a pack.")
+    spread = next(r for r in summary['seed_spread'] if r['key'] == 'public-000042-white_pot')
+    mean = spread['cdo_cm']['mean']
+    reference = next(r['score']['v4_cm'] for r in original if r['key'] == spread['key'])
+    comparison = 'worse than' if mean > reference else 'better than' if mean < reference else 'the same as'
+    seed_mean = ("Pitcher replication covers public 21 only, not shipped evaluation 20. "
+                 f"Public pot 42 five-seed mean {mean:.5f} cm is {comparison} its v4 reference {reference:.5f} cm.")
+    return pair_effects, admission, seed_mean
+
+
 def markdown(rows: list[dict], queue: dict, summary: dict) -> str:
     """Explain the dependent evidence, mask confound and per-pair admission effects."""
     original = [r for r in rows if r['generation_seed'] == 12345]
     all_rho, pot_rho = summary['spearman'], summary['spearman_pot']
+    pair_effects, admission, seed_mean = conclusions(original, summary)
     lines = ['# Pretrained-shape diagnostics', '', summary['disclosure'], '',
              'Lower CD-O is better; change = generated minus v4. Public views use the three recorded development scoring seeds; evaluation views use their exact packed pair seed.',
              'Mask contact uses original frame coordinates before square padding; near-invalid uses the two-pixel rule. Handle pixels are unmeasured; notes are recorded assignments.', '',
@@ -74,10 +107,10 @@ def markdown(rows: list[dict], queue: dict, summary: dict) -> str:
              'No validated predictive signal: nine dependent observations. Reused scans and pilot selection prevent independent-sample inference.',
              'The three handle-in-view pot crops used cluster masks; the other four used SAM. Mask source is confounded with visibility, and seed spread exceeds the apparent gap; no handle explanation is established.', '',
              *aggregate_tables(summary), '',
-             'The +0.00572963 cm all-generated minus combined-admission pair-mean difference comes from pot 28 (+0.27698888 cm / 26), offset by pots 3 and 8 (-0.02980174 and -0.09821666 cm / 26). Rejection helped pot 28 but hurt pots 3 and 8; this is not validated protection.',
-             'Pot 6 passed video admission and hurt G3; the packed numerical veto kept v5. No diagnostic seed or counterfactual is selected for a pack.', '',
+             pair_effects,
+             admission, '',
              *seed_table(summary), '',
-             'Pitcher replication covers public 21 only, not shipped evaluation 20. Public pot 42 five-seed mean 0.96608 cm is worse than its v4 reference 0.86312 cm.',
+             seed_mean,
              f"Saved campaign resources: {summary['resources']}. Original protected-identical flag: {summary['protected_identical']}; current preservation evidence is in rerender.json.", '',
              *ranked_seeds(rows, queue), '',
              '![Admission and CD-O](admission_vs_cdo.png)', '', '![Generation seed spread with v4 references](seed_spread.png)']
