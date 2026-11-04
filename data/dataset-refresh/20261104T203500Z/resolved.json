@@ -1,0 +1,9 @@
+{
+  "repo_id": "nvidia/video_to_data_challenge",
+  "revision_requested": "main",
+  "sha": "5f68335f3acc802033d1e80728c1633197521de8",
+  "last_modified": "2026-09-22 00:23:15+00:00",
+  "started_utc": "2026-11-04T20:35:01Z",
+  "finished_utc": "2026-11-04T20:42:15Z",
+  "local_dir": "/home/ceolwolf/repos/video2data/.claude/worktrees/chain-ctx01/data/dataset-refresh/20261104T203500Z/snapshot"
+}

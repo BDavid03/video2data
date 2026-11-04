@@ -4,6 +4,8 @@ data/layout/
 .venv*/
 .pytest_cache/
 datasets--*/
+data/dataset-refresh/*/snapshot/
+data/dataset-refresh/*/kit-online/
 upstream/
 models/*
 data/outputs/*
