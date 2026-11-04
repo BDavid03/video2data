@@ -10,7 +10,7 @@ TEX="${1:-docs/report/track3/main.tex}"
   echo 'usage: d3_report.sh [--run] [docs/report/track3/main.tex]' >&2; exit 2;
 }
 COMMIT="$(git rev-parse HEAD)"
-export SOURCE_DATE_EPOCH="$(git show -s --format=%ct "$COMMIT")"
+export SOURCE_DATE_EPOCH="$(git log -1 --format=%ct "$COMMIT" -- docs/report/track3)"
 export PYTHONPATH="$ROOT" PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES=''
 WORK="$ROOT/.runtime/tmp/reproduce-d3-<new>"
 if "$RUN"; then WORK="$(mktemp -d "$ROOT/.runtime/tmp/reproduce-d3-XXXXXXXX")"; fi

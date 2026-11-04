@@ -51,6 +51,11 @@ frame-0 poses held static reaches only 0.532, so about half of AUC is lost to ob
    slice afterwards. Files pinned by a pack manifest (`submissions/*/…manifest.json`) are moved only after the
    12:00 UTC 4 Nov pack cut-off or as part of a new pack; the packed commits keep reproducing at their URLs either
    way. Historical `outputs/` run records are never rewritten.
+   *Owner lines, 2026-11-04 about 00:34 UTC, recorded here because the D2 v5 manifest pins `AGENTS.md` (an edit there breaks
+   `d2_poses_v5.sh`): "how about you just fucking do it", read as: phases 3-5 start now, which lifts the 12:00 UTC gate for
+   this work and stands as the phase-5 sign-off in `docs/chain/restructure-plan.md`; never-move paths, packed URLs and the
+   owner's pushing and uploading are unchanged. Then "your allowed to run opus / sonnet / haiku subagents", which adds Haiku
+   to the 2026-09-30 model line in `AGENTS.md`; section 8 is otherwise unchanged.*
 
 ## 1. The finish line
 

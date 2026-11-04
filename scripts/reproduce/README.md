@@ -120,8 +120,9 @@ Tectonic's writable cache are private to the fresh work directory; the existing
 `.cache/tectonic` is copied as a read-only input. The wrapper's same microtype
 error filter is retained. `scripts/report/build_pdf.sh` needed no edit.
 
-A single `SOURCE_DATE_EPOCH` setting, taken from the archived commit's timestamp,
-makes both Matplotlib and Tectonic reproducible. Existing report PDFs, logs and
+A single `SOURCE_DATE_EPOCH` setting, taken from the last commit that touched
+`docs/report/track3`, makes both Matplotlib and Tectonic reproducible, and keeps the
+PDF byte-identical across commits that do not touch the report. Existing report PDFs, logs and
 other report files are never rewritten. No metrics, GPU operation, install or
 upload is performed.
 
