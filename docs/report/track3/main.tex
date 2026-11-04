@@ -11,15 +11,16 @@
 
 \begin{abstract}
 \textbf{Abstract:}
-We build every object shape from the stereo video alone, as simple
-procedural parts sized from monocular depth, and produce every pose by
-rolling out a policy trained with reinforcement learning in simulation.
+We size hand-designed procedural shapes from monocular video depth, with
+public scans guiding only the design, and produce every pose by rolling out
+a policy trained with reinforcement learning in simulation.
 On nineteen of the twenty scored episodes the policy holds the object at
 its estimated starting pose. On episode 38 a policy trained from scratch
-follows an object path tracked in the video. That one moving episode lifts
-the leaderboard AUC from 0.307 (all static) to 0.323 and SP-SR from 0.15
-to 0.20. The main finding is where the score goes: the objects move in
-every clip, and even the true starting poses held still reach only 0.53 AUC.
+follows an object path tracked in the video. Changing only episode 38 (its
+moving rollout and its simulated mesh) lifts the leaderboard AUC from 0.307
+(all static) to 0.323 and SP-SR from 0.15 to 0.20. The main finding is where
+the score goes: the objects move in every labelled clip, and true starting
+poses held still reach only 0.53 AUC on training episodes (old scorer).
 \end{abstract}
 
 \begin{document}
@@ -39,22 +40,21 @@ costs, and where the evidence is weak.
 
 \section{Approach}
 \textbf{Shapes.} For each object we pool MoGe-2 depth above the table
-inside the object's mask over many frames, drop observations that are
-merged with another object or clipped by the image edge, and size a
-procedural shape, whose parts we specify by hand per object, to the
+inside its mask over many frames, dropping views merged with another object
+or cut by the image edge, then fit a hand-designed procedural shape to the
 measured extents. Public scans of the training objects guided how we
 designed and selected this method; no scan geometry, dimension or template
 enters any submitted mesh or simulated asset. Pretrained Hunyuan3D-2mini
 shapes~\cite{hunyuan3d2} for the pot (episode 5) and the pitcher
-(episode 20) lowered local CD-O, but we had no tested mapping from their
+(episode 20) lowered local CD-O, but we had no recorded mapping from their
 frame to the simulation's, so the counted file keeps the procedural shapes.
 
-\textbf{Static poses (19 episodes).} Stereo mask centroids place each
-object on the table with 1\,cm clearance; heading is unknown except on
-episode 19, where it comes from registering a public scan to the stereo
-points. Per-episode policies, trained by reinforcement learning with box
-hands that do not act and a 512-step budget, are exported through the
-unedited evaluator. Their objects stay where they start, so these rollouts
+\textbf{Static poses (19 episodes).} Stereo mask centroids place the
+second object with 1\,cm clearance, assuming the public calibration
+transfers; heading is unknown except on episode 19, where it comes from
+registering a public scan to the stereo points. Per-episode policies,
+trained by reinforcement learning with box-shaped objects, parked hands and
+a 512-step budget, are exported through the unedited evaluator. Their objects stay where they start, so these rollouts
 are learned placements, not learned manipulation.
 
 \textbf{Moving pose (episode 38).} Masks come from SAM2.1 and Grounding
@@ -66,9 +66,10 @@ scan sets the object's axes and handle convention and creates no motion.
 FlashSAC trains a policy from scratch in FlashCHORD to carry the object
 along this path: 1,024 parallel worlds, one seed, 66.8M transitions. A fixed
 rigid grasp stands in for the human hand, which we do not recover; contact
-alone moves the object. Mass (0.3\,kg) and inertia are example values, and
-the simulated pan is larger than measured (25.6 by 21.3 against 18.2 by
-16.6\,cm). The rollout is admitted only if it passes gates written before it
+alone moves the object. Mass (0.3\,kg) and inertia are example values,
+hand--support collisions are off, and the simulated pan is larger than
+measured (25.6 by 21.3 against 18.2 by 16.6\,cm); this simulated pan is also
+our submitted episode-38 mesh. The rollout is admitted only if it passes gates written before it
 ran: path-following gain $T\geq0.5$, increment agreement $Q\geq0.5$, mean
 error $E\leq3$\,cm and $\Theta\leq15^\circ$ against its own video path,
 first pose within 1\,cm and $2^\circ$, and mask overlap (median IoU
@@ -80,8 +81,8 @@ capture, so we test the idea there (Table~1, old scorer, one clip, one seed).
 Held still, the pose scores 0.18 AUC. The tracked video path itself reaches
 0.833. A policy trained on that video path reaches 0.775 after one run
 of about an hour on a 16\,GB GPU; trained on motion capture instead it
-reaches 0.982, which shows how much is lost to the tracked path rather
-than to the policy.
+reaches 0.982, suggesting (one seed) that most of the loss comes from the
+tracked path, not the policy.
 
 \noindent\begin{minipage}{\columnwidth}
 \centering\small
@@ -104,8 +105,10 @@ motion-capture policy uses information a real entry does not have.}
 \textbf{Episode 38.} The same pipeline passed every admission gate:
 $T=1.026$, $Q=0.973$, $E=1.42$\,cm, $\Theta=1.59^\circ$, first pose
 0.30\,cm and $0.27^\circ$, mask IoU median 0.778 with full coverage, and all
-263 frames without a reset. These gates measure how well the policy follows
-the video path, not accuracy: episode 38 has no labels available to us.
+263 frames without a reset; the IoU uses the tracking mesh, not the
+submitted mesh. These gates measure how well the policy follows the video
+path, not accuracy: episode 38 has no labels available to us. It passed at
+12:58 UTC, after our planned noon cut-off, which was then moved.
 Training needed three attempts and at least 63 minutes in total. On the
 three spoon episodes (35, 36, 37) the same method stopped at its mask check
 (10.9, 8.8 and 0.7\% of frames usable against the 90\% rule), so they stay
@@ -116,19 +119,24 @@ route does not yet handle.
 static poses score 0.277 AUC with the old scorer, and true starting poses
 held still score only 0.532. About half the metric is lost to motion that
 no static pose can follow; the rest is placement error, worst in heading.
-The scan-based heading on episode 19 was supported by one training episode
-(0.30 to 0.47 AUC).
+Four changed episodes keep 51--130$^\circ$ heading errors. The episode-19
+heading rests on one training episode (0.30 to 0.47) and a near-equal rival
+$180^\circ$ away could make it worse; static choices used training labels,
+so 0.277 is not held out.
 
-\textbf{Shapes.} On ten public scans used for development, the pretrained
-pot and pitcher lowered local CD-O from 0.653 to 0.564\,cm; the mesh-only
+\textbf{Shapes.} On 26 of 36 public-scan pairs, also used for selection,
+the pretrained shapes lowered local CD-O from 0.653 to 0.564\,cm, mostly
+through the pitcher; pot 5 was a lucky seed. The mesh-only
 pack with them scored 0.536\,cm on the leaderboard, against 0.565\,cm for
 our counted file with procedural shapes.
 
 \textbf{Scorer change.} The organisers replaced the kit on 2 November; its
 pose metrics register the submitted mesh to the hidden scan. Our earlier
 numbers use the old scorer. Rechecked with the new scorer's code on public
-geometry, static training AUC is about 0.30 and episode 39's video policy
-0.669; a box-like shape can register up to $180^\circ$ off.
+scans (diagnostics only), static training AUC from kinematic projections is
+about 0.30 and episode 39's video policy 0.669 (0.591 with the tracking
+mesh; MP-SR falls from 1 to 0); a box-like shape can register up to
+$180^\circ$ off.
 
 \noindent\begin{minipage}{\columnwidth}
 \centering\footnotesize
@@ -153,20 +161,22 @@ against motion capture on 39; that breaks our own one-amendment rule and is
 weaker than validation planned in advance. Episode 39's first verdict was
 negative and became positive only after aligning the first pose, which its
 protocol did not specify; its labels were read twice for arithmetic, though
-the policy was scored once. Episode 38 failed a midpoint check ($T=0.25$) and
-was resumed rather than restarted. Everything rests on one object type, one
-seed and a non-human grasp.
+the policy was scored once. Episode 38 failed a midpoint check ($T=0.25$,
+cause unknown), was stopped twice and resumed against its own stop rule,
+losing its replay buffer each time. Everything rests on one object type, one
+seed and a non-human grasp, so it shows neither transfer nor dexterity.
 
 \section{Conclusion}
-Static poses cap this task at about half the AUC, and a policy trained on a
-video-tracked path can move the object: 0.775 against 0.18 on the tuning
-clip, and a measured gain on the leaderboard from a single moving episode.
+On training clips (old scorer) static poses reach about half the AUC; on
+the tuning clip a video-path policy scores 0.775 against 0.18 held still
+(0.669 against 0.175 under the new scorer), and one moving episode gave a
+measured gain on the leaderboard.
 \textbf{Economic viability:} one moving policy costs about an hour on one
 16\,GB GPU and needs no motion capture; cost at scale is not yet shown. \textbf{Data flywheel:} not shown; each episode is processed once.
 \textbf{Innovation:} the policy learns from a path tracked in ordinary
 stereo video, without recovering the human hand. \textbf{Complexity
-reduction:} the inputs are stereo video, fixed prompts and a procedural
-shape. Next steps are two-object scenes and spoon-sized objects.
+reduction:} the inputs are stereo video, fixed prompts, our video-derived
+meshes and one scan-derived constant; savings in deployment are not shown. Next steps are two-object scenes and spoon-sized objects.
 
 \par\label{maintextend}
 \clearpage
