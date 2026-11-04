@@ -267,3 +267,85 @@ All other gates and prior disclosed revisions remain unchanged.
 Required report sentence: "The camera check accepts three image regions when
 held-out reprojection accuracy passes." The short sentence does not replace
 the full five-prerequisite rule in this protocol and admission evidence.
+
+## Disclosed method revisions: clip facing, visible table patches, own-mesh flip (2026-11-04T16:52:08.942552+00:00)
+
+Lead decision: when frame-zero opposite-facing margin <=0.02 and the existing
+declared-symmetry rule does not resolve it, first check the own procedural
+mesh's invariance under the 180-degree turn about the stereo table normal at
+its chosen initial pose. Compute symmetric vertex Hausdorff distance with
+SciPy cKDTree. A watertight convex mesh makes that a conservative bound on
+surface Hausdorff distance; alternatively a bijective vertex match with the
+same mapped triangle set certifies it for a nonconvex mesh. Only a certified
+bound <=0.002 m resolves the tie, with resolved_by='own-mesh flip symmetry';
+record the measured value, certificate and transform, keep the original winner.
+A non-certified comparison cannot resolve a tie and proceeds to the clip rule.
+This conservative certificate uses only our procedural mesh, never scans.
+
+If the tie remains, track the original winner and its best opposite candidate
+with the unchanged M1 tracker. Retain all four original fitted initial
+candidates (same optimizer/options and silhouette instrument); the opposite
+candidate is the highest-scoring one differing by >135 degrees, as in the
+original opposite-margin definition. Reuse the same saved authoritative
+camera solve for both runs. Use each run's observed camera/object flags, the
+same single smoothing pass, and the existing reprojection-IoU instrument over
+the clip. If one finite median exceeds the other by strictly >0.02, retain
+that run, set opposite_resolved=True and resolved_by='whole-clip reprojection',
+and record both medians, coverage and poses. Otherwise the tie remains and the
+episode stops. Every unchanged reference gate applies to the kept run, including
+validity and reprojection coverage; the comparison does not waive a gate.
+Declared symmetry retains precedence; all already-resolved paths remain exact.
+
+For the table-normal instrument, keep the original disjoint patch predicates,
+pre-contact frame selection, per-patch >=100 inlier points, plane fit and
+pairwise normal-angle calculation. Four available patches retain exactly the
+original result. When exactly three disjoint patches are available, compute the
+same maximum pairwise normal angle and retain the unchanged final <=3 degree
+limit. Fewer than three remain unavailable/failing. Record normals and inlier
+counts; all other table gates, plane gauge and residuals remain unchanged.
+
+Authorized reference-only reruns reuse masks, instance assignments, frozen
+roles, mask measurements and camera solves: 19,25,15 first; unscreened
+30,32,33,3,5,6 (minus any completed while reloading); then14,20 last. The current
+in-progress episode finishes naturally through control.json before the new
+execution loads this code. Preserve every prior stop and run record.
+Train every passing reference+Stage0 episode immediately, unchanged episode38
+recipe/checkpoint, one attempt each, one GPU job at a time, last start19:45 UTC.
+The new rules apply uniformly to every later tied/three-patch joint episode.
+Shared tracker, episode38, spoon paths and pinned packer remain untouched.
+
+Required report sentences:
+"When the first frame cannot tell an object's facing, both facings are tracked and the one that fits the whole clip better is kept."
+"The table-flatness check uses three table patches when four are not visible."
+"When an object's own mesh is unchanged by the 180-degree turn, either facing gives the same rollout, so the tie is resolved."
+
+Validity diagnosis is CPU-only analysis of saved own video/reference evidence.
+Report actual validity predicates separately from quality-gate exceedances:
+FB rotation, speed and reprojection do not themselves reject individual frames
+in this M1 implementation. Contact/carrying/placement are not labelled here;
+first/last hand-mask overlap delimit explicit video proxies, not verified
+physical events. Missing saved diagnostics stay unavailable, never inferred.
+
+## Disclosed review corrections: admission, ownership and packed start (2026-11-04T17:10:57.008952+00:00)
+
+These are fail-closed implementation corrections from the lead's read-only
+review, not new thresholds or selection rules. Before any admission or pack:
+require every named Stage0 check1_schema,2_closure,3_penetration,4a_finger_limits,
+4b_reachability,5_support,6_truth,6_joint_truth present with passed exactly True;
+require the actual task and support USD asset in the hash-checked inventory.
+Bind A's full translated source pose sequence and reference clock, exported
+reference columns and completed official evaluator-command record (checkpoint
+and output paths). Enforce seed0,1024worlds,update ratio2 and the exact episode38
+curriculum using the checkpoint's saved resolved configuration, not CLI claims.
+Only one background preparer may run: wait for it and propagate any failure
+before resuming preparation or starting another preparer.
+
+B's start is the hash-checked uploaded moving-v5 achieved frame0 pose in official
+slot order, converted xyzw->wxyz, rather than the presimulation reference.
+Existing untrained tasks with the old binding must be preserved and rebuilt
+before training. Any already-running training finishes without admission until
+these fixes are loaded. A review hold is in place; the current process finishes
+its episode and exits naturally via control.json. No policy has started yet.
+All scientific gates, recipes and the19:45UTC training-start cutoff are unchanged.
+Synthetic negative admission-boundary checks explicitly requested by the lead
+must reject a missing Stage0 check, a rotated A reference and a wrong seed.
