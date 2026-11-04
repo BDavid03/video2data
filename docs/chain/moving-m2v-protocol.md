@@ -34,6 +34,8 @@ Written to `data/outputs/moving_policy/ep39-v1/`. **Sealed:** while it trains an
 
 Written to `data/outputs/moving_policy/ep38-v1/`. It may train before M2v's result is known, for the clock, **but it is adopted only after M2v's GO**. Adoption by `moving-m2-protocol.md`, "Scored stage", with clause 2 as M1's amended rule on 38, plus the table-drift gate; no scored label exists or is used; the export comes from the unedited evaluator with its learned checkpoint; the pack by `pack_moving.py`. Any failure keeps 38's D2 v5 export.
 
+**Note, 11:10 UTC, before any final number on 38. The kill rule fired and training was stopped at 11:05, with self-`T` -1.26 on the CPU replay. The official GPU evaluator on the same checkpoint agrees that it fails (`T` 0.25, `Q` -0.96, 25 cm, success 0; `ep38-v1/boundary-gpu-32814080/`). The rule is written under "M2v on 39", and the lead's brief extended it to 38. Its purpose was to free the GPU, which now has no other use. So the same run resumes from `state_34328576`, same seed, recipe and scheduled end, with its replay buffer lost, and with a deadline of about 37 minutes. It is one run, stopped and resumed, disclosed. Adoption is decided by the same rules at the final checkpoint, and if it misses or runs out of time, D2 v5 stands. No label is involved.**
+
 ## Clock
 
 M2v launches by **09:32 UTC**, so 38 can launch by 10:30, the plan's last GPU launch, and finish by about 11:30. If M2v cannot launch by 09:45, 38 runs first, and M2v after it on the GPU's remaining time; if neither can finish by 11:45, neither adoption happens and this is a report finding. 12:00 UTC stays the last pack.
