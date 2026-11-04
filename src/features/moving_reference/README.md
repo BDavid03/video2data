@@ -419,3 +419,60 @@ the lid reaches 96%. No original quality/accuracy-bar PASS is claimed.
 All 30 four-metric kit cases completed; registered-array replay and previously
 complete static/C baseline regressions have maximum metric difference 0.
 See `position-v6/summary.md`, `post-onset.json` and `auc-comparison.png`.
+
+### Frozen motion-gate G and hand-attachment H
+
+`contact_probe.py` runs the same 18 prepared objects with two fixed video-only
+arms; `_contact_probe.py` contains the array operations. G declares an object
+carried after a >5 cm revision-6 excursion and hand contact on five consecutive
+frames. It copies revision 6 for carried objects and holds C's initial pose for
+others, with no class-specific C shortcut. H uses that same decision, recovers
+SAM2 hand slots 1/2 separately with the existing rectification, and follows the
+confirmed contacting hand's stereo palm proxy from an object anchor at grasp.
+It holds orientation, confirms grasp/release over five frames, records missing
+palm depth and release reasons, and permits regrasp after a no-contact gap.
+
+The palm proxy is the thick interior of each hand mask, not anatomical landmarks.
+Slots are persistent SAM2 IDs, not asserted anatomical left/right labels; their
+positions are never averaged. H holds C's pose before its first grasp and anchors
+to revision 6 at each grasp; G follows the whole revision-6 clip when selected.
+Both initialization and carrying behavior are therefore part of this comparison.
+The exact motion/contact/depth/co-motion thresholds were frozen separately in
+`data/outputs/moving_reference/depth-track/contact-arms/protocol-G.md` and
+`protocol-H.md`, with SHA256 seals before tracking. No masks or stereo are rerun.
+
+After the one-time `prepare`, resume in the foreground on CPU:
+
+```bash
+CUDA_VISIBLE_DEVICES='' PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 \
+  OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=2 \
+  data/.runtime/linux-cuda/bin/python -B -m src.features.moving_reference.contact_probe run
+```
+
+After all 36 trajectories and 18 decisions are sealed:
+
+```bash
+CUDA_VISIBLE_DEVICES='' PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 \
+  OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=2 \
+  data/.runtime/linux-cuda/bin/python -B -m src.features.moving_reference.contact_score
+```
+
+`contact_score.py` scores 20 new G/H cases with `kit_score` unchanged and reuses
+the 30 sealed static/C/rev6 cases. It checks identical reference rows/geometry,
+replays the kit's four scalar metrics, and reports registered post-onset centre
+errors. Carried-decision agreement uses the predeclared mocap translation proxy
+(>5 cm for five frames); no semantic grasp labels exist. All ten train/tuning
+clips are disclosed development, including selection on 39/42. Results, per-slot
+point counts, attachment events, seals, ledger and chart are under `contact-arms/`.
+Original quality/accuracy thresholds and campaign admission are unchanged.
+
+Completed G/H result: all 36 trajectories and 18 video decisions were sealed
+before evaluation. G and H each beat static AUC on 3/10 episodes; mean changes
+are -0.091016 and -0.101008 respectively (excluding ambiguous 11: -0.033890 and
+-0.044434). G has smaller post-onset registered-centre error on 12/14 mocap-positive
+objects; mean object medians are 13.550 cm for G and 20.011 cm for H. The gate
+selects 16/18 objects and matches the fixed mocap proxy on 14/18, exactly the
+always-carried baseline accuracy; specificity is 25%. H attaches on all 16
+selected objects, with 1,108 supported hand-attachment frames. Kit replay has
+maximum scalar difference 0, and reference rows/geometry match every baseline.
+Neither arm justifies a campaign switch. Full tables: `contact-arms/summary.md`.

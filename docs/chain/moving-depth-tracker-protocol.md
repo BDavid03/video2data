@@ -358,3 +358,73 @@ Call campaign two_object_facing.reference_tracks unchanged, including its origin
 ## Revision 5 C baseline public 23 wooden_piece_2 — 2026-11-04T19:12:06.427145+00:00
 
 Call campaign two_object_facing.reference_tracks unchanged, including its original initializer, features, keyframes, symmetry/facing decisions and smoothing. No gate edits, no labels before output sealing. Independent camera/table/support admission remains outside this experiment.
+
+## Arm G: motion-gated revision 6 — 2026-11-04T19:30:45.662472+00:00
+
+One fixed video-only gate per object on all18 objects in the same ten public
+train/tuning episodes. No forced one-carried-object assumption. Set R=0.05m,
+K=5 frames. The object is declared carried iff its sealed revision-6 world/body
+position leaves radius R around its own frame-zero position for K consecutive
+frames AND a hand is in contact on those same frames. Contact = intersection of
+the raw rectified hand-slot mask with an 11x11-dilated object mask, divided by
+min(raw object area, hand area), at least0.05; empty masks have contact0. G uses
+the maximum contact across slots only for the binary gate, never an average of
+hand positions. Decisions and first qualifying frame are frozen before labels.
+Carried objects copy revision6's exact whole-clip poses; others hold C's saved
+frame-zero body pose. No C-valid/pan substitution and no class-dependent rule.
+The offline whole-clip decision is disclosed; orientation remains held initially.
+
+For evaluation only, define the mocap carried/moving proxy using exactly R=5cm
+and K=5 consecutive original mocap frames, based on body-origin displacement
+from frame zero. Mocap has no semantic grasp/contact annotation: report this as
+an operational translation proxy, not a labelled secure-grasp truth. Report TP,
+FP, TN, FN and per-object agreement, both all18 and excluding ambiguous episode11.
+Post-onset medians keep the previous >5mm/three-frame onset and kit-registered
+centres, with all mocap-carried objects included even when the video gate misses.
+Keep original quality/accuracy bars; no scored tracking or campaign admission.
+
+## Arm H: separate-hand attachment — 2026-11-04T19:30:45.662765+00:00
+
+Use exactly G's sealed video-only carried decision. For non-carried objects
+hold C's frame-zero body pose. Recover SAM2 track_ids1/2 individually from original
+mask NPZs, using track.masks_at's exact half-pixel resize and nearest-neighbour
+rectification; verify recovered object mask and hand union equal cached arrays.
+Slots are persistent SAM2 IDs, not asserted anatomical left/right identities.
+Never average their points, centres or displacements.
+
+Palm proxy = each hand mask's distance transform >=0.5 times its maximum interior
+distance, excluding the raw object mask. On finite stereo-valid z>0.05m points use
+the same median-z +/- two robust sigmas (1.4826 MAD, floor1mm) as revision6; require
+30 retained points. A missing palm observation stays missing. Smooth each hand's
+world centres with a causal median of supported observations within five frames;
+the current frame must itself be supported. No hand/object scale or offset is
+fit to labels and no new model, scan, video decode or stereo estimation is used.
+
+On a G-carried object, confirm grasp when one slot has contact>=0.05 and supported
+palm depth on all five consecutive frames, object revision6 displacement over
+that window >=1cm, and the difference between its five-frame displacement and
+that slot's displacement <=3cm. Choose the slot with highest mean contact in the
+window (ties lower ID). Backdate grasp to the window's first frame g (offline
+five-frame confirmation). Anchor object at revision6 position[g] and palm at its
+smoothed position[g]. Through attachment write object_position[g] + palm[t]-palm[g],
+with C's initial orientation held. Before grasp use the initial C pose.
+
+Carry the previous output on a missing selected-palm observation. Release after
+five consecutive frames of selected-hand contact loss, missing selected-palm
+depth, OR five-frame hand/object displacement disagreement >3cm. At the confirming
+release frame preserve the preceding output; hold it afterwards. Re-arm for a
+new grasp only after every hand has been out of contact for five frames. Each
+regrasp anchors to revision6's position at that grasp frame. Record selected slot,
+ambiguous two-slot contact, missing depth, grasp/release frames and release reason.
+This conservative test does not handle continuous handovers without a contact gap.
+
+Freeze both entries, source/input identities and queue before the first new arm
+run; seal all36 G/H trajectories and all18 carried decisions before any new label
+access. Run the unchanged kit on G/H and compare with the sealed static/C/rev6
+baseline rows using identical meshes, native object order, exact frame IDs and
+camera-derived shared worlds. Replay all four metrics before publishing registered
+centre medians. Reference scans/anchors remain evaluation-only public proxies.
+New-arm per-frame validity uses the original full non-hand cloud fit residuals and
+camera observation, plus availability of its current motion source. No lowered
+threshold, gate waiver, label initialization, scored episode, GPU or background
+process. Train/tuning selection is disclosed development, not an unbiased test.
