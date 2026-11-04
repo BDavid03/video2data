@@ -21,3 +21,23 @@ The handler computed `T`, `Q`, `E` and `Theta` against mocap on raw arrays, as i
 ## Consequence
 
 The route to 38 stays open. 38 launched at about 10:33 UTC, three minutes after the plan's 10:30, because the job stopped on the raw NULL. Adoption by `moving-m2v-protocol.md`, "Scored 38".
+
+## Scored 38 (4 Nov 2026, 12:58 UTC): passes every gate it has; **not packed, because the 12:00 UTC last pack passed with no owner line moving it**
+
+Evidence: `data/outputs/moving_policy/ep38-v1/`, `result.md`, `score-66763776/`. Seed 0, 66,763,776 transitions, the same recipe and scheduled end. **Stopped twice and resumed: at 34.3M by the kill rule, at about 40.7M by the owner, the replay buffer lost each time.** Dated notes: `moving-m2v-protocol-notes.md`. Final checkpoint `b6145fcb...3cae`. Numbers below re-computed by the lead with a separate script from the saved export (`data/.runtime/tmp/lead-check-38-28.py`), and they match.
+
+| Gate (`moving-m2-protocol.md`, Scored stage; M2v protocol) | Measured | Limit | |
+| --- | ---: | --- | --- |
+| `T`, against its own reference | 1.026 | at least 0.50 | pass |
+| `Q` | 0.973 | at least 0.50 | pass |
+| `E` | 1.42 cm (held still 10.26) | at most 3 cm | pass |
+| `Theta` | 1.59 deg (held still 50.12) | at most 15 deg | pass |
+| End reached, resets | 263 of 263 frames, 0 | all, 0 | pass |
+| First pose, unaligned | 0.30 cm, 0.27 deg | 1 cm, 2 deg | pass |
+| Reprojection median, p10, coverage | 0.778, 0.707, 100 % | 0.60, 0.30, 90 % | pass; blind to camera drift |
+
+**What this does and does not say.** The midpoint failed badly (`T` 0.25 at 32.8M) and the end does not; why is undiagnosed, and it took a stop and a resume that the kill rule alone would not have allowed. A resumed run lost its replay twice, so this is not the same experiment as 39's fresh run. **38 has no labels. These numbers say the policy follows its video goal; they do not say the goal is right, nor that 38 beats its static export.** Kit metrics against its own reference (AUC 0.902) use the old scorer and are not a label score.
+
+**Adoption's clauses 1 to 4 hold, and clause 5 was not attempted.** The rules say: past 12:00 UTC with no owner line, do not pack. So D2 v5's static export of 38 stands, unless the owner moves the cut-off in `NEEDS-YOU.md`.
+
+**Those gates were also written for the old scorer.** Since the kit changed on 2 Nov, a pack needs 38's mesh in the rollout's body frame too (`SUBMISSION.md`), so an adopted 38 would carry the simulated stand-in or another shape in that frame, with CD-O consequences not measured here.
