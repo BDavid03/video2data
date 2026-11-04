@@ -91,7 +91,8 @@ def pack(paths,url,allow_url=False):
     import sys
     sys.path.insert(0,str(KIT))
     from src.features.moving_reference import kit_score
-    kit_score.scorer('AUC')._check_provenance(pq.read_table(target).to_pandas())
+    packed=pq.read_table(target).to_pandas();packed['episode_index']=packed.row_id.str.split('/').str[1].str[1:].astype(int)
+    kit_score.scorer('AUC')._check_provenance(packed)
     comparison=compare(target,admissions,allow_url)
     manifest=dict(kind='pose_insurance.combined_fp_candidate',file=moving.entry(target),parent=moving.entry(PARENT),
         code_commit_url=url,shared_url_update=allow_url,comparison=comparison,sources=sources,
