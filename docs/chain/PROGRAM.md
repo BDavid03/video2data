@@ -25,6 +25,10 @@ chain does not stop for owner-only items while a workstream is open.**
    and creating the Kaggle token stay the owner's. Scores still steer nothing (section 4).
 4. FoundationPose install approved, in its own venv under `.runtime/`, with its licence recorded in `INSTALL.md` and the abstract.
 
+**Owner, live, 2026-11-04 about 03:27 UTC: "top level folders hsould be scripts, docs, .claude, src, data, submission, models
+everything else has to be organised under these".** Recorded here because the D2 v5 manifest pins `AGENTS.md`. Plan and state:
+`docs/chain/layout-migration-plan.md`. It is not to interrupt a live GPU run, and it does not change sections 4 or 6.
+
 Until the 4 November deadline, **structural improvements to the fundamentals come before refining the current
 entry.** The owner's words: "please take bigger structural improvements before really refining the details", "e.g.
 pretraining models, synthetic data generation, we're talking substantial improvements to the fundamentals". The
@@ -87,7 +91,7 @@ The deliverables, tracked in `docs/chain/SUBMISSION.md`:
 | --- | --- | --- |
 | D1 | Track 3 mesh file: one triangle mesh per `(episode, object)` in `track_3_evaluation_objects.json`, packed to Parquet, scored on CD-O | kit `tracks/track_3/README.md`, "Mesh submission" |
 | D2 | Track 3 pose file: per-episode policy rollouts through the kit's `evaluate_policy.py`, packed to CSV, scored on AUC, SP-SR, MP-SR, RPE and MPPE | same file, "Pose submission" |
-| D3 | Technical report: the two-page extended abstract in `templates/V2D_Challenge_Extended_Abstract_Template`, built to PDF. Award eligibility requires it | template `main.tex` header |
+| D3 | Technical report: the two-page extended abstract in `docs/templates/V2D_Challenge_Extended_Abstract_Template`, built to PDF. Award eligibility requires it | template `main.tex` header |
 | D4 | Code release: the exact code at a GitHub `/commit/<sha>` URL, which both packed files must carry | kit `README.md`, "Shared setup" |
 | D5 | Reproduction: one recorded command (or short script) per deliverable, with its run records | `CLAUDE.md`, run ownership |
 | D6 | Packed files ready for the owner to upload, with a clean kit preflight apart from owner-only checks | kit `skills/v2d-submit/SKILL.md` |
