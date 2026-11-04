@@ -11,12 +11,12 @@
   },
   "combined_pose": {
     "kit": "data/.runtime/kit-20261102/v2d_submission_kit",
-    "module": "src.features.pose_insurance.pack_combined",
-    "selection": "Explicit --combined manifest required; existing mesh and pose remain frozen"
+    "module": "src.features.pose_refresh.pack",
+    "selection": "Explicit --combined manifest required; existing mesh and pose remain frozen; refresh candidates verify through pose_refresh.pack"
   },
   "report": {
-    "path": "outputs/report/track3-technical-report-d7282056.pdf",
-    "sha256": "d7282056edfb2e9ce3cd50a675590c8eb517a6b4cb496a7435874910237a6d10",
-    "epoch": 1793824690
+    "path": "outputs/report/track3-technical-report-e8524609.pdf",
+    "sha256": "e8524609f60569dcb81f64751f5185712d79ce349a51dd111697248f83f9c9a9",
+    "epoch": 1793826746
   }
 }
