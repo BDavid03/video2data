@@ -201,10 +201,10 @@ def run(episode=None, output_name='masks'):
     authorize(rule)
     if output_name not in ('masks', 'masks-smallest') or (output_name == 'masks-smallest' and episode != 38):
         raise PermissionError('The smallest-box output is authorized only for episode 38')
-    deadline = datetime.fromisoformat(rule['stop_utc'])
+    deadline = datetime.fromisoformat(rule['stop_utc']) if rule.get('stop_utc') else None
     queue = [item for item in rule['queue'] if episode is None or item['episode'] == episode]
     for item in queue:
-        if datetime.now(timezone.utc) >= deadline:
+        if deadline is not None and datetime.now(timezone.utc) >= deadline:
             print('GPU deadline reached; remaining queue not started', flush=True)
             break
         directory = ROOT / f"data/outputs/moving_reference/ep{item['episode']:02d}/{output_name}"
@@ -230,7 +230,7 @@ def run(episode=None, output_name='masks'):
                             select_pan_box(directory, rule)
                         record['stages'][operation] = existing
                         continue
-                    if datetime.now(timezone.utc) >= deadline:
+                    if deadline is not None and datetime.now(timezone.utc) >= deadline:
                         raise TimeoutError('GPU deadline reached')
                     command = [str(ROOT / f'data/.runtime/{environment_name}/venv/bin/python'), '-B',
                                '-m', 'src.features.moving_reference._worker', operation, str(directory / 'request.json')]

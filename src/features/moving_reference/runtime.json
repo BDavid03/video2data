@@ -17,5 +17,5 @@
   "bidirectional": true,
   "logit_threshold": 0.0,
   "memory_limit_mib": 16384,
-  "stop_utc": "2026-11-04T07:49:20+00:00"
+  "stop_utc": null
 }

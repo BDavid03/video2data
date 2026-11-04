@@ -11,8 +11,8 @@ ROOT = Path(__file__).resolve().parents[3]
 
 
 def check_time(rule):
-    """Leave time for interpreter teardown before the owner's GPU deadline."""
-    if datetime.now(timezone.utc) >= datetime.fromisoformat(rule['stop_utc']):
+    """Leave time for interpreter teardown before the owner's GPU deadline, when one is set."""
+    if rule.get('stop_utc') and datetime.now(timezone.utc) >= datetime.fromisoformat(rule['stop_utc']):
         raise TimeoutError('M1 GPU deadline reached')
 
 
@@ -144,8 +144,9 @@ def main():
     check_time(rule)
     def deadline(signum, frame):
         raise TimeoutError('M1 GPU deadline reached')
-    signal.signal(signal.SIGALRM, deadline)
-    signal.setitimer(signal.ITIMER_REAL, max(0.1, (datetime.fromisoformat(rule['stop_utc']) - datetime.now(timezone.utc)).total_seconds()))
+    if rule.get('stop_utc'):
+        signal.signal(signal.SIGALRM, deadline)
+        signal.setitimer(signal.ITIMER_REAL, max(0.1, (datetime.fromisoformat(rule['stop_utc']) - datetime.now(timezone.utc)).total_seconds()))
     import torch
     if torch.__version__ != '2.7.1+cu128' or torch.version.cuda != '12.8':
         raise RuntimeError('Use the pinned CUDA build')
