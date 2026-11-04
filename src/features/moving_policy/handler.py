@@ -615,7 +615,7 @@ def score_exports(steps_list=SCORE_STEPS):
               'kit': score, 'verdict': verdict, 'descriptive': steps != 66763776,
               'scoring_geometry': 'Public scan surface points, measurement only, seed 0; no scan geometry enters the simulation',
               'inputs': input_inventory([directory / 'trajectory.parquet', OUTPUT / 'mini_dust_pan.obj',
-                        Path(baseline.ROOT) / 'mesh/mini_dust_pan/mini_dust_pan.glb'])})
+                        ROOT / baseline.ROOT / 'mesh/mini_dust_pan/mini_dust_pan.glb'])})
 
 
 def main():
