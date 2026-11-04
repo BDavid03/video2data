@@ -6,8 +6,9 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
 
 ## Open
 
-**READ THIS FIRST, 2026-11-04 15:15 UTC. Your finish is 15:30 UTC (2:30 am your time). Moving v5 is uploaded and is the final
-file; nothing better can be trained in time. Two things are yours:**
+**READ THIS FIRST, 2026-11-04 15:32 UTC. The close is 22:00 UTC (your correction). Moving v5 is uploaded and scored; the
+GPU is now training moving policies for the two-object episodes (one attempt each, last start 19:45 UTC). If any pass, a better
+file comes to you for upload approval by about 21:00 UTC. Until then:**
 
 1. **Mark moving v5 as your Final Submission on all six boards** (Kaggle, each competition, My Submissions, the 14:28 UTC
    "Moving v5 ... (b476eb1c)" entry). Scores: AUC **0.32339** (57987857), SP-SR **0.20** (57987860), MP-SR 0.0 (57987864),
@@ -30,7 +31,7 @@ without guessing.
 | Code version | `https://github.com/BDavid03/video2data/commit/c8ff8c135c53a54f9959e20def5920becab87eec` | ready: the commit recorded inside the uploaded file |
 | Container | a link openable without requesting access | staged on CPU for this file (`scripts/container/README.md`, verifier 11 pass); needs Docker, which this account cannot reach: `sudo usermod -aG docker ceolwolf`, open a new WSL shell, fill `data/outputs/container/kaggle-ids.json` with the six IDs above, run `scripts/container/owner-build.sh` |
 
-**Finish 15:30 UTC today (your answer at 15:14 UTC: 2:30 am your time).** Your lines today, recorded in `PROGRAM.md`
+**Close 22:00 UTC today (17:00 EST, 08:00 AEST; your correction at about 15:30 UTC).** Your lines today, recorded in `PROGRAM.md`
 section 0: "keep strict integrity gates" (14:08 UTC), "improve the model and metrics" (14:40), "dont upload to kaggle without
 approval" (about 14:40).
 
