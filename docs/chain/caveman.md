@@ -44,12 +44,13 @@ Six Kaggle boards. CD-O scores shapes: lower is better. AUC, SP-SR, MP-SR, RPE, 
 ## What not done
 
 - Episode 38 is NOT in entry. Last-pack time 12:00 UTC passed. No owner line move it. v5 static 38 stand unless owner say otherwise.
-- Repaired pose file not built, not uploaded. It keep v5 pose values unchanged. Pack after 12:00 UTC is lead's own call, because else no pose score at all. Owner can stop it with dated line.
+- Repaired pose file BUILT, checked, pushed. NOT uploaded: permission system say no to chain. Owner must run one command (top of NEEDS-YOU.md). It keep v5 pose values unchanged. Pack after 12:00 UTC is lead's own call, because else no pose score at all.
+- New scorer on our own labelled episodes (rough, not prediction): static train AUC about 0.29 to 0.30. Video policy on 39 drop from 0.775 to 0.669 (or 0.591 with other mesh). Box shapes can flip up to 179.93 degrees. Box bad.
 - Critics' final review not done. Final hand-off not done.
 
 ## What next
 
-- Finish pose-file repair. Build. Upload. Get first real pose score.
+- Owner run upload command. Get first real pose score.
 - Finish episode 38 report text.
 - Critics review. Final hand-off.
 
