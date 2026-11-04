@@ -19,6 +19,7 @@ OUTPUT = ROOT / 'data/outputs/pose_insurance/combined-v5'
 D2 = ROOT / 'submission/20261103T2024Z-d2-v5/track3_poses_v5_final.manifest.json'
 D1 = ROOT / 'submission/20261103T2058Z-d1-v5/track3_meshes_v5_final.manifest.json'
 KIT = ROOT / 'data/.runtime/kit-20261102/v2d_submission_kit'
+V4_MESHES = ROOT / 'data/outputs/mesh_extents/build/20261102T051416.149421Z-f377e0a1/meshes'
 
 
 def read(path):
@@ -51,7 +52,7 @@ def checked_asset(path):
 
 
 def trace_and_build():
-    """Use construction provenance for axes; use simulated shapes for unknown frames."""
+    """Use construction provenance for axes; shapes with no recorded frame keep their procedural v4 shape."""
     OUTPUT.mkdir(parents=True, exist_ok=True)
     parent = read(D2)
     production = read(read(D1)['production']['path'])
@@ -80,12 +81,15 @@ def trace_and_build():
             if sha256_file(source) != d1row['sha256']:
                 raise ValueError('D1 production mesh hash mismatch')
             rotation = np.eye(3)
-            fallback = d1row['changed']
-            reason = ('Hunyuan raw.ply has no recorded metric scale/origin/axes mapping to the rollout; '
-                      'retain simulated mesh. CD-O loses the D1 v5 generated replacement.') if fallback else (
-                      'Both procedural constructors use bounds-centred x=long, y=short, z=height; '
+            generated = d1row['changed']
+            reason = ('Both procedural constructors use bounds-centred x=long, y=short, z=height; '
                       'scene.py applies positive per-axis scale only. Coordinate map I, translation 0; '
                       'different shapes/sizes are not rigidly congruent and no surface fit is asserted.')
+            if generated:
+                # Hunyuan raw.ply has no recorded scale, origin or axes in the rollout's frame, so this pair
+                # keeps the same procedural v4 shape the other pairs use, built by the same constructor.
+                source = V4_MESHES / f'episode_{episode:06d}' / f'{name}.ply'
+                reason = 'D1 v5 Hunyuan shape has no recorded rollout-frame mapping; v4 procedural shape kept. ' + reason
             if episode == 19:
                 evidence, = [e for e in build['equivalence'] if e['slot'] == slot]
                 if not evidence['passed']:
@@ -94,10 +98,8 @@ def trace_and_build():
                 reason += ' Apply recorded TW geometry_rotation from task producer equivalence; v_new = R v_old.'
             folder = OUTPUT / 'meshes' / f'episode_{episode:06d}'
             folder.mkdir(parents=True, exist_ok=True)
-            target = folder / (name + (sim.suffix if fallback else '.ply'))
-            if fallback:
-                shutil.copyfile(sim, target)
-            elif episode == 19:
+            target = folder / (name + '.ply')
+            if episode == 19:
                 mesh = trimesh.load(source, force='mesh', process=False)
                 mesh.vertices = np.asarray(mesh.vertices) @ rotation.T
                 # Double precision avoids changing the rigidly rotated geometry at float32 precision.
@@ -110,11 +112,10 @@ def trace_and_build():
                 visual_origin_xyz=xyz.tolist(), visual_origin_rpy=rpy.tolist(),
                 collision_origin=ET.parse(urdf).getroot().find('link/collision/origin').attrib
                     if ET.parse(urdf).getroot().find('link/collision/origin') is not None else None,
-                d1_mesh=entry(source), d1_source=d1row['source'],
+                d1_mesh=entry(project_path(ROOT, d1row['file'])), source_mesh=entry(source), d1_source=d1row['source'],
                 byte_identical=sha256_file(sim) == sha256_file(source),
-                coordinate_rotation=rotation.tolist() if not fallback else None,
-                coordinate_translation=[0., 0., 0.] if not fallback else None,
-                decision='fallback' if fallback else 'rotated' if episode == 19 else 'identity_frame',
+                coordinate_rotation=rotation.tolist(), coordinate_translation=[0., 0., 0.],
+                decision='v4_procedural' if generated else 'rotated' if episode == 19 else 'identity_frame',
                 evidence=reason, combined_mesh=entry(target)))
     if len(rows) != 36:
         raise ValueError('Expected exactly 36 episode/object pairs')
@@ -125,7 +126,7 @@ def trace_and_build():
             'src/features/pose_insurance/scene.py', 'src/features/pose_insurance/scored_heading_assets.py',
             'src/features/mesh_extents/build.py', 'src/features/mesh_extents/_shapes.py')],
         counts={key: sum(row['decision'] == key for row in rows)
-                for key in ('identity_frame', 'rotated', 'fallback')}, rows=rows)
+                for key in ('identity_frame', 'rotated', 'v4_procedural')}, rows=rows)
     (OUTPUT / 'body-frames.json').write_text(json.dumps(result, indent=2) + '\n')
     lines = ['# Frozen v5 body-frame trace', '', result['note'], '',
         'Identity below means a coordinate map, not identical surfaces. Full SHA-256 and origins are in body-frames.json.', '',

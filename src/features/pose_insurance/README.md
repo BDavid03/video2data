@@ -654,22 +654,21 @@ task, mesh and URDF. The 36-pair trace is
 `data/outputs/pose_insurance/combined-v5/body-frames.{json,md}`. No simulated OBJ is
 byte-identical to its D1 PLY. Thirty-two D1 shapes retain the shared bounds-centred
 long-x/short-y/height-z coordinate convention, two episode-19 shapes receive the
-recorded TW geometry rotation, and two use the exact simulated mesh: episode 5
-`white_pot` and episode 20 `water_pitcher`. Hunyuan raw meshes have no recorded
-metric scale/origin/axes map into those rollouts. Their fallback sacrifices D1 v5's
-generated surfaces on CD-O. The other D1 pooled dimensions are retained in metres;
+recorded TW geometry rotation, and two keep their procedural v4 shape from the same
+constructor: episode 5 `white_pot` (the same mesh as every other pot pair) and episode 20
+`water_pitcher`. Hunyuan raw meshes have no recorded metric scale/origin/axes map into
+those rollouts, so this gives up D1 v5's generated surfaces on CD-O. An earlier draft
+used the simulated boxes for those two, which would have cost more; it was never
+uploaded. The other D1 pooled dimensions are retained in metres;
 they can differ from simulated bounds. A coordinate map is not a claim that two
 different reconstructions are rigidly congruent. All URDF visual origins are
 identity; TW's collision origin is already handled in its task producer.
 
-The dry artifact is
-`data/.runtime/tmp/combined-dry/track3_combined_v5_DRY.parquet`, with its manifest,
-pack/preflight logs and uploader dry-run log beside it. It passes local preflight,
-all 9,120 pose rows compare successfully, and the maximum scalar difference is
-`4.982452392610082e-7`. The extracted CD-O file differs from D1 on 24,575 of 294,912
-rows, restricted to the two fallbacks and the two rotated episode-19 shapes.
+The release pack passes local preflight, all 9,120 pose rows compare successfully, and
+the maximum scalar difference is `4.982452392610082e-7`. The extracted CD-O file differs
+from D1 v5 only on the two v4 shapes and the two rotated episode-19 shapes.
 An ideal rigid registration preserves episode-19 CD-O, but finite sampling and
-multi-start ICP can change its measured value. The fallbacks change its surfaces;
+multi-start ICP can change its measured value. The v4 shapes change their surfaces;
 their confidential CD-O effect cannot be computed locally.
 
 `combined_score.py` runs a resumable measurement queue, not a search. It calls the
@@ -735,10 +734,10 @@ The unedited uploader sends `FILE` to AUC, SP-SR, MP-SR, RPE and MPPE. It writes
 network preflight. The dry-run succeeded here, contrary to the expected network
 restriction, and explicitly reported nothing submitted.
 
-To submit only the five pose metrics while retaining the existing D1 CD-O entry,
-the lead can append `--only add_auc spider_sr maniptrans_sr rpe_cm mppe_cm` to the
-uploader command. The default command above sends to all six; the two fallback
-surfaces then also enter CD-O. This job makes no choice of leaderboard entries.
+**Send it to all six, not `--only` the five pose metrics.** The organisers' form asks
+for the same single submission on each leaderboard of a track, and marks failure as a
+possible delay or forfeit. So this file also becomes the CD-O entry, and D1 v5's upload
+stays on that board unselected.
 
 The optional `check_release.sh --combined MANIFEST` adds current-kit verification
 without changing the selected historical v5 entries in `release.json` or removing

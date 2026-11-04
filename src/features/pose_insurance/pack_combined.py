@@ -73,7 +73,7 @@ def extract_cd_o(parquet):
     identifiers = left.index[different].tolist()
     return dict(file=entry(target), changed_rows=int(different.sum()), total_rows=len(frame),
         changed_object_prefixes=sorted({s.rsplit('_', 2)[0] for s in identifiers}),
-        note='Two simulated fallbacks change surfaces. Episode 19 is rigidly rotated: '
+        note='Pot 5 and pitcher 20 keep v4 procedural shapes in place of Hunyuan. Episode 19 is rigidly rotated: '
              'ideal registered CD-O is invariant, but finite multi-start ICP and sampling can change it.')
 
 
@@ -128,7 +128,7 @@ def pack(url, output, dry=False):
             raise ValueError(f'Frozen export mismatch: {path}')
         shutil.copyfile(path, results / path.name)
     for row in frames['rows']:
-        for key in ('combined_mesh', 'task', 'rollout', 'sim_mesh', 'urdf', 'd1_mesh'):
+        for key in ('combined_mesh', 'task', 'rollout', 'sim_mesh', 'urdf', 'd1_mesh', 'source_mesh'):
             item = row[key]
             if sha256_file(project_path(ROOT, item['path'])) != item['sha256']:
                 raise ValueError(f"Body-frame trace changed: {item['path']}")
