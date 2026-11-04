@@ -1,6 +1,6 @@
 # Seeing what the models do
 
-Recorded state: 4 November 2026, including a CPU replay with policy hands and real-video pixel masks.
+Recorded state: 4 November 2026, including the finished M2 pan policy, CPU replays with policy hands and real-video pixel masks.
 
 ## What the challenge asks
 
@@ -21,6 +21,8 @@ The comparison uses challenge training episodes only; the example box's score is
 Two completed policies now move the supplied tissue box along its goal path. One resumed earlier training; the other started from nothing, with a different random seed. Their example-task fit scores are **0.981 and 0.979**, and mean position errors are **0.562 and 0.516 cm**. The earlier partial policy averaged **6.803 cm**. These are simulator exports with evaluation assistance removed.
 
 The example is slow, mostly vertical, and comes with its own captured hands and mesh. It reaches only about 9 cm/s and rotates 5.4 degrees. **Its roughly 0.98 score is not a challenge score.** Several training settings changed together, so the records do not isolate which change caused the improvement.
+
+The pan result below is the next step: our first moving result on a challenge-type clip, on practice episode 39. It uses a motion-capture goal, which scored episodes do not provide. It is not a challenge result.
 
 ## What the pictures show
 
@@ -81,11 +83,39 @@ Masks mark pixels assigned to each object. Cup/rack and sweeper/rack are separat
 
 This reference moves about eight times faster than the example box and rotates 109 degrees. Its original setup checks stopped before training: the saved strip is a proposed reference, not a learned rollout. A disclosed redesign is in the protocol; no success from it is claimed here.
 
-The earlier episode-39 setup launched the pan into the air in simulation. A smaller support and a sturdier mass and inertia for the pan now let it rest properly in the recorded setup checks. **Training is under way.** This describes the corrected setup and work in progress; it states no training or scoring outcome.
+The earlier episode-39 setup launched the pan into the air in simulation. A smaller support, and the supplied example's stand-in weight (0.3 kg, not the real pan's), kept it inside the setup check's limits: it moved 2.3 mm and tilted 1.84 degrees against limits of 1 cm and 2 degrees, a narrow margin. **Training has now finished: the policy follows the motion-capture goal in the recorded evaluation.** The result and its limits are below.
+
+### The pan now moves: a practice result with a motion-capture goal
+
+**This is our first moving result on a challenge-type clip, on practice episode 39.** The policy was trained by trial and error in simulation, **from nothing, in 57.98 minutes—under an hour**. It uses our own reconstructed pan shape. The goal path comes from motion capture, and the hand arrangement comes from a fixed rule on our shape. Neither the motion goal nor the hand arrangement was recovered from video. The real-video masks elsewhere in this report did not feed this policy.
+
+![Three saved pan policies and the final goal-versus-achieved height](figures/14-pan-learning.png)
+
+| Saved policy | Wall time when saved | Fit score (AUC) | Mean position error | Mean angle error |
+| --- | ---: | ---: | ---: | ---: |
+| 16 million training steps | 16.73 min | 0.168 | 13.74 cm | 119.74° |
+| 33 million training steps | 25.82 min | 0.951 | 1.03 cm | 1.46° |
+| 67 million training steps, finished | 57.62 min | 0.982 | 0.62 cm | 0.92° |
+
+Held still on this episode, the fit score is about **0.17**. The finished policy's mean position error is **0.619 cm**, and its mean angle error is **0.922 degrees**. It reaches the end of the reference without resets during the rollout. Its recorded motion gain is **1.006**, close to the goal's movement scale, and motion agreement is **0.992**; the point-based pose error is **0.70 cm**. The threshold-based single-object tracking success is 1.0 on this one rollout; it is not success across many tasks. This is one seed on one practice episode. Lines join the three measurements without smoothing; the saved-policy times include simulator startup, and the whole run took 57.98 minutes. These checkpoints were fixed in advance, not selected as the best of a search.
+
+The height plot uses the official final export. Its goal and achieved paths are close, with visible lag around the return towards the table at roughly 7–8 seconds. Agreement here does not establish that a noisy path estimated from camera footage will work. The reported AUC uses the kit's recorded measurement against public motion capture and scan surface points; the simulated pan itself contains no scan geometry. This report rebuild reads saved measurements and does not open a scan or rescore the policy.
+
+![The pan and the actual policy hands at six moments](figures/15-pan-policy-hands.png)
+
+Teal and purple show the simulated robot hands actually driven by the policy. Amber is our pan mesh; the dashed blue goal uses that same mesh and pose transform, including the handle. These are a CPU replay of the finished checkpoint. Against the official achieved path, the replay differs by **0.305 cm on average and 2.118 cm at most**, without alignment. The pictures draw what this CPU run actually did; this diagnostic is never scored or packed.
+
+The left hand props up the broad scoop edge while the right supports the circular handle end. Both palms stay quite open, with several fingers stretched out or sticking away from the pan. This looks like an unusual two-handed tray carry; a clear closed handle grip is not visible. The simplified model's circular handle is filled in. The motion looks coordinated, but the hold is not evidence of human-like dexterity.
+
+Both hands have raw object contacts on **177 of 180 steps** with the pan's origin more than 5 cm above its starting height. Support contact force is still reported on **3** of those steps during the moving and tilting sequence. Raw contact-force sums peak at **7.8 and 3.9 kN** for the two hands. These are large, unverified simulator readings, not evidence of realistic grip strength or a secure grasp.
+
+[Watch the whole pan-policy CPU replay](figures/15-pan-policy-hands.mp4)
+
+**Not a challenge result; scored episodes have no motion capture, so a goal path from video has to replace it, and that has not been shown.**
 
 ## What is still unproven
 
-Transferring the box result to a challenge episode still needs a usable object reconstruction, a reliable path from video, hands that can follow it, and a learned policy that moves the object physically. None of those links is established by the box's score. FoundationPose has only been screened on two used pairs and is not in the entry. The challenge result remains static.
+M2 now shows a learned policy moving our pan physically on a practice episode when given a motion-capture goal. The central missing link is a reliable goal path from video: the scored episodes provide no motion capture. Neither the box result nor M2 establishes that link, a natural hand grip or performance on other objects. FoundationPose has only been screened on two used pairs and is not in the entry. The prepared challenge entry remains static.
 
 ### Real-video masks: what the vision step sees
 
@@ -101,6 +131,6 @@ Rebuild all figures, animations, the table and this report on CPU:
 CUDA_VISIBLE_DEVICES='' JAX_PLATFORMS=cpu PYTHONPATH=. data/.runtime/linux-cuda/bin/python -B scripts/report/nontechnical_figures.py
 ```
 
-Add `--replay` to explicitly rebuild the CPU policy diagnostic first; the default reads its saved arrays. See [replay instructions](README.md). Input SHA-256 hashes and per-figure source mappings: `data/outputs/visuals/inputs.json`; numeric checks and build details: `data/outputs/visuals/build-summary.json`. The default reads saved outputs, cached camera frames, installed visual meshes and recorded notes; it does not run a model or read a scan.
+Add `--replay` to explicitly rebuild both CPU policy diagnostics first, or `--replay-pan` for the pan alone; the default reads saved arrays. See [replay instructions](README.md). Input SHA-256 hashes and per-figure source mappings: `data/outputs/visuals/inputs.json`; numeric checks and build details: `data/outputs/visuals/build-summary.json`. The default reads saved outputs, cached camera frames, installed visual meshes and recorded notes; it does not run a model or read a scan.
 
-Evidence: [box outcomes](../../chain/moving-m0b-outcome.md), [earlier policy](../../chain/moving-m0-outcome.md), [pose pilot](../../chain/foundationpose-pilot-outcome.md), [frame-zero panel](../../chain/frame0-panel-outcome.md), [episode-39 state](../../chain/moving-m2-protocol.md), [entry facts](../../chain/COMPLETION-PLAN.md#1-where-the-entry-really-stands).
+Evidence: [box outcomes](../../chain/moving-m0b-outcome.md), [earlier policy](../../chain/moving-m0-outcome.md), [pose pilot](../../chain/foundationpose-pilot-outcome.md), [frame-zero panel](../../chain/frame0-panel-outcome.md), [pan outcome](../../chain/moving-m2-outcome.md), [episode-39 protocol](../../chain/moving-m2-protocol.md), [entry facts](../../chain/COMPLETION-PLAN.md#1-where-the-entry-really-stands).

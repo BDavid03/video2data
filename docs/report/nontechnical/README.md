@@ -23,31 +23,32 @@ official export. Quaternion order is xyzw in both records. The per-step angle
 arrays and bounds diagnosis are in `data/outputs/visuals/goal-box-angle-audit.json`.
 The large apparent angle in the earlier drawing was a bounds-frame error.
 
-To rerun the CPU policy diagnostic before rebuilding everything, add `--replay`.
+To rerun both CPU policy diagnostics before rebuilding everything, add `--replay`.
+Use `--replay-pan` to rerun only the finished M2 pan policy.
 This launches the isolated FlashCHORD interpreter. It never scores or packs the
 diagnostic and never accesses the GPU. Its log is
 `data/outputs/visuals/policy-hands/m0c/replay.log`; completion is recorded in
 `status.json`, with data and comparison details in `summary.json`.
 
-For a different finished checkpoint, including the episode-39 policy later:
+To replay the finished episode-39 policy directly:
 
 ```bash
 CUDA_VISIBLE_DEVICES='' JAX_PLATFORMS=cpu data/.runtime/flashchord/venv/bin/python -u -B scripts/report/policy_hands.py \
-  --checkpoint data/outputs/moving_policy/ep39-a1/training/policy_STEP.safetensors \
+  --checkpoint data/outputs/moving_policy/ep39-a1/training/policy_66763776.safetensors \
   --task data/outputs/moving_policy/ep39-a1/motion/sequence_id=episode_000039/robot_name=sharpa_wave/task.parquet \
   --output data/outputs/visuals/policy-hands/ep39 \
-  --no-official
+  --official data/outputs/moving_policy/ep39-a1/score-66763776/trajectory.parquet
 ```
 
-Replace `STEP` with the finished checkpoint. If a matching official export is
-available, replace `--no-official` with `--official PATH/trajectory.parquet`.
+For another checkpoint, pass its task, output directory and matching official
+export; use `--no-official` if no matching export is available.
 Checkpoint identity must match the export's metadata. Only FlashSAC is supported.
 The script accepts arbitrary reference lengths and preserves the checkpoint's
 frame window, speed, support, collision, timing and curriculum configuration.
 Its explicit changes are one world, CPU, deterministic inference, frame-zero
 reset and the upstream evaluation composition that removes assistance. CPU
 execution uses the same uncaptured `env.step`; GPU graph capture is omitted.
-The report currently renders the fixed M0c artifact. To show another saved
+The report renders the fixed M0c and M2 final artifacts. To show another saved
 replay, add it deliberately to the report builder after inspecting it.
 
 The replay arrays contain each body's position and xyzw orientation after each
@@ -73,9 +74,32 @@ unavailable and were not used. Pixel masks do not establish world-space tracking
 At 10 seconds in 39, one hand mask marks a bystander's hand; hand identity is
 therefore not reliable throughout this clip.
 
-`data/outputs/visuals/episode39-setup.json` is a dated snapshot of setup evidence
-and training state, with source hashes. It intentionally contains no training or
-scoring outcome. The lead owns later outcome updates.
+`14-pan-learning.png` shows the three fixed M2 checkpoint AUC measurements
+(0.168, 0.951, 0.982), the held-still level of about 0.17, and the final official
+goal/achieved height paths. Checkpoint save times (16.73, 25.82, 57.62 minutes)
+come from retained file timestamps relative to the handler start, snapshotted in
+`data/outputs/visuals/pan-checkpoint-times.json`. Times include startup; the full
+run finished in 57.98 minutes. Evaluations ran afterwards. Lines connect the
+measurements without smoothing; no intermediate evaluations are implied.
+
+`15-pan-policy-hands.png` and `.mp4` show the actual policy links and our own pan
+mesh in a CPU replay. The goal contours use the same mesh, scale and xyzw body
+transform, with view-dependent silhouette and sharp feature edges. The CPU path
+differs from the official achieved path by 0.305 cm mean and 2.118 cm maximum.
+The hands form an unusual two-handed tray-like support with open fingers; the
+model's circular handle is filled in. Both hands have raw contacts on 177 of 180
+steps more than 5 cm above the starting origin height. This is not evidence of a
+natural or secure grip. Contact forces are large and unverified.
+
+M2 is one seed, trained by trial and error in simulation from nothing, with our
+shape and a motion-capture goal on practice episode 39. It is the first moving
+result on a challenge-type clip in this project. **Not a challenge result;
+scored episodes have no motion capture, so a goal path from video has to replace
+it, and that has not been shown.** No scan is read by the report rebuild or CPU
+diagnostic; the displayed kit measurements were computed earlier by the slice.
+
+`data/outputs/visuals/episode39-setup.json` retains the older dated setup/training
+snapshot. The report now uses the completed M2 outcome and recorded metrics.
 
 Provenance: `data/outputs/visuals/inputs.json` maps figures to hashed inputs;
 `build-summary.json` records numeric checks, decoded video frames and file paths.

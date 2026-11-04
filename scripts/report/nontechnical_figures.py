@@ -523,10 +523,69 @@ def harder_task() -> None:
          "Episode 39's reference moves about eight times faster than the box; the original setup's checks stopped before training, and this strip shows a constructed reference rather than a policy.")
 
 
-def policy_hands_visuals() -> dict:
+def pan_learning() -> dict:
+    """Present the three fixed M2 measurements and its official final height path."""
+    used = []
+    base = "data/outputs/moving_policy/ep39-a1"
+    read_bytes("docs/chain/moving-m2-outcome.md", used)
+    read_bytes(f"{base}/result.md", used)
+    run = read_json(f"{base}/train.run.json", used)
+    steps = (16154624, 32814080, 66763776)
+    time_path = OUTPUT / "pan-checkpoint-times.json"
+    if not time_path.exists():
+        saved_times = []
+        for step in steps:
+            path = ROOT / base / f"training/policy_{step}.safetensors"
+            with path.open("rb") as stream:
+                digest = hashlib.file_digest(stream, "sha256").hexdigest()
+            saved_times.append({"transitions": step, "path": str(path.relative_to(ROOT)),
+                                "sha256": digest, "modified_unix": path.stat().st_mtime,
+                                "minutes_from_handler_start": (path.stat().st_mtime-run["started_unix"])/60})
+        time_path.write_text(json.dumps({"source": "Retained checkpoint save timestamps, including simulator startup; snapshotted before report rebuilds. These are policy-save times, not later evaluation times.",
+                                        "handler_started_unix": run["started_unix"],
+                                        "handler_finished_unix": run["finished_unix"],
+                                        "checkpoints": saved_times}, indent=2)+"\n")
+    timing = read_json("data/outputs/visuals/pan-checkpoint-times.json", used)
+    rows = [read_json(f"{base}/score-{step}/mocap_metrics.json", used) for step in steps]
+    minutes = [row["minutes_from_handler_start"] for row in timing["checkpoints"]]
+    auc = [row["kit"]["AUC"] for row in rows]
+    frame = pd.read_parquet(io.BytesIO(read_bytes(f"{base}/score-66763776/trajectory.parquet", used))).sort_values("step")
+    if len(frame) != 319 or not frame.environment_valid.all() or frame.environment_id.nunique() != 1:
+        raise ValueError("Expected the valid one-world, 319-step M2 export")
+    fig, axes = plt.subplots(1, 2, figsize=(13, 5.4))
+    fig.subplots_adjust(left=.07, right=.98, bottom=.25, top=.73, wspace=.27)
+    fig.suptitle("A pan policy learned the mocap path in under an hour.", x=.035, ha="left", y=.98, fontsize=21)
+    fig.text(.035, .87, "Practice episode 39 • own reconstructed pan • one fresh-start seed • no video-derived goal", fontsize=12)
+    ax = axes[0]
+    ax.axhline(.17, color=GREY, ls="--", label="Held still: about 0.17")
+    ax.plot(minutes, auc, "o-", color=AMBER, label="Measured saved policies")
+    for x, y, label in zip(minutes, auc, ("16M", "33M", "67M"), strict=True):
+        ax.annotate(f"{label}: {y:.3f}", (x, y), xytext=(0, -22 if y > .9 else 12),
+                    textcoords="offset points", ha="center", fontsize=10)
+    ax.set(xlabel="Training wall time when saved (minutes)", ylabel="Mocap fit score (AUC)",
+           xlim=(0, 62), ylim=(0, 1.08), title="Three recorded measurements")
+    ax.legend(loc="center right", fontsize=9)
+    zero = float(frame.reference_position_z.iloc[0])
+    axes[1].plot(frame.time_s, (frame.reference_position_z-zero)*100, color=BLUE, label="Mocap goal")
+    axes[1].plot(frame.time_s, (frame.achieved_position_z-zero)*100, color=AMBER, ls="--", label="Official policy rollout")
+    axes[1].set(xlabel="Clip time (seconds)", ylabel="Height above goal start (cm)",
+                title="Finished policy: goal and achieved height", xlim=(0, float(frame.time_s.max())))
+    axes[1].legend(fontsize=9)
+    footnote(fig, "Not a challenge result; scored episodes have no motion capture, so a goal path from video has to replace it, and that has not been shown. Lines connect measurements without smoothing. Save times include startup; the full run took 57.98 minutes.", 151)
+    save(fig, "14-pan-learning.png", used,
+         "Not a challenge result; scored episodes have no motion capture, so a goal path from video has to replace it, and that has not been shown.")
+    return {"checkpoint_transitions": list(steps), "checkpoint_save_minutes": minutes,
+            "auc": auc, "held_still_auc": .17, "training_wall_minutes": (run["finished_unix"]-run["started_unix"])/60,
+            "final_position_error_cm": rows[-1]["E_m"]*100,
+            "final_angle_error_degrees": rows[-1]["Theta_deg"], "final_T": rows[-1]["motion"]["T"],
+            "final_Q": rows[-1]["motion"]["Q"], "final_SP_SR": rows[-1]["kit"]["SP_SR"],
+            "final_MPPE_cm": rows[-1]["kit"]["MPPE_cm"], "height_source": "Official final export"}
+
+
+def policy_hands_visuals(base="data/outputs/visuals/policy-hands/m0c",
+                         figure_stem="12-policy-hands", pan=False) -> dict:
     """Draw actual recorded links, using the scene's own simplified visual meshes."""
     used = []
-    base = "data/outputs/visuals/policy-hands/m0c"
     summary = read_json(f"{base}/summary.json", used)
     contacts = read_json(f"{base}/contacts.json", used)
     with np.load(io.BytesIO(read_bytes(f"{base}/replay.npz", used))) as data:
@@ -541,15 +600,17 @@ def policy_hands_visuals() -> dict:
     facts = {"high_carry_frames": int(high_carry.sum()),
              "both_hands_high_carry_frames": int((high_carry & both).sum()),
              "visual_description": "The box sits between two curled hands at opposite ends. The thumbs lie along its upper sides while other fingers wrap around the ends; the hands lift and lower it together, then open again. This looks like a two-handed side hold. Its security outside the simulation is unmeasured.",
-             "definition": "High carry: box origin >5 cm above its replay starting height. Both: raw object contact with at least one body of each hand.",
+             "definition": "High carry: object origin >5 cm above its replay starting height. Both: raw object contact with at least one body of each hand.",
              "inputs": {p: MANIFEST["inputs"][p]["sha256"] for p in used}}
+    if pan:
+        facts["visual_description"] = "The left hand props up the broad scoop edge while the right supports the circular handle end. Both palms stay quite open, with several fingers stretched out or sticking away from the pan. This looks like an unusual two-handed tray carry; a clear closed handle grip is not visible. The simplified model's circular handle is filled in. The motion looks coordinated, but the hold is not evidence of human-like dexterity."
     facts["raw_force_sum_N"] = {}
     for side in ("left", "right", "support"):
         force = np.array([sum(np.linalg.norm(p["force_N"]) for p in row["pairs"]
                               if side in p["other_body"]) for row in contacts])
         facts["raw_force_sum_N"][side] = {"peak_high_carry": float(force[high_carry].max()),
                                          "high_carry_frames_above_0_1N": int((force[high_carry] > .1).sum())}
-    (OUTPUT / "policy-hands/m0c/contact-facts.json").write_text(json.dumps(facts, indent=2)+"\n")
+    (ROOT / base / "contact-facts.json").write_text(json.dumps(facts, indent=2)+"\n")
     # Camera coordinates: x right, y up, z toward the viewer. Fixed over the clip.
     eye = np.array([1., -1.6, .9]); eye /= np.linalg.norm(eye)
     right = np.cross([0., 0., 1.], eye); right /= np.linalg.norm(right)
@@ -560,12 +621,22 @@ def policy_hands_visuals() -> dict:
     corners, oriented_extents = mesh_box_corners(local_object)
     edges = [(i, j) for i in range(8) for j in range(i + 1, 8)
              if (i ^ j) in (1, 2, 4)]
+    if pan:
+        # Goal contours use the same actual pan mesh, including its handle.
+        goal_mesh = trimesh.util.concatenate([
+            trimesh.Trimesh(vertices=v, faces=f, process=False)
+            for info, v, f in meshes if info["body"] == object_id])
+        goal_vertices = np.asarray(goal_mesh.vertices)
+        adjacency = goal_mesh.face_adjacency
+        feature = goal_mesh.face_adjacency_angles > np.deg2rad(25)
+        boundary = goal_mesh.edges_unique[np.bincount(goal_mesh.edges_unique_inverse,
+                                                     minlength=len(goal_mesh.edges_unique)) == 1]
 
     def world_mesh(frame):
         return [(info, transform_local_points(v, poses[frame, info["body"]]), f)
                 for info, v, f in meshes]
 
-    moments = [0, 50, 100, 190, 290, len(poses) - 1]
+    moments = np.linspace(0, len(poses)-1, 6).round().astype(int).tolist() if pan else [0, 50, 100, 190, 290, len(poses) - 1]
     projected = np.concatenate([v @ camera.T for t in moments for _, v, _ in world_mesh(t)])
     lower, upper = projected[:, :2].min(axis=0), projected[:, :2].max(axis=0)
     center = (lower + upper) / 2
@@ -600,16 +671,25 @@ def policy_hands_visuals() -> dict:
         # Painter ordering gives an opaque orthographic mesh illustration.
         for i in np.argsort(depths):
             cv2.fillConvexPoly(canvas, polygons[i], tuple(int(c) for c in colours[i]), cv2.LINE_AA)
-        goal = transform_local_points(corners, reference[frame, 0])
+        if pan:
+            goal = transform_local_points(goal_vertices, reference[frame, 0])
+            normal = Rotation.from_quat(reference[frame, 0, 3:]).apply(goal_mesh.face_normals)
+            facing = normal @ eye >= 0
+            silhouette = facing[adjacency[:, 0]] != facing[adjacency[:, 1]]
+            draw_edges = np.vstack([goal_mesh.face_adjacency_edges[feature | silhouette], boundary])
+        else:
+            goal = transform_local_points(corners, reference[frame, 0])
+            draw_edges = edges
         outline, _ = project(goal)
-        for a, b in edges:
+        for a, b in draw_edges:
             length = np.linalg.norm(outline[b]-outline[a])
             for offset in np.arange(0, length, 12):
                 begin = outline[a] + (outline[b]-outline[a]) * offset / max(length, 1)
                 end = outline[a] + (outline[b]-outline[a]) * min(offset+6, length) / max(length, 1)
                 cv2.line(canvas, tuple(begin.astype(int)), tuple(end.astype(int)), (42, 120, 214), 2, cv2.LINE_AA)
-        cv2.putText(canvas, f"Same policy, CPU replay | {times[frame]:.2f} s", (28, 38), cv2.FONT_HERSHEY_SIMPLEX, .8, (32, 40, 51), 2, cv2.LINE_AA)
-        cv2.putText(canvas, "Teal: left hand   Purple: right hand   Amber: box   Dashed blue: goal", (28, 75), cv2.FONT_HERSHEY_SIMPLEX, .53, (32, 40, 51), 1, cv2.LINE_AA)
+        title = "Mocap-39 pan policy, CPU replay" if pan else "Same policy, CPU replay"
+        cv2.putText(canvas, f"{title} | {times[frame]:.2f} s", (28, 38), cv2.FONT_HERSHEY_SIMPLEX, .8, (32, 40, 51), 2, cv2.LINE_AA)
+        cv2.putText(canvas, "Teal: left hand   Purple: right hand   Amber: object   Dashed blue: goal", (28, 75), cv2.FONT_HERSHEY_SIMPLEX, .53, (32, 40, 51), 1, cv2.LINE_AA)
         count = contacts[frame]["object_contacts"]
         cv2.putText(canvas, f"Object contacts: {count} | Goal orientation error: {tracking_angles[frame]:.2f} deg", (28, 641), cv2.FONT_HERSHEY_SIMPLEX, .65, (32, 40, 51), 1, cv2.LINE_AA)
         cv2.line(canvas, (770, 624), (770+int(.05*scale), 624), (32, 40, 51), 3)
@@ -622,17 +702,22 @@ def policy_hands_visuals() -> dict:
     sheet = Image.new("RGB", (2880, 1440), "white")
     for n, frame in enumerate(moments):
         sheet.paste(Image.fromarray(image(frame)), ((n % 3)*960, (n // 3)*720))
-    sheet.save(FIGURES / "12-policy-hands.png")
+    sheet.save(FIGURES / f"{figure_stem}.png")
     caption = ("The policy's actual links and the box in a CPU replay of the finished checkpoint. "
                "Simplified installed Sharpa visual meshes; dashed blue goal follows the object's mesh-oriented bounds. "
                "Diagnostic only, never scored or packed; CPU physics can differ from the official export.")
-    register(FIGURES / "12-policy-hands.png", used, caption, source_frames=moments)
-    video = FIGURES / "12-policy-hands.mp4"
-    writer = cv2.VideoWriter(str(video), cv2.VideoWriter_fourcc(*"mp4v"), 10., (960, 720))
+    if pan:
+        caption = ("Practice episode 39, own pan reconstruction, mocap goal and actual policy hands in a CPU diagnostic. "
+                   "Not a challenge result; scored episodes have no motion capture, so a goal path from video has to replace it, and that has not been shown.")
+    register(FIGURES / f"{figure_stem}.png", used, caption, source_frames=moments)
+    video = FIGURES / f"{figure_stem}.mp4"
+    stride = max(1, round(summary["control_fps"] / 10))
+    fps = summary["control_fps"] / stride
+    writer = cv2.VideoWriter(str(video), cv2.VideoWriter_fourcc(*"mp4v"), fps, (960, 720))
     if not writer.isOpened():
         raise RuntimeError("MP4 encoder unavailable")
-    # Include all 13 seconds at their original speed, with the last sample retained.
-    sampled = list(range(0, len(poses), 3))
+    # Preserve the source clock over the whole reference, including its last step.
+    sampled = list(range(0, len(poses), stride))
     if sampled[-1] != len(poses)-1:
         sampled.append(len(poses)-1)
     for frame in sampled:
@@ -646,7 +731,7 @@ def policy_hands_visuals() -> dict:
         ok, frame = capture.read()
         if not ok:
             break
-        if decoded in (0, 17, 63, len(sampled)-1):
+        if decoded in (0, len(sampled)//6, len(sampled)//2, len(sampled)-1):
             previews.append(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))
         decoded += 1
     capture.release()
@@ -655,11 +740,12 @@ def policy_hands_visuals() -> dict:
     review = Image.new("RGB", (1920, 1440), "white")
     for i, preview in enumerate(previews):
         review.paste(preview, ((i % 2)*960, (i // 2)*720))
-    review.save(OUTPUT / "review-policy-hands-video.png")
-    register(video, used, caption, frames=decoded, fps=10, bytes=video.stat().st_size)
+    review_path = OUTPUT / ("review-pan-policy-hands-video.png" if pan else "review-policy-hands-video.png")
+    review.save(review_path)
+    register(video, used, caption, frames=decoded, fps=fps, bytes=video.stat().st_size)
     return {"official_comparison": comparison, "frames_decoded": decoded,
             "video_bytes": video.stat().st_size, "render_geometry": summary["geometry"],
-            "goal_bound_geometry": "Oriented bounds of the same body-local visual mesh; shared xyzw pose transform",
+            "goal_bound_geometry": "Same body-local pan mesh, silhouette/feature edges and shared xyzw pose transform" if pan else "Oriented bounds of the same body-local visual mesh; shared xyzw pose transform",
             "drawn_oriented_mesh_dimensions_cm": (oriented_extents * 100).tolist()}
 
 
@@ -750,11 +836,15 @@ def write_report(table: str, metrics: dict) -> None:
         read_bytes(path, used)
     comparison = metrics["policy_hands"]["official_comparison"]
     contact_facts = read_json("data/outputs/visuals/policy-hands/m0c/contact-facts.json", used)
-    setup_note = read_json("data/outputs/visuals/episode39-setup.json", used)
     goal_audit = read_json("data/outputs/visuals/goal-box-angle-audit.json", used)
+    pan_facts = read_json("data/outputs/visuals/policy-hands/ep39/contact-facts.json", used)
+    pan_metrics = metrics["pan_learning"]
+    pan_comparison = metrics["pan_policy_hands"]["official_comparison"]
+    read_bytes("docs/chain/moving-m2-outcome.md", used)
+    read_bytes("data/outputs/moving_policy/ep39-a1/result.md", used)
     text = f"""# Seeing what the models do
 
-Recorded state: 4 November 2026, including a CPU replay with policy hands and real-video pixel masks.
+Recorded state: 4 November 2026, including the finished M2 pan policy, CPU replays with policy hands and real-video pixel masks.
 
 ## What the challenge asks
 
@@ -775,6 +865,8 @@ The comparison uses challenge training episodes only; the example box's score is
 Two completed policies now move the supplied tissue box along its goal path. One resumed earlier training; the other started from nothing, with a different random seed. Their example-task fit scores are **0.981 and 0.979**, and mean position errors are **0.562 and 0.516 cm**. The earlier partial policy averaged **6.803 cm**. These are simulator exports with evaluation assistance removed.
 
 The example is slow, mostly vertical, and comes with its own captured hands and mesh. It reaches only about 9 cm/s and rotates 5.4 degrees. **Its roughly 0.98 score is not a challenge score.** Several training settings changed together, so the records do not isolate which change caused the improvement.
+
+The pan result below is the next step: our first moving result on a challenge-type clip, on practice episode 39. It uses a motion-capture goal, which scored episodes do not provide. It is not a challenge result.
 
 ## What the pictures show
 
@@ -832,11 +924,39 @@ Masks mark pixels assigned to each object. Cup/rack and sweeper/rack are separat
 
 This reference moves about eight times faster than the example box and rotates 109 degrees. Its original setup checks stopped before training: the saved strip is a proposed reference, not a learned rollout. A disclosed redesign is in the protocol; no success from it is claimed here.
 
-The earlier episode-39 setup launched the pan into the air in simulation. A smaller support and a sturdier mass and inertia for the pan now let it rest properly in the recorded setup checks. **{setup_note['training_state_sentence']}** This describes the corrected setup and work in progress; it states no training or scoring outcome.
+The earlier episode-39 setup launched the pan into the air in simulation. A smaller support, and the supplied example's stand-in weight (0.3 kg, not the real pan's), kept it inside the setup check's limits: it moved 2.3 mm and tilted 1.84 degrees against limits of 1 cm and 2 degrees, a narrow margin. **Training has now finished: the policy follows the motion-capture goal in the recorded evaluation.** The result and its limits are below.
+
+### The pan now moves: a practice result with a motion-capture goal
+
+**This is our first moving result on a challenge-type clip, on practice episode 39.** The policy was trained by trial and error in simulation, **from nothing, in {pan_metrics['training_wall_minutes']:.2f} minutes—under an hour**. It uses our own reconstructed pan shape. The goal path comes from motion capture, and the hand arrangement comes from a fixed rule on our shape. Neither the motion goal nor the hand arrangement was recovered from video. The real-video masks elsewhere in this report did not feed this policy.
+
+![Three saved pan policies and the final goal-versus-achieved height](figures/14-pan-learning.png)
+
+| Saved policy | Wall time when saved | Fit score (AUC) | Mean position error | Mean angle error |
+| --- | ---: | ---: | ---: | ---: |
+| 16 million training steps | {pan_metrics['checkpoint_save_minutes'][0]:.2f} min | 0.168 | 13.74 cm | 119.74° |
+| 33 million training steps | {pan_metrics['checkpoint_save_minutes'][1]:.2f} min | 0.951 | 1.03 cm | 1.46° |
+| 67 million training steps, finished | {pan_metrics['checkpoint_save_minutes'][2]:.2f} min | 0.982 | 0.62 cm | 0.92° |
+
+Held still on this episode, the fit score is about **0.17**. The finished policy's mean position error is **{pan_metrics['final_position_error_cm']:.3f} cm**, and its mean angle error is **{pan_metrics['final_angle_error_degrees']:.3f} degrees**. It reaches the end of the reference without resets during the rollout. Its recorded motion gain is **{pan_metrics['final_T']:.3f}**, close to the goal's movement scale, and motion agreement is **{pan_metrics['final_Q']:.3f}**; the point-based pose error is **{pan_metrics['final_MPPE_cm']:.2f} cm**. The threshold-based single-object tracking success is 1.0 on this one rollout; it is not success across many tasks. This is one seed on one practice episode. Lines join the three measurements without smoothing; the saved-policy times include simulator startup, and the whole run took {pan_metrics['training_wall_minutes']:.2f} minutes. These checkpoints were fixed in advance, not selected as the best of a search.
+
+The height plot uses the official final export. Its goal and achieved paths are close, with visible lag around the return towards the table at roughly 7–8 seconds. Agreement here does not establish that a noisy path estimated from camera footage will work. The reported AUC uses the kit's recorded measurement against public motion capture and scan surface points; the simulated pan itself contains no scan geometry. This report rebuild reads saved measurements and does not open a scan or rescore the policy.
+
+![The pan and the actual policy hands at six moments](figures/15-pan-policy-hands.png)
+
+Teal and purple show the simulated robot hands actually driven by the policy. Amber is our pan mesh; the dashed blue goal uses that same mesh and pose transform, including the handle. These are a CPU replay of the finished checkpoint. Against the official achieved path, the replay differs by **{pan_comparison['mean_m']*100:.3f} cm on average and {pan_comparison['max_m']*100:.3f} cm at most**, without alignment. The pictures draw what this CPU run actually did; this diagnostic is never scored or packed.
+
+{pan_facts['visual_description']}
+
+Both hands have raw object contacts on **{pan_facts['both_hands_high_carry_frames']} of {pan_facts['high_carry_frames']} steps** with the pan's origin more than 5 cm above its starting height. Support contact force is still reported on **{pan_facts['raw_force_sum_N']['support']['high_carry_frames_above_0_1N']}** of those steps during the moving and tilting sequence. Raw contact-force sums peak at **{pan_facts['raw_force_sum_N']['left']['peak_high_carry']/1000:.1f} and {pan_facts['raw_force_sum_N']['right']['peak_high_carry']/1000:.1f} kN** for the two hands. These are large, unverified simulator readings, not evidence of realistic grip strength or a secure grasp.
+
+[Watch the whole pan-policy CPU replay](figures/15-pan-policy-hands.mp4)
+
+**Not a challenge result; scored episodes have no motion capture, so a goal path from video has to replace it, and that has not been shown.**
 
 ## What is still unproven
 
-Transferring the box result to a challenge episode still needs a usable object reconstruction, a reliable path from video, hands that can follow it, and a learned policy that moves the object physically. None of those links is established by the box's score. FoundationPose has only been screened on two used pairs and is not in the entry. The challenge result remains static.
+M2 now shows a learned policy moving our pan physically on a practice episode when given a motion-capture goal. The central missing link is a reliable goal path from video: the scored episodes provide no motion capture. Neither the box result nor M2 establishes that link, a natural hand grip or performance on other objects. FoundationPose has only been screened on two used pairs and is not in the entry. The prepared challenge entry remains static.
 
 ### Real-video masks: what the vision step sees
 
@@ -852,9 +972,9 @@ Rebuild all figures, animations, the table and this report on CPU:
 CUDA_VISIBLE_DEVICES='' JAX_PLATFORMS=cpu PYTHONPATH=. data/.runtime/linux-cuda/bin/python -B scripts/report/nontechnical_figures.py
 ```
 
-Add `--replay` to explicitly rebuild the CPU policy diagnostic first; the default reads its saved arrays. See [replay instructions](README.md). Input SHA-256 hashes and per-figure source mappings: `data/outputs/visuals/inputs.json`; numeric checks and build details: `data/outputs/visuals/build-summary.json`. The default reads saved outputs, cached camera frames, installed visual meshes and recorded notes; it does not run a model or read a scan.
+Add `--replay` to explicitly rebuild both CPU policy diagnostics first, or `--replay-pan` for the pan alone; the default reads saved arrays. See [replay instructions](README.md). Input SHA-256 hashes and per-figure source mappings: `data/outputs/visuals/inputs.json`; numeric checks and build details: `data/outputs/visuals/build-summary.json`. The default reads saved outputs, cached camera frames, installed visual meshes and recorded notes; it does not run a model or read a scan.
 
-Evidence: [box outcomes](../../chain/moving-m0b-outcome.md), [earlier policy](../../chain/moving-m0-outcome.md), [pose pilot](../../chain/foundationpose-pilot-outcome.md), [frame-zero panel](../../chain/frame0-panel-outcome.md), [episode-39 state](../../chain/moving-m2-protocol.md), [entry facts](../../chain/COMPLETION-PLAN.md#1-where-the-entry-really-stands).
+Evidence: [box outcomes](../../chain/moving-m0b-outcome.md), [earlier policy](../../chain/moving-m0-outcome.md), [pose pilot](../../chain/foundationpose-pilot-outcome.md), [frame-zero panel](../../chain/frame0-panel-outcome.md), [pan outcome](../../chain/moving-m2-outcome.md), [episode-39 protocol](../../chain/moving-m2-protocol.md), [entry facts](../../chain/COMPLETION-PLAN.md#1-where-the-entry-really-stands).
 """
     path = REPORT / "report.md"
     path.write_text(text)
@@ -865,6 +985,7 @@ def main() -> None:
     """Rebuild presentation; policy inference requires the explicit --replay flag."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--replay", action="store_true", help="Rebuild the CPU diagnostic before rendering")
+    parser.add_argument("--replay-pan", action="store_true", help="Rebuild only the pan CPU diagnostic before rendering")
     args = parser.parse_args()
     for directory in (OUTPUT, FIGURES):
         directory.mkdir(parents=True, exist_ok=True)
@@ -876,6 +997,18 @@ def main() -> None:
             subprocess.run([str(ROOT / "data/.runtime/flashchord/venv/bin/python"), "-u", "-B",
                             str(ROOT / "scripts/report/policy_hands.py")], cwd=ROOT,
                            stdout=log, stderr=subprocess.STDOUT, check=True)
+    if args.replay or args.replay_pan:
+        replay_output = OUTPUT / "policy-hands/ep39"
+        replay_output.mkdir(parents=True, exist_ok=True)
+        base = ROOT / "data/outputs/moving_policy/ep39-a1"
+        with (replay_output / "replay.log").open("w") as log:
+            subprocess.run([str(ROOT / "data/.runtime/flashchord/venv/bin/python"), "-u", "-B",
+                            str(ROOT / "scripts/report/policy_hands.py"),
+                            "--checkpoint", str(base / "training/policy_66763776.safetensors"),
+                            "--task", str(base / "motion/sequence_id=episode_000039/robot_name=sharpa_wave/task.parquet"),
+                            "--output", str(replay_output),
+                            "--official", str(base / "score-66763776/trajectory.parquet")],
+                           cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True)
     style()
     goal_audit = goal_box_audit()
     height_chart()
@@ -889,16 +1022,19 @@ def main() -> None:
     harder_task()
     policy_hands = policy_hands_visuals()
     pan_masks = pan_mask_visuals()
+    pan_result = pan_learning()
+    pan_hands = policy_hands_visuals("data/outputs/visuals/policy-hands/ep39", "15-pan-policy-hands", pan=True)
     review = review_previews()
     summary = {"learning": learning, "error": error, "policy_visuals": policy,
                "policy_hands": policy_hands, "pan_masks": pan_masks,
                "goal_box_audit": goal_audit,
+               "pan_learning": pan_result, "pan_policy_hands": pan_hands,
                "artifact_review": review,
                "missing": ["No per-frame challenge-object camera tracking exists.",
                            "No independent panel registration estimate on pair 12.",
                            "Warm-start middle checkpoint has only a logged time bound."],
                "checks": {"CPU_only": os.environ["CUDA_VISIBLE_DEVICES"] == "",
-                          "frames_from_recorded_exports": True, "new_model_execution": args.replay}}
+                          "frames_from_recorded_exports": True, "new_model_execution": args.replay or args.replay_pan}}
     write_report(table, summary)
     summary["files_written"] = sorted([
         "scripts/report/nontechnical_figures.py", "data/outputs/visuals/build-summary.json",
