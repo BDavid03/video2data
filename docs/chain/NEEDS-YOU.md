@@ -6,6 +6,14 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
 
 ## Open
 
+**Update 2026-11-04 00:05 UTC: nothing new to upload. D1 v5 and D2 v5 below are still the files.** A further attempt at
+pretrained pot shapes (G3) failed its final check on the packed file, so there is no v6. `git merge --ff-only
+worktree-chain-ctx01` now brings later commits too; they contain `b161723` and `db7b13f`, so the URLs in the packed files
+stay valid and step 1 below is unchanged. The abstract for the report upload was rebuilt: run
+`bash scripts/reproduce/d3_report.sh --run` in the worktree (it prints where `main.pdf` lands; expected
+`62967a99...` at commit `f8068c3`, or the newest one the later hand-offs name). SAM2.1 and Grounding DINO are installed under
+`.runtime/sam2/` and `.runtime/grounding-dino/` on your 19:40 UTC approval; MediaPipe was not installed.
+
 **TWO NEW FILES TO UPLOAD (2026-11-03 21:00 UTC): D1 v5 meshes and D2 v5 poses, replacing D1 v4 and D2 v4.**
 - D1 v5: pretrained Hunyuan3D-2mini shapes for the pot and pitcher where a video-only check accepts them; two scored
   meshes change (evaluation pot 5, pitcher 20). Development CD-O 0.653 -> 0.562 cm (mostly the pitcher; disclosed in

@@ -36,10 +36,10 @@ frame-0 poses held static reaches only 0.532, so about half of AUC is lost to ob
    policies on moving references for the scored episodes. If no: record the measured finding and move to item 3.
 3. [~] Whole-clip mesh reconstruction (multi-frame fusion) in place of primitives, judged on CD-O train/tuning.
    *Context 20: F1 static pre-contact fusion KILL before any score (`4be1a52`): no second frame registered in the 0.6 s before
-   contact (rough motion 2.4-5.2 deg); post-contact fusion needs masks through the clip (SAM2, unapproved). G1 (pretrained shapes) awaits approval.*
+   contact (rough motion 2.4-5.2 deg); post-contact fusion needs masks through the clip (SAM2, unapproved). G1 (pretrained shapes) awaits approval. Context 21: F2 post-contact fusion routed NO-GO for this deadline (IDEAS 59).*
 4. [~] Pretrained models and synthetic data where they serve 1-3 (proposals in `NEEDS-YOU.md` for any new install).
    *Context 20: Hunyuan3D-2mini installed on owner approval; G1 pilot FAIL (rack), G2 pot + pitcher PASS and packed as
-   D1 v5 (`b161723`). SAM2.1 / grounding-dino / MediaPipe approved but not installed.*
+   D1 v5 (`b161723`). SAM2.1 / grounding-dino / MediaPipe approved but not installed. Context 21: SAM2.1 and Grounding DINO installed for G3, which failed its packed veto (protocol `7bc865b`); MediaPipe not installed.*
 5. [~] *(phases 1-2 done, `907bf80`, `4caf513`; plan `docs/chain/restructure-plan.md`)* **Restructure the file system to be less scattered, and remove irrelevant components** (owner, 2026-11-03
    14:15 UTC). Order: (a) a written inventory first (each top-level directory, each slice, each script: used by a
    deliverable, by a recorded result, or by nothing), committed as a plan with the target layout; (b) moves with
