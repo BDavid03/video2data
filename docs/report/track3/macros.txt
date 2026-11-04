@@ -1,0 +1,32 @@
+Default toggle: \movingtrue; episode 38 admitted, nineteen episodes static.
+Static fallback: \movingfalse; twenty static episodes.
+
+\MovingStatus = Episode 38 is admitted.
+\MtwovAUC = 0.775
+\MtwovE = 2.67
+\MtwovTheta = 8.31
+\MtwovSelfT = 1.00
+\MtwovSelfQ = 0.97
+\MtwovSelfE = 1.21
+\MtwovSelfTheta = 1.49
+\MtwovIoUMedian = 0.80
+\MtwovIoUPten = 0.66
+\MtwovNoReset = yes
+\MtwovMinutes = 62
+\ThirtyEightSelfT = 1.026
+\ThirtyEightSelfQ = 0.973
+\ThirtyEightSelfE = 1.42
+\ThirtyEightSelfTheta = 1.59
+\ThirtyEightIoUMedian = 0.778
+\ThirtyEightIoUPten = 0.707
+\ThirtyEightNoReset = yes
+\ThirtyEightMinutes = at least 63
+\SpoonStatus = The same method on three spoon clips stopped at or before reference checks on the clips finished so far; those keep their static exports.
+\LBCDO = [pending]
+\LBAUC = [pending]
+\LBSPSR = [pending]
+\LBMPSR = [pending]
+\LBRPE = [pending]
+\LBMPPE = [pending]
+
+ThirtyEightMinutes is a lower bound, not an exact total. See macro-evidence.json and README.md.
