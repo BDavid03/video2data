@@ -1,0 +1,246 @@
+{
+  "schema_version": 1,
+  "history": "docs/chain/SUBMISSION.md",
+  "scope": "One entry per distinct uploaded file, including scorer-rejected files and extracted CD-O files; repeat upload IDs are retained together. New joint packs append as packed, not uploaded.",
+  "entries": [
+    {
+      "pack_folder": "submission/20261103T2058Z-d1-v5",
+      "file_name": "track3_meshes_v5_final.parquet",
+      "status": "uploaded",
+      "file": {
+        "path": "submission/20261103T2058Z-d1-v5/track3_meshes_v5_final.parquet",
+        "size_bytes": 1850099,
+        "sha256": "bcb93d57d86b4dac06ed21af9af84ce39edffe52b3d9c35e28928391e47e4e58"
+      },
+      "manifest": {
+        "path": "submission/20261103T2058Z-d1-v5/track3_meshes_v5_final.manifest.json",
+        "size_bytes": 1522,
+        "sha256": "fe9d085fd6dd16e0c2cefd01bb5823cd4336a2e59ceaeeffb96fddcdeee93c69"
+      },
+      "archived_manifest": {
+        "path": "docs/submissions/manifests/20261103T2058Z-d1-v5/track3_meshes_v5_final.manifest.json",
+        "size_bytes": 1522,
+        "sha256": "fe9d085fd6dd16e0c2cefd01bb5823cd4336a2e59ceaeeffb96fddcdeee93c69"
+      },
+      "code_commit_url": "https://github.com/BDavid03/video2data/commit/b1617234a85e316baa4a67b7f10ff053f5f92c4d",
+      "model_hashes": null,
+      "uploads": [
+        {
+          "time_utc": "2026-11-04T12:27:38Z",
+          "kaggle_ids": {
+            "cd_o_cm": null
+          },
+          "result": "COMPLETE",
+          "public_score": "0.53562",
+          "evidence": "docs/chain/SUBMISSION.md:10"
+        }
+      ],
+      "note": "Original counted file missing; size is recorded in uploads-28.log. Kaggle ID not retained in the available upload log or submission history."
+    },
+    {
+      "pack_folder": "submission/20261103T2024Z-d2-v5",
+      "file_name": "track3_poses_v5_final.csv",
+      "status": "uploaded",
+      "file": {
+        "path": "submission/20261103T2024Z-d2-v5/track3_poses_v5_final.csv",
+        "size_bytes": 4643781,
+        "sha256": "0b2606aed015fe0a64e31037ff790b5483680c3da7e7a5ae2d503edeb8261035"
+      },
+      "manifest": {
+        "path": "submission/20261103T2024Z-d2-v5/track3_poses_v5_final.manifest.json",
+        "size_bytes": 30439,
+        "sha256": "0fcbfd7d48dc137fc5598adbcb8d609c5de3dd717a87ceb886b9b885e7933f7d"
+      },
+      "archived_manifest": {
+        "path": "docs/submissions/manifests/20261103T2024Z-d2-v5/track3_poses_v5_final.manifest.json",
+        "size_bytes": 30439,
+        "sha256": "0fcbfd7d48dc137fc5598adbcb8d609c5de3dd717a87ceb886b9b885e7933f7d"
+      },
+      "code_commit_url": "https://github.com/BDavid03/video2data/commit/db7b13fc196785e9bf10714cd6e8231d808d06b8",
+      "model_hashes": null,
+      "uploads": [
+        {
+          "time_utc": "2026-11-04T12:30:33Z/2026-11-04T12:30:53Z",
+          "kaggle_ids": {
+            "add_auc": null,
+            "spider_sr": null,
+            "maniptrans_sr": null,
+            "rpe_cm": null,
+            "mppe_cm": null
+          },
+          "result": "ERROR: Track 3 requires reconstructed meshes. Repack with --meshes.",
+          "evidence": "docs/chain/SUBMISSION.md:11"
+        }
+      ],
+      "note": "Uploaded and rejected by all five scorers; preserve its identity. File missing; size from uploads-28.log. Numeric Kaggle IDs were not retained."
+    },
+    {
+      "pack_folder": "submission/20261104T1316Z-d2-combined-v5",
+      "file_name": "track3_combined_v5.parquet",
+      "status": "uploaded",
+      "file": {
+        "path": "submission/20261104T1316Z-d2-combined-v5/track3_combined_v5.parquet",
+        "size_bytes": 268920,
+        "sha256": "ddfc98b3e6d9bd10b31092903fdc93e1e22624d1f2ddc545b1d8f64c4ebf9342"
+      },
+      "manifest": {
+        "path": "submission/20261104T1316Z-d2-combined-v5/track3_combined_v5.manifest.json",
+        "size_bytes": 28064,
+        "sha256": "68441b9705344f54c926cccf3b5c3b910d7e20e27ad501c64c3c7fd3b7fa279c"
+      },
+      "archived_manifest": {
+        "path": "docs/submissions/manifests/20261104T1316Z-d2-combined-v5/track3_combined_v5.manifest.json",
+        "size_bytes": 28064,
+        "sha256": "68441b9705344f54c926cccf3b5c3b910d7e20e27ad501c64c3c7fd3b7fa279c"
+      },
+      "code_commit_url": "https://github.com/BDavid03/video2data/commit/02117aca7ac721c29e9a77d9fb8942347584d63b",
+      "model_hashes": null,
+      "uploads": [
+        {
+          "time_utc": "2026-11-04T14:15Z",
+          "kaggle_ids": {
+            "add_auc": 57987376,
+            "spider_sr": 57987381,
+            "maniptrans_sr": 57987383,
+            "rpe_cm": 57987384,
+            "mppe_cm": 57987386
+          },
+          "result": "COMPLETE",
+          "evidence": "submission/20261104T1316Z-d2-combined-v5/track3_combined_v5.parquet.30fbd93e365e.kaggle-receipt.json"
+        }
+      ],
+      "note": "One file uploaded to the five pose boards."
+    },
+    {
+      "pack_folder": "submission/20261104T1316Z-d2-combined-v5",
+      "file_name": "track3_combined_v5.cd-o.parquet",
+      "status": "uploaded",
+      "file": {
+        "path": "submission/20261104T1316Z-d2-combined-v5/track3_combined_v5.cd-o.parquet",
+        "size_bytes": 1667696,
+        "sha256": "9dd41107007df2436df98fad6d21b76c0c2b01823c4624f318cb63a2f259d52f"
+      },
+      "manifest": {
+        "path": "submission/20261104T1316Z-d2-combined-v5/track3_combined_v5.manifest.json",
+        "size_bytes": 28064,
+        "sha256": "68441b9705344f54c926cccf3b5c3b910d7e20e27ad501c64c3c7fd3b7fa279c"
+      },
+      "archived_manifest": {
+        "path": "docs/submissions/manifests/20261104T1316Z-d2-combined-v5/track3_combined_v5.manifest.json",
+        "size_bytes": 28064,
+        "sha256": "68441b9705344f54c926cccf3b5c3b910d7e20e27ad501c64c3c7fd3b7fa279c"
+      },
+      "code_commit_url": "https://github.com/BDavid03/video2data/commit/02117aca7ac721c29e9a77d9fb8942347584d63b",
+      "model_hashes": null,
+      "uploads": [
+        {
+          "time_utc": "2026-11-04T14:15Z",
+          "kaggle_ids": {
+            "cd_o_cm": 57987392
+          },
+          "result": "COMPLETE",
+          "evidence": "submission/20261104T1316Z-d2-combined-v5/track3_combined_v5.parquet.30fbd93e365e.kaggle-receipt.json"
+        }
+      ],
+      "note": "CD-O uses the uploader-generated extracted file, not the combined pose Parquet."
+    },
+    {
+      "pack_folder": "submission/20261104T1422Z-d2-moving-v5",
+      "file_name": "track3_combined_v5.parquet",
+      "status": "uploaded",
+      "file": {
+        "path": "submission/20261104T1422Z-d2-moving-v5/track3_combined_v5.parquet",
+        "size_bytes": 282021,
+        "sha256": "b476eb1c2bc1ee6fab2df72f42f377d87e5d265c06140f3e47fc2fc67f8ff81d"
+      },
+      "manifest": {
+        "path": "submission/20261104T1422Z-d2-moving-v5/track3_combined_v5.manifest.json",
+        "size_bytes": 47651,
+        "sha256": "df66435ed6d4fee15ca364ff4738ec4e42f336a754968945f49794dc9e90c331"
+      },
+      "archived_manifest": {
+        "path": "docs/submissions/manifests/20261104T1422Z-d2-moving-v5/track3_combined_v5.manifest.json",
+        "size_bytes": 47651,
+        "sha256": "df66435ed6d4fee15ca364ff4738ec4e42f336a754968945f49794dc9e90c331"
+      },
+      "code_commit_url": "https://github.com/BDavid03/video2data/commit/c8ff8c135c53a54f9959e20def5920becab87eec",
+      "model_hashes": {
+        "path": "models/policies/track3-moving-v5/SHA256SUMS",
+        "size_bytes": 1860,
+        "sha256": "780ab463fac9685bd8c57b9d44b46893bbc7cf12e465c2d67959f9b3961f9761"
+      },
+      "uploads": [
+        {
+          "time_utc": "2026-11-04T14:32:18Z/2026-11-04T14:33:18Z",
+          "kaggle_ids": {
+            "add_auc": 57987857,
+            "spider_sr": 57987860,
+            "maniptrans_sr": 57987864,
+            "rpe_cm": 57987868,
+            "mppe_cm": 57987871
+          },
+          "result": "COMPLETE",
+          "evidence": "submission/20261104T1422Z-d2-moving-v5/track3_combined_v5.parquet.3ae0818c3b96.kaggle-receipt.json"
+        },
+        {
+          "time_utc": "2026-11-04T14:33:18Z/2026-11-04T14:38:02Z",
+          "kaggle_ids": {
+            "add_auc": 57987979,
+            "spider_sr": 57987982,
+            "maniptrans_sr": 57987987,
+            "rpe_cm": 57987988,
+            "mppe_cm": 57987989
+          },
+          "result": "COMPLETE",
+          "evidence": "submission/20261104T1422Z-d2-moving-v5/track3_combined_v5.parquet.c9d1d9b2aae8.kaggle-receipt.json"
+        }
+      ],
+      "note": "One file uploaded to the five pose boards. Legacy checkpoint archive uses models/policies/track3-moving-v5; retain this existing path."
+    },
+    {
+      "pack_folder": "submission/20261104T1422Z-d2-moving-v5",
+      "file_name": "track3_combined_v5.cd-o.parquet",
+      "status": "uploaded",
+      "file": {
+        "path": "submission/20261104T1422Z-d2-moving-v5/track3_combined_v5.cd-o.parquet",
+        "size_bytes": 1670520,
+        "sha256": "5b7c0ad44e43876b8eedbf613bab34cd85b5c18167319d6f861b34cb7c0d780e"
+      },
+      "manifest": {
+        "path": "submission/20261104T1422Z-d2-moving-v5/track3_combined_v5.manifest.json",
+        "size_bytes": 47651,
+        "sha256": "df66435ed6d4fee15ca364ff4738ec4e42f336a754968945f49794dc9e90c331"
+      },
+      "archived_manifest": {
+        "path": "docs/submissions/manifests/20261104T1422Z-d2-moving-v5/track3_combined_v5.manifest.json",
+        "size_bytes": 47651,
+        "sha256": "df66435ed6d4fee15ca364ff4738ec4e42f336a754968945f49794dc9e90c331"
+      },
+      "code_commit_url": "https://github.com/BDavid03/video2data/commit/c8ff8c135c53a54f9959e20def5920becab87eec",
+      "model_hashes": {
+        "path": "models/policies/track3-moving-v5/SHA256SUMS",
+        "size_bytes": 1860,
+        "sha256": "780ab463fac9685bd8c57b9d44b46893bbc7cf12e465c2d67959f9b3961f9761"
+      },
+      "uploads": [
+        {
+          "time_utc": "2026-11-04T14:32:18Z/2026-11-04T14:33:18Z",
+          "kaggle_ids": {
+            "cd_o_cm": 57987875
+          },
+          "result": "COMPLETE",
+          "evidence": "submission/20261104T1422Z-d2-moving-v5/track3_combined_v5.parquet.3ae0818c3b96.kaggle-receipt.json"
+        },
+        {
+          "time_utc": "2026-11-04T14:33:18Z/2026-11-04T14:38:02Z",
+          "kaggle_ids": {
+            "cd_o_cm": 57987993
+          },
+          "result": "COMPLETE",
+          "evidence": "submission/20261104T1422Z-d2-moving-v5/track3_combined_v5.parquet.c9d1d9b2aae8.kaggle-receipt.json"
+        }
+      ],
+      "note": "CD-O uses the uploader-generated extracted file, not the combined pose Parquet. Legacy checkpoint archive uses models/policies/track3-moving-v5; retain this existing path."
+    }
+  ]
+}

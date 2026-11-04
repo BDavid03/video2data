@@ -1,0 +1,596 @@
+{
+  "kind": "pose_insurance.combined_pack",
+  "dry": false,
+  "status": "locally verified; lead release check and Kaggle preflight required",
+  "file": {
+    "path": "data/outputs/pose_insurance/combined-v5/release/track3_combined_v5.parquet",
+    "sha256": "ddfc98b3e6d9bd10b31092903fdc93e1e22624d1f2ddc545b1d8f64c4ebf9342"
+  },
+  "code_commit_url": "https://github.com/BDavid03/video2data/commit/02117aca7ac721c29e9a77d9fb8942347584d63b",
+  "kit_archive": {
+    "path": "data/.runtime/kit-20261102/kit.zip",
+    "sha256": "7e1fdd00b50189191b4f1bf03158607f4f1a7bb5bfb0bf867b14eb06270a77f0"
+  },
+  "parents": [
+    {
+      "path": "submission/20261103T2058Z-d1-v5/track3_meshes_v5_final.manifest.json",
+      "sha256": "fe9d085fd6dd16e0c2cefd01bb5823cd4336a2e59ceaeeffb96fddcdeee93c69"
+    },
+    {
+      "path": "submission/20261103T2024Z-d2-v5/track3_poses_v5_final.manifest.json",
+      "sha256": "0fcbfd7d48dc137fc5598adbcb8d609c5de3dd717a87ceb886b9b885e7933f7d"
+    }
+  ],
+  "body_frames": {
+    "path": "data/outputs/pose_insurance/combined-v5/body-frames.json",
+    "sha256": "a407f129ce816ac4853bda389c0f315f1a619a209cba7e678b1586f447601937"
+  },
+  "meshes": [
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000001/white_pot.ply",
+      "sha256": "d18d668e4ac60c76433b2d16dc1f9161d2d118531457e39fa9b9ee256844e7e1"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000001/white_pot_lid.ply",
+      "sha256": "8861228ad08cdfd29443cfe679c53e8092c39cfeda3e08ce1507bc2cc3b36ea2"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000003/white_pot.ply",
+      "sha256": "d18d668e4ac60c76433b2d16dc1f9161d2d118531457e39fa9b9ee256844e7e1"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000003/wooden_spoon.ply",
+      "sha256": "28c4f67eecd0296c898dc63b3ec312d03381ee47ba7e44aa310a49eb99e9c48d"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000005/white_pot.ply",
+      "sha256": "d18d668e4ac60c76433b2d16dc1f9161d2d118531457e39fa9b9ee256844e7e1"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000005/wooden_spoon.ply",
+      "sha256": "28c4f67eecd0296c898dc63b3ec312d03381ee47ba7e44aa310a49eb99e9c48d"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000006/white_pot.ply",
+      "sha256": "d18d668e4ac60c76433b2d16dc1f9161d2d118531457e39fa9b9ee256844e7e1"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000006/wooden_spoon.ply",
+      "sha256": "28c4f67eecd0296c898dc63b3ec312d03381ee47ba7e44aa310a49eb99e9c48d"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000008/beige_cup.ply",
+      "sha256": "ada9ca29abcf6c12db12e6f070af15b788ab382ed7e77e73eebee2b587b5e5b4"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000008/white_pot.ply",
+      "sha256": "d18d668e4ac60c76433b2d16dc1f9161d2d118531457e39fa9b9ee256844e7e1"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000010/blue_cup.ply",
+      "sha256": "fb4379a5f01823633852d22dc5e32480707ce6420bbdf6eab64bef0a253f7b00"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000010/beige_cup.ply",
+      "sha256": "ada9ca29abcf6c12db12e6f070af15b788ab382ed7e77e73eebee2b587b5e5b4"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000014/blue_cup.ply",
+      "sha256": "fb4379a5f01823633852d22dc5e32480707ce6420bbdf6eab64bef0a253f7b00"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000014/plastic_dish_rack.ply",
+      "sha256": "8cdca7ade5648db18c29fdd8524e91d62805afecd892ccc69ac8868a5de3bf19"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000015/plastic_dish_rack.ply",
+      "sha256": "8cdca7ade5648db18c29fdd8524e91d62805afecd892ccc69ac8868a5de3bf19"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000015/wooden_spoon.ply",
+      "sha256": "28c4f67eecd0296c898dc63b3ec312d03381ee47ba7e44aa310a49eb99e9c48d"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000016/plastic_dish_rack.ply",
+      "sha256": "8cdca7ade5648db18c29fdd8524e91d62805afecd892ccc69ac8868a5de3bf19"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000016/wooden_spoon.ply",
+      "sha256": "28c4f67eecd0296c898dc63b3ec312d03381ee47ba7e44aa310a49eb99e9c48d"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000019/mini_sweeper.obj",
+      "sha256": "66c9f7de66e62118717115eca4bb681852296fd2d60a7469c61b17a85009404d"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000019/mini_dust_pan.obj",
+      "sha256": "a682101f237fe41ed2e20dbacf8400ffd5de57c5efd7142b673bd21426c1fb79"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000020/blue_cup.ply",
+      "sha256": "fb4379a5f01823633852d22dc5e32480707ce6420bbdf6eab64bef0a253f7b00"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000020/water_pitcher.ply",
+      "sha256": "50774ba9c01f32f5f9fbc8f889f29a2914f663603bc19eb5d329b8ea32439e28"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000025/wooden_piece_1.ply",
+      "sha256": "525ed2ddac44e4df8eb9d8423011a69cfd052bf4a207d11a3e9d2cd679abc8f1"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000025/wooden_piece_2.ply",
+      "sha256": "3c544514caa89889ce7730f7be2c640cf3930ca411ae65cd995926a170ece249"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000028/plastic_dish_rack.ply",
+      "sha256": "8cdca7ade5648db18c29fdd8524e91d62805afecd892ccc69ac8868a5de3bf19"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000028/white_pot.ply",
+      "sha256": "d18d668e4ac60c76433b2d16dc1f9161d2d118531457e39fa9b9ee256844e7e1"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000030/mini_sweeper.ply",
+      "sha256": "c294cab5ecd39460672196c9bd04eb5064a2dd89e5059c1036cb49e149ab8c95"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000030/plastic_dish_rack.ply",
+      "sha256": "8cdca7ade5648db18c29fdd8524e91d62805afecd892ccc69ac8868a5de3bf19"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000032/blue_cup.ply",
+      "sha256": "fb4379a5f01823633852d22dc5e32480707ce6420bbdf6eab64bef0a253f7b00"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000032/wooden_spoon.ply",
+      "sha256": "28c4f67eecd0296c898dc63b3ec312d03381ee47ba7e44aa310a49eb99e9c48d"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000033/blue_cup.ply",
+      "sha256": "fb4379a5f01823633852d22dc5e32480707ce6420bbdf6eab64bef0a253f7b00"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000033/wooden_spoon.ply",
+      "sha256": "28c4f67eecd0296c898dc63b3ec312d03381ee47ba7e44aa310a49eb99e9c48d"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000035/wooden_spoon.ply",
+      "sha256": "28c4f67eecd0296c898dc63b3ec312d03381ee47ba7e44aa310a49eb99e9c48d"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000036/wooden_spoon.ply",
+      "sha256": "28c4f67eecd0296c898dc63b3ec312d03381ee47ba7e44aa310a49eb99e9c48d"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000037/wooden_spoon.ply",
+      "sha256": "28c4f67eecd0296c898dc63b3ec312d03381ee47ba7e44aa310a49eb99e9c48d"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/meshes/episode_000038/mini_dust_pan.ply",
+      "sha256": "a46e438545fa4a32ce45c667c40d10c75cbd7ae442f30ec781b53843099ba190"
+    }
+  ],
+  "exports": [
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/release/results/episode_000001.parquet",
+      "sha256": "f39242ed8228c89decb46642ad4698fae4b179817d667f7f69d3269da73d1511"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/release/results/episode_000003.parquet",
+      "sha256": "f55c1d5a9b23293f580c50e82ac68104f479eec4225b8b8ed6543662371e16b0"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/release/results/episode_000005.parquet",
+      "sha256": "eff917e148671d61f58527c9feed06441b42dec8f4a4a147eaeed56adcc3e547"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/release/results/episode_000006.parquet",
+      "sha256": "5d673e4958a1e91c530db27f802475f4e6ca4983d750c95351c5605595ed95ec"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/release/results/episode_000008.parquet",
+      "sha256": "5179a043a059f7389e56c66e87b43273b96e76d8fc67434d0b6ab6100770313a"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/release/results/episode_000010.parquet",
+      "sha256": "66027ce1ac46d27634b84781f32af4028d35bd3f91f71654cff4317e8bda0984"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/release/results/episode_000014.parquet",
+      "sha256": "6c67b66501c5b9eb84053d3375f504aa4bf1c8d4f83710bc715894eab63dbbd8"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/release/results/episode_000015.parquet",
+      "sha256": "52bb97b48f3bf2ce670e1e3663a61bd6e235a33e24ddd9ad0e937338ee810340"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/release/results/episode_000016.parquet",
+      "sha256": "131a0b6901483bee604e8ecd6929fd7e83637acd2c5dbc2a5ad463eebca0bac3"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/release/results/episode_000019.parquet",
+      "sha256": "17a6535bca3e45bffed46673f68652723b46b8c6f3121860344a6d1260c5126e"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/release/results/episode_000020.parquet",
+      "sha256": "e879274b67aab77281510b180585ea745f67b86725eaa6ee1abb0ac951d65ee1"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/release/results/episode_000025.parquet",
+      "sha256": "00076dcba1948974174ef74d4df4075c644e39a7d8bf8392f9a9aa8f8b9e34e9"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/release/results/episode_000028.parquet",
+      "sha256": "5595b495a8897ac4a31c0f97c382865415fdf0baeeaca02e60c65a4cc2d3d350"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/release/results/episode_000030.parquet",
+      "sha256": "e9cb170248d9d040b13b21dacedd07ef2ae989abf4498de7222aead6da8c9e0d"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/release/results/episode_000032.parquet",
+      "sha256": "09b8687ec8525a91329b0bb244056c5b9ffb21c3460f57bddc0f92fabdf90ee7"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/release/results/episode_000033.parquet",
+      "sha256": "110ba0eabd5c802d557a265385ccdeef621e07e0cabd8d6f93421778a273df39"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/release/results/episode_000035.parquet",
+      "sha256": "0bd9f0fc12f4348fced1b3fa937ea446451d7ab7b0c29e0dbeea1aaab623c091"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/release/results/episode_000036.parquet",
+      "sha256": "60d77bdeefaded0d0c98076fb5430394c90ba7cd76664c186b4f2c1d505baa32"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/release/results/episode_000037.parquet",
+      "sha256": "35762ed4c111d4d21a80124704e0a6db2190e20f60b20aa13fd5490aeb2b6138"
+    },
+    {
+      "path": "data/outputs/pose_insurance/combined-v5/release/results/episode_000038.parquet",
+      "sha256": "f30ea677d2e567c8e32124dbadb4c3b163682ae7f778c616dbd70f8acaea1a7f"
+    }
+  ],
+  "sources": [
+    {
+      "path": "src/features/pose_insurance/pack_combined.py",
+      "sha256": "3b5b6a138bbd65cd40a4d8437c0f90076b02f866b6a370970656ce204b78ada2"
+    },
+    {
+      "path": "src/features/pose_insurance/combined_frames.py",
+      "sha256": "0014ca9317ab7f24fb96e3470a6b3d94b15ebea1188955a5427d54f5e3a168a2"
+    }
+  ],
+  "kit_files": [
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/CONTAINER_SUBMISSION.md",
+      "sha256": "9a3574971cca0d07a7c83653dfc657c0c4749160756df902ea4d7b44f2c697ba"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/KIT_MANIFEST.json",
+      "sha256": "2f6d7ba36bd13cd01e9107f74ccd84e8da79af75ba4987812b4d799b9d832f2d"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/LEADERBOARDS.md",
+      "sha256": "1fef947b767fc18bab46db903bd3511d20341a09722a1052cbfa6e596fb54df3"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/README.md",
+      "sha256": "8aa81c9689632f31d4ac99535c864bedc0614871ca656527e0c2b1a7679412da"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/config/tracks.json",
+      "sha256": "bbd3f7a61895c5383050e3a591755cbd0726833cc8634f422aeb344cfb303918"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/data/track_1_sample_submission.parquet",
+      "sha256": "1db56c5ec7267cdb7a68d42928f85c092c6b8e9bfbc0dc98a2b020d7a48bc621"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/data/track_2_sample_submission.csv",
+      "sha256": "9b2116bea4a18d37191f83dfc913068713002d830e715fdee810104b3d8ef4de"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/data/track_3_evaluation_objects.json",
+      "sha256": "be92ef6db25aa60cefcdfb44f0acfdc6fbdfa26bb249f6890e1963c659b79272"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/data/track_3_mesh_sample_submission.parquet",
+      "sha256": "b4c5717b9f98892e3da8beef33d4e5dc78f76ba1f31e2ae378a878abf76bade0"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/data/track_3_sample_submission.parquet",
+      "sha256": "6bf31ea536a907803f5701a6c2896921a4623173336e14939942ecf49db183e7"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/eval_reconstruction.py",
+      "sha256": "73433f5e8c172979f342f854edfd8a85f61106c7b0862ed006a3f789c35bf951"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/examples/container/Dockerfile",
+      "sha256": "71c0c4cfa8adc36312706e5cb017688330a6a5023238e2b2987748ceb28d6af2"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/examples/container/run.sh",
+      "sha256": "1678641738f6ca55fb64421021bd822803f99d7598e38bba1b549759466beb82"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/examples/container/submission.track1.json",
+      "sha256": "7572e0a2cc8bdf20b9b2968122d3c7c6033b309f5b8c42b0d31210ff5712719d"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/examples/container/submission.track2.json",
+      "sha256": "ae022f989c3bb7ff54fe299c898120efcc1e29acf97ef28b04120ba83965d61d"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/examples/run_policy_evaluation.py",
+      "sha256": "0bcc41f5de246a51f194409b3e5292e04109012cb22a433a8f7ed477df04e55d"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/flash_chord/scripts/evaluate_policy.py",
+      "sha256": "160d24f5fbeb70ccd569ca4192056f1892b2a9f2999066db9d8279461648fdf1"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/flash_chord/src/flash_chord/configs/evaluate_policy.yaml",
+      "sha256": "472bec8f091593ffb8e90262d3af71fbfa4a221fbf3ed17029cbe86b005c27ab"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/flash_chord/src/flash_chord/configs/evaluation/flash_sac.yaml",
+      "sha256": "aaec3f1fb90e49885dfa1851fd23b5cfe6bf09659407c3891475f3bcdf2adb0f"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/flash_chord/src/flash_chord/configs/logging/wandb.yaml",
+      "sha256": "eb063c9b57fcd99773799d8a45afe82b9e3bcff78b97c58b7416cefe9cbfc4c8"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/metric_code/README.md",
+      "sha256": "5562b1b89a3390d47889c919e25c67ab9b8339c4a67e85b37c4ee6c29e0fab9e"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/metric_code/track_1/ACC-H.py",
+      "sha256": "6275639576aea6b8fed4ac04ea75d3658abe81d790542d1512055245b6d1f6e8"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/metric_code/track_1/ACC-O.py",
+      "sha256": "ce01ca6a9d70cf775a7b149eecf02a3f8cb5b5c653b4430e8569fdce276fcacf"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/metric_code/track_1/CD-H.py",
+      "sha256": "2bb6e24941fb7b7c7268ced7d367a0ce955c99f8fccf6c6af74a18d8a13ff319"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/metric_code/track_1/CD-O.py",
+      "sha256": "2acda74fe82afd81a9041acf9bd131f20d921fdb2f9e8dc46f6502e2f8c12bd9"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/metric_code/track_1/LICENSE.txt",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/metric_code/track_1/NOTICE.md",
+      "sha256": "08b740fd525bc36b1eb727f1bebcc2b9de7cbe11b50e6601f78a3a6820365a95"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/metric_code/track_1/PEN.py",
+      "sha256": "07585d38cc0911f0d9b14c53d482302c7b9cc31365a394127687798136604021"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/metric_code/track_2/AUC.py",
+      "sha256": "58b437697c32c86497ff5a306fe586014c3429b0d2c18e1d3094a6f503479339"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/metric_code/track_2/MP-SR.py",
+      "sha256": "a1d72216eb7745a13ed7db6a55b9efb31492b35149113181a6c42ffc231fff11"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/metric_code/track_2/MPPE.py",
+      "sha256": "41815bc1e8870fb377036750976dcf135818e029f06096ccef5177090fe5e033"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/metric_code/track_2/SP-SR.py",
+      "sha256": "d206042872acd1c1de6120f96966272495fbbd71a50315f49f5192fea1aaa5bf"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/metric_code/track_3/AUC.py",
+      "sha256": "243f8009206cc659e871619d8cb513431480e1e1ac1c29a82996b2c9bf6452f6"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/metric_code/track_3/CD-O.py",
+      "sha256": "c166cf867b3ab958ae64254442fb73032a73429cb739ff5f5f3e3c873163fdd2"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/metric_code/track_3/MP-SR.py",
+      "sha256": "6158f8129bd4bc0460db0f241a6c2efcac934f00e6969a4df4105e8cadae0399"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/metric_code/track_3/MPPE.py",
+      "sha256": "15d050049920355373e68c33b84c1df2c2086e1cdc88f2e69c44089457d7181a"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/metric_code/track_3/RPE.py",
+      "sha256": "3ec593c090ef1fe99d08fc9cabd244812c92b772a58c291eb786965b9eaca54e"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/metric_code/track_3/SP-SR.py",
+      "sha256": "309fc8191d34f002fa897af440f28459c907c350deff2d29f1ac9287a65e5086"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/requirements.txt",
+      "sha256": "bd429cb6f6f766353f21985bc7b0d93372698b4a8593588e8692eb9b583e1fe6"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/skills/v2d-container/SKILL.md",
+      "sha256": "fdd794b723e44436f6f94efa48bcf975c28326d815a1fefb8b799384e42edfd0"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/skills/v2d-submit/SKILL.md",
+      "sha256": "6167dba533734c755ce98f8bef8656f8512d8e0f573915c732410ac731141356"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/submit/v2d_submit.py",
+      "sha256": "d31d4a7c179b581739cfbe0c4bd4557dfdb60e6a548e4295b4f681c7b018aadf"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/tools/pack_reconstruction.py",
+      "sha256": "e0fb5749bc9753e0fd522934bb51c246164c9cdee526584ecb0b1a0b5b1bf585"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/tools/pack_submission.py",
+      "sha256": "49b13052e3bbdd056d0cb97761d670cbd94d1663e5463aa30db00b68529411e0"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/tools/preflight.py",
+      "sha256": "41a5876a4097804adbef232f6773df87c1c4816ed1ab00b7fb4958e4c913810d"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/tools/track1/MESH_TO_MHR_PARAMS.md",
+      "sha256": "7c6d09e513d4b4307ef161868fa8cd695f4803f00ff4bf50d9e7893b95e5749d"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/tools/track1/mesh_to_mhr_params.py",
+      "sha256": "c799ad612fca19620563fcb93bf61e5a4adad0a04251482358746b5f27f8a52e"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/tools/verify_container.py",
+      "sha256": "4ab7030f26f09437e09c645b1383039da65125584ee9a0fcbf87a9b0603c5252"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/tracks/track_1/README.md",
+      "sha256": "ad8eac8607294920aee5eb9288fc3cb602600c1329d5ddddbf49d95372cd9994"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/tracks/track_2/README.md",
+      "sha256": "bba5bff9cefde1e36d206a8420379228a08083137fb2f944d4b6022a4d2ec7c6"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/tracks/track_3/README.md",
+      "sha256": "747161c822adf4c5e4312ebd049f5bcb5ad694943a274ebcdc58e07e3a542765"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/v2dlb/dataset.py",
+      "sha256": "6faa9c040d73f0a9cc29188b24b8aeef8cb17c013edf2b5e55818ceedc8254a5"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/v2dlb/mesh_budget.py",
+      "sha256": "8f29481d52a82c4656a29d0a1c35bb12123497d9dd5955ac29a81c8dc1168536"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/v2dlb/mesh_common.py",
+      "sha256": "aaeac13286c839a7d7e271888613875c934e46de094b2ac928ff2ff01c5a1f06"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/v2dlb/mesh_quality.py",
+      "sha256": "691878c6ba6ab68d53185cad04e317edc6cc39f428aa11a0a7bccd337c996125"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/v2dlb/mhr_metrics.py",
+      "sha256": "73077b65b5c3e0204307feef784317aab8c733d7462b6b8e6f4f397f7b91d2e0"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/v2dlb/mhr_submission.py",
+      "sha256": "06fbd58d07bae1c583a92598f879771a4805ccea3e8346605975bcf5007b1fa3"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/v2dlb/object_mesh.py",
+      "sha256": "42da2fb0764f01a4533f311878e8f6f08c8d31fd6e0a8c64d990b7552b55ca5b"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/v2dlb/object_pose.py",
+      "sha256": "c6915924a322540f00c69c75b2ae93ae455bb6efb8a41cc0a96c967f64d7e2c0"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/v2dlb/report_schema.py",
+      "sha256": "2a14b19dcef1004c8bcce73bb69cb60605e2a54c783df8b52575fc861631222a"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/v2dlb/submission_parquet.py",
+      "sha256": "cc2808c3c1b28a662c2f1ca508d4edde8e7bd4e34d0892cd33cb6199eb828bba"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/v2dlb/track3_pose.py",
+      "sha256": "b4b99f698eb4893aa32274e1f916c36ac6c8e7d89241a69c1c4a6e05896eeff5"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/v2dlb/trajectory.py",
+      "sha256": "564fbe5469f17a36804800f979b725c32b76a4ef59c4fa451fcfd7a1d3eac251"
+    },
+    {
+      "path": "data/.runtime/kit-20261102/v2d_submission_kit/v2dlb/vertices.py",
+      "sha256": "4c95a4d65d37ea97d6c58388b273c277cad9d7cfa63d3cdb7af2ec3d1f1a0262"
+    }
+  ],
+  "commands": [
+    {
+      "argv": [
+        "/home/ceolwolf/repos/video2data/.claude/worktrees/chain-ctx01/data/.runtime/kit-env/bin/python",
+        "-B",
+        "/home/ceolwolf/repos/video2data/.claude/worktrees/chain-ctx01/data/.runtime/kit-20261102/v2d_submission_kit/tools/pack_submission.py",
+        "--track",
+        "track_3",
+        "--results",
+        "/home/ceolwolf/repos/video2data/.claude/worktrees/chain-ctx01/data/outputs/pose_insurance/combined-v5/release/results",
+        "--meshes",
+        "/home/ceolwolf/repos/video2data/.claude/worktrees/chain-ctx01/data/outputs/pose_insurance/combined-v5/meshes",
+        "--code-commit",
+        "https://github.com/BDavid03/video2data/commit/02117aca7ac721c29e9a77d9fb8942347584d63b",
+        "--eval-script",
+        "/home/ceolwolf/repos/video2data/.claude/worktrees/chain-ctx01/data/.runtime/kit-20261102/v2d_submission_kit/flash_chord/scripts/evaluate_policy.py",
+        "--skip-crosscheck",
+        "-o",
+        "/home/ceolwolf/repos/video2data/.claude/worktrees/chain-ctx01/data/outputs/pose_insurance/combined-v5/release/track3_combined_v5.parquet"
+      ],
+      "log": {
+        "path": "data/outputs/pose_insurance/combined-v5/release/pack.log",
+        "sha256": "daca8a6480e7d54375c0fe52fd2e199ea7b16842b5f2579c946d5467881064d9"
+      }
+    },
+    {
+      "argv": [
+        "/home/ceolwolf/repos/video2data/.claude/worktrees/chain-ctx01/data/.runtime/kit-env/bin/python",
+        "-B",
+        "/home/ceolwolf/repos/video2data/.claude/worktrees/chain-ctx01/data/.runtime/kit-20261102/v2d_submission_kit/tools/preflight.py",
+        "--track",
+        "track_3",
+        "--results",
+        "/home/ceolwolf/repos/video2data/.claude/worktrees/chain-ctx01/data/outputs/pose_insurance/combined-v5/release/results",
+        "--skip-kaggle"
+      ],
+      "log": {
+        "path": "data/outputs/pose_insurance/combined-v5/release/preflight.log",
+        "sha256": "76dc22d8d4a48fbb1fe402c555afbb9e869daa4e50ad8f708afd046c58e50dec"
+      }
+    }
+  ],
+  "pose_comparison": {
+    "rows": 9120,
+    "pose_scalars": 63840,
+    "csv_decimal_places": 6,
+    "tolerance": "0.5e-6 plus 8 float64 eps times max(1,abs(value))",
+    "maximum_absolute_difference": 4.982452392610082e-07,
+    "passed": true
+  },
+  "cd_o": {
+    "file": {
+      "path": "data/outputs/pose_insurance/combined-v5/release/track3_combined_v5.cd-o.parquet",
+      "sha256": "9dd41107007df2436df98fad6d21b76c0c2b01823c4624f318cb63a2f259d52f"
+    },
+    "changed_rows": 24576,
+    "total_rows": 294912,
+    "changed_object_prefixes": [
+      "t3m_000005_white_pot",
+      "t3m_000019_mini_dust_pan",
+      "t3m_000019_mini_sweeper",
+      "t3m_000020_water_pitcher"
+    ],
+    "note": "Pot 5 and pitcher 20 keep v4 procedural shapes in place of Hunyuan. Episode 19 is rigidly rotated: ideal registered CD-O is invariant, but finite multi-start ICP and sampling can change it."
+  },
+  "mesh_warnings": [
+    "MESH WARNING: episode 25, wooden_piece_1: very low detail: 8 distinct surface vertices, 12 triangles; check that this represents your reconstructed object",
+    "MESH WARNING: episode 25, wooden_piece_1: box-like primitive surface; check that this represents your reconstructed object",
+    "MESH WARNING: episode 25, wooden_piece_2: very low detail: 8 distinct surface vertices, 12 triangles; check that this represents your reconstructed object",
+    "MESH WARNING: episode 25, wooden_piece_2: box-like primitive surface; check that this represents your reconstructed object"
+  ],
+  "scoring_caveat": "Local labelled measurements are in combined-v5/scoring-summary.json. Host reference anchors, physical symmetry axes and points are not published. Primitives can give ambiguous registration rotations. No accuracy gate is claimed."
+}

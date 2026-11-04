@@ -17,6 +17,7 @@ from src.provenance import sha256_file,write_json
 from . import pack_combined_moving as frozen
 from . import pack_combined as base
 from . import pack_moving as m
+from . import counted
 from .combined_frames import ROOT,OUTPUT,KIT,entry
 from src.features.moving_policy.two_object_admission import inspect as inspect_joint
 
@@ -136,7 +137,7 @@ def pack_cumulative(admission_paths):
     if 'Ready to submit.' not in (output/'preflight.log').read_text():
         raise ValueError('Kit preflight did not pass')
     comparison=compare(target,admissions,parent)
-    source_files=[Path(__file__),ROOT/'src/features/moving_policy/two_object_admission.py',
+    source_files=[Path(__file__),Path(counted.__file__),ROOT/'src/features/moving_policy/two_object_admission.py',
         ROOT/'src/features/moving_policy/two_object_run.py',ROOT/'src/features/moving_policy/two_object_stage0.py',
         ROOT/'src/features/moving_policy/two_object_cpu.py',ROOT/'src/features/moving_policy/two_object_train_worker.py',
         ROOT/'src/features/moving_policy/_two_object.py',ROOT/'src/features/moving_policy/_two_object_instances.py',
@@ -165,6 +166,20 @@ def pack_cumulative(admission_paths):
     manifest_path=target.with_suffix('.manifest.json')
     write_json(manifest_path,manifest)
     verify_manifest(manifest_path)
+    checkpoints=counted.parent_checkpoints(ROOT,parent['file']['sha256'])
+    for episode,admission in admissions.items():
+        checkpoints[f'episode_{episode:06d}.safetensors']=admission['checkpoint']
+    checkpoints['episode_000038.safetensors']=parent['admission']['checkpoint']
+    expected={}
+    packed=pq.read_table(target,columns=['row_id','checkpoint_sha256']).to_pydict()
+    for row_id,digest in zip(packed['row_id'],packed['checkpoint_sha256']):
+        name=f'episode_{int(row_id.split("/")[1][1:]):06d}.safetensors'
+        if name in expected and expected[name]!=digest:
+            raise ValueError('An episode records more than one checkpoint')
+        expected[name]=digest
+    if {name:item['sha256'] for name,item in checkpoints.items()}!=expected:
+        raise ValueError('Checkpoint archive differs from the completed packed file')
+    counted.archive_pack(ROOT,target,manifest_path,checkpoints)
     write_json(output/'verified.json',dict(time_utc=datetime.now(timezone.utc).isoformat(),file=entry(target),passed=True))
     return dict(path=str(target.relative_to(ROOT)),sha256=sha256_file(target),manifest=str(manifest_path.relative_to(ROOT)),
                 adopted_episodes=sorted(admissions),source_commit_verified=committed)

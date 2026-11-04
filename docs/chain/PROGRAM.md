@@ -358,6 +358,8 @@ These come from `AGENTS.md`, `CLAUDE.md` and incidents in this project.
 
 ## 7. The hand-off
 
+Each context runs `bash scripts/reproduce/check_counted.sh` before writing its hand-off and records the result.
+
 Write `docs/chain/handoffs/HANDOFF-<UTC yyyymmddTHHMMZ>-<NN>.md`, where `NN` is your context
 number. Write it last, in one write: the driver starts the next context once this file appears
 and stops changing. Keep `SUBMISSION.md`, `SCOREBOARD.md`, `IDEAS.md` and `NEEDS-YOU.md`

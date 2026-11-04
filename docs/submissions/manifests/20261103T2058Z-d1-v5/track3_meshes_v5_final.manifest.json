@@ -1,0 +1,35 @@
+{
+  "status": "completed",
+  "file": {
+    "path": "outputs/mesh_generative/g2-real-pack/track3_meshes_v5_final.parquet",
+    "sha256": "bcb93d57d86b4dac06ed21af9af84ce39edffe52b3d9c35e28928391e47e4e58"
+  },
+  "code_commit_url": "https://github.com/BDavid03/video2data/commit/b1617234a85e316baa4a67b7f10ff053f5f92c4d",
+  "pack_command": [
+    ".runtime/kit-env/bin/python",
+    "-B",
+    "upstream/v2d_submission_kit/v2d_submission_kit/tools/pack_reconstruction.py",
+    "track3-meshes",
+    "--meshes",
+    "outputs/mesh_generative/g2-packed-check/meshes",
+    "--sample",
+    "upstream/v2d_submission_kit/v2d_submission_kit/data/track_3_mesh_sample_submission.parquet",
+    "--commit",
+    "https://github.com/BDavid03/video2data/commit/b1617234a85e316baa4a67b7f10ff053f5f92c4d",
+    "--out",
+    "/home/ceolwolf/repos/video2data/.claude/worktrees/chain-ctx01/outputs/mesh_generative/g2-real-pack/track3_meshes_v5_final.parquet"
+  ],
+  "passing_veto": {
+    "path": "outputs/mesh_generative/g2-packed-check/veto.json",
+    "sha256": "dbb78f684c45608d82acfe2abc80bf730ff79ea8ca0b71cb89d5a27f9e2ddc30"
+  },
+  "production": {
+    "path": "outputs/mesh_generative/g2-packed-check/production.json",
+    "sha256": "f3bac20fbc6c44a092fe321d557212a4888b9f6996e6e0edc5a7c3dae32d09d9"
+  },
+  "placeholder": {
+    "path": "outputs/mesh_generative/g2-packed-check/track3_meshes_v5_placeholder.parquet",
+    "sha256": "8545628a8cfc3a23639942f37fbafb0aaebdc5070b3c5038cb0829c9d23eaa9b"
+  },
+  "placeholder_geometry_identical": true
+}

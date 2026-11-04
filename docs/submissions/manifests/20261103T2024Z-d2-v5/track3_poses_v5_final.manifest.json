@@ -1,0 +1,557 @@
+{
+  "version": "v5",
+  "status": "packed; not uploaded",
+  "results_dir": ".runtime/tmp/d2v5/reproduce/20261103T202441.980447Z-457affbf/results",
+  "exports": [
+    {
+      "path": "outputs/pose_insurance/results-v5/episode_000001.parquet",
+      "source": "outputs/pose_insurance/results-v4/episode_000001.parquet",
+      "sha256": "f39242ed8228c89decb46642ad4698fae4b179817d667f7f69d3269da73d1511",
+      "run": "outputs/pose_insurance/run-v2/20261101T230158.645100Z-0a611b4d/episode_000001/run.json"
+    },
+    {
+      "path": "outputs/pose_insurance/results-v5/episode_000003.parquet",
+      "source": "outputs/pose_insurance/results-v4/episode_000003.parquet",
+      "sha256": "f55c1d5a9b23293f580c50e82ac68104f479eec4225b8b8ed6543662371e16b0",
+      "run": "outputs/pose_insurance/stereo-placement-scored/runs/20261103T061225.206271Z-f2485266/episode_000003/run.json"
+    },
+    {
+      "path": "outputs/pose_insurance/results-v5/episode_000005.parquet",
+      "source": "outputs/pose_insurance/results-v4/episode_000005.parquet",
+      "sha256": "eff917e148671d61f58527c9feed06441b42dec8f4a4a147eaeed56adcc3e547",
+      "run": "outputs/pose_insurance/run-v1/20261101T165251.960656Z-29fac33e/episode_000005/run.json"
+    },
+    {
+      "path": "outputs/pose_insurance/results-v5/episode_000006.parquet",
+      "source": "outputs/pose_insurance/results-v4/episode_000006.parquet",
+      "sha256": "5d673e4958a1e91c530db27f802475f4e6ca4983d750c95351c5605595ed95ec",
+      "run": "outputs/pose_insurance/stereo-placement-scored/runs/20261103T061525.133238Z-d3dc9c3e/episode_000006/run.json"
+    },
+    {
+      "path": "outputs/pose_insurance/results-v5/episode_000008.parquet",
+      "source": "outputs/pose_insurance/results-v4/episode_000008.parquet",
+      "sha256": "5179a043a059f7389e56c66e87b43273b96e76d8fc67434d0b6ab6100770313a",
+      "run": "outputs/pose_insurance/stereo-placement-scored/runs/20261103T061558.776848Z-3eee7ed6/episode_000008/run.json"
+    },
+    {
+      "path": "outputs/pose_insurance/results-v5/episode_000010.parquet",
+      "source": "outputs/pose_insurance/results-v4/episode_000010.parquet",
+      "sha256": "66027ce1ac46d27634b84781f32af4028d35bd3f91f71654cff4317e8bda0984",
+      "run": "outputs/pose_insurance/stereo-placement-scored/runs/20261103T061633.479824Z-1132f0e1/episode_000010/run.json"
+    },
+    {
+      "path": "outputs/pose_insurance/results-v5/episode_000014.parquet",
+      "source": "outputs/pose_insurance/results-v4/episode_000014.parquet",
+      "sha256": "6c67b66501c5b9eb84053d3375f504aa4bf1c8d4f83710bc715894eab63dbbd8",
+      "run": "outputs/pose_insurance/stereo-placement-scored/runs/20261103T061706.844605Z-36115d2a/episode_000014/run.json"
+    },
+    {
+      "path": "outputs/pose_insurance/results-v5/episode_000015.parquet",
+      "source": "outputs/pose_insurance/results-v4/episode_000015.parquet",
+      "sha256": "52bb97b48f3bf2ce670e1e3663a61bd6e235a33e24ddd9ad0e937338ee810340",
+      "run": "outputs/pose_insurance/stereo-placement-scored/runs/20261103T061740.448950Z-075616b2/episode_000015/run.json"
+    },
+    {
+      "path": "outputs/pose_insurance/results-v5/episode_000016.parquet",
+      "source": "outputs/pose_insurance/results-v4/episode_000016.parquet",
+      "sha256": "131a0b6901483bee604e8ecd6929fd7e83637acd2c5dbc2a5ad463eebca0bac3",
+      "run": "outputs/pose_insurance/stereo-placement-scored/runs/20261103T061815.171953Z-1b761d06/episode_000016/run.json"
+    },
+    {
+      "path": "outputs/pose_insurance/results-v5/episode_000019.parquet",
+      "source": "outputs/pose_insurance/heading-v5/runs/20261103T201726.100649Z-6f47b951/episode_000019/trajectory.parquet",
+      "sha256": "17a6535bca3e45bffed46673f68652723b46b8c6f3121860344a6d1260c5126e",
+      "run": "outputs/pose_insurance/heading-v5/runs/20261103T201726.100649Z-6f47b951/episode_000019/run.json"
+    },
+    {
+      "path": "outputs/pose_insurance/results-v5/episode_000020.parquet",
+      "source": "outputs/pose_insurance/results-v4/episode_000020.parquet",
+      "sha256": "e879274b67aab77281510b180585ea745f67b86725eaa6ee1abb0ac951d65ee1",
+      "run": "outputs/pose_insurance/stereo-placement-scored/runs/20261103T061923.798968Z-b5003c54/episode_000020/run.json"
+    },
+    {
+      "path": "outputs/pose_insurance/results-v5/episode_000025.parquet",
+      "source": "outputs/pose_insurance/results-v4/episode_000025.parquet",
+      "sha256": "00076dcba1948974174ef74d4df4075c644e39a7d8bf8392f9a9aa8f8b9e34e9",
+      "run": "outputs/pose_insurance/stereo-placement-scored/runs/20261103T061958.934740Z-21a41ec4/episode_000025/run.json"
+    },
+    {
+      "path": "outputs/pose_insurance/results-v5/episode_000028.parquet",
+      "source": "outputs/pose_insurance/results-v4/episode_000028.parquet",
+      "sha256": "5595b495a8897ac4a31c0f97c382865415fdf0baeeaca02e60c65a4cc2d3d350",
+      "run": "outputs/pose_insurance/run-v2/20261101T230238.970403Z-c83004d8/episode_000028/run.json"
+    },
+    {
+      "path": "outputs/pose_insurance/results-v5/episode_000030.parquet",
+      "source": "outputs/pose_insurance/results-v4/episode_000030.parquet",
+      "sha256": "e9cb170248d9d040b13b21dacedd07ef2ae989abf4498de7222aead6da8c9e0d",
+      "run": "outputs/pose_insurance/run-v3/20261102T003115.353513Z-3b233e84/episode_000030/run.json"
+    },
+    {
+      "path": "outputs/pose_insurance/results-v5/episode_000032.parquet",
+      "source": "outputs/pose_insurance/results-v4/episode_000032.parquet",
+      "sha256": "09b8687ec8525a91329b0bb244056c5b9ffb21c3460f57bddc0f92fabdf90ee7",
+      "run": "outputs/pose_insurance/stereo-placement-scored/runs/20261103T062035.018531Z-4f8cb54f/episode_000032/run.json"
+    },
+    {
+      "path": "outputs/pose_insurance/results-v5/episode_000033.parquet",
+      "source": "outputs/pose_insurance/results-v4/episode_000033.parquet",
+      "sha256": "110ba0eabd5c802d557a265385ccdeef621e07e0cabd8d6f93421778a273df39",
+      "run": "outputs/pose_insurance/stereo-placement-scored/runs/20261103T062111.144749Z-fee2d5f3/episode_000033/run.json"
+    },
+    {
+      "path": "outputs/pose_insurance/results-v5/episode_000035.parquet",
+      "source": "outputs/pose_insurance/results-v4/episode_000035.parquet",
+      "sha256": "0bd9f0fc12f4348fced1b3fa937ea446451d7ab7b0c29e0dbeea1aaab623c091",
+      "run": "outputs/pose_insurance/run-v1/20261101T170017.241725Z-9cc5562c/episode_000035/run.json"
+    },
+    {
+      "path": "outputs/pose_insurance/results-v5/episode_000036.parquet",
+      "source": "outputs/pose_insurance/results-v4/episode_000036.parquet",
+      "sha256": "60d77bdeefaded0d0c98076fb5430394c90ba7cd76664c186b4f2c1d505baa32",
+      "run": "outputs/pose_insurance/run-v1/20261101T170054.027296Z-bd68a797/episode_000036/run.json"
+    },
+    {
+      "path": "outputs/pose_insurance/results-v5/episode_000037.parquet",
+      "source": "outputs/pose_insurance/results-v4/episode_000037.parquet",
+      "sha256": "35762ed4c111d4d21a80124704e0a6db2190e20f60b20aa13fd5490aeb2b6138",
+      "run": "outputs/pose_insurance/run-v1/20261101T170125.708272Z-864bdeff/episode_000037/run.json"
+    },
+    {
+      "path": "outputs/pose_insurance/results-v5/episode_000038.parquet",
+      "source": "outputs/pose_insurance/results-v4/episode_000038.parquet",
+      "sha256": "f30ea677d2e567c8e32124dbadb4c3b163682ae7f778c616dbd70f8acaea1a7f",
+      "run": "outputs/pose_insurance/run-v1/20261101T170154.350873Z-e0da1a82/episode_000038/run.json"
+    }
+  ],
+  "composition": {
+    "TW": [
+      19
+    ],
+    "v4": [
+      1,
+      3,
+      5,
+      6,
+      8,
+      10,
+      14,
+      15,
+      16,
+      20,
+      25,
+      28,
+      30,
+      32,
+      33,
+      35,
+      36,
+      37,
+      38
+    ]
+  },
+  "budget": {
+    "environment_steps": 512,
+    "worlds": 1,
+    "replay_minimum": 32
+  },
+  "v4_parent": {
+    "path": "submissions/20261103T0645Z-d2-v4/track3_poses_v4_final.manifest.json",
+    "sha256": "abbd53d920b0a23d8500ef81849daa6e8da7f79905d0a51cbe6e383092c76a3b"
+  },
+  "approval": {
+    "path": "AGENTS.md",
+    "sha256": "565d63cb2cca513335bb58e173de04911c9925eb6f0c9592f2dd30d213955877"
+  },
+  "h3_summary": {
+    "path": "outputs/pose_insurance/heading-h3/summary.json",
+    "sha256": "ff5ec178c147ca7d9655fe0425fa1a1b06f0df6a63b49f84161b172f8614d429"
+  },
+  "tw_plan": {
+    "path": "outputs/pose_insurance/heading-v5/plan.json",
+    "sha256": "bf55d63858af205d901d3483b86b127dbe4d9a6509c74348051d4806bf682ad4"
+  },
+  "build": {
+    "path": "outputs/pose_insurance/heading-v5/builds/20261103T200312.752370Z-834737b2/episode_000019/run.json",
+    "sha256": "fb7a077ec231a0dc4f5304cfbf03626f260dfbdfd7213eea0aa9032df2c5eb39"
+  },
+  "checks": {
+    "finite": true,
+    "unit_quaternions": true,
+    "drift_cm": 0.040067333112755066,
+    "drift_deg": 0.11158386299077552,
+    "first_pose_cm": 0.040643891167961466,
+    "first_pose_deg": 0.11177477858230868,
+    "physical_passed": true,
+    "roster_keys": 470,
+    "covered_keys": 470,
+    "roster_frames": 235,
+    "export_frames": 235,
+    "names": [
+      "mini_sweeper",
+      "mini_dust_pan"
+    ],
+    "contract_passed": true,
+    "accepted": true
+  },
+  "equivalence": [
+    {
+      "world_geometry_max_m": 5.551115123125783e-17,
+      "world_collision_max_m": 8.326672684688674e-17,
+      "world_com_max_m": 0.0,
+      "world_inertia_max_kg_m2": 6.505213034913027e-19,
+      "inertia_min_eigenvalue_kg_m2": 0.0002137793245383463,
+      "passed": true,
+      "slot": 0,
+      "name": "mini_sweeper",
+      "geometry_rotation": [
+        [
+          0.0012343864384103953,
+          0.9994214468703443,
+          -0.0339889368134544
+        ],
+        [
+          -0.9960422496104225,
+          -0.0017918932789268704,
+          -0.08886296252931417
+        ],
+        [
+          -0.08887245513166622,
+          0.033964108321362776,
+          0.9954637743608781
+        ]
+      ],
+      "mass_preserved": true,
+      "box_size_preserved": true,
+      "faces_preserved": true,
+      "vertices": 8,
+      "mass_kg": 0.1
+    },
+    {
+      "world_geometry_max_m": 4.163336342344337e-17,
+      "world_collision_max_m": 6.938893903907228e-17,
+      "world_com_max_m": 0.0,
+      "world_inertia_max_kg_m2": 3.2526065174565133e-19,
+      "inertia_min_eigenvalue_kg_m2": 0.00047228307014430117,
+      "passed": true,
+      "slot": 1,
+      "name": "mini_dust_pan",
+      "geometry_rotation": [
+        [
+          -0.2259600103805689,
+          0.022434792663019187,
+          0.9738782027476435
+        ],
+        [
+          0.0718232414125823,
+          -0.9966300256057924,
+          0.03962340285724403
+        ],
+        [
+          0.9714852009690126,
+          0.0789003937833321,
+          0.22358719140199423
+        ]
+      ],
+      "mass_preserved": true,
+      "box_size_preserved": true,
+      "faces_preserved": true,
+      "vertices": 8,
+      "mass_kg": 0.1
+    }
+  ],
+  "checkpoint": {
+    "path": "outputs/pose_insurance/heading-v5/runs/20261103T201726.100649Z-6f47b951/episode_000019/training/policy_512.safetensors",
+    "sha256": "26de6bcfb79326def7749ab88cc49ccfb4a47fc50c43dce1199401fb4fb965a4"
+  },
+  "cpu_inspection": {
+    "path": "outputs/pose_insurance/heading-v5/cpu-inspection.json",
+    "sha256": "06e42a22658d5028c01c3ddf225e410bfcac3aeac12c03fd56a239b68b898e0c"
+  },
+  "gpu_runs": [
+    {
+      "path": "outputs/pose_insurance/heading-v5/runs/20261103T201726.100649Z-6f47b951/episode_000019/run.json",
+      "sha256": "980e46f89873dae5c96764cb7c6c72de0225064163d20121b9e0e7513d17a508"
+    }
+  ],
+  "inputs": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "565d63cb2cca513335bb58e173de04911c9925eb6f0c9592f2dd30d213955877"
+    },
+    {
+      "path": "submissions/20261103T0645Z-d2-v4/track3_poses_v4_final.manifest.json",
+      "sha256": "abbd53d920b0a23d8500ef81849daa6e8da7f79905d0a51cbe6e383092c76a3b"
+    },
+    {
+      "path": "outputs/pose_insurance/heading-h3/summary.json",
+      "sha256": "ff5ec178c147ca7d9655fe0425fa1a1b06f0df6a63b49f84161b172f8614d429"
+    },
+    {
+      "path": "outputs/pose_insurance/heading-h3/reports/20261103T133724.570656Z-36624a39/run.json",
+      "sha256": "8bad0397993e7dfeecfa6b43be109120de68ded3f330953e4e0e118811863b32"
+    },
+    {
+      "path": "docs/chain/pose-heading-h3-outcome.md",
+      "sha256": "1db29cf3388c2eb2ef2486bb078f5529bba4b6bf39b0c421669fa6631b49f488"
+    },
+    {
+      "path": "docs/chain/pose-heading-h3-protocol.md",
+      "sha256": "ae1c4934dd6fe4601fefcf1d3d2c6b9fadb5f640de1528a47698757a4d0e7d55"
+    },
+    {
+      "path": "outputs/pose_insurance/heading-h3/verification.json",
+      "sha256": "2a8de312a0ee6582538f6253a4d3e5c9b269387ae9725b09bbb6e56e4ef44b56"
+    },
+    {
+      "path": "docs/chain/d2-v5-plan.md",
+      "sha256": "f10612f73a2528f75092af61fb1218bcbad1f688329804d82b60f1d52f0c3284"
+    },
+    {
+      "path": "outputs/pose_insurance/heading-h3/scored-pose/20261103T133724.498103Z-69cf4828/run.json",
+      "sha256": "925f02f80e45e93512f701a591e0dbf35332b36925f0a1f33c1a2da908116253"
+    },
+    {
+      "path": "track3/features/pose_insurance/scored_heading_v5_queue.json",
+      "sha256": "2e40e1754792e46f97107b52aeca0e0f0228e2113e7b30bb1db7cdb051252508"
+    },
+    {
+      "path": "outputs/pose_insurance/stereo-placement-scored/runs/20261103T061849.354613Z-955d2355/episode_000019/run.json",
+      "sha256": "317c6af91f15f7fbe5a2889090ff933ff0ec90747e25e4f6ce6ff3c28d7fa1ac"
+    },
+    {
+      "path": "outputs/pose_insurance/stereo-placement-scored/builds/20261103T061850.056763Z-158444af/episode_000019/run.json",
+      "sha256": "0d5a4000a0e6210571357837863a3562410e4f7ceddbcf9c3c2c6ade48151ffc"
+    },
+    {
+      "path": "outputs/pose_insurance/heading-h3/scored-pose/20261103T133724.498103Z-69cf4828/run.json",
+      "sha256": "925f02f80e45e93512f701a591e0dbf35332b36925f0a1f33c1a2da908116253"
+    },
+    {
+      "path": "outputs/pose_insurance/heading-h3/scored-pose/20261103T133724.498103Z-69cf4828/episode19.json",
+      "sha256": "37b8a10e859506717fe9e57638c73232f56fff33400bdeb3d928f42384d983eb"
+    },
+    {
+      "path": "outputs/pose_insurance/heading-v5/builds/20261103T200312.752370Z-834737b2/episode_000019/run.json",
+      "sha256": "fb7a077ec231a0dc4f5304cfbf03626f260dfbdfd7213eea0aa9032df2c5eb39"
+    },
+    {
+      "path": "outputs/pose_insurance/heading-v5/plan.json",
+      "sha256": "bf55d63858af205d901d3483b86b127dbe4d9a6509c74348051d4806bf682ad4"
+    },
+    {
+      "path": "outputs/pose_insurance/heading-v5/decision.json",
+      "sha256": "944f5123a471469d8bd7858f22fd84ff294fa595e26c6daca065d5efb3cb3fff"
+    },
+    {
+      "path": "outputs/pose_insurance/run-v2/20261101T230158.645100Z-0a611b4d/episode_000001/run.json",
+      "sha256": "af28c9b23aaa600df6383e7de698423ec0a49632ae7d463b0b6ff101ef5b1168"
+    },
+    {
+      "path": "outputs/pose_insurance/stereo-placement-scored/runs/20261103T061225.206271Z-f2485266/episode_000003/run.json",
+      "sha256": "fe87829a5180fe774648c5e7c3be5d585e08f88e923a844369900d2fdde75734"
+    },
+    {
+      "path": "outputs/pose_insurance/run-v1/20261101T165251.960656Z-29fac33e/episode_000005/run.json",
+      "sha256": "bc08eeb3af9920bd58c587b37df48ba02a0b2e97fce6113c0b5db7da8a8b73de"
+    },
+    {
+      "path": "outputs/pose_insurance/stereo-placement-scored/runs/20261103T061525.133238Z-d3dc9c3e/episode_000006/run.json",
+      "sha256": "7883f670d5afe6ba9ad78e8fa4bf2f1045c49791100f3bbc326e4955553492a0"
+    },
+    {
+      "path": "outputs/pose_insurance/stereo-placement-scored/runs/20261103T061558.776848Z-3eee7ed6/episode_000008/run.json",
+      "sha256": "e38531a0f6c5ec8c73c562a8c9fbcf0e6d99f0fcd0e4554dcf1594952abc6c13"
+    },
+    {
+      "path": "outputs/pose_insurance/stereo-placement-scored/runs/20261103T061633.479824Z-1132f0e1/episode_000010/run.json",
+      "sha256": "0443f7f991c065be6ff798e49158fb543f7515034c23c0675d3a6f47d2cd2229"
+    },
+    {
+      "path": "outputs/pose_insurance/stereo-placement-scored/runs/20261103T061706.844605Z-36115d2a/episode_000014/run.json",
+      "sha256": "9467ba701a85996c0b616b4989966d5d48081ccc6cb135cb15c890a1d141e34d"
+    },
+    {
+      "path": "outputs/pose_insurance/stereo-placement-scored/runs/20261103T061740.448950Z-075616b2/episode_000015/run.json",
+      "sha256": "24b4c16624ebc8a635056acae15d2ddbe86d763c0b1a827dbb1d6b46302dd150"
+    },
+    {
+      "path": "outputs/pose_insurance/stereo-placement-scored/runs/20261103T061815.171953Z-1b761d06/episode_000016/run.json",
+      "sha256": "bb7aebc6944b598bf9dfcd52d781d7744e37212f595d38999be35946992bf530"
+    },
+    {
+      "path": "outputs/pose_insurance/heading-v5/runs/20261103T201726.100649Z-6f47b951/episode_000019/run.json",
+      "sha256": "980e46f89873dae5c96764cb7c6c72de0225064163d20121b9e0e7513d17a508"
+    },
+    {
+      "path": "outputs/pose_insurance/stereo-placement-scored/runs/20261103T061923.798968Z-b5003c54/episode_000020/run.json",
+      "sha256": "203f652b4ce59d1127826277e97005dfb8c2f70065b5830091d7f710961a06e9"
+    },
+    {
+      "path": "outputs/pose_insurance/stereo-placement-scored/runs/20261103T061958.934740Z-21a41ec4/episode_000025/run.json",
+      "sha256": "94172bf16138e696e5d4d140788f4b30801d3a9862955a9f2e9fbd94418dd535"
+    },
+    {
+      "path": "outputs/pose_insurance/run-v2/20261101T230238.970403Z-c83004d8/episode_000028/run.json",
+      "sha256": "5d738a912d039d17339a2c464bbd3ec92da805ee2a6ea04c27ed55fd5ac5c86c"
+    },
+    {
+      "path": "outputs/pose_insurance/run-v3/20261102T003115.353513Z-3b233e84/episode_000030/run.json",
+      "sha256": "8d3d230099157bffaa6d11f310dda46280db24b3ee2055afe231e34250e9a173"
+    },
+    {
+      "path": "outputs/pose_insurance/stereo-placement-scored/runs/20261103T062035.018531Z-4f8cb54f/episode_000032/run.json",
+      "sha256": "6bb05da9b400a8b0c6160cd160b47dcd1d4177388ed862f9aed052fffc906b20"
+    },
+    {
+      "path": "outputs/pose_insurance/stereo-placement-scored/runs/20261103T062111.144749Z-fee2d5f3/episode_000033/run.json",
+      "sha256": "b84f0004021ada7a2e5c16954af1b24ad78211f79c17fa78fdfdc35fb1de79f3"
+    },
+    {
+      "path": "outputs/pose_insurance/run-v1/20261101T170017.241725Z-9cc5562c/episode_000035/run.json",
+      "sha256": "8b8eaa6c97992ede7ead57dffa5934c4d6f040df37f1c52134aa8488639be1c6"
+    },
+    {
+      "path": "outputs/pose_insurance/run-v1/20261101T170054.027296Z-bd68a797/episode_000036/run.json",
+      "sha256": "554806c8049b260107b9e2083feda848485d150b52915b398ab5e79b43d2bf7d"
+    },
+    {
+      "path": "outputs/pose_insurance/run-v1/20261101T170125.708272Z-864bdeff/episode_000037/run.json",
+      "sha256": "e584365be74557fd89a7c6bdad90c9034fb4766d2eda549fdcff348dc7e9db26"
+    },
+    {
+      "path": "outputs/pose_insurance/run-v1/20261101T170154.350873Z-e0da1a82/episode_000038/run.json",
+      "sha256": "0c32ce0efa66e421c31c97f2292d6d28af34de60140e4a017cb3555ebf765076"
+    }
+  ],
+  "source_hashes": {
+    "track3/features/pose_insurance/__init__.py": "390e2f8e7c3fc7960beddb5cdec2c3387e78c56c55ecca1a31b9207947e275de",
+    "track3/features/pose_insurance/__main__.py": "5b6a47e7c0534c75dbcd4e276399a402b126e64b7c1cb58d015ff225179eb53f",
+    "track3/features/pose_insurance/_heading.py": "a3bd892b461597bbc6bfbed696fed2a724d8ec25121fe57943537c4e456a104e",
+    "track3/features/pose_insurance/_heading_h3.py": "fb7a2fbb17e7c91ea6124ea027a80b8aca3679e6983bcb906dc212015a6c0c14",
+    "track3/features/pose_insurance/_heading_render.py": "22d02fb1a175e37252882e4865878f319f6ec7654c2de3e65ea4319b35118d8a",
+    "track3/features/pose_insurance/_heading_v5.py": "43a442fc4a6254c565d23703eb81f41e25633a4fa56beb212f9d5134276c2bee",
+    "track3/features/pose_insurance/_length.py": "25b1c803b69ecd9c285a7dcaeabed0743914cae6e3341d22b315f376faf590c7",
+    "track3/features/pose_insurance/_length_report.py": "530e391f544ef2e613df59efe6d088f54f3ce36310af61eadcfceaf7cf807f90",
+    "track3/features/pose_insurance/_placement.py": "eb63c4508e5ce467f2f95250cecd8dfa69695fa8cadf21917904e7489dfb3bb8",
+    "track3/features/pose_insurance/_registration.py": "c1ab145c8bcb2ab6c2bb3e5e6fd200d64b4347a6f1f74ed9fd5fc6f8c96d8404",
+    "track3/features/pose_insurance/_registration_h3.py": "5edbb7060035e5052eb1edec7d9793a49b78c5707f333a48abc8e9f57a4356eb",
+    "track3/features/pose_insurance/_registration_verdict.py": "d8b1c5b2ee7bcc0a6d15393fbbf9a2cbc4a0ed026913c972fb721ee28e2ca609",
+    "track3/features/pose_insurance/_scale.py": "99d505e9f2c915ac995b2a0bb11f27b0cec911d49e3cb1e0031182cb21c35c97",
+    "track3/features/pose_insurance/_scene.py": "7b518dc6ca9a37d03f1d623d13c379cfd465eec20391be829508c1e214471f0e",
+    "track3/features/pose_insurance/_scored_scale.py": "fdbf44631a792ee6a90db62d118e42607db56cdb2b6409dfc826f1d50b48d13b",
+    "track3/features/pose_insurance/_shrink.py": "9a6602f8e3a67117264b1d649d848c89f5c0b5490a23a28ece3eb0237a1e350a",
+    "track3/features/pose_insurance/_silhouette.py": "ce2d49cf49ad010556977e3ba4e49eef8aedcfef82bf95751be945b0bb7a7cbb",
+    "track3/features/pose_insurance/_silhouette_labels.py": "6ed3c5590900fc01548458b8a17c115c98e5ccb8795fe7cb9d250ab20ac5877a",
+    "track3/features/pose_insurance/_silhouette_render.py": "6259d134dd67924ba230cb9966056558559fc22a32072ad770cbf735efee1734",
+    "track3/features/pose_insurance/_stereo_placement.py": "0162fee04c0ea1c4f7eff28d437fb84ac53a7c6f14d76c7558e4347fd60e457e",
+    "track3/features/pose_insurance/_support.py": "df808663a3a1c41fdcf8e71ee579d9184c61e14b129520ba6300570603cd9dcc",
+    "track3/features/pose_insurance/_support_render.py": "a2bc45eef32956e72db784f5a50ce94818ab061fcb5c154db9dca4a5c2397990",
+    "track3/features/pose_insurance/confirmation_prepare.py": "647e92296f0efbef639c799c06c01210fc9d91e0a41b252f583d5c5c7fcf7079",
+    "track3/features/pose_insurance/confirmation_report.py": "ea50c9d546e79ed4fb2286da55229e512e5241d6fbcec1c33483502591185453",
+    "track3/features/pose_insurance/diagnostic.py": "2c4d3a8187c29b764bf2e3f953ea150543a27e4de41e9e31f3e3473a80e530b6",
+    "track3/features/pose_insurance/handler.py": "071b3b9e89ba0a1db5b32363e9bda4e2e79a466b7b014163253518f475d74a13",
+    "track3/features/pose_insurance/heading_h3_check.py": "176f65021ab008dffbace1f180a208c2e1380e1287db04f5726b5a3ea552ed15",
+    "track3/features/pose_insurance/heading_h3_loop.py": "34f0478eff823d0ff18e2b422ec4972cc27365c71ea68faf2c26bf4029462d81",
+    "track3/features/pose_insurance/heading_loop.py": "23441a349b91243f77efac09b16f0e658c58a11d04f3b5207c74e5f4616aa6a3",
+    "track3/features/pose_insurance/length_diagnostic.py": "b8e77a5bda88e0c7aa8f7797f27bb36bc2b50d3b810726a3d659c06b9f33d7e6",
+    "track3/features/pose_insurance/length_prepare.py": "b5c419c4bfed192dc0d546d8c04638c76153f033eaf826fa1084fe024cd4f826",
+    "track3/features/pose_insurance/loop.py": "8bd797c22e3f965289102f9ac3a442b3eb4200061bd64f8884414cfbd0f66f85",
+    "track3/features/pose_insurance/pack.py": "adb93da0378059afd27cec3793c47a69e16aab9b8e89208c3032d6da209d3c65",
+    "track3/features/pose_insurance/placement_diagnostic.py": "6d36a445970fe6ed24f1db8fd3010093b317564607e4fcba55a4fb17fbb90695",
+    "track3/features/pose_insurance/placement_loop.py": "65c10ee93860ea58c0a757a197a48ae419b1af923c826321e1a2eb246c2ab0c1",
+    "track3/features/pose_insurance/placement_report.py": "7423c4c7270f7ae949f75870896cc5ee60b0be76acca265f19fc5f0d3aa5b335",
+    "track3/features/pose_insurance/registration_h3_loop.py": "5fe806fb5a51fae7ada723577d773a7ef9cb712349e8282dbe25d6bf4131756b",
+    "track3/features/pose_insurance/registration_loop.py": "b6ab916433997cb42f57f793753a980573d77f60d45167cf693e4cf4fbbe24f8",
+    "track3/features/pose_insurance/registration_verdict.py": "ff16c650c999c7789354886efa24302c52a1ec39933466907a241faa3376acb1",
+    "track3/features/pose_insurance/request.py": "26dc1bed86c843fac1010f217c6bd4965510302dd1b150f87fb9b6ec495a9d79",
+    "track3/features/pose_insurance/scale_diagnostic.py": "46c8d83e7d86b9ceacb393cec1ae251ead5b7a85624e736b936d16ab6dc1cfe7",
+    "track3/features/pose_insurance/scale_loop.py": "f0000257da4fb6a8cf8086a56f24346b500ff5913a78385fa49c261f3bdf9afc",
+    "track3/features/pose_insurance/scale_report.py": "ad59963cb3e57a1601291e3ff352904cc990f048eba5f6ba24167ea67cf0efc6",
+    "track3/features/pose_insurance/scale_stereo.py": "7a94572553b03cc8e7ea61c0af818c585ae799cd1ffdc5246aa2edb526065deb",
+    "track3/features/pose_insurance/scene.py": "138e901fa4342d811ce27142876b12153a237cadf243eaef86361f5d8985efc1",
+    "track3/features/pose_insurance/scored_heading_assets.py": "25b978eb9676eb876dbb2e3a4f0bbf4c0e7b124ad738eaf35647a834a44b7e76",
+    "track3/features/pose_insurance/scored_heading_pack.py": "5ffe72581f336c417e1ce7dd1f4f447178183bdc7c4afd7ec84e43e18b55a65b",
+    "track3/features/pose_insurance/scored_heading_v5.py": "2c07c4003ac9c87b91e353f602a319e21a7bb86f9da1c6434346dd5c518aecdf",
+    "track3/features/pose_insurance/scored_scale_handler.py": "21bf66d6d1e8184c741207d74b32aec021637032434ea17fd533065a7473fbbb",
+    "track3/features/pose_insurance/scored_scale_loop.py": "9ffc9f129f63caf86ab65469e027901be03a63c00adf81af500d182a717dc924",
+    "track3/features/pose_insurance/scored_scale_pack.py": "22c97c35264e5982b352aacc488bb80b8e350d678a76f43ca65783cceadabb24",
+    "track3/features/pose_insurance/scored_scale_report.py": "23fa98f5b8582d41f7d83f01bb2a20c58c2f15943d4448ea484148f23c5b8668",
+    "track3/features/pose_insurance/scored_scale_stereo.py": "f550cbc124d2e7d5ed8b71b32b0add227c292cb54fbe120733413d7bd910446b",
+    "track3/features/pose_insurance/scored_stereo_config.py": "f4b12464058568e6eed11bb70797ae95484af27ec5bdd31757170d022e1eab74",
+    "track3/features/pose_insurance/scored_stereo_handler.py": "5ceebb53c71160ad3ccf28bc81090a7d373ce1faafdc9a8958ff0bf31ac134fd",
+    "track3/features/pose_insurance/scored_stereo_loop.py": "130a30d4af08199bcdde07e333827473a7b2007f03ab35541ad3fc4d3a2f9eb3",
+    "track3/features/pose_insurance/scored_stereo_pack.py": "b39891cda6502f44f919bdbfd3512f6a281123a8aef049bde2e40d7f3c27627d",
+    "track3/features/pose_insurance/scored_stereo_report.py": "d2d8ff60f3b9a54e754ecc41dbf2c6c12e2e47a904968aaafc66d7464edcd63e",
+    "track3/features/pose_insurance/shrink_diagnostic.py": "c89fc5dde9cc7faf56fab53feca940cf324760f31348e6733d4fda8a6e80bb5e",
+    "track3/features/pose_insurance/shrink_loop.py": "5b1b61caeb75bf751b8c47d7bba9b4efebbaf16393dfe14a9b5b645e329318d9",
+    "track3/features/pose_insurance/shrink_report.py": "93724e519bee0235c38ea24edd7aff766dc00083577eb8e090534d87705d276f",
+    "track3/features/pose_insurance/silhouette_loop.py": "a21d33c074f47718737ca2d63f1b89aee14875328dd7efa04627ae7901bb29e3",
+    "track3/features/pose_insurance/stereo_placement_loop.py": "214f2c663949af0e9f362aa9e23540ca3dd1f40e13d6d909fb8a1a916fbe7066",
+    "track3/features/pose_insurance/stereo_placement_report.py": "8509059f644cc7617d27bf8ef0a0f03a8b518490a5ff5a4b664675f2d60c365e",
+    "track3/features/pose_insurance/support_diagnostic.py": "cc2e7fa054ed5f5601fa546acf8b936a0d3629984fde3518b97bca11116f2311",
+    "track3/gpu.py": "d7b7353e6e72050b1033a5a8d8ecda73f0a0e27436f0a3ecc9d5fd044c4c15d1",
+    "track3/paths.py": "5f7cf257b1e5f207e81ce781034dfe192da01a40889917bf77d5053925ee5b54",
+    "track3/provenance.py": "26c6127133b1130b3311a94f668cac2642d6e90da796aca6c4111fd5c6ec2c91",
+    "track3/runs.py": "28c5d4f9d7b757bc69e1b430ce1df49b6820c5120c53f6b41868ac7fbd92cc60",
+    "configs/sources.lock.json": "9cb4be3c5aa2275e7defb1436f1ee4e2d2595a12e605d38c20daea64e3984a20",
+    "configs/splits/public-v1.json": "01b08863972ff92c51422346432b10810d5f002629b248f5dd74002a6c6c4076",
+    "track3/features/pose_insurance/scored_heading_v5_queue.json": "2e40e1754792e46f97107b52aeca0e0f0228e2113e7b30bb1db7cdb051252508",
+    "track3/features/pose_insurance/runtime.json": "e4d0bb5d8c05f4ff6f73dcf86d2d7677bec108ca3c5c09d3d50e1b8327d7f8f9",
+    "scripts/reproduce/d2_poses_v5.sh": "6add55baa6d70d64cb07f137ee8eb9006090515cf6d0761d58c6f1f512e59bce"
+  },
+  "reproduction_script": {
+    "path": "scripts/reproduce/d2_poses_v5.sh",
+    "sha256": "6add55baa6d70d64cb07f137ee8eb9006090515cf6d0761d58c6f1f512e59bce"
+  },
+  "commands": [
+    [
+      "/home/ceolwolf/repos/video2data/.claude/worktrees/chain-ctx01/.runtime/kit-env/bin/python",
+      "/home/ceolwolf/repos/video2data/.claude/worktrees/chain-ctx01/upstream/v2d_submission_kit/v2d_submission_kit/tools/pack_submission.py",
+      "--track",
+      "track_3",
+      "--results",
+      "/home/ceolwolf/repos/video2data/.claude/worktrees/chain-ctx01/.runtime/tmp/d2v5/reproduce/20261103T202441.980447Z-457affbf/results",
+      "--code-commit",
+      "https://github.com/BDavid03/video2data/commit/db7b13fc196785e9bf10714cd6e8231d808d06b8",
+      "--eval-script",
+      "/home/ceolwolf/repos/video2data/.claude/worktrees/chain-ctx01/upstream/v2d_submission_kit/v2d_submission_kit/flash_chord/scripts/evaluate_policy.py",
+      "--skip-crosscheck",
+      "--out",
+      "/home/ceolwolf/repos/video2data/.claude/worktrees/chain-ctx01/submissions/20261103T2024Z-d2-v5/track3_poses_v5_final.csv"
+    ],
+    [
+      "/home/ceolwolf/repos/video2data/.claude/worktrees/chain-ctx01/.runtime/kit-env/bin/python",
+      "/home/ceolwolf/repos/video2data/.claude/worktrees/chain-ctx01/upstream/v2d_submission_kit/v2d_submission_kit/tools/preflight.py",
+      "--track",
+      "track_3",
+      "--results",
+      "/home/ceolwolf/repos/video2data/.claude/worktrees/chain-ctx01/.runtime/tmp/d2v5/reproduce/20261103T202441.980447Z-457affbf/results",
+      "--skip-kaggle"
+    ]
+  ],
+  "source_manifest": {
+    "path": "outputs/pose_insurance/heading-v5/composition.json",
+    "sha256": "431163c998879da4d40154d51e3b6d2337ae824a88ae2d38440078e958e0ac88"
+  },
+  "preflight_verdict": "Ready to submit (Kaggle checks skipped)",
+  "reproduction_directory": ".runtime/tmp/d2v5/reproduce/20261103T202441.980447Z-457affbf",
+  "csv_comparison": {
+    "passed": true,
+    "total_rows": 9120,
+    "non_19_rows": 8650,
+    "episode_19_rows": 470,
+    "ignored_fields": [
+      "code_commit_url"
+    ],
+    "signed_zero_text_preserved": true,
+    "v4_csv": {
+      "path": "submissions/20261103T0645Z-d2-v4/track3_poses_v4_final.csv",
+      "sha256": "7221dd3ad8cabed7037d35a61293f1aac26b1dbcfd9498fa617a02791d9f57cf"
+    }
+  },
+  "file": "submissions/20261103T2024Z-d2-v5/track3_poses_v5_final.csv",
+  "sha256": "0b2606aed015fe0a64e31037ff790b5483680c3da7e7a5ae2d503edeb8261035",
+  "head": "db7b13fc196785e9bf10714cd6e8231d808d06b8",
+  "code_commit_url": "https://github.com/BDavid03/video2data/commit/db7b13fc196785e9bf10714cd6e8231d808d06b8"
+}
