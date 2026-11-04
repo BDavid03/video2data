@@ -78,7 +78,7 @@ All disabled by default.
 
 | Input | Producer | Fields read |
 |---|---|---|
-| The processed sequence, object assets and support file | [retargeting](../retargeting/README.md) | By the runtime, through `task.parquet` |
+| The processed sequence, object assets and support file | [archived retargeting design](../../../recycle/20261104T010336Z/track3/features/retargeting/README.md) | By the runtime, through `task.parquet` |
 | `inspect.json` | retargeting | Refuse when it holds a blocking finding |
 | `budget.json` | This slice | World count, step budget and replay settings chosen from measurements |
 
@@ -92,7 +92,7 @@ All disabled by default.
    | Override | Value | Reason |
    |---|---|---|
    | `task.parquet` | The episode's processed sequence | Required |
-   | `task.motion_speed` | 1.0 | One control step per video frame. See [policy_rollout](../policy_rollout/README.md). The recipe uses 0.5. |
+   | `task.motion_speed` | 1.0 | One control step per video frame. See [archived policy_rollout design](../../../recycle/20261104T010336Z/track3/features/policy_rollout/README.md). The recipe uses 0.5. |
    | `logging.mode` | `disabled` | Nothing leaves the machine. The default uploads checkpoints. |
    | `output_dir`, `hydra.run.dir` | Inside the run directory | The defaults are relative to the working directory |
    | `scene.world_count` | From `budget.json` | Memory |
@@ -378,7 +378,7 @@ Unmeasured. The measurements to take, in this order:
 A run that stops early keeps its checkpoints and is marked `interrupted`. The
 learner state file allows resuming. A run whose rollout has an invalid world is
 marked and the next checkpoint down the ladder in
-[policy_rollout](../policy_rollout/README.md) is tried.
+[archived policy_rollout design](../../../recycle/20261104T010336Z/track3/features/policy_rollout/README.md) is tried.
 
 ## Separation of public labels
 

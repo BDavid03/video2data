@@ -14,6 +14,7 @@ submissions/*
 .claude/worktrees/
 .scratch/
 recycle/*/untracked/
+docs/report/track3/figures/d1-v4-qualitative.pdf
 docs/report/track3/.tectonic/
 docs/report/track3/.matplotlib/
 docs/report/track3/.build-tmp/

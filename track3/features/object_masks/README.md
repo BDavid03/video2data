@@ -153,7 +153,7 @@ Fixed prompts are initial implementation choices, not tuned or validated setting
    configured floor, mark it absent. Re-detect at the next keyframe and resume.
    Absent is a recorded state. No mask is carried across a gap.
 5. **Separate hands.** Hands are detected with the same detector and prompt
-   "hand". Left and right are assigned later by [hand_motion](../hand_motion/README.md),
+   "hand". Left and right are assigned later by [archived hand_motion design](../../../recycle/20261104T010336Z/track3/features/hand_motion/README.md),
    which has a hand-specific model. Until then the two hand instances are stored
    as `hand_0` and `hand_1`.
 
@@ -173,7 +173,7 @@ separate them.
    neighbours whose 3D distance is small. Drop clusters below a minimum size.
 4. Write one mask layer per cluster, named `cluster_0`, `cluster_1` and so on,
    in order of size. This operation does not name objects.
-   [object_pose](../object_pose/README.md) assigns names when it registers the
+   [archived object_pose design](../../../recycle/20261104T010336Z/track3/features/object_pose/README.md) assigns names when it registers the
    scans.
 5. The opening ends at the first frame where the cluster count changes or a new
    cluster enters from the image border. Frames after that are not processed.

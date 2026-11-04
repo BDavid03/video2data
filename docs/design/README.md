@@ -1,35 +1,26 @@
 # Project design and operating reference
 
-Documentation baseline: **5 October 2026**. The target is the full Track 3
-version 1: reconstruction, robot policy, achieved simulator trajectories,
-reconstructed meshes, packaging and accepted submission evidence.
-
-Implementation spans all major feature slices, but the complete pipeline has
-not run. Source presence is not evidence of accuracy, compatibility, resource
-fit or delivery. The [delivery ledger](version1.md) records what is implemented
-and what still needs evidence.
+This index describes the eleven retained slices after the November 2026
+restructure. The [submission ledger](../chain/SUBMISSION.md) tracks the shipped
+mesh/pose packages and their evidence; the [version 1 ledger](version1.md) keeps
+the broader historical design and its uncompleted goals.
 
 ## Current working agreement
 
-[AGENTS.md](../../AGENTS.md) controls current work. Implementation and documentation
-may continue. Tests, smoke checks, validation commands, dependency-resolution
-experiments, model execution, simulation and coursework notebook execution are
-not authorized. Scratch-depth preparation, training and inference remain disabled;
-episode 41 remains excluded from the current depth work. Operation flags remain
-false. Reading a command or procedure here does not authorize running it.
+[AGENTS.md](../../AGENTS.md) and the current task brief control authorization.
+Keep runtime gates, producer hashes and episode exclusions intact. New production
+dependencies need approval; upstream references and external environments remain
+read-only. Generated artifacts and caches stay inside the permitted Linux checkout.
+A command or operation listed here grants no permission to execute it.
 
-New production dependencies require confirmation. The specifically approved
-MoGe2 installation does not approve any other backend or execution. Generated
-artifacts, environments, caches and temporary outputs belong under
-`Z:/hugging-face/video2data`; external environments and upstream references are
-read-only.
+Older documents under `docs/design/`, `docs/experiments/`, `docs/research/` and `reports/` may name recycled slices; those paths are now under `recycle/20261104T010336Z/`.
 
 ## Reading paths
 
 For a single-file collection, see the
 [documentation compiler](../../scripts/documentation/README.md). Its standard-library
 script collects project Markdown, including feature pages and historical reports,
-into `docs/compiled/all-documentation.md`. It has not been executed.
+into `docs/compiled/all-documentation.md`, which is untracked.
 
 | Need | Read |
 |---|---|
@@ -50,29 +41,23 @@ Each linked slice owns its request, handler, integrations, persistence,
 configuration and detailed documentation. The operation list below describes
 source entry points, not execution readiness.
 
-| Slice | Responsibility | Operations |
+| Slice | Responsibility | Entry points |
 |---|---|---|
-| [Depth](../../track3/features/depth/README.md) | Calibrated monocular depth | generate, through the module's direct entry point |
-| [Stereo depth](../../track3/features/stereo_depth/README.md) | Calibrated stereo depth and observed scale | rectify, generate, anchor |
-| [Scratch depth](../../track3/features/scratch_depth/README.md) | Original CNN and owned training artifacts | prepare, train, predict |
-| [Learning experiments](../../track3/features/learning_experiments/README.md) | Owned research training, prediction, ensembles, scoring and tuning | plan, train, predict, boost-train, boost-predict, ensemble, score, tune |
-| [Auto research](../../track3/features/auto_research/README.md) | Closed loop: run, record, visualise, consult Codex, improve; frozen finalize, ONNX export and LaTeX report | loop, finalize, report |
-| [Depth student](../../track3/features/depth_student/README.md) | Fully convolutional depth students (UNet/dilated/coursework), SILog/gradient losses, EMA, augmentation, ONNX export | train, predict, export |
-| [Object masks](../../track3/features/object_masks/README.md) | Opening clusters and persistent full-video masks | opening-clusters, generate |
+| [Depth](../../track3/features/depth/README.md) | Calibrated monocular depth and cached teacher frames | generate; offline challenger ingestion |
+| [Stereo depth](../../track3/features/stereo_depth/README.md) | Calibrated stereo geometry and observed scale | rectify, generate, anchor, correspondences, report |
+| [Object masks](../../track3/features/object_masks/README.md) | Opening clusters and full-video masks | opening-clusters, generate, correspondences |
 | [Camera motion](../../track3/features/camera_motion/README.md) | Metric camera trajectory and table world | estimate |
-| [Object mesh](../../track3/features/object_mesh/README.md) | Tracking/collision assets and episode reconstructions | resolve, reconstruct |
-| [Object pose](../../track3/features/object_pose/README.md) | Opening registration, tracking and world composition | initialise, track, compose |
-| [Hand motion](../../track3/features/hand_motion/README.md) | Anatomical estimates, metric lifting and review | estimate, kinematics, lift, parked-template, preview |
-| [Scene assembly](../../track3/features/scene_assembly/README.md) | Complete references, supports and contact proxies | assemble |
-| [Retargeting](../../track3/features/retargeting/README.md) | Robot references and simulator assets | export, assets, retarget, support, inspect |
-| [Policy training](../../track3/features/policy_training/README.md) | Resolved recipes, checkpoints and selection | compose, train, select |
-| [Policy rollout](../../track3/features/policy_rollout/README.md) | Achieved simulator trajectories and comparison | rollout, inspect, self-score |
-| [Public diagnostics](../../track3/features/public_diagnostics/README.md) | Isolated public-reference measurements | floor, score, frame-convention, oracle, agreement, mesh |
-| [Campaign](../../track3/features/campaign/README.md) | Explicit selections, ancestry, work plans and reviewable requests | board, pin, stale, queue, materialize |
-| [Submission](../../track3/features/submission/README.md) | Immutable plans, packages and upload records | plan, check, pack-poses, pack-meshes, upload |
+| [Mesh extents](../../track3/features/mesh_extents/README.md) | Video measurements, procedural meshes and frozen shape diagnostics | measure, build, rules, adopt, proxy |
+| [Mesh evaluation](../../track3/features/mesh_eval/README.md) | Exact packed mesh scoring on public scans | pairs; local CD-O script |
+| [Mesh generative](../../track3/features/mesh_generative/README.md) | Frozen pretrained-shape campaigns and diagnostics | pilot, g2, g3, insights |
+| [Pose insurance](../../track3/features/pose_insurance/README.md) | Shipped pose-policy line and frozen diagnostics | scene build, policy run, diagnostic and packing modules |
+| [Policy training](../../track3/features/policy_training/README.md) | Retained budget consumed by D0; general training tools | compose, train, select, comparison |
+| [Mesh fusion](../../track3/features/mesh_fusion/README.md) | Unsuccessful fusion route retained as cited evidence | fixed F1/F1b queues |
+| [Dynamic feasibility](../../track3/features/dynamic_feasibility/README.md) | D0/D1 dynamic-route evidence cited in the abstract | feasibility and scaling queues |
 
-`object_mesh.register` and generative mesh reconstruction remain proposals.
-A reserved configuration field is not an implemented operation.
+The other 17 slices and companion scripts are preserved in
+[the recycle folder](../../recycle/20261104T010336Z/MANIFEST.md), whose manifest
+explains restoration of dependent groups to their original paths.
 
 ## Evidence vocabulary
 

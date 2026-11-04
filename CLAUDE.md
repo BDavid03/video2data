@@ -17,10 +17,7 @@ OpenCV, SciPy, matplotlib, onnx/onnxruntime). The system `python3` has no third-
 bash scripts/linux/install-linux-cuda.sh        # (re)create the venv; idempotent, logs under reports/installation/
 source scripts/linux/use-linux-cuda.sh          # venv on PATH + MoGe source trees on PYTHONPATH for a manual shell
 
-python scripts/research_loop.py                  # closed research loop (re-execs itself in the venv)
-python scripts/research_loop.py -n 6 --no-consult
-python scripts/research_loop.py --finalize --report   # freeze on tuning, assess holdout once, export ONNX, write LaTeX
-
+bash scripts/reproduce/d1_meshes.sh https://github.com/BDavid03/video2data/commit/b161723 --version v4  # plan only
 PYTHONPATH=. .runtime/linux-cuda/bin/python -m track3.features.<slice> <operation> --request <file.json>
 python3 -m py_compile <file>                     # syntax check (no deps needed)
 PYTHONPATH=. .runtime/linux-cuda/bin/python -c "import track3.features.<slice>.<module>"   # CPU import check
@@ -29,70 +26,67 @@ python scripts/documentation/compile.py          # concatenate docs into docs/co
 
 There is no test runner installed (`tests/` predates a no-testing period and pytest is not in
 the venv). Verify changes with `py_compile`, a CPU import, and an old-vs-new equivalence script
-under `.runtime/tmp/` for pure functions. Never run two GPU operations at once: `track3/gpu.py`
-holds a cooperative lock at `.runtime/gpu-stage.lock` (stale locks from dead pids are cleared
-by `clear_stale_lock`; a live owner is never touched). Keep all generated files, caches and
+under `.runtime/tmp/` for pure functions. Never run two GPU operations at once:
+`track3/gpu.py` holds a cooperative lock at `.runtime/gpu-stage.lock` (stale locks from dead pids
+are cleared by `clear_stale_lock`; a live owner is never touched). Keep all generated files, caches and
 temp files inside the checkout (`outputs/`, `.cache/`, `.runtime/`); the dataset snapshot,
 `upstream/` and `models/` are immutable inputs.
 
-Codex (`codex` CLI, model `gpt-6-astra`) is used as a read-only advisor by the research loop.
-A Codex config exists at `~/.codex/config.toml`; reply `/import` to scan it for importable
-items, then `/import --yes=<digest>` to apply them.
+Collaboration and execution scope follow `docs/chain/PROGRAM.md` and the current task brief. Codex
+(`codex` CLI) is called only through `scripts/chain/codex_ask.sh` (`PROGRAM.md` section 8). A Codex
+config exists at `~/.codex/config.toml`; reply `/import` to scan it for importable items, then
+`/import --yes=<digest>` to apply them.
 
 ## Architecture
 
-**Vertical slices.** Every feature lives in `track3/features/<slice>/` and owns its request
-dataclass, handler, integrations, persistence, `runtime.json` flags, JSON request drafts and
-README. `__main__.py` is a thin `operation --request` dispatcher. Shared code is limited to
-stable primitives in `track3/`: `paths.py` (permitted artifact roots from
-`configs/project.json`, `project_path`, `output_path`, per-platform `interpreter`),
-`provenance.py` (`run_fields`, `input_file`, `read_run`, `sha256_file`, `write_json`),
-`gpu.py` (lease and telemetry), `runs.py` (run-record lifecycle `recorded`, `runtime_flag` +
-`authorize_episode` gates, `producer`/`artifact`/`checked_entry` admission, `heavy_execution`
-cache redirection, `source_hashes`, `save_npz`), `calibration/` (NumPy geometry), `metrics/`, `data/`.
+**Vertical slices.** Retained features live under `track3/features/` and own their
+request, handler, integrations, persistence, runtime flags, drafts and README.
+Their module dispatchers are thin entry points. Shared primitives in `track3/paths.py`,
+`track3/provenance.py`, `track3/runs.py` and `track3/gpu.py` provide path constraints,
+provenance, run ownership, admission and the GPU lease; `track3/calibration/`,
+`track3/metrics/` and `track3/data/` hold shared geometry, metrics and input handling.
 Do not add horizontal service or repository layers.
 
-**Gates before work.** Each handler calls `authorize(<operation>)` against its slice's
-`runtime.json`, then `heavy_execution`, which checks the interpreter and redirects every
-cache/temp env var into the checkout before importing torch/cv2. A false flag or wrong
-interpreter raises before anything is written. Episode 41 is refused everywhere; holdout
-episodes 43/44 are refused except by `holdout_predict`-gated paths used only by finalize.
+**Shipping mesh line.** `track3/features/mesh_extents/` measures cached video depth
+and builds procedural meshes; `track3/features/mesh_generative/` owns the pretrained
+shape campaigns and video admission; `track3/features/mesh_eval/` scores packed meshes
+with the kit. `scripts/reproduce/d1_meshes.sh` rebuilds v2/v3/v4 from recorded measures;
+`scripts/reproduce/d1_meshes_v5.sh` repacks the passing G2 production tree.
 
-**Run ownership.** An operation creates `outputs/<slice>/<operation>/<run-id>/run.json`
-holding the request snapshot, hashed inputs, hashed sources, provenance tag, status
-(`running`/`completed`/`failed`), timing and an artifact hash inventory. Consumers admit a
-producer by reading its `run.json` (`read_run`) and re-hashing the exact artifacts they use;
-only `completed` records may be consumed. Never mutate historical records.
+**Shipping pose line.** `track3/features/pose_insurance/` owns scene preparation,
+policy runs, frozen diagnostics and pose packing. `scripts/reproduce/d2_poses_v5.sh`
+verifies or packs the frozen v5 sources and artifacts. `scripts/reproduce/d3_report.sh`
+builds the report; `scripts/reproduce/verify.sh` checks explicit manifest hash entries.
+See `scripts/reproduce/README.md` for commands and source-drift limitations.
 
-**Depth research chain** (the part the loop drives):
+**Supporting slices.** `track3/features/depth/`, `track3/features/stereo_depth/`,
+`track3/features/object_masks/` and `track3/features/camera_motion/` retain perception
+and preparation tools. `track3/features/policy_training/` stays because the D0 loop
+reads its budget; `track3/features/mesh_fusion/` and
+`track3/features/dynamic_feasibility/` retain evidence cited in the abstract.
 
-1. `depth.generate` runs MoGe2 (`models/moge/model.pt`, pinned sources in `upstream/`) on
-   sparse frames of one episode and writes teacher depth NPZs.
-2. `scratch_depth.prepare` turns teacher runs into calibrated RGB/pseudo-depth pairs at a
-   chosen side (64–512 px) with a `dataset.json`; `learning_experiments/data.py:PreparedPairs`
-   is the shared loader and validates the whole contract.
-3. Training/prediction families: `learning_experiments` (ann/cnn/transformer/gradient
-   boosting, 128 px cap), `scratch_depth` (the coursework CNN, predicts from video, adapted
-   by `scratch_adapter`), `depth_student` (fully convolutional UNet/dilated/coursework,
-   SILog + gradient losses, EMA, augmentation, up to 512 px, ONNX export).
-4. `learning_experiments.score` is the single scorer (equal-episode log-depth MAE) and
-   `ensemble_operations` the single combiner; both accept `depth_student.predict` runs.
-5. `auto_research` closes the loop: `recipes.py` (bounded space, identity hash),
-   `campaign.py` (teacher/dataset registry, one recipe end to end with 1–3 seeds),
-   `metrics.py` (AbsRel, SILog, delta, bias, edge fidelity; usability gates + composite),
-   `ledger.py` (`outputs/auto_research/ledger.jsonl`), `visualize.py`, `advisor.py` (Codex
-   with a strict JSON schema), `loop.py`, `finalize.py` (freeze on tuning, then holdout and
-   ONNX), `report.py` (fills `templates/V2D_Challenge_Extended_Abstract_Template`).
-   Selection is by usability composite among gate-passing recipes, never MAE alone.
+**Gates before work.** The owning slice checks its runtime flags, episode allowlist
+and required interpreter before execution. Heavy execution redirects caches into
+this checkout; GPU operations use the shared lease. Episode 41 and holdout episodes
+43/44 remain excluded from current work. A documented command grants no execution
+permission and does not override a source-drift refusal.
+
+**Run ownership.** Operations write request snapshots, hashed inputs and sources,
+provenance, status, timing and artifact inventories under `outputs/`. Consumers
+admit completed producer records and re-hash the artifacts they use. Preserve
+historical run records and ledgers; changed identities require fresh outputs.
 
 **Frozen protocol.** Train episodes 0/11/12/18/21/23/26/31, tuning 39/42, holdout 43/44,
 split `configs/splits/public-v1.json`, dataset revision pinned in `configs/sources.lock.json`.
-`episode_partition` refuses any deviation. Scores compare to MoGe2 pseudo-labels, not
+`episode_partition` refuses any deviation. Depth scores compare to MoGe2 pseudo-labels, not
 measured depth; say so in any write-up.
 
-Other slices (object masks/mesh/pose, hands, scene assembly, retargeting, policy, campaign,
-submission, diagnostics) follow the same request/gate/run.json pattern; most are implemented
-but unrun. Design references: `docs/design/README.md` (feature directory),
-`artifact-contracts.md`, `feature-template.md`. The historical plan is
-`docs/design/legacy-plan.md`; the ordered research backlog is
-`docs/experiments/README.md`.
+The finished depth study and unrun scaffolding are preserved under
+`recycle/20261104T010336Z/`, with original paths and reasons in its
+[manifest](recycle/20261104T010336Z/MANIFEST.md). Restore the required dependency group
+to its original paths with Git moves as described there; archived sibling imports
+still use their original package names.
+
+Design references: `docs/design/README.md` (feature directory), `artifact-contracts.md`,
+`feature-template.md`. The historical plan is `docs/design/legacy-plan.md`; the research backlog
+is `docs/experiments/README.md`.

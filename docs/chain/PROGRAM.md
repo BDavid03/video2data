@@ -397,9 +397,10 @@ removal list is `docs/design/simplification-standard.md`; the slice layout is
     figures. Then it exits.
   - The agent starts it detached, ends its turn, reads the summary, edits the input and starts
     it again. Agents never hand-run trials one by one or babysit a running loop.
-  - Reuse what exists: `scripts/research_loop.py` and `track3/features/auto_research/`
-    (`recipes.py` identity hash, `ledger.py`, `campaign.py`, `metrics.py`, `visualize.py`) are
-    the pattern for depth. A new stage gets the same shape inside its own slice.
+  - Reuse what exists: `track3/features/mesh_generative/` demonstrates a fixed G3 queue,
+    source/input checks and resumable admission ledger in `track3/features/mesh_generative/g3.py`.
+    The former depth-loop example is preserved under `recycle/20261104T010336Z/`.
+    A new stage gets the same shape inside its own slice.
   Within each trial, let existing code do the work: NumPy, SciPy, OpenCV, torch, the `track3/`
   primitives, the official kit and the pinned upstream tools. Hand-rolled maths, parsers,
   loaders or training loops that a library already provides are defects.
