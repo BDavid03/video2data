@@ -293,3 +293,37 @@ and flip stress fails. AN4 and all three original-placement keep arms fail.
 Seeds 1/2 give the same verdicts. Episode 31's 5.124 cm vector error exceeds
 5 cm while its 26.015-degree b and 9.096-degree C errors meet their limits.
 No scored-stage adoption or physical-evaluation claim follows from this job.
+
+## Episode 30: scored P route
+
+`panel_scored` applies Amendment 1 items 8–11 to episode 30 alone after P passed
+and TW failed. It reuses the frozen DINO/SAM workers and exact inherited T1
+stereo/remap/table frame, preserves T1 rotations, and saves each stage separately.
+Run these commands in order, inspecting admission and feasibility before proceeding;
+an existing stage directory prevents a repeated policy attempt.
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. .runtime/linux-cuda/bin/python -B -m track3.features.pose_insurance.panel_scored stage-a
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. .runtime/linux-cuda/bin/python -B -m track3.features.pose_insurance.panel_scored construct
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. .runtime/flashchord/venv/bin/python -B -m track3.features.pose_insurance.panel_scored policy
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. .runtime/linux-cuda/bin/python -B -m track3.features.pose_insurance.panel_scored decision
+```
+
+Outputs live in `outputs/pose_insurance/frame0-panel/scored-30/`: masks and contact
+sheet, frozen construction, fresh box assets/task, one 512-step/one-world policy,
+official evaluator trajectory, physical checks and `decision.json`. Run the CPU
+geometry review before policy execution; its saved `geometry-check.json` is consumed
+as evidence. The review script is `.runtime/tmp/panel-scored-30-review/check_geometry.py`.
+The train queue's pre-amendment protocol pin is disclosed; this adapter records
+the current amended protocol directly and asserts the original model settings.
+No scored label or score is read. Physical acceptance establishes simulation
+consistency only; proxy shrink does not establish realistic geometry or accuracy.
+The existing v5 exports remain unchanged; this command never packs or uploads.
+
+Latest result: **FAIL, keep v5 (adoption rule 5)**. Stage A admitted 865/16,351
+stereo pixels; `d = (0.019340175, 0.011406293, -0.075975808) m`. The maximal
+common XY factor was 0.0281486625, with 1 cm clearance and both masses 0.1 kg.
+First-pose errors were 3.600222 cm / 0.000002415 degrees; drift was
+16.526426 cm / 89.999970 degrees. All 20 incumbent export hashes match v5.
+One policy/evaluator attempt used 196.085 GPU-lease seconds, plus 33.884 for
+mask inference; elapsed stage-to-stage wall time was 320.419 seconds.
