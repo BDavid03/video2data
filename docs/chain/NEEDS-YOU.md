@@ -6,23 +6,20 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
 
 ## Open
 
-**READ THIS FIRST, 2026-11-04 14:45 UTC. The moving file is uploaded and scored; three things are yours.**
+**READ THIS FIRST, 2026-11-04 15:15 UTC. Your finish is 15:30 UTC (2:30 am your time). Moving v5 is uploaded and is the final
+file; nothing better can be trained in time. Two things are yours:**
 
-1. **Mark moving v5 as your Final Submission on all six boards** (Kaggle, each competition, My Submissions, tick
-   "Track3 combined v5 ... Moving v5 ... (b476eb1c)" uploaded 14:28 UTC). Its scores: AUC **0.32339** (57987857), SP-SR **0.20**
-   (57987860), MP-SR 0.0 (57987864), RPE 20.10764 cm (57987868), MPPE **14.29607** cm (57987871), CD-O 0.56471 cm (57987875).
-   Equal or better than the static file on every board. Why mark it on CD-O too, although D1 v5 scored 0.53562 there: with no
-   selection Kaggle counts the best per board, which would be D1 v5 on CD-O (old-kit pack, not in the container) and maybe the
-   static file on the two tied boards; the container must reproduce every counted file and is staged for this one only.
-2. **Fill in the form** (table below).
-3. **Uploads need your approval** (your line, about 14:40 UTC). If the GPU work below yields a better file, the chain puts it
-   here with its check and one command, and waits for you.
+1. **Mark moving v5 as your Final Submission on all six boards** (Kaggle, each competition, My Submissions, the 14:28 UTC
+   "Moving v5 ... (b476eb1c)" entry). Scores: AUC **0.32339** (57987857), SP-SR **0.20** (57987860), MP-SR 0.0 (57987864),
+   RPE 20.10764 cm (57987868), MPPE **14.29607** cm (57987871), CD-O 0.56471 cm (57987875). Mark it on CD-O too: unselected,
+   Kaggle would count D1 v5 there (an old-kit pack the container does not cover).
+2. **Submit the form** with the table below.
 
-**Running now (your line "improve the model", 14:40 UTC):** a learned moving policy for the two-object episodes (one object
-carried along its video path, the other resting), under the same frozen gates, protocol written before any result; Codex
-estimates 3 to 6 hours, so it likely misses 17:00 UTC and could make Kaggle's 22:00 UTC close. A CPU job checks whether the
-pretrained pot and pitcher shapes can enter the combined file with an unambiguous frame map. Status:
-`data/outputs/moving_policy/two-object-status.md`, `data/outputs/pose_insurance/hunyuan-map-status.md`.
+What ran after "improve the model" (14:40 UTC): spoons 35/36/37 with the mask-usability rule dropped stopped at tracking
+quality (35: spoon orientation flips, 1895 deg/s against 540) and table flatness (36, 37: 3.26 and 3.83 deg against 3); the
+two-object moving route stopped episodes 1 (pot and lid inseparable), 3, 5, 6 (thin spoons) and was halted at episode 8 because
+no training could finish by 15:30 UTC. The pot/pitcher pretrained-shape swap stopped: heading and origin could not be fixed
+without guessing.
 
 **The form's fields and where each stands:**
 | Field | Answer | State |
@@ -33,7 +30,7 @@ pretrained pot and pitcher shapes can enter the combined file with an unambiguou
 | Code version | `https://github.com/BDavid03/video2data/commit/c8ff8c135c53a54f9959e20def5920becab87eec` | ready: the commit recorded inside the uploaded file |
 | Container | a link openable without requesting access | staged on CPU for this file (`scripts/container/README.md`, verifier 11 pass); needs Docker, which this account cannot reach: `sudo usermod -aG docker ceolwolf`, open a new WSL shell, fill `data/outputs/container/kaggle-ids.json` with the six IDs above, run `scripts/container/owner-build.sh` |
 
-**Hard close 17:00 UTC today (your line, 14:30 UTC: "submission is 5pm UTC").** Your lines today, recorded in `PROGRAM.md`
+**Finish 15:30 UTC today (your answer at 15:14 UTC: 2:30 am your time).** Your lines today, recorded in `PROGRAM.md`
 section 0: "keep strict integrity gates" (14:08 UTC), "improve the model and metrics" (14:40), "dont upload to kaggle without
 approval" (about 14:40).
 
