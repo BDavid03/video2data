@@ -1,234 +1,26 @@
-# Track 3 extended abstract
+# Track 3 technical report
 
-The anonymous abstract describes video-derived primitives with gated
-Hunyuan3D-2mini shapes. D1 v5 changes only evaluation pot 5 and pitcher 20.
-Figure 1 shows packed v3/v4/v5 CD-O from recorded scores: equal-object means
-**0.7711 / 0.6534 / 0.5644 cm**, pair means **0.8115 / 0.6629 / 0.6208 cm**.
-These cover ten scanned objects and **26/36 pair entries**; the ten spoon
-entries have no public scan. Results reuse public scans adaptively; they are
-not untouched validation or leaderboard scores. Post-hoc five-seed repeats
-support the pitcher gain on public 21 (evaluation 20 not repeated), while pot 42's
-five-seed mean is **0.966 cm** versus v4's **0.863 cm**, and pot 5's is
-**0.813 cm** versus **0.873 cm**. Shipped pot 5 is a
-favourable draw of the seed fixed in advance, without re-roll or selection.
-G3's automatic masks passed controls and development, but its numeric packed
-veto failed; D1 v5 stands. The video residual ratio provides no validated signal:
-nine dependent observations, Spearman **0.38** versus CD-O change. It rejected
-improving pots 3 and 8 and admitted the worsening pot 6.
+`main.tex` is the two-page technical report (plus references) the organisers' form asks for, on the
+anonymous `nvidiaextabstract` template. The committed PDF the form links to is
+`docs/report/final/track3-technical-report.pdf`; `scripts/reproduce/release.json` pins the same build
+(`report.sha256`, `report.epoch` = the commit time of the last change under `docs/report/track3`).
 
-For static boxes with inactive hands, the **D2 v4** pose file replaces
-v3's scaled MoGe-2 layout with horizontal offsets between calibrated-stereo
-3D mask centroids, keeping the first object fixed. The scorer rigidly aligns
-each simulated world to the first object's initial pose. The method changes
-the second object's offset length and direction; the first object's heading
-is unobserved. On eight training episodes with one seed, equal-episode
-kinematic kit means improve: **AUC 0.2690 → 0.2767**, **RPE 35.34 → 29.01 cm**,
-and **MPPE 20.84 → 17.68 cm**. The SPIDER and ManipTrans success rates
-(SP-SR/MP-SR) remain zero. One episode raises AUC; four changed training
-episodes retain **51–130°** horizontal direction errors and unchanged AUC
-despite lower RPE/MPPE.
-
-The idea and selection criteria followed known training initial-frame errors,
-so the training result is not independent confirmation. A pre-registered
-check on four fresh public validation episodes could not be completed as
-specified because two objects merged in one mask. On the three measurable
-episodes, stereo offset-length error was **1.14 versus 7.21 cm** for scaled
-MoGe-2. We adopted the method despite the incomplete check. Five public
-validation episodes have been examined; no leaderboard score was used.
-One of five changed training episodes also changes the mask used for the
-first object. Public-split stereo calibration is assumed to hold for the
-evaluation videos.
-
-Without reference poses, 12/20 evaluation episodes change. All 12 simulated
-trajectories reproduce their prescribed initial positions within **0.049 cm**
-and drift at most **0.048 cm**; these checks measure simulation consistency,
-not accuracy against reference poses. The other eight episode files are
-byte-identical to v3. Main text fits two pages, followed by references on page 3.
-
-## Build
-
-From the checkout root:
+Build (CPU, deterministic for a given commit):
 
 ```bash
-bash scripts/reproduce/d3_report.sh --run
+bash scripts/reproduce/d3_report.sh --run    # prints where main.pdf lands
+bash scripts/reproduce/check_release.sh --combined <release manifest>   # rebuilds and compares the hash
 ```
 
-The script builds committed HEAD with the pinned Tectonic engine, regenerates
-figures, and prints the build directory containing the PDF and logs. It rejects
-a working-tree figure generator that differs from HEAD before generating figures. For
-uncommitted edits, copy `docs/report/track3` and run the same figure and
-compilation commands shown in that script against the copy, using private caches.
-The existing microtype tracking error is the only accepted TeX error.
+The block at the top of `main.tex` holds every number that can change at release: the `\ifmoving`
+toggle (true: episode 38's learned moving rollout is in the file, nineteen episodes static; false: the
+static fallback), the measured macros listed in `macros.txt` with their records, and the six
+leaderboard macros `\LBCDO` to `\LBMPPE`, which read `[pending]` until the file is scored. After the
+scores exist: fill them, commit, run `d3_report.sh --run`, move `release.json`'s `epoch` and `sha256`
+to the new build, copy the PDF to `docs/report/final/` and commit. The moving pack's admission record
+pins the hash of the `main.tex` it was admitted against, so a later wording change is a documentation
+update, not a change to the packed file.
 
-## Figures
-
-`docs/report/track3/figures/make_figures.py` reads recorded scores, built meshes,
-the two pilot crops and budgeted generated/v4/scan meshes;
-it performs no new scoring. Plotting functions take plain rows/arrays.
-Use `--output-dir <directory>` to select the destination and `--preview <png>`
-for an additional preview of either included figure.
-
-| Figure | Output | Flag |
-| --- | --- | --- |
-| 1: All ten scanned objects, packed v3/v4/v5 on a shared CD-O axis | `d1-objects.pdf` | No flag |
-| 2: Pilot pitcher/pot crops, generated meshes, v4 and scans | `d1-v4-qualitative.pdf` | `--qualitative` |
-| Initial second-object position errors, generated but omitted from the abstract | `d2-slot1-offset.pdf` | `--pose-offsets` |
-| Legacy mesh-score bars, generated by the build and omitted from the abstract | `d1-v2-cdo.pdf` | `--bars` |
-
-Figure 1 places the two v5 changes first, then orders the other objects by
-v3-to-v4 improvement. Counts give scanned pair entries. V3 uses open blue
-circles, v4 orange crosses and v5 green diamonds, with small vertical offsets
-so ties remain visible. Only pot and pitcher are shaded and directly labelled
-with v4-to-v5 values placed to the left of their markers, centred in each row.
-Spoon has an unmeasured text row and no artificial zero.
-Both included figures use the same sans-serif font family.
-
-Figure 2 uses the fixed G1/G2 public-21 pitcher and tuning-42 pot examples.
-Columns show the frame-0 masked crop, generated mesh, v4 and public scan.
-Each mesh is centred and uniformly scaled to unit longest side, with independent
-fixed display rotations (generated Y-up becomes Z-up) and a common orthographic
-camera. No registration or shared metric scale is implied. These are pilot
-shapes reused in development, not the exact evaluation shapes in Figure 1.
-
-The retained pose chart keeps all 24 recorded bar heights for centroid/stacking,
-stereo and uniform placement. Two training episodes start stacked. Initial errors
-are measured in the first object's body frame, distinct from Table 2's rollout
-metrics. Stereo and uniform give nearly identical initial errors on all eight
-episodes; their rollout MPPE is **20.84 / 20.80 cm**.
-
-## Provenance and aggregation
-
-- **Packed v3/v4 scores:**
-  `outputs/mesh_eval/pairs/mesh-round3-veto/summary.json`. The panel recomputes
-  each object's mean from `pairs[].v3/candidate`, checks it against
-  `objects[].v3/candidate`, and uses the latter's pair count. `candidate` is
-  adopted v4. It asserts ten objects, 26 measured entries, ten unmeasured spoon
-  entries, and object means rounding to **0.7711 / 0.6534 cm**. Pair-weighted
-  means round to **0.8115 / 0.6629 cm**. Kit seeds are matched per entry and
-  randomise area-weighted surface samples for alignment and CD-O.
-- **Packed v5 scores:** `outputs/mesh_generative/g2-packed-check/pairs/ledger.jsonl`.
-  Completed entries are joined by episode, slot, object, sampling seed and file.
-  The v4 scores must match Figure 1's earlier v4 pair scores; v5 is the ledger's
-  `candidate`. Each mean is checked against `pairs/summary.json` and `veto.json`.
-  Assertions require equal-object/pair means rounding to **0.5644 / 0.6208 cm**,
-  and exactly pot and pitcher changing. Their packed object means are
-  **0.858363 → 0.817271 cm** and **1.487172 → 0.638754 cm** respectively.
-- **G3 and generation seeds:** `outputs/mesh_generative/g3/summary.md` and
-  `outputs/mesh_generative/insights/summary.md`; interpretation in
-  `docs/chain/mesh-generative-outcome.md`. The report distinguishes generation
-  spread on unchanged crops from kit surface-sampling spread and makes no new
-  selection from these post-hoc diagnostics.
-- **Earlier packaged baselines:** `outputs/mesh_eval/pairs/summary.json` (boxes)
-  and `outputs/mesh_eval/pairs/mesh-round2-v2-v3/summary.json` (v2).
-- **Development scores:** `outputs/mesh_eval/rules/summary.json`,
-  `outputs/mesh_eval/rules-round2/summary.json`, and
-  `outputs/mesh_extents/rules-round3/summary.json`. The third-round candidates
-  were rack-only, tools-only and combined. Their object means are
-  **0.72009 / 0.70576 / 0.65270 cm**. Selection reused all ten inspected scans;
-  it was in-sample. Only rounds 1–2 cross-fit parameters. Detailed adoption
-  bounds remain in `docs/chain/mesh-selection-protocol.md`.
-- **Sampling variability:** deduplicate the round-2 and round-3 `ledger.jsonl`
-  files by `identity`; select `R6 peg-rack, parameter=0.1` and
-  `R9 rack-and-tools, parameter=null`. Mean per-object sampling SD is
-  **0.0069 / 0.0053 cm**, maximum **0.0214 cm** over three kit seeds. These
-  quantify surface-sampling variability, not uncertainty on new objects.
-- **Initial placement:** `outputs/pose_insurance/shrink/summary.json`,
-  `episodes[I/S1/G][episode].frame0.offset_error_cm`, for the eight training
-  episodes. Rollout aggregates are `means8.I/S1/G`.
-  Stereo scales the second object's horizontal displacement from the first by
-  a stereo/MoGe-2 depth ratio: median over jointly valid pixels, then frames.
-  Uniform shrinkage uses the mean of those eight stereo factors.
-- **D2 v4 placement:** `docs/chain/pose-stereo-placement-protocol.md`
-  (protocol `f18664c`, Amendment 1 `c7c079b`, both before scoring) specifies:
-  frame-0 observed-mask centroids with at least 300 valid stereo pixels per
-  object, projected into the table basis. Only the second object's horizontal offset
-  changes. The smallest feasible expansion gives 1 cm footprint clearance,
-  capped at v3's length; missing independent masks/depth or infeasible clearance
-  retains v3. One of five changed training episodes uses an observed mask for
-  the first object despite v3's default placement, changing mask assignment as
-  well as the depth source.
-  `outputs/pose_insurance/stereo-placement/summary.json` (`means`) and
-  `summary.md` record the eight-episode comparison, exact v3 reproduction,
-  two unchanged single-object controls, three training fallbacks and direction
-  errors. In the one episode with an AUC gain, the aligned second-object error
-  falls from **8.2 to 0.8 cm**. Four other changed episodes retain
-  **51–130°** horizontal direction errors and unchanged AUC despite lower
-  RPE/MPPE; horizontal-position threshold flags are not AUC success flags.
-- **Scored-stage checks:**
-  `outputs/pose_insurance/stereo-placement-scored/summary.md` records 12 changed
-  episodes out of the 13 previously changed by v3; one retains v3 because
-  the first object has no separate observed mask. Reading `summary.json` (`plans[].stereo_length_m`, `s1_length_m`,
-  `clearance.factor`) gives raw offsets **11.24–25.70% shorter** than v3, or
-  **1.80–25.70% shorter** after clearance expansion. All 12 new simulated
-  trajectories reproduce their prescribed initial positions within
-  **0.049 cm** and drift at most **0.048 cm**, against limits **1 cm / 2°**.
-  These checks measure simulation consistency, not accuracy against reference
-  poses. `docs/chain/SUBMISSION.md` records a numerically unchanged first
-  object and eight byte-identical episode files, and identifies the final file:
-  `submissions/20261103T0645Z-d2-v4/track3_poses_v4_final.csv`, SHA-256
-  `7221dd3ad8cabed7037d35a61293f1aac26b1dbcfd9498fa617a02791d9f57cf`.
-- **Spoon silhouette proxy:** `outputs/mesh_extents/spoon-proxy/summary.md` (5/8 passing, sweeper Spearman −0.09, mean spoon IoU gain +0.23; not validated for CD-O, v4 unchanged).
-- **Qualitative meshes:** `outputs/mesh_generative/g1-pilot/water_pitcher/`
-  and `white_pot/`, each with frozen `crop.png` and `scores.npz`. Arrays contain
-  generated, v4 and scan budgeted vertices/faces. The generator omits zero-area
-  padding faces and unused vertices only for display normalisation; it performs
-  no scoring, generation or registration and reads no episode data.
-- **Dimension estimator:** `track3/features/mesh_extents/measure.py:measure`
-  divides per-frame extent triplets by their geometric mean, takes per-axis
-  medians, then restores the median of the geometric means.
-  `_rule_scores.py:pool_extents`, called by `build.py:build`, repeats that
-  operation on episode triplets. `_geometry.py:extents` supplies in-plane
-  2nd–98th-percentile spans and 98th-percentile height. Neither aggregation
-  corrects depth-induced proportion errors.
-- **Pose metrics:** the pinned kit's `metric_code/track_3/AUC.py` and `MPPE.py`.
-  AUC is the normalised area under the surface-point accuracy curve over
-  **1–9 cm** thresholds. Relative-position error (RPE) compares object-to-object
-  offsets in the first object's frame. Mean per-point error (MPPE) measures six
-  object-fixed points at **±5 cm** along the three body axes. SPIDER success
-  rate (SP-SR) requires mean position/orientation errors **≤10 cm / 0.5 rad**;
-  ManipTrans success rate (MP-SR) requires every object **<3 cm / 30°**.
-  The scorer uses one rigid transform per simulated world to align the first
-  object's initial pose to its reference, rather than aligning each object
-  separately.
-
-A pair entry means one leaderboard (episode, object) slot. Packaged pair means
-average the 26 measured slots equally; object means average within each object,
-then equally across ten objects. Development pair means instead weight each
-object's three-seed score by its roster count. All displayed values retain
-these separate averaging rules.
-
-## Caveats
-
-Scans supplied scores and visual context. Previously viewed scan renders showed
-the rack compartment, and score feedback guided rebuilding of poor performers;
-tools-only was a second attempt on the same scanned tools after round 1 failed.
-No scan geometry or dimension enters the constructor, but restricting its inputs
-does not remove that design exposure. Repeated selection raises optimism by an
-unknown amount. CD-O aligns each mesh with its own similarity transform before
-measuring shape distance; centimetres do not establish absolute reconstruction
-accuracy. Requiring tools-only to pass protects the two scanned tools from being
-masked by rack gains; it does not validate the spoon.
-
-The unscanned spoon changes from a box to a bowl and handle using coarse,
-medium-confidence bowl-depth ratios in `attributes-round3.json`. An average
-spoon regression of about **0.39 cm** would cancel the measured gain over all
-36 entries: `26 * (0.8115 - 0.6629) / 10 = 0.38636 cm`. Its leaderboard effect
-is unknown.
-
-Pose selection was exploratory because the tuning episodes have only one object.
-The idea and selection criteria followed known training initial-frame errors.
-The incomplete four-episode fresh confirmation and subsequent adoption are
-recorded in `docs/chain/pose-stereo-placement-protocol.md` and
-`docs/chain/IDEAS.md`, rows 44–45. The measurable validation means are
-illustrative evidence, not a completed confirmation. One seed supplies no
-estimate of between-seed variance. The training scores are kinematic kit
-metrics against public motion-capture references. Physical checks on the
-evaluation trajectories establish simulation consistency, not accuracy against
-reference poses. One of five changed training episodes also changes the
-first object's mask assignment. The first object's heading is unobserved;
-public-split stereo calibration is assumed to hold for evaluation videos.
-One evaluation episode keeps earlier placement after training produced
-non-finite optimizer/BatchNorm state
-(`outputs/pose_insurance/shrink/episode5_diagnosis.json`). Public-scan samples
-approximate official reference surfaces; these diagnostics establish no
-official pose-score gain or manipulation.
+`figures/` holds the figure sources of the earlier extended abstract (packed CD-O by object, slot-1
+offsets); the current report has no figures, and the non-technical report under
+`docs/report/nontechnical/` carries the graphs and overlays.

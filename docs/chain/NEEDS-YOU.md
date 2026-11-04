@@ -6,31 +6,40 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
 
 ## Open
 
-**READ THIS FIRST, 2026-11-04 13:05 UTC. WE HAVE NO POSE SCORE, AND ONE COMMAND FROM YOU FIXES THAT. The repaired file is built, checked and pushed, but the permission system blocked the chain from uploading it, so it needs you.** From a terminal (hard deadline 17:00 UTC):
+**READ THIS FIRST, 2026-11-04 14:15 UTC. Two files are READY and nothing is uploaded: the permission system blocked the chain's upload twice (contexts 28 and 29), so it needs you. One command:**
 ```bash
 cd ~/repos/video2data/.claude/worktrees/chain-ctx01
-bash data/.runtime/tmp/upload-combined-28.sh
+bash data/.runtime/tmp/upload-moving-29.sh
 ```
-It sends `submission/20261104T1316Z-d2-combined-v5/track3_combined_v5.parquet` (`ddfc98b3...9342`, code commit `02117ac`, pushed) to **all six boards** with the unedited current kit, waits for scores, and logs to `data/outputs/chain/uploads-28.log`. `check_release.sh --combined` says READY. Its poses are v5's: all 63,840 values match within the old file's rounding. Or tell the chain "upload approved" in the session, or allow it in your settings.
-- **All six, because the form asks for the same single submission on each leaderboard of a track.** So this file becomes the CD-O entry too. Expect CD-O to come in somewhat worse than 0.53562: pot 5 and pitcher 20 use their v4 procedural shapes, as their pretrained shapes have no recorded mapping to the rollout's frame. (On public scans, v4 to v5 was 0.653 to 0.564 cm, mostly the pitcher.)
-- **Expect a low pose score: these are static poses.** On our labelled train episodes the new scorer gives a rough AUC of 0.29 to 0.30 (public geometry, not a prediction).
+Or type `! bash data/.runtime/tmp/upload-moving-29.sh` in the live session. It sends
+`submission/20261104T1403Z-d2-moving-v5/track3_combined_v5.parquet` (SHA-256 `1570037a...e99f5`, code commit `a3ab0f6`,
+pushed) to **all six boards**, waits for the scores and logs to `data/outputs/chain/uploads-29.log`.
+`check_release.sh --combined` says READY at `e8ea088`.
+- **What it is:** v5's static poses on nineteen episodes, unchanged; episode 38's learned moving rollout (FlashSAC, 66.76M
+  transitions, passed every frozen admission gate, no labels exist) with its simulated pan mesh; all meshes in rollout body frames.
+- **The static fallback**, combined v5 (`ddfc98b3`, `bash data/.runtime/tmp/upload-combined-28.sh`), is the same file with 38
+  static. Upload it too if you want the comparison; 20 submissions a day are allowed and none is used today on the pose boards.
+- **Then mark the moving file as your final submission on all six boards in the browser**, and run
+  `data/.runtime/kit-env/bin/python -B data/.runtime/tmp/list-submissions-28.py` (or tell the chain) so the report's six
+  `[pending]` leaderboard lines, the README scores line and the non-technical report can be filled and rebuilt.
+- **Expect:** pose scores near the static diagnostic (train AUC about 0.30 under the new scorer) on nineteen episodes, 38 unknown;
+  CD-O somewhat worse than 0.53562 (pot 5 and pitcher 20 keep procedural shapes; 38's pan is the simulated mesh).
 
-**The form's fields (your message, 13:16 UTC), and where each stands:**
+**The form's fields and where each stands:**
 | Field | Answer | State |
 | --- | --- | --- |
-| Final submission IDs or URLs | the combined file's six IDs | **Upload first, then mark it as your final submission in Kaggle on all six boards, in the browser.** Otherwise D1 v5 counts on CD-O as the best score, and the boards differ |
-| Technical report URL | `https://github.com/BDavid03/video2data/blob/main/docs/report/final/track3-technical-report.pdf` (your 13:25 UTC line: on GitHub) | Being written; the chain commits it. Opens for the challenge team once the repository is shared |
-| GitHub repository URL | `https://github.com/BDavid03/video2data` | **You must share it with `Nvidia-V2D-Challenge` first** (item 1) |
-| Code version | `https://github.com/BDavid03/video2data/commit/02117aca7ac721c29e9a77d9fb8942347584d63b` | Ready |
-| Container | a link openable without requesting access | Needs Docker (item 5), then the upload's IDs |
+| Final submission IDs or URLs | the moving file's six IDs | upload first, then mark final on all six |
+| Technical report URL | `https://github.com/BDavid03/video2data/blob/main/docs/report/final/track3-technical-report.pdf` | on `main` at `e8ea088`, SHA-256 `e63bffef...`; two pages plus references; its six leaderboard lines read `[pending]` until scores exist |
+| GitHub repository URL | `https://github.com/BDavid03/video2data` | **share it with `Nvidia-V2D-Challenge` first** (GitHub, Settings, Collaborators); it is private |
+| Code version | `https://github.com/BDavid03/video2data/commit/a3ab0f66aef8964a8eacfdd0a06f9910958b4f8c` | ready (the packed file's URL) |
+| Container | a link openable without requesting access | needs Docker, which this account cannot reach: `sudo usermod -aG docker ceolwolf`, open a new WSL shell, fill `data/outputs/container/kaggle-ids.json` from its example, run `scripts/container/owner-build.sh` (`scripts/container/README.md`) |
 
-**12:35 UTC. You accepted the rules, thank you, so the chain uploaded v5. The mesh scored: CD-O 0.53562 cm, our first real score. The pose file was rejected on all five boards: "Track 3 requires reconstructed meshes. Repack with --meshes."** The organisers replaced the submission kit on 2 November at 18:21 GMT, and our copy was from 30 September. Track 3 is now one Parquet holding poses and meshes, and Kaggle uses the meshes to set the body frame for all five pose metrics, so pose scores now depend on them. **Every pose number in these documents up to today was measured with the old scorer.** The repack above is a pack after the 12:00 UTC cut-off without your line: the chain's own call, because otherwise we have no pose score at all, and it changes no pose. To stop it, write a dated line, or simply do not upload. Two more things only you can do:
-1. **The repository is private. The form requires you to share it with [Nvidia-V2D-Challenge](https://github.com/Nvidia-V2D-Challenge) before submitting** (GitHub, Settings, Collaborators). That gives them the whole history, including the coursework notebooks and four episode-41 frames. Not needed for a score to appear; required for a valid form.
-2. **Episode 38's moving pack: the chain read your 13:25 UTC "i need the best one" as moving the cut-off, and is building it (`PROGRAM.md` section 0). If adopted it replaces the file above and needs its own upload; say if you meant otherwise.** Earlier text. **Update 13:00 UTC: 38 finished and passes every frozen gate on its own reference: `T` 1.03, `Q` 0.97, 1.42 cm, 1.59 degrees, no resets, first pose 0.30 cm, reprojection 0.78 (`moving-m2v-outcome.md`).** It was stopped and resumed twice, 38 has no labels, and nothing shows it beats its static export. The chain can pack it only if you write a dated line in `docs/chain/PROGRAM.md` section 0, such as "2026-11-04: moving pack allowed until 16:00 UTC". Without one, 38 stays a finding and v5's static 38 stands.
+Kaggle closes at **22:00 UTC**; the chain planned to 17:00 UTC. Your lines today, recorded in `PROGRAM.md` section 0: "keep
+strict integrity gates" (about 14:08 UTC), so no spoon gate was waived and the GPU stays idle on purpose; "approved permission
+to run all git commands" (13:50 UTC).
 
-3. **Kaggle says the boards close at 22:00 UTC today (5 p.m. EST), on all six; your 3 November line said 12 p.m. EST, which is 17:00 UTC.** The chain still plans to 17:00 UTC. If 22:00 UTC is the real limit, write a dated line to say so. Please check the challenge page: the form's own limit may differ.
-4. **The form, required for a valid entry (your message, 13:13 UTC): submit it before the close, one form per top submission.** It needs the report PDF, GitHub links and the container link. The chain cannot fill in a Google form on your behalf. The PDF's path will be stated here once it is ready. If the template in your zip differs from `data/templates/V2D_Challenge_Extended_Abstract_Template/`, the chain needs it; put it anywhere in the checkout.
-5. **The container link needs Docker, and this account cannot reach it (`permission denied`).** The chain is preparing the contents. To let it build, run `sudo usermod -aG docker ceolwolf` and start a new WSL shell, or build yourself with `scripts/container/owner-build.sh` once it exists. **The container carries `.git`, so anyone with the link gets the whole history: coursework notebooks and four episode-41 frames.** The kit requires `.git`; the link must open without requesting access. Your call.
+**Earlier text, for the record (13:05 UTC):** combined v5 was the file; the pose file D2 v5 was rejected on all five boards
+because the organisers replaced the kit on 2 November; D1 v5 scored CD-O 0.53562 cm. The items below stand as written then.
 
 Keep the files behind every counted submission; never repack one with a different kit (`data/.runtime/kit-20261102/v2d_submission_kit/CONTAINER_SUBMISSION.md`).
 

@@ -1,65 +1,30 @@
-# Caveman Report: video2data (4 Nov 2026, about 13:05 UTC)
+# Caveman Report: video2data (4 Nov 2026, about 14:15 UTC)
 
-Hard deadline: 17:00 UTC today.
+Kaggle close: 22:00 UTC today. Chain planned 17:00 UTC.
 
 ## What project
 
 Entry in NVIDIA V2D Challenge Track 3. Watch human video. Rebuild object shapes (meshes). Train robot-hand policy in simulation to move object like person did.
-Six Kaggle boards. CD-O scores shapes: lower is better. AUC, SP-SR, MP-SR, RPE, MPPE score poses.
+Six Kaggle boards. CD-O scores shapes: lower is better. AUC, SP-SR, MP-SR, RPE, MPPE score poses. Since 2 Nov one file holds shapes and poses for all six.
 
-## What done
+## What done today
 
-- Owner accept rules on all six boards. Uploads now possible.
-- Code pushed to GitHub main. Fast-forward.
-- Release check said READY. Upload D1 v5 (mesh file) and D2 v5 (pose file).
-- Episode 38 (dust pan) policy finish training. Resume from 40.4M steps to scheduled end 66,763,776. About 24.5 minutes.
-- Two Codex helper jobs still run. One fix pose file for new format. One add episode 38 to plain-language report.
+- Shapes scored: CD-O 0.53562 cm. First real score.
+- Old pose file rejected: organisers changed kit on 2 Nov. New kit wants shapes and poses in one file.
+- Fixed file built, checked: combined v5. Same poses. Not uploaded: permission system block chain twice. Owner must run one command (NEEDS-YOU top).
+- Episode 38 (dust pan): moving policy trained from video goal. Passed every frozen gate. Packed as moving v5. Best file. Also not uploaded.
+- Technical report (2 pages) built, on GitHub main: docs/report/final/track3-technical-report.pdf. Six score lines say [pending] until upload.
+- Spoons 35, 36, 37: masks too thin. Stopped at first gate. Keep static. Owner said keep strict gates. GPU idle on purpose.
+- Code pushed to GitHub main at e8ea088.
 
-## What found
+## Why pose AUC low (0.277 old scorer, about 0.30 new)
 
-1. First real score. Shapes got CD-O 0.53562 cm on leaderboard.
-2. Pose file REJECTED on all five pose boards. Message: "Track 3 requires reconstructed meshes. Repack with --meshes." So NO pose score yet.
-3. Why: organisers replaced submission kit on 2 Nov, 18:21 GMT. Our copy from 30 Sep. Nobody compare for days. Local check keep saying ready, because it was old kit's check.
-4. New rule: poses and meshes go in one Parquet file. Kaggle match each shape to hidden scan. That set object frame for all five pose metrics. So shapes now change pose scores. Each mesh must sit in same body coordinates as its rollout. Every pose number measured before today used OLD scorer.
-5. Episode 38 policy pass every frozen check against its OWN video goal:
-   - T 1.026, Q 0.973 (limit: at least 0.50 each)
-   - position error 1.42 cm (limit 3; held still 10.26)
-   - angle error 1.59 degrees (limit 15; held still 50.12)
-   - no resets, reached end
-   - first pose 0.30 cm, 0.27 degrees
-   - reprojection median 0.778, p10 0.707, 100% coverage
-   - Lead recompute tracking with separate script. Numbers match.
-6. Old practice results, episode 39, against motion capture, OLD scorer, NOT challenge results: held still AUC 0.18; video path alone 0.833; policy on video path 0.775; policy on motion capture 0.982.
-7. Safety guard refuse first resume. Note was added to protocol file after hash pinned. No training lost. Fix: protocol put back to exact pinned bytes. Note moved word for word to own file. Guard not edited. No limits changed.
-
-## What bad (caveats, no pretend)
-
-- Episode 38 fail midpoint check badly (T 0.25 at 32.8M steps). Nobody know why.
-- Stopped twice and resumed. Lose replay memory each time.
-- Episode 38 has no labels. So result show it follow its video goal. NOT show goal is right. NOT show it beat a still object.
-- Reprojection cannot see camera drift.
-- Pose file rejected. No pose score exist.
-- Missed the kit change for days.
-
-## What not done
-
-- Episode 38 is NOT in entry. Last-pack time 12:00 UTC passed. No owner line move it. v5 static 38 stand unless owner say otherwise.
-- Repaired pose file BUILT, checked, pushed. NOT uploaded: permission system say no to chain. Owner must run one command (top of NEEDS-YOU.md). It keep v5 pose values unchanged. Pack after 12:00 UTC is lead's own call, because else no pose score at all.
-- New scorer on our own labelled episodes (rough, not prediction): static train AUC about 0.29 to 0.30. Video policy on 39 drop from 0.775 to 0.669 (or 0.591 with other mesh). Box shapes can flip up to 179.93 degrees. Box bad.
-- Critics' final review not done. Final hand-off not done.
-
-## What next
-
-- Owner run upload command. All six boards, same one file: form want same single submission per track. Get first real pose score. CD-O maybe worse than 0.53562: pot 5 and pitcher 20 use old v4 shape, not fancy Hunyuan.
-- Owner mark that file final on all six boards in browser.
-- Form need: submission IDs, report PDF link, GitHub link shared with Nvidia-V2D-Challenge, commit link, container link. No form, entry not valid.
-- Kaggle say boards close 22:00 UTC. Chain still plan 17:00 UTC until owner say.
-- Container need Docker. This account no Docker. Owner fix or build.
-- Finish episode 38 report text.
-- Critics review. Final hand-off.
+Objects move in video. Our poses sit still on 19 of 20 episodes. Even perfect start pose held still gets only 0.532. Half of metric lost to motion. Only 38 moves. Leader has 0.99 because their objects move.
 
 ## What owner must do
 
-1. Repo is private. Kit say: invite Nvidia-V2D-Challenge as GitHub collaborator, or make public, so organisers see commit. That show whole history, including coursework notebooks and four episode-41 frames. Owner choice. NOT needed for score to appear.
-2. Decide if episode 38 may be packed. Write dated line in docs/chain/PROGRAM.md section 0. Example: "2026-11-04: moving pack allowed until 16:00 UTC". No line means 38 stay a finding only.
-3. After close, awards need container and technical report that reproduce counted submissions. Keep files behind them.
+1. Run upload (NEEDS-YOU top). Six boards. Wait for scores.
+2. Mark moving file final on all six boards in browser.
+3. Share GitHub repo with Nvidia-V2D-Challenge. Fill the form: report URL, repo URL, commit a3ab0f6, container link.
+4. Container needs Docker group: sudo usermod -aG docker ceolwolf, new shell, scripts/container/owner-build.sh.
+5. Tell chain scores, so report, README, plain report get filled.

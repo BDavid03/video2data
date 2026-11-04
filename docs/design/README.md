@@ -1,89 +1,49 @@
-# Project design and operating reference
+# Design notes
 
-This index describes the eleven retained slices after the November 2026
-restructure. The [submission ledger](../chain/SUBMISSION.md) tracks the shipped
-mesh/pose packages and their evidence; the [version 1 ledger](version1.md) keeps
-the broader historical design and its uncompleted goals.
+Most pages here date from October 2026, before the entry was built, and describe a
+larger planned system. Treat them as history. The current state is in the
+[README](../../README.md) and the [submission ledger](../chain/SUBMISSION.md).
 
-## Current working agreement
+Older pages may name `track3/`, `outputs/` or `reports/`. These are now `src/`,
+`data/outputs/` and `data/reports/`. Older design notes and retired slices were deleted
+on 4 Nov 2026; they remain in Git history before the cleanup commit (parent `ef884fd`).
 
-[AGENTS.md](../../AGENTS.md) and the current task brief control authorization.
-Keep runtime gates, producer hashes and episode exclusions intact. New production
-dependencies need approval; upstream references and external environments remain
-read-only. Generated artifacts and caches stay inside the permitted Linux checkout.
-A command or operation listed here grants no permission to execute it.
-
-Older documents under `docs/design/`, `docs/experiments/`, `docs/research/` and `reports/` may name recycled slices; those paths are now under `recycle/20261104T010336Z/`.
-
-## Reading paths
-
-For a single-file collection, see the
-[documentation compiler](../../scripts/documentation/README.md). Its standard-library
-script collects project Markdown, including feature pages and historical reports,
-into `docs/compiled/all-documentation.md`, which is untracked.
-
-| Need | Read |
-|---|---|
-| Understand the complete system | [System overview](system-overview.md), then [artifact contracts](artifact-contracts.md) |
-| Find exact operations and future operating order | [Operating reference](operations.md) and the owning feature README |
-| Understand remaining delivery work | [Version 1 ledger](version1.md), [roadmap](roadmap.md), [risks and open questions](risks-and-open-questions.md) |
-| Understand fallback and tracked selection | [Entry tiers](entry-tiers.md) |
-| Understand a design tradeoff | [Decisions](decisions.md), [error budget](error-budget.md) |
-| Understand experimental models, tuning and optimization | [Learning buildout](learning-buildout.md) |
-| Study research papers, architectures, mathematics, Candle and Burn | [Research volumes](../research/README.md), [complete compendium](../research/egocentric-video-to-policy.md) |
-| Add or change a feature | [Feature authoring guide](feature-template.md) |
-| Read dated implementation history | [Implementation status](../../reports/implementation-status.md) |
-| Read the pinned competition contract | [Contract report](../../reports/contract.md) and [source reading](../../reports/contract-evidence/2026-09-30/submission-kit.md) |
+| Topic | Page |
+| --- | --- |
+| Artifacts | [Artifact contracts](artifact-contracts.md) |
+| Design tradeoffs | [Decisions](decisions.md) |
+| Adding a feature | [Feature template](feature-template.md), [code style](simplification-standard.md) |
+| Competition contract | [Contract report](../../data/reports/contract.md), [source reading](../../data/reports/contract-evidence/2026-09-30/submission-kit.md) |
 
 ## Feature directory
 
-Each linked slice owns its request, handler, integrations, persistence,
-configuration and detailed documentation. The operation list below describes
-source entry points, not execution readiness.
+Each folder owns its requests, handlers, runtime flags and README. Being listed here
+does not mean an operation is enabled or has been run.
 
-| Slice | Responsibility | Entry points |
-|---|---|---|
-| [Depth](../../track3/features/depth/README.md) | Calibrated monocular depth and cached teacher frames | generate; offline challenger ingestion |
-| [Stereo depth](../../track3/features/stereo_depth/README.md) | Calibrated stereo geometry and observed scale | rectify, generate, anchor, correspondences, report |
-| [Object masks](../../track3/features/object_masks/README.md) | Opening clusters and full-video masks | opening-clusters, generate, correspondences |
-| [Camera motion](../../track3/features/camera_motion/README.md) | Metric camera trajectory and table world | estimate |
-| [Mesh extents](../../track3/features/mesh_extents/README.md) | Video measurements, procedural meshes and frozen shape diagnostics | measure, build, rules, adopt, proxy |
-| [Mesh evaluation](../../track3/features/mesh_eval/README.md) | Exact packed mesh scoring on public scans | pairs; local CD-O script |
-| [Mesh generative](../../track3/features/mesh_generative/README.md) | Frozen pretrained-shape campaigns and diagnostics | pilot, g2, g3, insights |
-| [Pose insurance](../../track3/features/pose_insurance/README.md) | Shipped pose-policy line and frozen diagnostics | scene build, policy run, diagnostic and packing modules |
-| [Policy training](../../track3/features/policy_training/README.md) | Retained budget consumed by D0; general training tools | compose, train, select, comparison |
-| [Mesh fusion](../../track3/features/mesh_fusion/README.md) | Unsuccessful fusion route retained as cited evidence | fixed F1/F1b queues |
-| [Dynamic feasibility](../../track3/features/dynamic_feasibility/README.md) | D0/D1 dynamic-route evidence cited in the abstract | feasibility and scaling queues |
+| Feature | What it does | Operations |
+| --- | --- | --- |
+| [Depth](../../src/features/depth/README.md) | Calibrated monocular depth | generate, offline challenger ingestion |
+| [Stereo depth](../../src/features/stereo_depth/README.md) | Stereo geometry and metric scale | rectify, generate, anchor, correspondences, report |
+| [Object masks](../../src/features/object_masks/README.md) | Opening clusters and full-video masks | opening-clusters, generate, correspondences |
+| [Camera motion](../../src/features/camera_motion/README.md) | Metric camera path and table world | estimate |
+| [Mesh extents](../../src/features/mesh_extents/README.md) | Video measurements and procedural meshes | measure, build, rules, adopt, proxy |
+| [Mesh evaluation](../../src/features/mesh_eval/README.md) | Packed mesh scoring on public scans | pairs, local CD-O script |
+| [Mesh generative](../../src/features/mesh_generative/README.md) | Pretrained shape campaigns | smoke, pilot, g2, g3, insights |
+| [Pose insurance](../../src/features/pose_insurance/README.md) | Static pose policies and packing | scene build, policy run, diagnostics, packing |
+| [Moving reference](../../src/features/moving_reference/README.md) | Object path from video for episodes 39 and 38 | masks, track, candidate C, gate records |
+| [Moving policy](../../src/features/moving_policy/README.md) | Moving RL policy on episodes 39 and 38 | stage0, train, score, video variants |
+| [Policy training](../../src/features/policy_training/README.md) | General training tools, never run; only `budget.json` is in use | compose, train, select, comparison |
+| [Mesh fusion](../../src/features/mesh_fusion/README.md) | Failed fusion route, kept as evidence | stage-a |
+| [Dynamic feasibility](../../src/features/dynamic_feasibility/README.md) | Dynamic-route evidence cited in the abstract | feasibility and scaling queues |
 
-Policy training compose, train, select and comparison need the recycled retargeting,
-scene_assembly and policy_rollout producers restored before admitting new inputs; D0 needs only `budget.json`.
+Policy training's compose, train, select and comparison need the retargeting, scene_assembly
+and policy_rollout producers, which are in Git history before the cleanup commit.
 
-The other 17 slices and companion scripts are preserved in
-[the recycle folder](../../recycle/20261104T010336Z/MANIFEST.md), whose manifest
-explains restoration of dependent groups to their original paths.
+## Labels on older pages
 
-## Evidence vocabulary
-
-**Implemented** means a source path exists. **Disabled** describes an execution
-flag. **Completed run** means an operation produced its completion record; it
-can still contain explicitly invalid measurements. **Inspected** refers to a
-particular inspection artifact and its scope. **Selected** means an explicit
-campaign choice, not that the latest file won. **Delivered** requires the
-external receipt and acceptance evidence required by the delivery ledger.
-
-Feature pages contain historical **Official**, **Measured**, **Derived**,
-**Design** and **Open** labels. Official facts refer to pinned local sources;
-measured facts refer to named historical reports. Neither is a fresh external
-verification. Derived arithmetic is not a resource measurement. Design thresholds
-are not proven tolerances. This documentation update ran no project operations.
-
-The core design pages were rebuilt from readable source and feature documentation
-after their files were found to contain no readable text. This set describes the
-current design; it does not claim to recover the original decision history.
-
-## Historical planning
-
-The [legacy plan](legacy-plan.md) records the original execution milestones. The
-[research backlog](../experiments/README.md) records the ordered experiment plans
-and their implementation evidence. Current authorizations remain in the root
-[AGENTS.md](../../AGENTS.md).
+Feature pages may carry these labels: Official (from pinned local sources), Measured (from
+a named historical report), Derived (arithmetic, no measurement), Design (thresholds not
+proven as tolerances) and Open. None of them is a fresh external check. A completed run
+can still contain invalid measurements. The core design pages were rebuilt from source
+after their files were found unreadable, so they do not recover the original decision
+history.

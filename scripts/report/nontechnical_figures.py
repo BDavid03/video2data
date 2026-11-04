@@ -22,7 +22,7 @@ OUTPUT = ROOT / "data/outputs/visuals"
 REPORT = ROOT / "docs/report/nontechnical"
 FIGURES = REPORT / "figures"
 
-EP38_IN_ENTRY = False
+EP38_IN_ENTRY = True
 POSE_SCORES = "none yet"
 os.environ["CUDA_VISIBLE_DEVICES"] = ""
 os.environ["JAX_PLATFORMS"] = "cpu"
@@ -1224,7 +1224,7 @@ def write_report(table: str, metrics: dict) -> None:
     m2v_replay = m2v_view["official_comparison"]
     ep38 = metrics["episode38_video_policy"]
     ep38_replay = metrics["episode38_video_policy_footage"]["official_comparison"]
-    entry_sentence = ("It is in the entry following the owner's cut-off decision." if EP38_IN_ENTRY else
+    entry_sentence = ("It is in the moving v5 file, packed after the owner moved the 12:00 UTC cut-off and after it passed its frozen admission gates; the submission ledger records whether that file was uploaded and marked final." if EP38_IN_ENTRY else
                       "It is not in the entry unless the owner moves the 12:00 UTC cut-off; the entry still uses 38's still-object export.")
     read_bytes("docs/chain/SUBMISSION.md", used)
     read_bytes("docs/chain/moving-m2v-outcome.md", used)
@@ -1244,11 +1244,11 @@ Watch a person's camera footage, reconstruct the objects, and reproduce their mo
 
 ### What the leaderboard has actually recorded
 
-The submitted object shapes scored **CD-O 0.53562 cm** on the leaderboard, a measure of shape difference where lower is better. The pose file was rejected on **all five pose boards** because the organisers replaced the submission kit on **2 November** and our copy was from **30 September**. Pose scores: **{POSE_SCORES}**. The new pose metrics register each submitted shape to the hidden scan to set the object's coordinate frame, so shapes affect pose scores too. **Every pose number in this report was measured with the old scorer.** A rough re-check with the new scorer's own code, on our labelled practice clips with public shapes, gives a sense of the change, though it is not a prediction: the still poses move from 0.277 to about 0.29 to 0.30 on the training clips, and the video-trained policy on 39 falls from **0.775 to 0.669** with its simulated shape, or 0.591 with the tracker's shape. Our box-like shapes can also register to the hidden scan the wrong way round, by up to about 180 degrees. A repaired pose file with unchanged poses has been built and checked; the upload was held for the owner's approval. The shape score does not establish how well the poses work. This report records the finding without using the leaderboard to tune a model.
+The submitted object shapes scored **CD-O 0.53562 cm** on the leaderboard, a measure of shape difference where lower is better. The pose file was rejected on **all five pose boards** because the organisers replaced the submission kit on **2 November** and our copy was from **30 September**. Pose scores: **{POSE_SCORES}**. The new pose metrics register each submitted shape to the hidden scan to set the object's coordinate frame, so shapes affect pose scores too. **Every pose number in this report was measured with the old scorer.** A rough re-check with the new scorer's own code, on our labelled practice clips with public shapes, gives a sense of the change, though it is not a prediction: the still poses move from 0.277 to about 0.29 to 0.30 on the training clips, and the video-trained policy on 39 falls from **0.775 to 0.669** with its simulated shape, or 0.591 with the tracker's shape. Our box-like shapes can also register to the hidden scan the wrong way round, by up to about 180 degrees. **Why the still-pose number is so low:** the real objects move during each clip and still poses never follow them. Even the true starting poses held still reach only about 0.53 on the training clips with the old scorer, so about half of the metric is lost to motion we do not reproduce, and the rest to placement error. Episode 38's moving policy is the first step at changing that, on one of twenty episodes. A repaired pose file with unchanged poses (combined v5) and a second file with 38's moving rollout (moving v5) have been built and checked; the uploads were held for the owner's approval. The shape score does not establish how well the poses work. This report records the finding without using the leaderboard to tune a model.
 
 ## What we have prepared to submit so far
 
-The entry prepared for submission uses measured simple shapes plus two shapes made by a pretrained model. Its object poses come from short simulated policy runs; the objects remain at their starting positions. On challenge training episodes, its AUC is **0.277**. Even the best possible starting poses, held still, score only **0.532**. That ceiling shows why reproducing motion matters; it does not forecast what a moving policy would score.
+Two files are prepared. Combined v5 uses measured simple shapes (the two pretrained shapes for pot 5 and pitcher 20 are not in it, because they have no recorded mapping to the simulation's frame) and object poses from short simulated policy runs in which the objects remain at their starting positions. On challenge training episodes, its still poses score an AUC of **0.277** with the old scorer (about 0.30 with the new one). Even the best possible starting poses, held still, score only **0.532**: objects move in every clip and still poses never follow them. Moving v5 is the same file with one change, episode 38's learned moving policy and its simulated pan shape, and is the file to upload and mark final. That ceiling shows why reproducing motion matters; it does not forecast what a moving policy will score.
 
 ![Our entry and the static ceiling](figures/04-entry.png)
 
