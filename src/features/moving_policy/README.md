@@ -107,3 +107,91 @@ GO requires T≥0.50, Q≥0.50, E≤min(0.5 E_S, 3 cm),
 Theta≤min(0.5 Theta_S, 15°), AUC≥0.45. SIGNAL requires T≥0.20, Q≥0.10,
 E≤min(E_S, 6 cm), Theta≤min(0.9 Theta_S, 30°), AUC≥0.20. Otherwise NULL.
 No training or scoring claim exists until the lead runs the gated commands.
+
+## Video-reference M2v and scored episode 38
+
+The separate `video.py` entry point keeps the mocap route above intact. It
+accepts only 39 and 38, never reads their labels during construction, and uses
+M1's geometric body convention. The M2 profile already has that convention:
+its profile-to-canonical transform is identity under the same bounding-box,
+end-width and dense-floor rule. No scan read is needed. One OBJ and URDF under
+`data/outputs/moving_policy/video-asset/` are referenced by both tasks. Mass is
+0.3 kg and diagonal inertia is 0.001 kg m². The installed evaluator imports
+and decomposes the asset with unedited CoACD.
+
+```bash
+PYTHONPATH=. CUDA_VISIBLE_DEVICES='' JAX_PLATFORMS=cpu PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 data/.runtime/linux-cuda/bin/python -B -m src.features.moving_policy.video stage0 --episode 39 --reference data/outputs/moving_reference/ep39/candidate-c/reference.npz --output data/outputs/moving_policy/ep39-v1
+PYTHONPATH=. CUDA_VISIBLE_DEVICES='' JAX_PLATFORMS=cpu PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 data/.runtime/linux-cuda/bin/python -B -m src.features.moving_policy.video stage0 --episode 38 --reference data/outputs/moving_reference/ep38/candidate-c/reference.npz --output data/outputs/moving_policy/ep38-v1
+```
+
+Each build snapshots the source bytes to `reference-source.npz`, records their
+SHA-256, then writes `reference-task.npz` with a single recorded translation to
+M2's original initial simulator position. It preserves every orientation and
+records the residual between source timestamps and the uniform task clock.
+The initial position is the pre-existing S2 simulator translation, copied as
+a constant; construction reads no M2 mocap, rotation or grasp. Grasp selection,
+closure, penetration, acquisition and the CPU physics checks reuse the existing
+slice. Both grasp pairs are measured per episode; eligible pairs are ranked
+by peak wrist speed. The support is placed 1 mm below imported hulls.
+
+`stage0.json` refuses overwrite. `summary.md` starts with PASS or the failed
+checks and gives both asset hashes, the reference hashes, support motion,
+feed-forward wrist error, speed and angular-rate facts. A failed check stops
+that episode. There is no repair queue for video tasks. `video_geometry.py`
+contains the pure self-reference metric calculation; `video.py` owns I/O,
+workers, admission, and run records.
+
+`commands.json` and `*.argv.txt` prepare the unchanged seed-0, 66,763,776-step
+training recipe with a 4,500 s deadline. `score-self` runs the unedited evaluator
+only at that final checkpoint and measures its export against the hashed task
+reference. It uses no scan or label. On 39 alone, `score-mocap` subsequently
+measures that same export once against mocap, with scan points used only for
+the kit metric. Its exclusive attempt record prevents a second label pass,
+including after a failed attempt. Episode 38 has no label-scoring operation.
+Mocap GO still needs self bounds and the separately performed frozen-camera
+reprojection gates before adoption; the score alone never records adoption.
+
+```bash
+PYTHONPATH=. data/.runtime/linux-cuda/bin/python -B -m src.features.moving_policy.video train --episode 39 --output data/outputs/moving_policy/ep39-v1
+PYTHONPATH=. data/.runtime/linux-cuda/bin/python -B -m src.features.moving_policy.video score-self --episode 39 --output data/outputs/moving_policy/ep39-v1
+PYTHONPATH=. data/.runtime/linux-cuda/bin/python -B -m src.features.moving_policy.video score-mocap --episode 39 --output data/outputs/moving_policy/ep39-v1
+PYTHONPATH=. data/.runtime/linux-cuda/bin/python -B -m src.features.moving_policy.video kill-check --episode 39 --output data/outputs/moving_policy/ep39-v1
+```
+
+These print dry commands. Execution needs `--run` and the independent
+`video_train_authorized`, `video_score_self_authorized`,
+`video_score_mocap_authorized`, or `video_kill_check_authorized` runtime flag.
+All four are false. Existing mocap runtime flags are retained. Training also
+requires passing M1 admission in the snapshotted reference, unchanged live
+reference bytes, passing Stage 0 and unchanged scientific inputs. Training
+and final evaluator execution acquire `src/gpu.py`'s GPU lease.
+
+The kill check invokes `scripts/report/policy_hands.py` with the installed
+FlashCHORD interpreter, `policy_32814080.safetensors`, the task and
+`--no-official`, with CUDA disabled and JAX on CPU. It writes a diagnostic
+replay under `data/outputs/visuals/policy-hands/moving-video-ep39-boundary/`,
+then computes self-`T` against `reference-task.npz`. `kill-check.json` marks
+`kill=true` when `T < 0.5`. The lead stops training and records NULL on that
+result; this CPU command never stops another process. It performs no label
+score. The same command is available for 38, though the protocol's explicit
+kill rule is for M2v on 39.
+
+The final M1 body file describes its tracking extrusion. For the profile,
+`video_geometry.profile_body_transform` uses the embedded original scan bounding
+constant and verifies `scan_T_asset @ asset_T_bounding_body` agrees with it,
+then composes the inverse profile bounding constant. This removes the tracking
+extrusion convention without another scan read or any pose registration.
+
+### Video Stage 0 result (final-reference build)
+
+Both source files still report M1 admission false; training remains blocked.
+The immutable per-episode Stage 0 and one-page summaries are under `ep39-v1/`
+and `ep38-v1/`. Earlier source/build snapshots are preserved in
+`data/outputs/moving_policy/reference-snapshots/` with an explanatory README.
+
+| Episode | Stage 0 | Cleared 60 support, mm / degrees | Worst mean / max wrist position, mm | Worst mean wrist orientation, degrees |
+| --- | --- | ---: | ---: | ---: |
+| 39 | PASS | 2.68623 / 0.72649 | 18.2655 / 100.069 | 0.135256 |
+| 38 | PASS | 5.22025 / 1.77248 | 21.7585 / 116.601 | 0.138424 |
+
+Both choose longitudinal grasp and no approach, so composed acquisition has zero gated steps; hands-cleared support still has 60. All raw-array checks and frozen hashes pass in `recheck.json`. The legacy construct, grasp details and training argv remain exactly equal to HEAD under the default mocap path in `data/.runtime/tmp/moving-video-equivalence/equivalence.json`.

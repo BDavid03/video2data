@@ -47,7 +47,7 @@ def environment(cpu=True):
            'XLA_PYTHON_CLIENT_PREALLOCATE': 'false', 'OMP_NUM_THREADS': '1',
            'OPENBLAS_NUM_THREADS': '1', 'PYTHONUNBUFFERED': '1'}
     for key, folder in folders.items():
-        path = ROOT / 'data/outputs/moving_policy/ep39-a1/cache' / folder
+        path = OUTPUT / 'cache' / folder
         path.mkdir(parents=True, exist_ok=True)
         env[key] = str(path)
     return env
@@ -77,7 +77,7 @@ def load_mocap():
     return path, poses, times
 
 
-def construct(template, schema, mocap, times, mesh, template_fk, repair, pair="longitudinal", head_fraction=.6):
+def construct(template, schema, mocap, times, mesh, template_fk, repair, pair="longitudinal", head_fraction=.6, body_transform=None):
     """Assemble world arrays; object poses are copied, never procedurally animated."""
     from src.features.dynamic_feasibility.hand_clearance import nearest_surface
     count = len(times)
@@ -86,7 +86,8 @@ def construct(template, schema, mocap, times, mesh, template_fk, repair, pair="l
     from .geometry import acquisition_rule
     approach, approach_translation, approach_rotation = acquisition_rule(mocap, times)
     acquisition = int(np.ceil(.5 * fps)) if approach else 0
-    first_rotation = matrix(mocap[0, 3:])
+    first_rotation = matrix(mocap[0, 3:]) if body_transform is None else np.asarray(body_transform)[:3, :3].T
+    body_origin = np.zeros(3) if body_transform is None else np.asarray(body_transform)[:3, 3]
     rotations = matrix(mocap[:, 3:])
     row = {}
     for key, value in template.items():
@@ -108,7 +109,7 @@ def construct(template, schema, mocap, times, mesh, template_fk, repair, pair="l
         # Canonical reconstruction coordinates -> mocap body frame. At t=0 the
         # reconstructed pan is level. This upper-bound placement uses no scan.
         rotation = first_rotation.T @ rotation
-        translation = first_rotation.T @ translation
+        translation = first_rotation.T @ translation + body_origin
         frames = transform_poses(template[f'robot_{side}_frames'][frame], rotation, translation)
         wrist = np.r_[template[f'robot_{side}_wrist_position'][frame], template[f'robot_{side}_wrist_wxyz'][frame]]
         wrist = transform_poses(wrist, rotation, translation)
@@ -132,9 +133,9 @@ def construct(template, schema, mocap, times, mesh, template_fk, repair, pair="l
         row[f'mano_{side}_joints_wxyz'] = wxyz(rotations[:, None] @ matrix(joint_quat)[None]).tolist()
         row[f'mano_{side}_trans'] = wrist_world[:, :3].tolist()
         row[f'mano_{side}_global_orient'] = __import__('scipy').spatial.transform.Rotation.from_matrix(matrix(wrist_world[:, 3:])).as_rotvec().tolist()
-        tip_canonical = template_fk[f'{side}_groups'][3] @ (first_rotation @ rotation).T + first_rotation @ translation
+        tip_canonical = template_fk[f'{side}_groups'][3] @ (first_rotation @ rotation).T + first_rotation @ (translation - body_origin)
         close, _, normal = nearest_surface(mesh.triangles, tip_canonical[None])
-        contact_local = close[0] @ first_rotation
+        contact_local = close[0] @ first_rotation + body_origin
         normal_local = normal[0] @ first_rotation
         for kind in ('link', 'object'):
             contact = np.zeros((count, 16, 3)); normals = contact.copy()
@@ -385,26 +386,27 @@ def summarize_amendment(stage):
     (OUTPUT / 'summary.md').write_text('\n'.join(lines) + '\n')
 
 
-def geometry_checks(template, table, mocap, times, build):
+def geometry_checks(template, table, mocap, times, build, body_transform=None):
     from src.features.dynamic_feasibility.hand_clearance import nearest_surface, opposing_contacts
     info = json.loads((OUTPUT / 'task-fk.json').read_text())
-    first_rotation = matrix(mocap[0, 3:])
+    first_rotation = matrix(mocap[0, 3:]) if body_transform is None else np.asarray(body_transform)[:3, :3].T
+    body_origin = np.zeros(3) if body_transform is None else np.asarray(body_transform)[:3, 3]
     acquisition = build['acquisition_end_frame']
     rotations = matrix(mocap[:, 3:])
     task = table.to_pylist()[0]
     with np.load(OUTPUT / 'task-fk.npz') as fk:
-        pieces = [fk[f'object_piece_{i}'].astype(float) @ first_rotation.T for i in range(info['object_piece_count'])]
+        pieces = [(fk[f'object_piece_{i}'].astype(float) - body_origin) @ first_rotation.T for i in range(info['object_piece_count'])]
         triangles = np.concatenate([p[fk[f'object_faces_{i}']] for i, p in enumerate(pieces)])
         groups, hands = [], []
         for side in ('left', 'right'):
             world = fk[f'{side}_groups'][acquisition:]
             local = np.einsum('tji,tkj->tki', rotations[acquisition:], world - mocap[acquisition:, None, :3])
-            groups.append(local @ first_rotation.T)
+            groups.append((local - body_origin) @ first_rotation.T)
             # All post-acquisition hand/object motion is the same rigid transform;
             # one FK collision pose therefore covers the entire carry interval.
             for i in range(info['hand_piece_counts'][side]):
                 p = fk[f'{side}_piece_{i}'] - mocap[acquisition, :3]
-                hands.append(p @ rotations[acquisition] @ first_rotation.T)
+                hands.append((p @ rotations[acquisition] - body_origin) @ first_rotation.T)
         points = np.concatenate(groups, axis=1)
         close, distance, normals = nearest_surface(triangles, points.reshape(-1, 3))
         close = close.reshape(points.shape); normals = normals.reshape(points.shape)
@@ -476,8 +478,9 @@ def render(task, build):
     fig.tight_layout(); fig.savefig(OUTPUT / 'strip.png', dpi=150); plt.close(fig)
 
 
-def prepare_commands(build):
-    from src.features.dynamic_feasibility.handler import training_command, EVALUATOR
+def training_argv(build):
+    """Return the unchanged seed-zero recipe for the current task and output."""
+    from src.features.dynamic_feasibility.handler import training_command
     from src.features.dynamic_feasibility.request import Request as TrainingRequest
     queue = json.loads((FEATURE / 'queue.json').read_text())
     thresholds = json.loads((ROOT / queue['selection']).read_text())['chosen']['budget']['curriculum_thresholds']
@@ -486,6 +489,12 @@ def prepare_commands(build):
                   observation_storage_dtype='float16', save_replay=False, curriculum_thresholds=thresholds)
     argv = training_command(TrainingRequest('D1', 0, budget, 4500), {'path': TASK, 'fps': build['fps']}, OUTPUT)
     argv += ['training.resume=false', 'training.optimization.learning_rate_schedule_updates=130398']
+    return argv
+
+
+def prepare_commands(build):
+    from src.features.dynamic_feasibility.handler import EVALUATOR
+    argv = training_argv(build)
     scores = {}
     for steps in SCORE_STEPS:
         directory = OUTPUT / f'score-{steps}'

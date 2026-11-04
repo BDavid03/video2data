@@ -1,5 +1,9 @@
 {
   "train_authorized": true,
   "score_authorized": true,
-  "support_gpu_authorized": false
+  "support_gpu_authorized": false,
+  "video_train_authorized": true,
+  "video_score_self_authorized": true,
+  "video_score_mocap_authorized": true,
+  "video_kill_check_authorized": true
 }

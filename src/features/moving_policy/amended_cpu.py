@@ -21,20 +21,21 @@ def support(task, output):
     from flash_chord.envs.base import BaseEnv
     from .diagnose import compose_environment, contact_snapshot, shifted_hand
     build = json.loads((output / 'build.json').read_text())
+    sequence = f'episode_{build["episode"]:06d}'
     results = {}
     for mode, steps in [('trajectories', 49), ('hands-cleared', 60)]:
         active_task = task
         if mode == 'hands-cleared':
-            active_task = output / 'hands-cleared/motion/sequence_id=episode_000039/robot_name=sharpa_wave/task.parquet'
+            active_task = output / f'hands-cleared/motion/sequence_id={sequence}/robot_name=sharpa_wave/task.parquet'
             active_task.parent.mkdir(parents=True, exist_ok=True)
             table = pq.ParquetFile(task).read()
             row = table.to_pylist()[0]
             for side in ('left', 'right'):
                 row = shifted_hand(row, side, np.tile([0., 0., 1.], (build['frames'], 1)))
             pq.write_table(pa.Table.from_pylist([row], schema=table.schema), active_task)
-            support_path = output / 'hands-cleared/reconstructed_stage/episode_000039_sharpa_wave_support.usda'
+            support_path = output / f'hands-cleared/reconstructed_stage/{sequence}_sharpa_wave_support.usda'
             support_path.parent.mkdir(parents=True, exist_ok=True)
-            support_path.write_bytes((output / 'reconstructed_stage/episode_000039_sharpa_wave_support.usda').read_bytes())
+            support_path.write_bytes((output / f'reconstructed_stage/{sequence}_sharpa_wave_support.usda').read_bytes())
         setup, env, config = compose_environment(active_task, build['fps'])
         body = setup.scene.objects[0].root.body_id
         first = env.state_0.body_q.numpy()[body].copy()
