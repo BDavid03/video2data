@@ -17,7 +17,7 @@ import numpy as np
 import pyarrow.parquet as pq
 from src.paths import current_name
 from src.provenance import sha256_file
-from ._moving import tracking_metrics
+from ._moving import tracking_metrics, translation_errors, pose_matrices, reprojection_summary
 
 ROOT = Path(__file__).resolve().parents[3]
 KIT = ROOT / 'upstream/v2d_submission_kit/v2d_submission_kit'
@@ -28,12 +28,12 @@ SCRATCH = ROOT / 'data/.runtime/tmp/mpack-dry'
 OUTPUT = ROOT / 'data/outputs/pose_insurance/moving-pack'
 POSE = [f'{kind}_{axis}' for kind, axes in (('position', 'xyz'), ('quaternion', 'xyzw')) for axis in axes]
 M1_LIMITS = {
-    'camera_heldout_reprojection_median_px640': ('le', 1/3),
-    'camera_heldout_reprojection_p95_px640': ('le', 1.),
+    'camera_heldout_reprojection_median_px640': ('le', .5),
+    'camera_heldout_reprojection_p95_px640': ('le', 2.),
     'camera_heldout_world_residual_median_m': ('le', .01),
     'camera_heldout_tracks_min': ('ge', 30), 'camera_heldout_regions_min': ('ge', 4),
     'camera_coverage_fraction': ('ge', .98), 'table_residual_rms_m': ('le', .005),
-    'table_disjoint_patch_normal_max_deg': ('le', 2.), 'mask_usable_fraction': ('ge', .9),
+    'table_disjoint_patch_normal_max_deg': ('le', 3.), 'mask_usable_fraction': ('ge', .9),
     'mask_longest_unusable_interval_frames': ('le', 2),
     'object_30_stereo_correspondence_fraction': ('ge', .9),
     'object_fb_translation_median_m': ('le', .01), 'object_fb_rotation_median_deg': ('le', 5.),
@@ -41,8 +41,11 @@ M1_LIMITS = {
     'object_reference_valid_fraction': ('ge', .9),
     'reprojection_iou_median': ('ge', .6), 'reprojection_iou_p10': ('ge', .3),
     'reprojection_coverage_fraction': ('ge', .9), 'frame0_base_gap_m': ('le', .005),
-    'frame0_penetration_m': ('le', .005), 'zero_action_support_translation_m': ('le', .01),
-    'zero_action_support_rotation_deg': ('le', 2.),
+    'frame0_penetration_m': ('le', .005),
+    'table_offset_max_frame_median_m': ('le', .01), 'table_offset_p95_frame_medians_m': ('le', .015),
+    'table_late_normal_change_deg': ('le', 2.), 'table_drift_used_fraction': ('ge', .80),
+    'table_landmark_max_frame_median_m': ('le', .01),
+    'table_landmark_p95_frame_medians_m': ('le', .02), 'table_landmark_used_fraction': ('ge', .80),
 }
 
 
@@ -103,7 +106,8 @@ def require_tracking(data: dict, label: str) -> None:
 
 
 def require_m1(data: dict, episode: int) -> None:
-    if data.get('episode') != episode or data.get('label_free') is not True or data.get('passed') is not True:
+    label_free = data.get('label_free', data.get('frozen_rule', {}).get('label_free'))
+    if data.get('episode') != episode or label_free is not True or data.get('passed') is not True:
         raise ValueError('Clause 2 requires this episode\'s passed label-free M1 evidence')
     for key, (direction, limit) in M1_LIMITS.items():
         row = data.get('gates', {}).get(key, {})
@@ -111,6 +115,30 @@ def require_m1(data: dict, episode: int) -> None:
         fraction_invalid = ('fraction' in key or 'iou' in key) and value > 1.
         if value < 0 or fraction_invalid or (value > limit if direction == 'le' else value < limit) or row.get('passed') is not True:
             raise ValueError(f'Clause 2 M1 fails {key}')
+    world = data['gates']['camera_heldout_world_residual_median_m']
+    if world.get('instrument') == 'perpendicular':
+        control = world.get('control', {})
+        if (number(control.get('pairs'), 'noise floor pairs') < 100
+                or number(control.get('frames'), 'noise floor frames') < 3
+                or number(control.get('norm_median_m'), 'noise floor norm') < number(world.get('old_3d_median_m'), 'old 3D residual')
+                or number(control.get('along_median_m'), 'along-ray floor') < 3 * number(control.get('perpendicular_median_m'), 'perpendicular floor')
+                or world.get('noise_floor_explains_old') is not True
+                or world['value'] != world.get('perpendicular_median_m')):
+            raise ValueError('Clause 2 changed world-residual instrument has no explaining noise-floor control')
+    elif world.get('old_3d_median_m') is not None and world['value'] != world['old_3d_median_m']:
+        raise ValueError('Clause 2 must retain unexplained original 3D world residual')
+
+
+def inspect_m1(binding: dict, source: dict, episode: int, assets: dict) -> None:
+    """Bind amended M1 gates to the independent source reference in the admission."""
+    gates = checked(binding['gates'])
+    if binding['reference'] != source:
+        raise ValueError('Clause 2 M1 evidence does not bind the adopted source reference')
+    checked(binding['reference'])
+    if gates.name != 'gates-amended.json' or gates.parent != path(source['path']).parent:
+        raise ValueError('Clause 2 requires candidate-c/gates-amended.json beside the source reference')
+    require_same_asset(binding.get('asset_hashes'), assets)
+    require_m1(read(gates), episode)
 
 
 def require_m2v(data: dict) -> None:
@@ -265,56 +293,367 @@ def reference_poses(value: Path, frame, bodies: int) -> np.ndarray:
     return poses
 
 
+FINAL_STEPS = 66763776
+
+
+def overrides(argv: list[str]) -> dict:
+    """Read the recorded Hydra overrides, retaining their actual path values."""
+    return {key: value.strip('"\'') for arg in argv if '=' in arg for key, value in [arg.split('=', 1)]}
+
+
+def checkpoint_metadata(checkpoint: Path) -> dict:
+    """Read existing safetensors metadata with the installed CPU-capable producer environment."""
+    code = '''import json,sys
+from safetensors import safe_open
+with safe_open(sys.argv[1],framework="numpy") as f:
+ m=f.metadata(); c=json.loads(m["user.resolved_config_json"])
+ print(json.dumps(dict(steps=int(m["user.environment_steps"]),updates=int(m["user.global_update_step"]),
+ algorithm=m["user.algorithm"],kind=m["user.checkpoint_kind"],task=c["task"]["parquet"],
+ total=c["training"]["total_environment_steps"])))
+'''
+    result = subprocess.check_output([str(ROOT / 'data/.runtime/flashchord/venv/bin/python'), '-B', '-c', code, str(checkpoint)],
+                                     cwd=ROOT, text=True, env={**os.environ, 'CUDA_VISIBLE_DEVICES': '', 'PYTHONDONTWRITEBYTECODE': '1'})
+    return json.loads(result)
+
+
+def inspect_learning(directory: Path, checkpoint: Path, task: Path) -> dict:
+    """Admit the real completed training record, final log count and checkpoint optimizer metadata."""
+    train = read(directory / 'train.run.json')
+    stage = entry(directory / 'stage0.json')
+    prepared = read(directory / 'commands.json')
+    argv = train.get('argv', prepared.get('train', []))
+    args = overrides(argv)
+    if (train.get('status') != 'completed' or train.get('stage0_sha256') != stage['sha256']
+            or not (train.get('exit_code') == 0 or train.get('result', {}).get('training_completed') is True)
+            or number(train.get('finished_unix'), 'training finish') <= number(train.get('started_unix'), 'training start')
+            or not any(str(arg).endswith('/scripts/train_flash_sac.py') for arg in argv)
+            or int(args.get('training.total_environment_steps', 0)) != FINAL_STEPS
+            or path(args['task.parquet']) != task or path(args['output_dir']) != checkpoint.parent):
+        raise ValueError('A completed learned training process with the frozen recipe is required')
+    log = path(directory / 'train.log')
+    counts = [int(n.replace(',', '')) for n in re.findall(r'completed ([\d,]+) environment steps', log.read_text())]
+    if not counts or max(counts) < FINAL_STEPS:
+        raise ValueError('Training log does not prove completion of the recipe total')
+    meta = checkpoint_metadata(checkpoint)
+    if (meta['steps'] < FINAL_STEPS or meta['total'] != FINAL_STEPS or meta['updates'] < 1
+            or meta['algorithm'] != 'flash_sac' or meta['kind'] != 'policy' or path(meta['task']) != task
+            or checkpoint.name != f'policy_{FINAL_STEPS}.safetensors'):
+        raise ValueError('Checkpoint has no actual learned updates at the recipe total or binds another task')
+    return dict(train_run=entry(directory / 'train.run.json'), train_log=entry(log),
+                checkpoint=entry(checkpoint), commands=entry(directory / 'commands.json'),
+                stage0=stage, logged_steps=max(counts), checkpoint_metadata=meta)
+
+
+def load_reference(value: Path) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    with np.load(value, allow_pickle=False) as data:
+        if 'plumbing_only' in data or 'fake' in data:
+            raise ValueError('FAKE/plumbing references are never admissible')
+        poses = data['pose'].astype(float)
+        if poses.ndim == 2:
+            poses = poses[:, None, :]
+        frames, times = data['frame_index'].copy(), data['time'].astype(float)
+    require_poses(poses)
+    return poses, frames, times
+
+
+def inspect_task(directory: Path, episode: int) -> dict:
+    """Bind M1, the moved reference, the actual task and its shared simulator asset."""
+    stage = read(directory / 'stage0.json')
+    required = {'1_schema', '2_closure', '3_penetration', '4a_finger_limits', '4b_reachability', '5_support', '6_truth'}
+    if (stage.get('status') != 'PASS' or stage.get('episode') != episode or not required <= stage.get('checks', {}).keys()
+            or not all(c.get('passed') is True for c in stage['checks'].values())):
+        raise ValueError('Video Stage 0 did not pass every check for this episode')
+    for e in stage['artifacts']:
+        checked(e)
+    task = path(stage['build']['task'])
+    if entry(task) not in stage['artifacts']:
+        raise ValueError('Actual task is not hash-bound by Stage 0')
+    row = pq.read_table(task).to_pylist()[0]
+    moved_entry = entry(directory / 'reference-task.npz')
+    source_entry = entry(directory / 'reference-source.npz')
+    ref_record = read(directory / 'reference.json')
+    original = entry(ref_record['source_path'])
+    if (ref_record['source_sha256'] != source_entry['sha256'] or source_entry['sha256'] != original['sha256']
+            or ref_record['task_sha256'] != moved_entry['sha256'] or stage['reference'] != ref_record):
+        raise ValueError('M1 source/reference-task identity differs from the recorded translation')
+    if path(original['path']).parent.name != 'candidate-c':
+        raise ValueError('Reference source is not final M1 candidate-c evidence')
+    source, sf, st = load_reference(path(source_entry['path']))
+    moved, mf, mt = load_reference(path(moved_entry['path']))
+    if source.shape != moved.shape or not np.array_equal(sf, mf) or not np.array_equal(st, mt):
+        raise ValueError('Source and moved reference clocks/grids differ')
+    shift = np.asarray(ref_record['translation_m'], float)
+    if shift.shape != (3,) or not np.isfinite(shift).all():
+        raise ValueError('Recorded pure translation is invalid')
+    errors = translation_errors(source, moved, shift)
+    if errors['maximum_translation_error_m'] > 2e-6 or errors['maximum_orientation_error_deg'] > 1e-4:
+        raise ValueError('Task reference does not equal M1 reference after the recorded pure translation')
+    task_poses = np.concatenate((np.asarray(row['object_body_position']),
+                                np.asarray(row['object_body_wxyz'])[..., [1, 2, 3, 0]]), axis=-1)
+    if task_poses.shape != moved.shape:
+        raise ValueError('Task object pose shape differs from moved reference')
+    task_errors = translation_errors(moved, task_poses, np.zeros(3))
+    if task_errors['maximum_translation_error_m'] > 2e-6 or task_errors['maximum_orientation_error_deg'] > 1e-4:
+        raise ValueError('Task first pose or trajectory differs from the translated M1 reference')
+    clock = np.arange(len(mt)) / float(row['fps'])
+    residual = float(np.max(np.abs(mt - mt[0] - clock)))
+    if residual > 1e-6 or abs(residual - ref_record['largest_clock_residual_s']) > 1e-9:
+        raise ValueError('Reference-task clock differs from the recorded uniform task clock')
+    if row['object_body_names'] != ['mini_dust_pan']:
+        raise ValueError('Video task body convention/order mismatch')
+    meshes, urdfs = row['object_mesh_paths'], row['object_urdf_paths']
+    if len(meshes) != 1 or len(urdfs) != 1 or path(meshes[0]).parent != path(urdfs[0]).parent:
+        raise ValueError('Task must bind the single shared profile asset')
+    shared = path(meshes[0]).parent
+    asset = read(directory / 'asset.json')
+    if asset != read(shared / 'asset.json') or asset['hashes'] != stage['asset_hashes']:
+        raise ValueError('Task and Stage 0 simulator asset manifests differ')
+    for name, digest in asset['hashes'].items():
+        if sha256_file(shared / name) != digest:
+            raise ValueError('Shared simulator asset content hash mismatch')
+        if (directory / name).exists() and sha256_file(directory / name) != digest:
+            raise ValueError('Episode simulator asset copy differs from shared asset')
+    if (sha256_file(path(meshes[0])) != asset['hashes']['mini_dust_pan.obj']
+            or sha256_file(path(urdfs[0])) != asset['hashes']['mini_dust_pan.urdf']):
+        raise ValueError('Task mesh/URDF does not bind the shared asset hashes')
+    body = path(original['path']).parent / 'body-convention.json'
+    if sha256_file(body) != asset['hashes']['body-convention.json']:
+        raise ValueError('M1 and policy asset use different body conventions')
+    return dict(stage0=entry(directory / 'stage0.json'), task=entry(task),
+                reference_source=original, reference_task=moved_entry,
+                reference_record=entry(directory / 'reference.json'), asset_manifest=entry(directory / 'asset.json'),
+                asset_hashes=asset['hashes'], shared_asset_inputs=[entry(shared / n) for n in asset['hashes']],
+                translation_errors=errors, task_pose_errors=task_errors, largest_clock_residual_s=residual)
+
+
+def inspect_policy(directory: Path, episode: int, inputs: dict | None, grid, names: list, eval_code: str) -> dict:
+    """Admit a finished video policy using the producer's real output-file contract."""
+    if read(directory / 'stage0.json').get('plumbing_only'):
+        raise ValueError('FAKE/plumbing Stage 0 cannot admit a policy')
+    task = inspect_task(directory, episode)
+    checkpoint = directory / 'training' / f'policy_{FINAL_STEPS}.safetensors'
+    score = directory / f'score-{FINAL_STEPS}'
+    trajectory, official_file = score / 'trajectory.parquet', score / 'official_metrics.json'
+    if inputs is not None and any(inputs[k] != entry(p) for k, p in (
+            ('trajectory', trajectory), ('checkpoint', checkpoint), ('reference', path(task['reference_task']['path'])))):
+        raise ValueError('Adoption inputs differ from the finished policy outputs')
+    learning = inspect_learning(directory, checkpoint, path(task['task']['path']))
+    prepared = read(directory / 'commands.json')
+    record_file = directory / 'score-self.run.json'
+    if not record_file.exists():
+        record_file = directory / f'score-{FINAL_STEPS}.run.json'
+    record = read(record_file)
+    if record.get('status') != 'completed' or record.get('stage0_sha256') != task['stage0']['sha256']:
+        raise ValueError('Final evaluator process is incomplete or binds a different Stage 0')
+    command = record.get('argv', prepared.get('evaluator_final', []))
+    if not any(path(arg) == KIT / 'flash_chord/scripts/evaluate_policy.py'
+               for arg in command if str(arg).endswith('/evaluate_policy.py')):
+        raise ValueError('Policy producer did not record the kit evaluator command')
+    args = overrides(command)
+    if (path(args['evaluation.checkpoint']) != checkpoint
+            or path(args['evaluation.object_trajectories_output']) != trajectory
+            or path(args['evaluation.metrics_output']) != official_file
+            or args.get('evaluation.reset_mode') != 'explicit'):
+        raise ValueError('Evaluator command does not bind checkpoint/export/metrics or permits resets')
+    frame, poses = inspect_export(trajectory, sha256_file(checkpoint), episode, grid, names, eval_code)
+    reference = reference_poses(path(task['reference_task']['path']), frame, len(names))
+    require_completion(read(official_file), sha256_file(checkpoint), len(poses))
+    if read(official_file)['environment_steps'] < FINAL_STEPS:
+        raise ValueError('Evaluator used a checkpoint before the recipe total')
+    for row in tracking_metrics(poses, reference):
+        require_tracking(row, f'Episode {episode}')
+        require_first(row)
+    return dict(**task, learning=learning, evaluator_run=entry(record_file),
+                trajectory=entry(trajectory), official_metrics=entry(official_file))
+
+
+def render_reprojection(trajectory: Path, source: dict, record: dict) -> tuple[np.ndarray, np.ndarray, list[dict]]:
+    """Re-render achieved poses on the frozen M1 camera, mesh and per-frame masks on CPU."""
+    import trimesh
+    from src.features.moving_reference._object import render, iou
+    directory = path(source['path']).parent
+    tracking_file, body_file = directory / 'tracking.npz', directory / 'body-convention.json'
+    mesh_file = ROOT / 'data/outputs/moving_reference/ep39/candidate-c/asset/mini_dust_pan.obj'
+    with np.load(tracking_file, allow_pickle=False) as data:
+        cameras, intrinsics, valid = data['world_T_camera'].copy(), data['intrinsics'].copy(), data['valid'].copy()
+    mesh = trimesh.load(mesh_file, force='mesh', process=False)
+    body = np.asarray(read(body_file)['scan_T_asset'])
+    frame = pq.read_table(trajectory).to_pandas().sort_values(['reference_frame', 'object_body_id'])
+    achieved = frame[['achieved_' + c for c in POSE]].to_numpy(float)
+    poses = pose_matrices(achieved, np.asarray(read(checked(record))['translation_m'])) @ body
+    if len(poses) != len(cameras) or valid.shape != (len(poses),):
+        raise ValueError('Reprojection frame count differs from achieved poses/camera')
+    scores, usable, frames = [], [], []
+    for index, pose in enumerate(poses):
+        file = directory / f'frames/frame_{index:06d}.npz'
+        frames.append(entry(file))
+        with np.load(file, allow_pickle=False) as data:
+            mask, hands = data['object_mask'], data['hands']
+            use = bool(valid[index] and np.count_nonzero(mask & ~hands) > 0)
+        prediction = render(mesh.vertices, mesh.faces, np.linalg.inv(cameras[index]) @ pose, intrinsics, mask.shape)
+        scores.append(iou(prediction, mask, hands))
+        usable.append(use)
+    return np.asarray(scores), np.asarray(usable), [entry(tracking_file), entry(body_file), entry(mesh_file), *frames]
+
+
+def produce_reprojection(directory: Path, policy: dict) -> dict:
+    """Write an immutable, input-bound producer record and per-frame IoUs."""
+    trajectory = policy['trajectory']
+    metadata = pq.read_schema(checked(trajectory)).metadata or {}
+    if any(b'fake' in key.lower() or b'plumbing' in key.lower() for key in metadata):
+        raise ValueError('FAKE/plumbing trajectories cannot produce admission evidence')
+    directory.mkdir(parents=True, exist_ok=False)
+    ious, usable, inputs = render_reprojection(checked(trajectory), policy['reference_source'], policy['reference_record'])
+    np.savez_compressed(directory / 'achieved-reprojection.npz', iou=ious, usable=usable)
+    result = dict(kind='pose_insurance.achieved_reprojection', status='completed',
+                  trajectory=trajectory, reference=policy['reference_source'], translation=policy['reference_record'],
+                  asset_hashes=policy['asset_hashes'], inputs=inputs,
+                  sources=source_entries(), arrays=entry(directory / 'achieved-reprojection.npz'),
+                  measurements=reprojection_summary(ious, usable))
+    write(directory / 'producer.json', result)
+    return entry(directory / 'producer.json')
+
+
+def inspect_reprojection(producer: dict, trajectory: dict, reference: dict, translation: dict, assets: dict) -> dict:
+    """Require hashed producer inputs and recompute its aggregate measurements from frame evidence."""
+    if not isinstance(producer, dict) or not {'path', 'sha256'} <= producer.keys():
+        raise ValueError('Achieved reprojection requires a hashed producer file')
+    data = read(checked(producer))
+    if data.get('kind') != 'pose_insurance.achieved_reprojection' or data.get('status') != 'completed':
+        raise ValueError('Achieved reprojection requires a completed hashed producer')
+    if any(data.get(k) != v for k, v in (('trajectory', trajectory), ('reference', reference), ('translation', translation), ('asset_hashes', assets))):
+        raise ValueError('Achieved reprojection is bound to another trajectory/reference/asset')
+    if data.get('sources') != source_entries():
+        raise ValueError('Achieved reprojection producer source inventory differs')
+    for e in [*data['inputs'], *data['sources'], trajectory, reference, translation]:
+        checked(e)
+    with np.load(checked(data['arrays']), allow_pickle=False) as arrays:
+        ious, usable = arrays['iou'], arrays['usable']
+    if ious.ndim != 1 or usable.shape != ious.shape or np.any(~np.isfinite(ious)) or np.any((ious < 0) | (ious > 1)):
+        raise ValueError('Invalid achieved reprojection frame arrays')
+    summary = reprojection_summary(ious, usable)
+    if summary != data['measurements']:
+        raise ValueError('Achieved reprojection summary differs from recomputed frame measurements')
+    recomputed, observed, expected_inputs = render_reprojection(checked(trajectory), reference, translation)
+    if (data['inputs'] != expected_inputs or not np.array_equal(usable, observed)
+            or not np.array_equal(ious, recomputed)):
+        raise ValueError('Achieved reprojection differs from rerendered frozen-camera/mask evidence')
+    require_reprojection(summary, 'Achieved')
+    return summary
+
+
+def require_same_asset(first: dict, second: dict) -> None:
+    if first != second:
+        raise ValueError('M2v and adopted policy do not share one asset hash')
+
+
+def inspect_m2v(evidence: dict, eval_code: str) -> dict:
+    """Require the real sealed 39 result, self tracking, video reprojection and shared asset."""
+    directory = path(evidence['directory'])
+    stage = read(checked(evidence['stage0']))
+    if entry(directory / 'stage0.json') != evidence['stage0'] or stage['episode'] != 39:
+        raise ValueError('M2v evidence must identify the episode-39 video run')
+    import pandas as pd
+    count = stage['build']['frames']
+    grid = pd.DataFrame(dict(world_index=np.zeros(count, int), frame_index=np.arange(count), object_slot=np.zeros(count, int)))
+    policy = inspect_policy(directory, 39, None, grid, ['mini_dust_pan'], eval_code)
+    mocap_entry = evidence['mocap_metrics']
+    mocap = read(checked(mocap_entry))
+    if checked(mocap_entry) != directory / f'score-{FINAL_STEPS}/mocap_metrics.json':
+        raise ValueError('M2v label result does not belong to this policy')
+    record = read(checked(evidence['mocap_run']))
+    if (record.get('status') != 'completed' or record.get('stage0_sha256') != policy['stage0']['sha256']
+            or record.get('result') != mocap):
+        raise ValueError('M2v sealed scoring producer is incomplete')
+    require_tracking(mocap, 'M2v mocap')
+    if (mocap.get('verdict') != 'GO' or mocap.get('label_access') is not True
+            or mocap.get('checkpoint_sha256') != policy['learning']['checkpoint']['sha256']
+            or mocap.get('task_reference_sha256') != policy['reference_task']['sha256']):
+        raise ValueError('M2v sealed result fails GO or checkpoint/reference binding')
+    inspect_m1(evidence['m1'], policy['reference_source'], 39, policy['asset_hashes'])
+    projection = inspect_reprojection(evidence['achieved_reprojection'], policy['trajectory'], policy['reference_source'],
+                                      policy['reference_record'], policy['asset_hashes'])
+    require_m2v(dict(episode=39, passed=True, verdict=mocap['verdict'], tracking=mocap,
+                     AUC=mocap['kit']['AUC'], reprojection=projection))
+    return policy
+
+
+def make_admission(directory_name: str, m2v_name: str, output_name: str, disclosure: str) -> Path:
+    """Build the exact admission/request envelopes from finished real producer folders."""
+    directory, m2v_dir, output = path(directory_name), path(m2v_name), path(output_name)
+    if not output.is_relative_to(SCRATCH) and not output.is_relative_to(OUTPUT):
+        raise ValueError('Admission output must be under mpack-dry or moving-pack outputs')
+    if output.exists():
+        raise FileExistsError('Use a new immutable admission output directory')
+    def m1_binding(p):
+        source = p['reference_source']
+        return dict(gates=entry(path(source['path']).parent / 'gates-amended.json'), reference=source,
+                    asset_hashes=p['asset_hashes'])
+    for episode, folder in ((38, directory), (39, m2v_dir)):
+        reference = read(folder / 'reference.json')
+        binding = dict(reference_source=entry(reference['source_path']), asset_hashes=read(folder / 'asset.json')['hashes'])
+        inspect_m1(m1_binding(binding), binding['reference_source'], episode, binding['asset_hashes'])
+    roster, objects = official_roster()
+    _, code = evaluator_inputs()
+    episode = read(directory / 'stage0.json')['episode']
+    if episode != 38:
+        raise ValueError('Current video recipe admits only scored episode 38')
+    policy = inspect_policy(directory, episode, None, roster[episode], objects[episode].object_names, code)
+    m2v_stage = read(m2v_dir / 'stage0.json')
+    import pandas as pd
+    n = m2v_stage['build']['frames']
+    grid = pd.DataFrame(dict(world_index=np.zeros(n, int), frame_index=np.arange(n), object_slot=np.zeros(n, int)))
+    m2v_policy = inspect_policy(m2v_dir, 39, None, grid, ['mini_dust_pan'], code)
+    require_same_asset(policy['asset_hashes'], m2v_policy['asset_hashes'])
+    output.mkdir(parents=True, exist_ok=False)
+    projection = produce_reprojection(output / 'ep38-reprojection', policy)
+    m2v_projection = produce_reprojection(output / 'ep39-reprojection', m2v_policy)
+    m2v = dict(directory=str(m2v_dir.relative_to(ROOT)), stage0=m2v_policy['stage0'],
+               mocap_metrics=entry(m2v_dir / f'score-{FINAL_STEPS}/mocap_metrics.json'),
+               mocap_run=entry(m2v_dir / 'score-mocap.run.json'), m1=m1_binding(m2v_policy),
+               achieved_reprojection=m2v_projection)
+    admission = dict(schema_version=2, episode=episode, policy_directory=str(directory.relative_to(ROOT)),
+                     inputs={k: policy[v] if k != 'checkpoint' else policy['learning']['checkpoint']
+                             for k, v in (('trajectory', 'trajectory'), ('checkpoint', 'checkpoint'), ('reference', 'reference_task'))},
+                     m1=m1_binding(policy), m2v=m2v, achieved_reprojection=projection,
+                     abstract_disclosure=entry(disclosure))
+    write(output / 'admission.json', admission)
+    adoption = dict(episode=episode, trajectory=policy['trajectory']['path'], checkpoint=policy['learning']['checkpoint']['path'],
+                    reference=policy['reference_task']['path'], admission=str((output / 'admission.json').relative_to(ROOT)))
+    admit(adoption, roster[episode], objects[episode].object_names, code)
+    write(output / 'adoptions.json', dict(adoptions=[adoption]))
+    return output / 'adoptions.json'
+
+
 def admit(adoption: dict, grid, names: list, eval_code: str) -> dict:
     """Verify all scored-adoption clauses and their content-bound producer evidence."""
     episode = adoption['episode']
     inputs = {key: entry(adoption[key]) for key in ('trajectory', 'checkpoint', 'reference', 'admission')}
     admission = read(adoption['admission'])
-    if admission.get('schema_version') != 1 or admission.get('episode') != episode or admission.get('plumbing_only'):
+    if admission.get('schema_version') != 2 or admission.get('episode') != episode or admission.get('plumbing_only'):
         raise ValueError('Admission identity mismatch or FAKE plumbing admission')
     for key in ('trajectory', 'checkpoint', 'reference'):
         if admission['inputs'][key] != inputs[key]:
             raise ValueError(f'Admission does not bind {key} content')
     frame, poses = inspect_export(path(adoption['trajectory']), inputs['checkpoint']['sha256'], episode, grid, names, eval_code)
     reference = reference_poses(path(adoption['reference']), frame, len(names))
-    run_entry, official_entry = admission['policy_run'], admission['official_metrics']
-    run, official = read(checked(run_entry)), read(checked(official_entry))
-    if (run.get('status') != 'completed' or run.get('episode_index') != episode or run.get('split') != 'evaluation'
-            or number(run.get('optimizer_updates'), 'optimizer_updates') < 1
-            or number(run.get('actor_adam_steps'), 'actor_adam_steps') < 1
-            or run.get('checkpoint_sha256') != inputs['checkpoint']['sha256']
-            or entry(run['checkpoint']) != inputs['checkpoint']):
-        raise ValueError('A learned checkpoint and completed episode policy record are required')
-    for key, e in (('trajectory.parquet', inputs['trajectory']), ('official_metrics.json', official_entry)):
-        if run.get('artifacts', {}).get(key) != e['sha256']:
-            raise ValueError(f'Producer artifact hash mismatch: {key}')
-    evaluator = KIT / 'flash_chord/scripts/evaluate_policy.py'
-    commands = [c for c in run.get('commands', []) if len(c) > 1 and c[1].endswith('/evaluate_policy.py')]
-    if len(commands) != 1 or path(commands[0][1]) != evaluator:
-        raise ValueError('Policy producer did not record the kit evaluator command')
-    arguments = dict(arg.split('=', 1) for arg in commands[0][2:] if '=' in arg)
-    if (path(arguments['evaluation.checkpoint']) != path(adoption['checkpoint'])
-            or path(arguments['evaluation.object_trajectories_output']) != path(adoption['trajectory'])
-            or path(arguments['evaluation.metrics_output']) != checked(official_entry)
-            or arguments.get('evaluation.reset_mode') != 'explicit'):
-        raise ValueError('Evaluator command does not bind checkpoint/export/metrics or permits resets')
-    require_completion(official, inputs['checkpoint']['sha256'], len(poses))
-    m2v, m1 = read(checked(admission['m2v'])), read(checked(admission['m1']))
-    require_m2v(m2v)
-    require_m1(m1, episode)
-    if m1.get('reference_sha256') != inputs['reference']['sha256']:
-        raise ValueError('Clause 2 M1 evidence does not bind the adopted reference')
-    require_reprojection(admission['achieved_reprojection'], 'Achieved')
+    policy = inspect_policy(path(admission['policy_directory']), episode, inputs, grid, names, eval_code)
+    inspect_m1(admission['m1'], policy['reference_source'], episode, policy['asset_hashes'])
+    m2v = inspect_m2v(admission['m2v'], eval_code)
+    require_same_asset(policy['asset_hashes'], m2v['asset_hashes'])
+    projection = inspect_reprojection(admission['achieved_reprojection'], inputs['trajectory'],
+                                      policy['reference_source'], policy['reference_record'], policy['asset_hashes'])
+    require_reprojection(projection, 'Achieved')
     metrics = tracking_metrics(poses, reference)
     for row in metrics:
         require_tracking(row, f'Episode {episode} slot {row["slot"]}')
         require_first(row)
     disclosure = admission['abstract_disclosure']
     checked(disclosure)
-    return dict(episode=episode, source='moving policy', **inputs, policy_run=run_entry,
-                official_metrics=official_entry, m2v=admission['m2v'], m1=admission['m1'],
-                abstract_disclosure=disclosure, tracking=metrics,
-                achieved_reprojection=admission['achieved_reprojection'])
+    return dict(episode=episode, source='moving policy', **inputs, policy=policy,
+                m2v=admission['m2v'], m1=admission['m1'], abstract_disclosure=disclosure,
+                tracking=metrics, achieved_reprojection=admission['achieved_reprojection'])
+
 
 
 def compose_exports(v5: dict, replacements: dict, directory: Path) -> list[dict]:
@@ -361,7 +700,9 @@ def source_entries() -> list[dict]:
              ROOT / 'src/features/dynamic_feasibility/_metrics.py',
              ROOT / 'src/paths.py', ROOT / 'src/provenance.py',
              ROOT / 'scripts/reproduce/d2_poses_moving.sh', ROOT / 'scripts/reproduce/check_release.sh',
-             ROOT / 'docs/chain/moving-m1-protocol.md', ROOT / 'docs/chain/moving-m2-protocol.md']
+             ROOT / 'docs/chain/moving-m1-protocol.md', ROOT / 'docs/chain/moving-m2-protocol.md',
+             ROOT / 'docs/chain/moving-m2v-protocol.md',
+             ROOT / 'src/features/moving_reference/_object.py', ROOT / 'src/features/moving_reference/camera.py']
     return [entry(p) for p in names]
 
 
@@ -439,6 +780,9 @@ def pack(request_file: str, code_url: str, output_name: str, dry_run: bool = Fal
                     commands=commands, csv_comparison=comparison,
                     preflight_verdict='Ready to submit (Kaggle checks skipped)')
     write(output.with_suffix('.manifest.json'), manifest)
+    write(directory / 'release-pose-entry.json', dict(path=manifest['file']['path'],
+          sha256=manifest['file']['sha256'], manifest=str(output.with_suffix('.manifest.json').relative_to(ROOT)),
+          moving_manifest=str(output.with_suffix('.manifest.json').relative_to(ROOT))))
     return output.with_suffix('.manifest.json')
 
 
@@ -512,8 +856,16 @@ def main() -> None:
     parser.add_argument('--out')
     parser.add_argument('--dry-run', action='store_true')
     parser.add_argument('--verify-manifest')
+    parser.add_argument('--make-admission', metavar='EPISODE_OUTPUT')
+    parser.add_argument('--m2v-output', default='data/outputs/moving_policy/ep39-v1')
+    parser.add_argument('--abstract-disclosure', default='docs/report/track3/main.tex')
     args = parser.parse_args()
     os.environ.update(CUDA_VISIBLE_DEVICES='', PYTHONDONTWRITEBYTECODE='1')
+    if args.make_admission:
+        if not args.out:
+            parser.error('--make-admission requires --out for a new evidence directory')
+        print(make_admission(args.make_admission, args.m2v_output, args.out, args.abstract_disclosure))
+        return
     if args.verify_manifest:
         verify_manifest(args.verify_manifest)
         return

@@ -27,3 +27,32 @@ def tracking_metrics(achieved: np.ndarray, reference: np.ndarray) -> list[dict]:
                             Theta_deg=float(theta.mean()), Theta_S_deg=float(theta_s.mean()),
                             first_position_m=float(position[0]), first_orientation_deg=float(theta[0])))
     return results
+
+
+def translation_errors(source: np.ndarray, moved: np.ndarray, translation: np.ndarray) -> dict:
+    """Measure whether two full pose sequences differ by the recorded pure translation."""
+    expected = source.copy()
+    expected[..., :3] += translation
+    position = np.linalg.norm(moved[..., :3] - expected[..., :3], axis=-1)
+    angle = np.degrees((Rotation.from_quat(moved.reshape(-1, 7)[:, 3:]) *
+                        Rotation.from_quat(expected.reshape(-1, 7)[:, 3:]).inv()).magnitude())
+    return dict(maximum_translation_error_m=float(position.max()),
+                maximum_orientation_error_deg=float(angle.max()),
+                first_translation_error_m=float(position.reshape(len(position), -1)[0].max()))
+
+
+def pose_matrices(poses: np.ndarray, translation: np.ndarray) -> np.ndarray:
+    """Map task-world xyzw poses back into the frozen M1 world."""
+    matrices = np.repeat(np.eye(4)[None], len(poses), axis=0)
+    matrices[:, :3, :3] = Rotation.from_quat(poses[:, 3:]).as_matrix()
+    matrices[:, :3, 3] = poses[:, :3] - translation
+    return matrices
+
+
+def reprojection_summary(ious: np.ndarray, usable: np.ndarray) -> dict:
+    """Summarize finite per-frame achieved silhouette overlap on usable video frames."""
+    use = np.asarray(usable, bool) & np.isfinite(ious)
+    values = np.asarray(ious)[use]
+    return dict(median_iou=float(np.median(values)) if len(values) else None,
+                p10_iou=float(np.percentile(values, 10)) if len(values) else None,
+                usable_fraction=float(use.mean()), frames=len(ious), usable_frames=int(use.sum()))

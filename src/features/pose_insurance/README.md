@@ -330,178 +330,232 @@ mask inference; elapsed stage-to-stage wall time was 320.419 seconds.
 
 ## Gated moving-pose composition (CPU)
 
-`pack_moving.py` is a separate module entry point: the existing slice dispatcher is
-pinned by v5 and stays unchanged, as does `handler.inspect_export`'s static drift
-refusal. The moving operation verifies the frozen v5 CSV and manifest identities,
-copies its twenty exports, and replaces only explicitly admitted scored episodes.
-It invokes the unedited kit packer and preflight (Kaggle skipped), then compares
-all unadopted CSV fields as **text**, including signed zeros, ignoring only the
-new global `code_commit_url`. It never writes under `submission/`.
+`python -m src.features.pose_insurance.pack_moving` is separate from the pinned
+static dispatcher. Static packing and its 1 cm / 2 degree drift refusal remain
+unchanged. Moving packing replaces only admitted episode exports in frozen v5,
+invokes the unedited kit packer/preflight, and compares every unadopted CSV field
+as text, preserving signed zeros and excluding only the global commit URL.
+Outputs stay under `data/outputs/pose_insurance/moving-pack/`; `submission/` is
+always forbidden. Dry outputs stay under `data/.runtime/tmp/mpack-dry/` and are
+never eligible for release.
 
-After the lead commits the implementation and has genuine passing evidence:
+### From finished ep38-v1 to a release entry
 
-```bash
-bash scripts/reproduce/d2_poses_moving.sh \
-  --request data/outputs/pose_insurance/moving-pack/adoptions.json \
-  --code-commit https://github.com/BDavid03/video2data/commit/<FULL_LEAD_COMMIT_SHA> \
-  --out data/outputs/pose_insurance/moving-pack/adopted/track3_poses_moving.csv
-```
+These commands are for the lead after the producer finishes. They do not train,
+render simulation, push or upload. Both runs must have completed training and
+final evaluator outputs; 39 must also have its sealed mocap GO. Both amended M1
+references and Stage 0 must pass. **If those gates fail, retain v5.** The lead
+first reviews/commits the implementation and the actual report disclosure, and
+uses that commit's URL below. A changed abstract also requires the usual D3
+report build/hash update before the final release check can pass.
 
-The output's **parent directory must be new**. This writes `results/` with all
-20 selected parquets, `pack.log`, `preflight.log`, the CSV and its sibling
-`.manifest.json`. Normal packing requires the URL commit to contain the exact
-current implementation, metric helpers, path/provenance helpers, reproduction
-and release scripts, and M1/M2 protocols. The lead fills the actual commit URL
-at pack time; this command does not push, upload or promote a release.
+1. Generate the admission and request from the two real producer folders, with
+   no hand-written metrics or manual JSON editing. The evidence directory must
+   be new:
 
-The request has one list, which may be empty for a dry reproduction:
+   ```bash
+   bash scripts/reproduce/d2_poses_moving.sh \
+     --make-admission data/outputs/moving_policy/ep38-v1 \
+     --m2v-output data/outputs/moving_policy/ep39-v1 \
+     --abstract-disclosure docs/report/track3/main.tex \
+     --out data/outputs/pose_insurance/moving-pack/evidence-v1
+   ```
 
-```json
-{
-  "adoptions": [
-    {
-      "episode": 38,
-      "trajectory": "data/outputs/<producer>/trajectory.parquet",
-      "checkpoint": "data/outputs/<producer>/training/policy_<steps>.safetensors",
-      "admission": "data/outputs/<producer>/admission.json",
-      "reference": "data/outputs/<reference-producer>/reference.npz"
-    }
-  ]
-}
-```
+   This reads the existing training/checkpoint/evaluator records, hashes their
+   inputs, renders achieved poses on the frozen M1 video evidence on CPU, and
+   writes per-frame IoU arrays and producer records for 38 and 39. It writes
+   `admission.json` (schema 2) and, **only after full admission succeeds**,
+   `adoptions.json`. A failure is a refusal, not a request to edit a measurement.
 
-All paths are inside the current checkout. Duplicate episodes and any episode
-outside the kit's scored evaluation roster are refused **before adoption inputs
-are opened**. In particular, tuning 39/42, validation 2/13/22/24/27 and excluded
-41/43/44 cannot be adopted. Episode-39 M2v **summary evidence** is read; no tuning
-trajectory or labelled dataset is opened by this operation.
+2. Pack using the lead's full committed URL, into a new output directory:
 
-`reference.npz` uses M1's existing contract: `pose` is `T x 7` for a single object,
-or `T x B x 7` in official slot order; positions are metres and quaternions are
-xyzw. `frame_index` and `time` give the full source clock. The independently
-hashed reference must agree with the evaluator's embedded reference, including
-quaternion sign equivalence. No frame alignment or per-frame transformation is
-fitted during admission.
+   ```bash
+   MOVING_CODE_SHA="$(git rev-parse HEAD)"
+   bash scripts/reproduce/d2_poses_moving.sh \
+     --request data/outputs/pose_insurance/moving-pack/evidence-v1/adoptions.json \
+     --code-commit "https://github.com/BDavid03/video2data/commit/$MOVING_CODE_SHA" \
+     --out data/outputs/pose_insurance/moving-pack/packed-v1/track3_poses_moving.csv
+   ```
 
-The admission document uses the following envelope. Each `{path, sha256}` is a
-real content hash entry, not a placeholder at runtime:
+   The URL must contain the exact current computation sources. The output
+   directory contains the twenty selected exports in `results/`, the CSV and
+   sibling `.manifest.json`, kit pack/preflight logs, and
+   `release-pose-entry.json`. The manifest records every episode's `v5 static`
+   or `moving policy` origin, checkpoint/admission hashes, producer inputs and
+   code URL. It has no direct `AGENTS.md` hash entry. The historical v5 parent
+   manifest is hashed without expanding its old source inventory.
 
-```json
-{
-  "schema_version": 1,
-  "episode": 38,
-  "inputs": {
-    "trajectory": {"path": "...", "sha256": "..."},
-    "checkpoint": {"path": "...", "sha256": "..."},
-    "reference": {"path": "...", "sha256": "..."}
-  },
-  "policy_run": {"path": ".../run.json", "sha256": "..."},
-  "official_metrics": {"path": ".../official_metrics.json", "sha256": "..."},
-  "m2v": {"path": ".../m2v-adoption.json", "sha256": "..."},
-  "m1": {"path": ".../gates.json", "sha256": "..."},
-  "achieved_reprojection": {
-    "median_iou": 0.60, "p10_iou": 0.30, "usable_fraction": 0.90
-  },
-  "abstract_disclosure": {"path": "docs/report/track3/main.tex", "sha256": "..."}
-}
-```
+3. Check the packed evidence before selecting it:
 
-The numbers in that example illustrate the limits, **not measurements**. The
-operation fails closed on absent, nonfinite or failing evidence:
+   ```bash
+   bash scripts/reproduce/verify.sh \
+     data/outputs/pose_insurance/moving-pack/packed-v1/track3_poses_moving.manifest.json
+   bash scripts/reproduce/d2_poses_moving.sh --verify-manifest \
+     data/outputs/pose_insurance/moving-pack/packed-v1/track3_poses_moving.manifest.json
+   ```
 
-- The evaluator schema, units, episode, checkpoint hash, evaluator script/code
-  hashes, complete official roster, names and slot order, valid environments,
-  unit quaternions and clock must agree. Evaluation modules must equal pinned
-  upstream after the installation's CRLF-to-LF normalization, with no code edits.
-- `policy_run` follows the existing pose producer record: `status=completed`,
-  `split=evaluation`, matching `episode_index`, positive `optimizer_updates` and
-  `actor_adam_steps`, checkpoint path/hash, `artifacts` hashes for
-  `trajectory.parquet` and `official_metrics.json`, and one recorded kit evaluator
-  command binding the exact checkpoint, trajectory and metrics paths. This is
-  provenance evidence of learning; the packer does not retrain the checkpoint.
-- M2v's sealed summary requires `episode=39`, `passed=true`, `verdict=GO`,
-  `AUC >= 0.45`, `tracking` containing `T`, `Q`, `E_m`, `E_S_m`, `Theta_deg`,
-  `Theta_S_deg` satisfying Amendment 1's bounds, and a `reprojection` object with
-  the same three keys/limits as `achieved_reprojection`.
-- M1's final gates document requires `episode`, `label_free=true`, `passed=true`,
-  and `reference_sha256` matching the adopted npz. Its `gates` retain the existing
-  M1 producer's `{value, passed, ...}` rows. Every measurement in `M1_LIMITS`
-  is checked against the protocol's fixed limits, including held-out camera
-  tracks, table, masks, object motion, reference reprojection and **measured**
-  zero-action support. An unmeasured support gate does not pass.
-- `official_metrics.json` must record `reset_mode=explicit`, start 0, one world,
-  the full step count, no nonfinite worlds, end fraction 1 and zero object/wrist
-  failure fractions. Together with the export clock and evaluator command this
-  establishes one attempt reaching the end without an in-rollout reset.
-- `T` and `Q` reuse the frozen displacement-gain and 15-frame increment functions.
-  The packer re-derives them, mean position error `E`, mean geodesic orientation
-  error `Theta`, held-still baselines and initial errors from the exported achieved
-  poses and the independent reference. Each object must have `T,Q >= 0.50`,
-  `E <= min(0.5 E_S, 0.03 m)`, `Theta <= min(0.5 Theta_S, 15 deg)` and initial
-  errors at most 1 cm / 2 degrees. An exactly stationary positional reference has
-  undefined `T/Q` and is refused. This conservative per-object rule also applies
-  to multi-object adoptions.
+   Moving verification re-admits both policies and M1/M2v evidence, re-renders
+   the video IoUs, checks the common simulator asset, then requires an exact
+   official CSV repack. Dry/fake packs and empty moving releases fail.
 
-The packer checks the supplied achieved-reprojection measurements; it does not
-rerender the video or independently regenerate M1/M2v's evidence. Those measured,
-hashed producer records and the abstract's actual wording still need lead review.
-It re-derives tracking and initial errors rather than trusting admission claims.
-The manifest records the code URL, all input/source hashes and each episode's
-`v5 static` or `moving policy` origin, with checkpoint/admission hashes for moving
-policies. It has no direct `AGENTS.md` hash entry. The immutable v5 parent is
-hashed as an input without expanding its historical source inventory.
+4. **Lead-only release selection**, after review. This uses the generated entry
+   rather than manually copying hashes. It changes only the pose selection:
 
-To select a real moving release later, the lead updates the `pose` entry in
-`release.json` with the new CSV path/hash and manifest, and adds
-`"moving_manifest": "<the same manifest path>"` inside that entry. Only then does
-`check_release.sh` call `--verify-manifest` instead of v5's static verifier. It
-re-admits the evidence, verifies per-episode provenance, repacks all admitted
-exports through the kit and requires exact CSV equality. A missing selector,
-a dry pack or an empty moving release fails. The existing release configuration
-is unchanged and still selects v5.
+   ```bash
+   data/.runtime/linux-cuda/bin/python -B - <<'PY'
+   import json
+   from pathlib import Path
+   release_path = Path('scripts/reproduce/release.json')
+   release = json.loads(release_path.read_text())
+   release['pose'] = json.loads(Path(
+       'data/outputs/pose_insurance/moving-pack/packed-v1/release-pose-entry.json'
+   ).read_text())
+   release_path.write_text(json.dumps(release, indent=2) + '\n')
+   PY
+   bash scripts/reproduce/check_release.sh
+   ```
 
-### CPU proof, 4 November 2026
+   The entry has `path`, `sha256`, `manifest` and `moving_manifest` (the latter
+   names the same manifest). Only this explicit optional selection activates
+   moving verification in `check_release.sh`. The lead must see `READY`, review
+   the abstract, and decide promotion/upload. This job leaves `release.json`
+   selecting v5 and writes no file under `submission/`.
 
-The scratch evidence lives in `data/.runtime/tmp/mpack-dry/`:
+### Admission checks and producer contract
 
-```bash
-bash scripts/reproduce/d2_poses_moving.sh \
-  --request data/.runtime/tmp/mpack-dry/empty.json \
-  --code-commit https://github.com/BDavid03/video2data/commit/db7b13fc196785e9bf10714cd6e8231d808d06b8 \
-  --out data/.runtime/tmp/mpack-dry/empty-reviewed/poses.csv --dry-run
-PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' \
-  data/.runtime/linux-cuda/bin/python -B data/.runtime/tmp/mpack-dry/prove.py
-```
+The request lists `{episode, trajectory, checkpoint, admission, reference}` per
+adopted episode. `reference` is **`reference-task.npz`**, the moved file used by
+the task. The schema-2 admission builder derives these paths from the finished
+folder; it never invents `optimizer_updates`, `actor_adam_steps`, `split` or
+`episode_index` fields that the producer does not write.
 
-Dry mode permits only `mpack-dry/`, labels its manifest **NOT ADMISSIBLE**, and
-skips the new implementation's commit-content check. Its syntactically valid URL
-above is v5's old URL, so that the equivalence run can compare whole-file bytes;
-it does **not** claim this new implementation existed at that commit. A later
-production URL changes the URL column globally and the new manifest records the
-new implementation and per-episode inputs.
+Actual learning requires a completed `train.run.json`, its Stage 0 hash, the
+recorded trainer command (from `argv` or immutable `commands.json`), the frozen
+66,763,776-step recipe, a `train.log` completion count at least that high, and
+the actual checkpoint's safetensors metadata. The latter must be a FlashSAC
+policy with positive `user.global_update_step`, matching
+`user.environment_steps`, recipe total and task path. Metadata is read on CPU
+with the already installed producer interpreter; no package is installed.
 
-| Evidence | Result |
+The final evaluator is bound through `score-self.run.json` and
+`commands.json:evaluator_final` (the original M2 `score-*.run.json:argv` format
+is also understood). Its checkpoint, trajectory and metrics paths must match.
+The export must have the kit's unchanged script/code hashes, checkpoint hash,
+complete official row roster, official slot names/order, finite unit quaternions,
+valid worlds, and the full uniform frame clock. Explicit reset mode, end fraction
+1 and no object/wrist failure establish one attempt reaching the end. Training
+and evaluator records are bound to the same immutable Stage 0/task.
+
+M1 comes exclusively from each source reference's
+`candidate-c/gates-amended.json`. The first `gates.json` is historical evidence,
+not an admission file. The admission hashes **both** the amended gates file and
+the source reference; no `reference_sha256` field is required inside the gates
+file. The amended producer's `frozen_rule.label_free` supplies provenance when
+there is no top-level `label_free`. All amended measurements are checked against
+these limits; `passed=true` alone is insufficient:
+
+| Measure | Limit |
 | --- | --- |
-| Empty adoption | All 9,120 rows and whole CSV bytes identical to v5, SHA-256 `0b2606aed015fe0a64e31037ff790b5483680c3da7e7a5ae2d503edeb8261035`; no URL difference in this dry proof |
-| Fake rotation plumbing | Existing episode-38 rows rotated smoothly by 0..5 degrees; 262/263 rows change, all 8,857 rows in other episodes remain text-identical |
-| Refusals | 93 distinct producer, schema, protocol, tracking, first-pose, episode and output-boundary probes refused; `refusals.jsonl` and `proof-summary.json` |
-| Kit shape | Empty and fake compositions pass local preflight, Kaggle skipped; this does not establish scientific admissibility |
-| Scientific adoption | Zero moving episodes admitted; the operation rejects the fake marker and all dry packs at release |
+| Held-out camera reprojection median / p95 at 640 width | ≤0.5 / 2 px |
+| Held-out camera world residual | ≤1 cm; perpendicular instrument only with the recorded explaining noise-floor control; otherwise retain original 3D residual |
+| Held-out tracks / image regions / camera coverage | ≥30 / 4 / 98% |
+| Table fit residual / disjoint-patch normal | ≤5 mm / 3° |
+| Usable masks / longest missing interval | ≥90% / ≤2 frames |
+| ≥30 stereo-supported eroded-mask pixels | ≥90% of frames; old KLT count remains descriptive |
+| Forward/backward position / orientation disagreement | ≤1 cm / 5° median |
+| Object speed / angular rate | ≤1.5 m/s / 540°/s |
+| Valid reference frames | ≥90% |
+| Reference IoU median / p10 / usable coverage | ≥0.60 / 0.30 / 90% |
+| First-frame base gap / penetration | ≤5 mm / 5 mm |
+| Maximum per-frame median table offset / p95 of medians | ≤1 cm / 1.5 cm |
+| Late table-normal change | ≤2° |
+| Table drift usable fraction | ≥80%, as recorded by the amended producer |
+| Maximum per-frame median long-baseline in-plane displacement / p95 of medians | ≤1 cm / 2 cm |
+| Long-baseline frames with ≥30 never-reanchored withheld table landmarks | ≥80% |
 
-The fake's CSV is named `FAKE_ROTATION_ONLY/poses_FAKE_NOT_ADMISSIBLE.csv`; its
-parquet is explicitly marked `plumbing_only`, and `NOTICE.json` says it is not an
-admitted pack. Only the low-level scratch composition/official kit shape was
-exercised with this fake; admission was never bypassed for a real pack. The
-refusal script uses real v5 data plus helper-level probes and synthetic evidence
-envelopes for failing gates, not a successful moving-policy producer. It appends
-a ledger and resumes completed cases. Compilation, CPU import and the existing
-`check_release.sh` are the other checks; no suite, GPU job, install or upload ran.
+M1 support is **not** a pack gate: Amendment 1 moved support to each policy's
+Stage 0. Stage 0 must contain/pass all seven named checks, including that support
+proof. No support limit is relaxed.
 
-The post-change release check ended `READY` (`mpack-dry/release-after.log`), with
-v5's pose hash unchanged. The optional selector was exercised against a dry
-manifest without editing `release.json`: a selected dry pack failed moving
-provenance, and a moving manifest missing its selector failed declaration
-(`release-selector-proof.json`). No successful real moving-release check is
-claimed. `metric-equivalence.json` records exact agreement with the existing
-T/Q functions for held-still, half-motion and full-motion controls (tolerance
-`1e-12`).
+`reference-source.npz`, `reference-task.npz`, `reference.json` and the actual task
+parquet are checked together. Source and moved poses must differ only by the
+recorded pure translation, with rotations unchanged, on the entire sequence.
+The task's first pose **and all later object poses** must equal that moved M1
+reference. Thus a reset placing achieved at the task's first pose cannot conceal
+a wrong task reference. The original and moved clocks are compared to the task's
+uniform clock at `1e-6 s`; observed residuals were only `1.78e-15 s` (the producer's
+equivalent division expression records zero).
+
+One shared asset manifest must bind the same OBJ, URDF and body-convention hashes
+on 39 and 38, in the actual task mesh/URDF paths, Stage 0 and checkpoint task.
+M1's reference/body constant is bound to this asset in the admission. The tracking
+extrusion remains M1's reprojection mesh, as the protocol states; the simulator
+uses the shared profile, not that extrusion. This distinction is recorded rather
+than pretending they are the same mesh.
+
+`achieved_reprojection` is a **hash entry for `producer.json`**, not three naked
+numbers. Its producer binds the exact trajectory, source reference, recorded
+translation, common simulator asset, frozen camera, body constant, tracking mesh
+and each cached frame's masks. It writes per-frame IoUs/usable flags in a hashed
+npz. Admission verifies those inputs, recomputes the aggregate values **and
+re-renders every frame** to require equality. A producer for another trajectory,
+reference or asset, a changed mask/camera, empty source inventory, forged summary
+or unhashed dictionary is refused. The producer rejects fake/plumbing trajectories.
+The achieved and M2v IoU limits remain median ≥0.60, p10 ≥0.30 on ≥90% of frames;
+this reprojection is explicitly blind to camera drift, so M1's table/landmark gates
+remain independently mandatory.
+
+M2v's real `score-66763776/mocap_metrics.json` must belong to a completed
+`score-mocap.run.json`, its learned checkpoint and moved reference. Its GO/AUC
+≥0.45, self-reference bounds, no-reset end, amended M1 evidence and achieved
+reprojection must all pass before 38 can be adopted. For adopted achieved poses,
+the packer re-derives `T`, `Q`, `E`, `Theta`, held-still baselines and first-pose
+errors. Each slot must meet `T,Q ≥0.5`, `E ≤min(0.5 E_S,3 cm)`,
+`Theta ≤min(0.5 Theta_S,15°)`, and first errors ≤1 cm / 2°. Undefined positional
+T/Q from a stationary reference are refused. No scored labels are read.
+
+### CPU evidence, 4 November 2026
+
+Evidence is under `data/.runtime/tmp/mpack-dry/`. The follow-up uses new
+`amended-proof/` and `amended-evidence/` subdirectories, retaining the original
+proof artifacts. `prove-amended.py` runs the roster/schema/protocol/error/output
+refusal loop; `prove-evidence.py` runs real learning/task checks and the new
+asset/reference/reprojection refusal loop. They append ledgers and resume cases.
+
+- The genuine M2 checkpoint/log record 66,763,776 steps and 130,382 optimizer
+  updates; the new learning check accepts them without invented producer fields.
+- Both real video Stage 0 task/reference/asset checks were exercised. Pure
+  translations have zero source/moved error; task serialization differs by at
+  most `3.1e-8 m` and `5.7e-6°`, inside the unchanged tolerances.
+- A **clearly fake**, scratch-only replay of the moved M1 reference reprojects
+  identically to M1's original per-frame IoUs (maximum difference 0). This checks
+  geometry/translation plumbing, not a learned achieved rollout. It cannot be
+  packed or produce admission evidence.
+- Empty adoption must preserve all 9,120 v5 CSV rows and the whole-file SHA-256
+  `0b2606aed015fe0a64e31037ff790b5483680c3da7e7a5ae2d503edeb8261035`. Its dry
+  URL is deliberately v5's old URL; a real lead pack changes the URL column
+  globally and records the new manifest/source/input identities.
+- The separate fake 0..5° rotation changes 262/263 episode-38 rows and leaves
+  all 8,857 other-episode rows text-identical. The fake remains marked and refused;
+  its successful kit shape/preflight is not scientific admission.
+- **Actual amended M1 results on 38 and 39 fail.** The packer preserves those
+  refusals. No successful real moving admission or moving-release READY is
+  claimed. The current release remains v5; see final scratch command logs and
+  evidence summaries for the final refusal counts and `check_release.sh` output.
+
+Only compilation, CPU imports, equivalence/refusal scripts, real CPU packing and
+kit/release checks run here. The producer slice, upstream, models, pinned data,
+submission tree and release selection are not edited by this job. The lead still
+reviews the report's actual wording before selecting a new release.
+
+Final follow-up checks: **117 refusals** (86 roster/protocol/packing cases and
+31 producer/reference/asset/reprojection cases); the final empty CSV is byte
+identical to v5; `release-amended-final.log` ends **`READY`**. The actual
+`--make-admission` command exits 1 on failed amended M1 and creates no adoption
+request. While the other producer job rebuilt its live folders, geometry refusal
+fixtures used the immutable first snapshots; those fixtures are explicitly
+blocked by `inspect_policy` and are not real learning/admission evidence. The
+real M2 learning check remains on its original completed process/checkpoint.
+The final float32 fake-reference replay differs from M1's double-precision
+reference raster IoUs by at most `8.84e-5` (median/p10 remain 0.86443/0.81040);
+the earlier geometry replay had zero difference. Neither replay is admissible.
