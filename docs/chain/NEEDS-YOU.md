@@ -6,6 +6,11 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
 
 ## Open
 
+**Update 2026-11-04 02:00 UTC: the chain is running again, on `docs/chain/COMPLETION-PLAN.md`.** Four decisions are in its
+section 7 (deadline, scan use, whether the chain may push and upload, FoundationPose). Each has a default, so nothing waits. You
+can still upload v5 now to get a first score: run `git push origin main` first, and note there is no Kaggle token on this
+machine yet (`~/.kaggle/access_token` or `KAGGLE_API_TOKEN`). To stop the chain: `touch outputs/chain/STOP` in the main checkout.
+
 **Update 2026-11-04 01:30 UTC: the files to upload have not changed, and there is now one check to run first.** The file
 restructure you asked for is done (your "just do it"). The packed files are byte-identical, and the upload commands below
 still work. Before uploading, run this in the worktree; it should end `READY`:

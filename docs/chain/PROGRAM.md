@@ -11,6 +11,10 @@ dated line in `AGENTS.md`. Check `AGENTS.md` for new lines at the start of every
 
 ## 0. Short-term focus (owner, 2026-11-03 13:58 UTC): fundamentals before details
 
+**The target is `docs/chain/COMPLETION-PLAN.md` (owner, 2026-11-04 about 01:40 UTC: "you still havent even got a model
+trained or submission written to improve on, why have you ended the chain"). Its section 3 overrides section 7 below: the
+chain does not stop for owner-only items while a workstream is open.**
+
 Until the 4 November deadline, **structural improvements to the fundamentals come before refining the current
 entry.** The owner's words: "please take bigger structural improvements before really refining the details", "e.g.
 pretraining models, synthetic data generation, we're talking substantial improvements to the fundamentals". The
@@ -299,7 +303,7 @@ one of these holds:
 
 - every deliverable is done or proven out of reach, and every lens scores at least 4;
 - the freeze has passed, the report is final, and nothing useful remains;
-- everything left waits on the owner.
+- after the freeze only: everything left waits on the owner. Before it, `COMPLETION-PLAN.md` section 3 decides.
 
 Still write the prompt section, so the owner can restart the chain after answering `NEEDS-YOU.md`.
 

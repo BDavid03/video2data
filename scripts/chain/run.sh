@@ -8,7 +8,7 @@ if [ "$1" != "--here" ]; then
   if tmux has-session -t chain 2>/dev/null; then
     echo "a tmux session 'chain' already exists: tmux attach -t chain"; exit 1
   fi
-  exec tmux new -s chain "bash scripts/chain/run.sh --here $(printf '%q ' "$@")"
+  exec tmux new -s chain "bash scripts/chain/run.sh --here${*:+ $(printf '%q ' "$@")}"
 fi
 shift
 echo "[$(date '+%F %T')] run.sh: python3 scripts/chain/session_chain.py $*" >> outputs/chain/driver.log
