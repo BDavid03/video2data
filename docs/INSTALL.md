@@ -110,6 +110,8 @@ The first two cup attempts crashed in upstream `compute_crop_window_tf_batch`, b
 met float64 crop points. Amendment 1 of the pilot protocol allowed one more attempt, with K passed
 as float64 and nothing else changed. It produced all four predictions and textured overlays. The
 two-pair check passed (train 12: 1.8102 cm, 2.3550 degrees; train 31: 1.2313 cm, 8.8247 degrees).
-These train pairs are not independent validation, and tracking is not benchmarked. Crash, retry
+These train pairs are not independent validation, and tracking is not benchmarked. Four post-output
+headroom stops needed fresh GPU admissions, with completed outputs kept and no successful register
+repeated; the gate was sealed before mocap. Crash, retry
 and resource records: `data/outputs/foundationpose/pilot/summary.md` and
 [the pilot outcome](chain/foundationpose-pilot-outcome.md).

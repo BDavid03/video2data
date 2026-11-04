@@ -2,8 +2,9 @@
 
 Finds each tracked object and hand in the colour video. `opening-clusters` uses geometry and no model.
 `generate` follows instances through the clip with Grounding DINO and SAM2. `correspondences` tracks image points inside
-those masks. `generate` and `correspondences` are implemented but have never been run (`runtime.json`), and their
-environment under `data/.runtime/object-masks` is not provisioned. Fixed prompts are initial choices, neither tuned nor validated.
+those masks. `opening-clusters`, `generate` and `correspondences` are implemented but have never been run, all their
+authorization flags in `runtime.json` are false, and the detector and segmenter environment under
+`data/.runtime/object-masks` is not provisioned. Fixed prompts are initial choices, neither tuned nor validated.
 
 A mask on the wrong object gives a confident wrong pose track. Slot 0 anchors the scorer's alignment, so swapping slots 0 and 1
 corrupts every metric for that episode.

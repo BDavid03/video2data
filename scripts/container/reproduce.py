@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib
 import json
 import os
+import shutil
 from pathlib import Path
 import subprocess
 import sys
+import uuid
 
 
 def read(path: Path) -> dict:
@@ -54,11 +57,58 @@ def same_submission(root: Path, original: Path, new: Path) -> None:
     from verify_container import read_submission, same_content
     equal, detail = same_content(read_submission(original), read_submission(new))
     if not equal:
-        raise ValueError(f"mesh re-pack differs: {detail}")
-    print(f"PASS mesh rows, geometry and provenance equal; byte-identical={sha(original) == sha(new)}", flush=True)
+        raise ValueError(f"re-pack differs: {detail}")
+    print(f"PASS rows, geometry and provenance equal; byte-identical={sha(original) == sha(new)}", flush=True)
 
 
-def reproduce_pose(root: Path, entry: dict, manifest: dict, output: Path, episodes: str) -> None:
+def pack_pose(root: Path, entry: dict, manifest: dict, output: Path,
+              rollouts: Path, adoptions: Path | None = None) -> Path:
+    """Use the release packer's command on achieved exports, preserving moving adoption."""
+    sys.path.insert(0, str(root / manifest["code"]["path"]))
+    settings = entry["packer"]
+    packer = importlib.import_module(settings["module"])
+    if settings.get("adoptions"):
+        adoptions = adoptions or root / settings["adoptions"]
+        release = read(root / "provenance/track3_combined_v5.manifest.json")
+        if sha(adoptions) != release["adoptions"]["sha256"]:
+            raise ValueError("moving adoptions differ from frozen release")
+        adoption, = read(adoptions)["adoptions"]
+        admitted = release["admission"]
+        if adoption["episode"] != admitted["episode"]:
+            raise ValueError("moving adoption episode differs from frozen admission")
+        for key in ("checkpoint", "trajectory", "reference", "admission"):
+            if adoption[key] != admitted[key]["path"]:
+                raise ValueError(f"moving adoption {key} differs from frozen admission")
+        checkpoint = root / entry["checkpoints"][str(adoption["episode"])]
+        if sha(checkpoint) != admitted["checkpoint"]["sha256"]:
+            raise ValueError("moving checkpoint differs from adopted policy")
+        run_command = packer.base.command
+    else:
+        if adoptions is not None:
+            raise ValueError("static release cannot accept moving adoptions")
+        run_command = packer.command
+    output.mkdir(parents=True, exist_ok=True)
+    logs = output / "logs"
+    logs.mkdir(exist_ok=True)
+    packed = output / Path(entry["file"]).name
+    kit = root / entry["kit"]
+    command = [sys.executable, kit / "tools/pack_submission.py", "--track", "track_3",
+               "--results", rollouts, "--meshes", root / entry["meshes"],
+               "--code-commit", manifest["code"]["commit_url"], "--eval-script",
+               root / entry["evaluator"]["script"], "--skip-crosscheck", "-o", packed]
+    # The release helper records log paths relative to its code checkout.
+    source_log = root / manifest["code"]["path"] / "data/outputs/container" / f"pack-{uuid.uuid4().hex}.log"
+    source_log.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        run_command(command, source_log)
+    finally:
+        if source_log.exists():
+            shutil.copy2(source_log, logs / "pack.log")
+    print(f"packed {packed} via {settings['module']}; adoptions={adoptions}", flush=True)
+    return packed
+
+
+def reproduce_pose(root: Path, entry: dict, manifest: dict, output: Path, episodes: str, adoptions: Path | None = None) -> None:
     """Reuse the repository lease and official evaluator, one policy at a time."""
     if root != Path("/submission"):
         raise SystemExit("GPU reproduction is image-only; host CPU preparation never launches a policy")
@@ -104,15 +154,8 @@ def reproduce_pose(root: Path, entry: dict, manifest: dict, output: Path, episod
             lease.require_headroom()
     if episodes:
         return
-    packed = output / Path(entry["file"]).name
-    kit = root / entry["kit"]
-    command = [sys.executable, str(kit / "tools/pack_submission.py"), "--track", "track_3",
-               "--results", str(rollouts), "--meshes", str(root / entry["meshes"]),
-               "--code-commit", manifest["code"]["commit_url"], "--eval-script", str(script),
-               "--skip-crosscheck", "-o", str(packed)]
-    with (logs / "pack.log").open("w") as stream:
-        subprocess.run(command, cwd=kit, env=env, stdout=stream, stderr=subprocess.STDOUT, check=True)
-    print(f"packed {packed}; compare rows/provenance with run.sh verify --reproduced", flush=True)
+    packed = pack_pose(root, entry, manifest, output, rollouts, adoptions)
+    print(f"compare {packed} with run.sh verify --reproduced", flush=True)
 
 
 def main() -> None:
@@ -123,6 +166,8 @@ def main() -> None:
     parser.add_argument("--output", type=Path, default=Path("/output"))
     parser.add_argument("--dataset-root", type=Path, default=Path("/data"))
     parser.add_argument("--episodes", default="")
+    parser.add_argument("--adoptions", type=Path, help="moving adoptions; defaults to the staged release file")
+    parser.add_argument("--rollouts", type=Path, help="CPU pack only: achieved exports to pack")
     args = parser.parse_args()
     root = args.manifest.resolve().parent
     if args.command == "verify-copies":
@@ -140,9 +185,12 @@ def main() -> None:
         packed = pack_mesh(root, manifest, entry, output)
         same_submission(root, root / entry["file"], packed)
     elif args.command == "pack":
-        parser.error("pose policies must be rolled out with reproduce")
+        if args.rollouts is None:
+            parser.error("pose pack requires --rollouts from the official evaluator")
+        packed = pack_pose(root, entry, manifest, output, args.rollouts.resolve(), args.adoptions)
+        same_submission(root, root / entry["file"], packed)
     else:
-        reproduce_pose(root, entry, manifest, output, args.episodes)
+        reproduce_pose(root, entry, manifest, output, args.episodes, args.adoptions)
 
 
 if __name__ == "__main__":

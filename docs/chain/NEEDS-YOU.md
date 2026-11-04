@@ -6,33 +6,34 @@ Every context reads `AGENTS.md` first, so the next context acts on it. Then tick
 
 ## Open
 
-**READ THIS FIRST, 2026-11-04 14:15 UTC. Two files are READY and nothing is uploaded: the permission system blocked the chain's upload twice (contexts 28 and 29), so it needs you. One command:**
+**READ THIS FIRST, 2026-11-04 14:30 UTC. The static file is scored; the better file (episode 38 moving) is READY and the
+permission system blocked the chain's upload of it twice (contexts 28 and 29, "Unrequested Commit in a Connected App"). You
+granted the first upload by approving the exact command; this is the same ask for the second. One command:**
 ```bash
 cd ~/repos/video2data/.claude/worktrees/chain-ctx01
 bash data/.runtime/tmp/upload-moving-29.sh
 ```
 Or type `! bash data/.runtime/tmp/upload-moving-29.sh` in the live session. It sends
-`submission/20261104T1403Z-d2-moving-v5/track3_combined_v5.parquet` (SHA-256 `1570037a...e99f5`, code commit `a3ab0f6`,
+`submission/20261104T1422Z-d2-moving-v5/track3_combined_v5.parquet` (SHA-256 `b476eb1c...ff81d`, code commit `c8ff8c1`,
 pushed) to **all six boards**, waits for the scores and logs to `data/outputs/chain/uploads-29.log`.
-`check_release.sh --combined` says READY at `e8ea088`.
-- **What it is:** v5's static poses on nineteen episodes, unchanged; episode 38's learned moving rollout (FlashSAC, 66.76M
-  transitions, passed every frozen admission gate, no labels exist) with its simulated pan mesh; all meshes in rollout body frames.
-- **The static fallback**, combined v5 (`ddfc98b3`, `bash data/.runtime/tmp/upload-combined-28.sh`), is the same file with 38
-  static. Upload it too if you want the comparison; 20 submissions a day are allowed and none is used today on the pose boards.
-- **Then mark the moving file as your final submission on all six boards in the browser**, and run
-  `data/.runtime/kit-env/bin/python -B data/.runtime/tmp/list-submissions-28.py` (or tell the chain) so the report's six
-  `[pending]` leaderboard lines, the README scores line and the non-technical report can be filled and rebuilt.
-- **Expect:** pose scores near the static diagnostic (train AUC about 0.30 under the new scorer) on nineteen episodes, 38 unknown;
-  CD-O somewhat worse than 0.53562 (pot 5 and pitcher 20 keep procedural shapes; 38's pan is the simulated mesh).
+`check_release.sh --combined` says READY at that commit.
+- **What it is:** combined v5's static poses on nineteen episodes, unchanged; episode 38's learned moving rollout (FlashSAC,
+  66.76M transitions, passed every frozen admission gate; no ground-truth labels available to us) with its simulated pan mesh.
+- **Scored so far (combined v5, all static, uploaded 14:15 UTC on your approval):** AUC 0.30715, SP-SR 0.15, MP-SR 0.0,
+  RPE 20.108 cm, MPPE 14.624 cm, CD-O 0.56604 cm (submissions 57987376, 57987381, 57987383, 57987384, 57987386, 57987392).
+  These match the local diagnostic (train AUC about 0.30) and the expected CD-O cost of the procedural pot and pitcher.
+- **Then mark the better-scoring file as your final submission on all six boards in the browser**, and run
+  `data/.runtime/kit-env/bin/python -B data/.runtime/tmp/list-submissions-28.py` (or tell the chain the six numbers) so the
+  report's six `[pending]` lines for the moving file can be filled and the PDF rebuilt.
 
 **The form's fields and where each stands:**
 | Field | Answer | State |
 | --- | --- | --- |
-| Final submission IDs or URLs | the moving file's six IDs | upload first, then mark final on all six |
-| Technical report URL | `https://github.com/BDavid03/video2data/blob/main/docs/report/final/track3-technical-report.pdf` | on `main` at `e8ea088`, SHA-256 `e63bffef...`; two pages plus references; its six leaderboard lines read `[pending]` until scores exist |
+| Final submission IDs or URLs | the six IDs of the file you mark final (combined v5's are above; the moving file's come from its upload) | upload the moving file first, then mark final on all six |
+| Technical report URL | `https://github.com/BDavid03/video2data/blob/main/docs/report/final/track3-technical-report.pdf` | on `main`, SHA-256 `33ad1e98...`; two pages plus references; combined v5's real scores are in it, the moving file's six lines read `[pending]` |
 | GitHub repository URL | `https://github.com/BDavid03/video2data` | **share it with `Nvidia-V2D-Challenge` first** (GitHub, Settings, Collaborators); it is private |
-| Code version | `https://github.com/BDavid03/video2data/commit/a3ab0f66aef8964a8eacfdd0a06f9910958b4f8c` | ready (the packed file's URL) |
-| Container | a link openable without requesting access | needs Docker, which this account cannot reach: `sudo usermod -aG docker ceolwolf`, open a new WSL shell, fill `data/outputs/container/kaggle-ids.json` from its example, run `scripts/container/owner-build.sh` (`scripts/container/README.md`) |
+| Code version | `https://github.com/BDavid03/video2data/commit/c8ff8c135c53a54f9959e20def5920becab87eec` | ready (the moving file's URL; combined v5's is `02117ac`) |
+| Container | a link openable without requesting access | staged on CPU for the moving file (`scripts/container/README.md`); needs Docker, which this account cannot reach: `sudo usermod -aG docker ceolwolf`, open a new WSL shell, fill `data/outputs/container/kaggle-ids.json` from its example, run `scripts/container/owner-build.sh` |
 
 Kaggle closes at **22:00 UTC**; the chain planned to 17:00 UTC. Your lines today, recorded in `PROGRAM.md` section 0: "keep
 strict integrity gates" (about 14:08 UTC), so no spoon gate was waived and the GPU stays idle on purpose; "approved permission

@@ -85,8 +85,8 @@ no repair queue.
 
 `score-self` measures the final checkpoint against the hashed task reference with no scan or label.
 `score-mocap` runs on 39 only, once: its attempt record blocks a second pass even after a failure, and
-scan points enter only the kit metric. Episode 38 has no label scoring. A score alone never records
-adoption.
+scan points enter only the kit metric. Episode 38 has no label scoring. A mocap GO alone is not adoption: it still
+needs the self bounds and the separately performed frozen-camera reprojection gates.
 
 `kill-check` replays `policy_32814080.safetensors` on CPU through `scripts/report/policy_hands.py`,
 writes under `data/outputs/visuals/policy-hands/moving-video-ep39-boundary/`, and sets `kill=true` when

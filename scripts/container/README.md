@@ -1,167 +1,135 @@
 # Frozen Track 3 submission container
 
-CPU staging is complete; Docker build and GPU reproduction require the owner's account.
-No image has been built, no Kaggle identity check has run, and no final submission.json
-exists until the owner supplies real submission IDs.
+The single file staged for all six boards is the moving v5 release:
+`submission/20261104T1422Z-d2-moving-v5/track3_combined_v5.parquet`.
+Its SHA-256 is `b476eb1c2bc1ee6fab2df72f42f377d87e5d265c06140f3e47fc2fc67f8ff81d`;
+its code commit is `c8ff8c135c53a54f9959e20def5920becab87eec`.
+This final release supersedes the 1403Z file (`1570037a…`) and the 1418Z file
+(`623a1a8a…`); neither earlier file was uploaded. The selected manifest SHA-256 is
+`df66435ed6d4fee15ca364ff4738ec4e42f336a754968945f49794dc9e90c331`.
+Its adoption source is `data/outputs/pose_insurance/moving-pack/evidence-promoted-v3/adoptions.json`.
+The later repository HEAD is not the counted file's provenance commit.
+The frozen input manifest is copied to `submission/provenance/` within the staging tree.
 
-## Release changed during preparation
-
-The brief named the combined pack `1c6e3e9b…`, commit `efa8f39…`, in
-`submission/20261104T1303Z-d2-combined-v5/`. The lead removed that draft while this job
-was running. The available replacement is `submission/20261104T1316Z-d2-combined-v5/`,
-SHA-256 `ddfc98b3e6d9bd10b31092903fdc93e1e22624d1f2ddc545b1d8f64c4ebf9342`,
-commit `02117aca7ac721c29e9a77d9fb8942347584d63b`.
-The recorded direction in `docs/chain/SUBMISSION.md` and commit `73059fb` is now one
-combined file for all six boards. This stage explicitly follows that release. It preserves
-D1 v5 (`bcb93d57…`, `b1617234…`, owner-reported public CD-O 0.53562) as historical evidence.
-No counted artifact was changed by container preparation. Read stage-plan.json for the
-exact input manifest and its hash; finalization uses this frozen copy, not a later release.
-
-## Prepare, supply IDs, build
+## Stage and check on CPU
 
 ```bash
 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 19 \
   data/.runtime/linux-cuda/bin/python -B scripts/container/stage.py \
-  --combined-manifest submission/20261104T1316Z-d2-combined-v5/track3_combined_v5.manifest.json \
+  --combined-manifest submission/20261104T1422Z-d2-moving-v5/track3_combined_v5.manifest.json \
   --counted-set single
+PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' \
+  data/.runtime/linux-cuda/bin/python -B scripts/container/check_cpu.py
 ```
 
-Output: `data/outputs/container/submission/`. Staging is resumable and hash-checks both
-ends of each copy. Independent local `git clone --no-hardlinks --no-checkout` plus detached
-checkouts change only the new clones. Neither the original worktree nor its refs/index is
-modified. The clones include `.git` and all locally available history: 291 reachable commits
-at preparation time, not shallow, about 74 MiB per .git. Historical paths/docs remain in that
-history; no excluded dataset episode is loaded.
+Output: `data/outputs/container/submission/`. Without `--combined-manifest`, stage.py
+selects the newest local `*-d2-moving-v5/` manifest. An explicit static combined manifest
+remains supported. Mesh paths come from the selected manifest, static policy paths from
+its body-frame trace, and adopted policy paths from its moving admission. Episode 38 uses
+its learned checkpoint `b6145fcb…`, its moving task, achieved rollout and actual simulated
+`mini_dust_pan.obj`; the other nineteen policies remain static combined v5's.
+
+Staging checks both ends of each copy. Changed files and superseded code/mesh trees are
+preserved under `data/outputs/container/history/`. The code snapshots have independent Git
+object stores and clean detached HEADs: read-only `git archive`/`ls-tree` export tracked
+files and a standard v2 index; no clone, checkout or other mutating Git command runs.
+The source repository, submission packs and native environments are unchanged.
+`copy-hashes.json`, `generated-hashes.json`, `stage-plan.json` and
+`provenance/reproduction-trace.json` record the inputs and staged closure.
+
+## Supply IDs and build as the owner
 
 Copy `data/outputs/container/kaggle-ids.example.json` to
-`data/outputs/container/kaggle-ids.json`, and fill all six nulls with positive integer IDs
-for this combined file, including its new `cd_o_cm` ID. The earlier D1 ID cannot substitute
-for that new upload. The five pose IDs and new combined CD-O ID do not yet exist in this
-job. No Kaggle API is called. Existing receipts beside the two pack files are copied when
-present; `stage.py --finalize` adds later receipts from those directories. A receipt stored
-elsewhere must be copied unchanged to submitted/ and independently hashed by the owner.
-Finalization refuses to create final submission.json without all six IDs. The kit verifier
-itself does not require IDs; passing a draft check is not a final container declaration.
+`data/outputs/container/kaggle-ids.json`. Fill all six nulls with positive integer IDs for
+this moving file, including its CD-O upload. IDs for older files do not substitute.
+`stage.py --finalize` refuses a final `submission.json` until all six IDs exist and copies
+any receipts beside the original pack files. No Kaggle API is called during staging.
 
 ```bash
-# Docker and NVIDIA Container Toolkit must already be available.
+# Owner account: Docker and NVIDIA Container Toolkit must already be available.
 DATASET_ROOT=/absolute/path/to/released/dataset bash scripts/container/owner-build.sh
 ```
 
-The script stops at the first failing command. It finalizes IDs, builds, verifies stored
-artifacts, checks the historical D1 mesh re-pack, reproduces all twenty policies serially,
-checks reproduced rows/provenance, saves with docker save | zstd, hashes the tarball and
-prints form fields. It never pushes, uploads, accepts competition rules or submits a form.
-The owner should inspect reproduced scores before submitting the form. The host's runtime
-is a prerequisite for stage.py; the prepared Docker context itself is self-contained.
-If the host lacks the zstd executable, owner-build.sh streams through the already copied
-Python zstandard package in a CPU container instead; it requires no host installation.
+This command finalizes IDs, builds, checks copied bytes and stored artifacts with the
+unedited verifier, reproduces the historical D1 mesh pack, evaluates twenty frozen policies
+serially, compares fresh rows/provenance, saves the image as a zstd tarball and prints its
+hash and identity. It stops on failure. The owner inspects the results, uploads the tarball
+and supplies the public link, checksum, image identity, GitHub URL and report themselves.
+The script never pushes, uploads or submits a form. If host zstd is unavailable, it uses
+the already staged Python zstandard package in a CPU container.
 
-## Original two-file arrangement: exact schema limitation
+## Reproduction
 
-The guide permits different counted files per board, but the verifier supports only one
-global code.path/code.commit_url. It accepts both track_3_mesh and track_3 from config,
-and a kit override per entry; its prose field table simply omits track_3_mesh. There is no
-separate enforced JSON Schema in this kit. An extra entry-level code_commit_url or code_path
-is ignored. Thus D1 at b161723 fails check_provenance against a global 02117ac (or efa8f39)
-checkout. The stage includes split.draft.json so this failure can be reproduced honestly.
+`run.sh reproduce --label poses-combined-v5` evaluates the manifest's checkpoints with the
+unedited kit evaluator and `src.gpu.GpuLease`, one policy at a time. It preserves explicit
+frame-zero reset and one world. Static policies trained for 512 environment steps; the
+adopted episode 38 checkpoint trained for 66,763,776 steps. No policy is retrained here.
+Historical task and asset paths are read from artifacts and aliased inside the image by
+image_setup.py; task/checkpoint/OBJ/URDF bytes stay unchanged. No chain context is named
+in implementation paths. Caches, copied logs and the container-local lease live under `/output`. The release
+command helper also retains a uniquely named packing log under the code checkout
+(`code/data/outputs/container/`), because its provenance helper requires a code-relative path.
 
-There is also no object_mesh re-pack branch. Without outputs a mesh entry receives SKIP;
-with outputs the verifier invokes the generic pose packer, rather than
-pack_reconstruction.py track3-meshes. Our verify-mesh command runs the exact old kit's
-mesh pack and compares every row, geometry value and provenance. It reproduces D1 byte for
-byte on the host. It supplements the unedited verifier; it does not alter its checks.
+The final CPU packing adapter imports `src.features.pose_insurance.pack_combined_moving`
+for a moving manifest and passes the frozen `provenance/adoptions.json` to `pack_pose`.
+It checks its episode, source paths and checkpoint against the release admission, then
+uses that packer's existing `base.command` to call the unedited kit packer on **fresh
+achieved exports** and the 36 staged moving meshes. A static manifest imports
+`pack_combined` and uses its `command` without adoptions. `--skip-crosscheck` is preserved.
+The release packer's full `pack()` function is intentionally not rerun: it re-admits and
+copies original frozen exports, has no fresh-rollout input, and would discard the new
+rollouts. Re-admission/reconstruction and their dataset dependencies are outside this
+container reproduction. The adapter preserves the original admissions rather than claiming
+fresh policy outputs have passed the original scientific gates.
 
-Two ways out for the original arrangement:
+The same CPU packing path can check stored exports without a GPU:
 
-1. Organisers explicitly accept two clean code checkouts with two independent manifests,
-   or provide a verifier/schema supporting code selection per submission. Separate
-   manifests are included for diagnosis. Only after that acceptance, a split build can use
-   ORGANISER_ACCEPTS_TWO_COMMITS=1 with owner-build.sh. Its aggregate check still fails.
-2. Upload/select the same combined file on all six boards. This is now the recorded plan.
-   The removed 1c6e3e9b draft used simulated boxes for episode 5's pot and episode 20's
-   pitcher; the current ddfc98b3 pack instead retains their procedural v4 shapes. Both
-   sacrifice D1's generated shapes. Episode 19's rigid body-frame rotations can also change
-   finite sampled registration. No upload or board selection happened in this job.
+```bash
+PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' \
+  data/.runtime/kit-env/bin/python -B scripts/container/reproduce.py pack \
+  --manifest data/outputs/container/submission/submission.draft.json \
+  --label poses-combined-v5 \
+  --adoptions data/outputs/container/submission/provenance/adoptions.json \
+  --rollouts data/outputs/container/submission/outputs/poses-combined-v5/rollouts \
+  --output data/outputs/container/cpu-moving-repack
+```
 
-## Layout and reproduction dependencies
+The stage also retains D1 v5 as historical evidence, its clean code-mesh snapshot and old
+kit. `split.draft.json` is diagnostic: the kit supports only one global code commit, so it
+cannot validate that historical two-commit arrangement as an aggregate. Its generic
+verifier has no object_mesh re-pack branch; `run.sh verify-mesh` supplements it with the
+old kit's mesh packer. The counted single moving file avoids the commit conflict.
 
-- code/ is clean at 02117ac; code-mesh/ is clean at b161723; both have independent .git.
-- kit/ and verifier_kit/ are the exact new kit; kit-old/ is D1's exact original kit.
-- submitted/ has both exact Parquets and the current combined file's exact derived CD-O
-  Parquet; their frozen manifests are in provenance/.
-- weights/poses-combined-v5/ holds twenty original .safetensors checkpoints.
-- outputs/poses-combined-v5/rollouts/ holds twenty unchanged Parquets and twenty original
-  official_metrics JSON files, renamed only to the guide's episode naming convention.
-- meshes/poses-combined-v5/ has the 36 combined meshes; meshes/meshes-d1-v5/ has D1's 36.
-- tasks/ holds twenty unchanged task Parquets and 72 simulated OBJ/URDF assets.
-- runtime/ holds the evaluated FlashCHORD source/assets, installed evaluator and kit
-  environments, and both CPython distributions. Native package bytes are copied, not installed.
-- provenance/reproduction-trace.json binds each task, checkpoint, asset and original run.
-  path-aliases.json maps 92 historical absolute file paths to staged files.
-
-The checkpoints contain absolute task paths; tasks and URDFs contain absolute asset paths.
-The unchanged runtime's evaluation.source_root remaps only relative paths or absolute
-/workspace paths, so it cannot remap ours. image_setup.py creates filesystem aliases only
-inside the image, preserving task, checkpoint, mesh and URDF bytes. Historical prefixes
-are derived from the artifacts; implementation adds no fixed chain-context path. Venv
-pyvenv.cfg, interpreter links and the editable source .pth are relocated; evaluator modules
-and installed package payloads stay unchanged. No model weights are downloaded.
-
-Policies originally ran through src/features/pose_insurance/handler.py and its scored
-handlers, with the unchanged kit evaluator, explicit frame-zero reset, one world and a
-512-step FlashSAC budget. The container calls that same evaluator serially at those frozen
-settings, using src.gpu.GpuLease from the clean code checkout. The lease/cache/logs live
-under /output. It does not retrain, reconstruct from video or regenerate tasks/meshes.
-The combined pack used --skip-crosscheck; reproduction preserves that flag, which skips
-the packer's reference-score cross-check, not any artifact hash or organiser comparison.
-
-Mount the released challenge dataset read-only at /data and output read-write at /output.
-These frozen evaluation tasks already contain their references and simulated assets; this
-reproduction path needs no dataset file access. It never opens validation 2/13/22/24/27,
-episode 41, or holdout 43/44. The historical mesh path only packs stored reconstructions.
-
-## Runtime provenance and hardware
+## Runtime and remaining work
 
 Native evaluation used Ubuntu 26.04.1, RTX 5080 16 GiB, Python 3.11.15, FlashCHORD 0.4.0 at
-`aee95f25ae0943f335d8bb42fa95b6a9acfa266f`, JAX 0.10.2 CUDA 13, Warp 1.14.0, Newton 1.2.0.
+`aee95f25ae0943f335d8bb42fa95b6a9acfa266f`, JAX 0.10.2 CUDA 13, Warp 1.14.0 and Newton 1.2.0.
 The four-module evaluation hash is
-`b1b3ebe3ae4629d1687a83f420149e3f6fdfc154d70acad55c12fc8fa69811a1`, matching the pose file.
-The new kit README instead names runtime `8c778f905cb35f76f8e6cd6e2ea486da4fb9e0ef`.
-Equal evaluation hashes do not establish equivalence of the complete revisions. This
-runtime-pin deviation is disclosed and organisers may reject it. Do not replace the
-runtime that actually ran or edit provenance to hide it.
+`b1b3ebe3ae4629d1687a83f420149e3f6fdfc154d70acad55c12fc8fa69811a1`.
+The new kit instead names runtime `8c778f905cb35f76f8e6cd6e2ea486da4fb9e0ef`.
+Equal evaluation hashes do not prove complete revision equivalence; organiser acceptance
+of this runtime deviation remains unresolved. The actually evaluated runtime is preserved.
 
-There was no native evaluation Docker image. Dockerfile uses ubuntu:26.04 and copies the
-native installed environments. It pulls that base and apt's git, ca-certificates, libstdc++6,
-libgomp1, GL/EGL/X11/font libraries explicitly listed in Dockerfile, plus dependencies.
-No pip/uv, source, kit or model downloads. Base/apt versions are not content-pinned; keep the
-built image and its checksum. Full package/version inventories are in provenance/environments.json.
-The copied 7.0 GB runtime closure is smaller than the original 9.4 GiB installation because
-unrelated video_to_data components, runtime tests and bytecode caches are omitted.
+The Docker context copies the native evaluator, robot assets, both installed environments
+and both CPython distributions. It downloads no Python packages or models. Dockerfile pulls
+ubuntu:26.04 and its listed apt dependencies; those versions are not content-pinned.
+Use a CUDA 13 capable NVIDIA driver (runtime documentation says >=580), NVIDIA Container
+Toolkit, preferably 16 GiB GPU memory, and an estimated 30 GiB build/output space.
+Package inventories are in `provenance/environments.json`.
 
-Use CUDA 13 capable NVIDIA drivers (runtime's Dockerfile says driver >=580), NVIDIA
-Container Toolkit and preferably the original 16 GiB GPU class. Budget 16 GiB host RAM
-and 30 GiB free build/output space; these are estimates, not measured container peaks.
-Original twenty-policy train-plus-evaluate times total about 18 minutes; container compile
-and evaluation time are unmeasured. Allow 15–60 minutes for first reproduction with uncertainty.
+The moving stage contains 20 checkpoints, 36 combined meshes, 72 simulated assets and
+92 historical path aliases. `dependency-checks-final-moving.log` records all five CPU checks
+passing, including both copied interpreter/package imports and task/asset closure.
+`verifier-final-moving.json` / `.log` records the **unedited organiser verifier: 11 pass,
+0 fail, 0 warn, 0 skip**, including clean code at c8ff8c13, all twenty checkpoint hashes
+and stored-rollout re-pack equality. `cpu-final-moving-repack.log` records the container adapter
+packing all 9,120 rows byte-identically to the counted moving file, with the SHA-256 above.
+`verify-copies-final-moving.log` records copied-file and generated-plumbing hashes.
+No dataset was read and no GPU launched during these CPU checks.
 
-## Checks and unresolved items
-
-The sibling verifier-current.json/log records the unedited verifier's checks using its
---manifest path option; it is not hard-coded to /submission. It passed all 11 checks for
-the current single-file draft, including clean commit, all provenance hashes, twenty
-checkpoint hashes, and stored-rollout re-pack equality. D1's separate old-kit re-pack
-matches all 294,912 rows and is byte-identical. Other CPU evidence is in the sibling
-CPU results report; copy-hashes.json and verify-copies cover every copied regular file.
-
-Known untested: Docker build, apt availability/dependency resolution, system linkage,
-venv relocation and aliases in the image, GPU/driver compatibility, offline policy loading,
-CUDA compilation, fresh reproduced rows/provenance/scores and run-to-run variation, Kaggle
-copies/IDs, repository sharing with the organiser account, tarball delivery and form access.
-Runtime pin approval is unresolved. A local image generally has a config image ID and no
-registry RepoDigest; owner-build.sh prints both, without calling a config ID a registry
-digest. If organisers require a registry manifest digest, clarify that separately.
-
-The owner uploads the saved tarball to a public file-sharing link, then supplies the link,
-sha256, image identity, required GitHub URL(s), and two-page report through the form.
+Docker build, apt/system linkage, image
+venv relocation and aliases, GPU/driver compatibility, offline policy loading, CUDA
+compilation, fresh GPU outputs/scores and variation remain **untested**. No Docker command
+runs in this job. Kaggle IDs, identity checks, receipts, tarball delivery, repository sharing
+and submission-form access remain the owner's work. A local image config ID is not a
+registry manifest digest; owner-build.sh prints both available identities accurately.

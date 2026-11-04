@@ -12,14 +12,22 @@ AGENTS.md; the kit says 22:00 UTC); new packs done by 12:00 UTC 4 Nov.
 
 **Why, read this: the organisers replaced the kit archive on 2 Nov 18:21 GMT (SHA-256 `7e1fdd00...`); ours is from 30 Sep (`a2de2aee...`), an unversioned URL that `sources.lock.json` warned about.** Nothing compared it for five days, and local preflight kept saying "Ready to submit" because it was the old kit's preflight. Pose metrics now register the submitted mesh to the scan, and **every pose number in this repository was measured with the old scorer.** Scores steer nothing.
 
-**Moving v5, packed 14:03 UTC (context 29), NOT UPLOADED, the file to upload and mark final:**
-`submission/20261104T1403Z-d2-moving-v5/track3_combined_v5.parquet`, SHA-256
-`1570037aacbe6148715bf65e5073fef5d895410c4c55ec94cee28389699e99f5`, URL commit `a3ab0f6` (pushed), manifest beside it
-(`21a24d81...`). Episode 38 is its learned moving rollout (checkpoint `b6145fcb...3cae`, 263 rows equal to the official export,
-admission `data/outputs/pose_insurance/moving-pack/evidence-promoted-v1/` PASS against the promoted report) with its simulated pan
-mesh (`aa1c9889...`); the other nineteen episodes are byte-for-byte combined v5's. `check_release.sh --combined` READY at `e8ea088`.
-The report pin moved with it: `scripts/reproduce/release.json` now names `outputs/report/track3-technical-report-e63bffef.pdf`
-(epoch of commit `a3ab0f6`), and the same PDF is committed at `docs/report/final/track3-technical-report.pdf`. The chain's own
+**Combined v5 UPLOADED 14:15 UTC on the owner's approval of the exact command, all six boards: AUC 0.30715 (57987376),
+SP-SR 0.15 (57987381), MP-SR 0.0 (57987383), RPE 20.10764 cm (57987384), MPPE 14.62367 cm (57987386), CD-O 0.56604 cm
+(57987392).** Receipt `submission/20261104T1316Z-d2-combined-v5/track3_combined_v5.parquet.30fbd93e365e.kaggle-receipt.json`,
+log `data/outputs/chain/uploads-28.log`. First pose scores of this entry; they match the local new-scorer diagnostic (train AUC
+about 0.30) and the expected CD-O cost of the procedural pot 5 and pitcher 20 (0.566 vs D1 v5's 0.536).
+
+**Moving v5, final pack 14:22 UTC (context 29), NOT UPLOADED (chain upload denied twice), the file to upload and mark final:**
+`submission/20261104T1422Z-d2-moving-v5/track3_combined_v5.parquet`, SHA-256
+`b476eb1c2bc1ee6fab2df72f42f377d87e5d265c06140f3e47fc2fc67f8ff81d`, URL commit `c8ff8c1` (pushed), manifest beside it
+(`df66435e...`). Two earlier packs of the same content at earlier report commits (`1570037a` at `a3ab0f6`, 14:03 UTC;
+`623a1a8a` at `5fb6ec5`, 14:18 UTC) are superseded and were never uploaded; the report changed after a Codex critic and
+after combined v5's scores arrived, and the admission binds the report's hash, so each report change meant a repack. Episode 38 is its learned moving rollout (checkpoint `b6145fcb...3cae`, 263 rows equal to the official export,
+admission `data/outputs/pose_insurance/moving-pack/evidence-promoted-v3/` PASS against the promoted report) with its simulated pan
+mesh (`aa1c9889...`); the other nineteen episodes are byte-for-byte combined v5's. `check_release.sh --combined` READY at `c8ff8c1`.
+The report pin moved with it: `scripts/reproduce/release.json` now names `outputs/report/track3-technical-report-33ad1e98.pdf`
+(epoch of commit `c8ff8c1`), and the same PDF is committed at `docs/report/final/track3-technical-report.pdf`. The chain's own
 upload attempt was denied by the permission system again; the command is at the top of `NEEDS-YOU.md`. Spoons 35/36/37 stopped
 at their mask gates (0.7 to 10.9 % usable frames against 90 %); the owner kept the gates strict (14:08 UTC).
 

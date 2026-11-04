@@ -11,7 +11,7 @@ nothing, but a tilted world makes objects slide in simulation.
 PYTHONPATH=. data/.runtime/linux-cuda/bin/python -B -m src.features.camera_motion estimate --request src/features/camera_motion/estimate.json
 ```
 
-`runtime.json` limits this to the episodes it allows. CPU only, using OpenCV and NumPy. Runtime and RAM are unmeasured.
+`runtime.json` holds `estimate_authorized: false`, so `estimate` is disabled by default and limited to the episodes it allows; the origin and heading rules are design choices, and the acceptance checks (static object still in world coordinates, table plane fixed, landmark reprojection at start, middle and end) have not been run. CPU only, using OpenCV and NumPy. Runtime and RAM are unmeasured.
 
 Inputs: `ego_cam_a` remapped to the pinhole grid; stereo depth; monocular depth scaled by `anchor.json` where stereo
 has holes; and hand and object masks to exclude moving pixels.

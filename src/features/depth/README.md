@@ -72,7 +72,7 @@ Export schema 1 needs: `approach` (`vipe`, `da3`, `vda`); `status: completed`; `
 
 Each frame NPZ has `depth`, `valid`, and `intrinsics_pixels` equal to the grid, with optional uncalibrated `confidence`.
 ViPE and DA3 may add `extrinsic` and `pose_valid`, and the manifest then needs `pose_world`, `extrinsic_direction` and
-`pose_translation_units`. VDA poses are refused. Output is neither aligned to the table world nor shown to be more accurate.
+`pose_translation_units`. VDA poses are refused. Output is neither aligned to the table world nor shown to be more accurate. Receipts record identity and licence terms only and grant no installation, model-execution or licensing approval; a `metric_optical_z_m` declaration does not establish accuracy, and near-metric output without a stated unit must be declared relative.
 Ingested results never pose as `depth.generate` or `camera_motion.estimate`. Promotion and comparison are unimplemented.
 
 ## Preview (never run)

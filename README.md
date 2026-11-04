@@ -14,9 +14,11 @@ More figures and the full explanation are in the
 challenge score.
 
 The trained policy on episode 38. Green is the pan mask from the video. Orange is
-the larger simulated pan and the coloured shapes are the robot hands, drawn through
-the fitted camera. Episode 38 has no labels, so this shows the policy following its
-video-derived goal. It does not show that the goal is correct.
+the larger simulated pan at the official exported poses; the coloured robot hands
+come from a separate CPU replay whose pan path differs from the export by 0.63 cm on
+average (1.84 cm at most), drawn through the fitted camera. We have no ground-truth
+labels for episode 38, so this shows the policy following its video-derived goal.
+It does not show that the goal is correct.
 [Watch the clip](docs/report/nontechnical/figures/21-episode38-on-real-footage.mp4).
 
 ![Episode 38 policy drawn on real footage](docs/report/nontechnical/figures/21-episode38-on-real-footage.png)
@@ -50,17 +52,19 @@ parked hands in a box scene built from the video, exported by the unchanged eval
 from calibrated stereo, with a heading correction on episode 19. The objects stay at rest, so these
 rollouts do not reproduce the manipulation.
 
-Episode 38 uses a moving RL policy (FlashSAC under FlashCHORD, 66.76M transitions, seed 0) that reached its scheduled end following an object path tracked from the video. It finished after the 12:00 UTC last-pack cut-off, the owner moved the cut-off, and it passed its frozen admission gates, so it is packed as the moving v5 file. Training was stopped and
+Episode 38 uses a moving RL policy (FlashSAC under FlashCHORD, 66.76M transitions, seed 0) that reached its scheduled end following an object path tracked from the video. It finished after the 12:00 UTC last-pack cut-off, the owner moved the cut-off, and it passed the final numerical admission checks after disclosed tracker revisions, a retrospective alignment of the episode-39 prerequisite and an exception that allowed resumed training; it is packed as the moving v5 file. Training was stopped and
 resumed twice and lost its replay buffer each time. It failed its midpoint check, and we do not know why.
-Two files exist: combined v5 (all 20 static, `ddfc98b3`) and moving v5 (38 moving, `1570037a`);
-[the submission ledger](docs/chain/SUBMISSION.md) records which was uploaded and marked final.
+Moving v5 (`1570037a`) is the intended final file and all-static combined v5 (`ddfc98b3`) is the fallback;
+[the submission ledger](docs/chain/SUBMISSION.md) records uploads and the final selection as they happen.
 
 ## Results
 
-Final scores: to be filled at release
+Leaderboard scores (public boards, 4 November 2026):
 
 | Leaderboard record | Boards | Result |
 | --- | --- | --- |
+| Combined v5 (all static), 14:15 UTC | All six | AUC 0.30715, SP-SR 0.15, MP-SR 0.0, RPE 20.108 cm, MPPE 14.624 cm, CD-O 0.56604 cm |
+| Moving v5 (episode 38 moving) | All six | not yet uploaded |
 | D1 v5 meshes | CD-O | 0.53562 cm, recorded but not the counted file |
 | D2 v5 poses | Five pose boards | Rejected: the kit replaced on 2 November needs poses and meshes in one file |
 
@@ -70,10 +74,10 @@ Our own measurements, none of them a leaderboard score:
 | --- | --- | --- |
 | D1 v5 CD-O, object / pair mean | 0.564 / 0.621 cm | Public scans, 26 of 36 pairs |
 | D1 v4 CD-O (procedural only), object / pair mean | 0.653 / 0.663 cm | Same |
-| Static AUC | 0.29 to 0.30 | 8 train episodes, new scorer, 3 seeds |
+| Static AUC | 0.29 to 0.30 | 8 train episodes, frozen kinematic projections of the static placement, new scorer, 3 registration seeds (not 3 trained policy sets) |
 | Static SP-SR, MP-SR, RPE, MPPE | 0.25, 0, 19.5 to 21.1 cm, 12.7 to 15.7 cm | Same |
-| Moving policy AUC on episode 39 | 0.775 old scorer, 0.669 new (0.591 with the tracking mesh) | Same recipe as 38, labelled practice episode |
-| Episode 38 error against its own video goal | 1.42 cm, 1.59 degrees | No labels exist |
+| Moving policy AUC on episode 39 | 0.775 old scorer, 0.669 new (0.591 with the tracking mesh) | Same hyperparameters as 38, but trained uninterrupted; labelled practice episode |
+| Episode 38 error against its own video goal | 1.42 cm, 1.59 degrees | No ground-truth labels available to us |
 
 - New-scorer figures use public geometry and assumed axes, as the host's reference geometry is
   unpublished. They do not predict host scores.
@@ -92,9 +96,10 @@ them in place. Container build files are in [scripts/container/](scripts/contain
 bash scripts/linux/install-linux-cuda.sh   # project environment
 bash scripts/linux/install-kit-env.sh      # submission kit environment
 bash scripts/linux/install-flashchord.sh   # FlashCHORD runtime
-# Check the combined file's recorded hashes, then run the full CPU release check
-bash scripts/reproduce/verify.sh submission/20261104T1316Z-d2-combined-v5/track3_combined_v5.manifest.json
-bash scripts/reproduce/check_release.sh --combined submission/20261104T1316Z-d2-combined-v5/track3_combined_v5.manifest.json
+# Check the moving file's recorded hashes, then run the full CPU release check (the 20261104T1316Z
+# manifest checks the static fallback instead)
+bash scripts/reproduce/verify.sh submission/20261104T1403Z-d2-moving-v5/track3_combined_v5.manifest.json
+bash scripts/reproduce/check_release.sh --combined submission/20261104T1403Z-d2-moving-v5/track3_combined_v5.manifest.json
 # Print rebuild plans; add --run to execute
 bash scripts/reproduce/d1_meshes_v5.sh https://github.com/BDavid03/video2data/commit/b1617234a85e316baa4a67b7f10ff053f5f92c4d
 bash scripts/reproduce/d2_poses_v5.sh
@@ -119,5 +124,7 @@ need their recorded commit, because the scripts refuse changed sources. See
 
 Inputs are `nvidia/video_to_data_challenge` at `5f68335f3acc802033d1e80728c1633197521de8`, FlashCHORD at
 `aee95f25ae0943f335d8bb42fa95b6a9acfa266f`, and the submission kit. Episode 41 and holdout episodes 43 and 44
-are excluded from current work, and public labels are for diagnostics only. Scores in the archived depth study
+are excluded from current work. Public labels supported development selection of the static placement, one
+separate mocap-reference training experiment on practice episode 39, and diagnostics; episode 38's policy trained
+against a video-derived reference. Scores in the archived depth study
 compare to MoGe2 pseudo-labels, not measured depth, and are separate from this entry. Licence: [Apache-2.0](LICENSE).

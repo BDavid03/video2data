@@ -11,9 +11,9 @@ Six Kaggle boards. CD-O scores shapes: lower is better. AUC, SP-SR, MP-SR, RPE, 
 
 - Shapes scored: CD-O 0.53562 cm. First real score.
 - Old pose file rejected: organisers changed kit on 2 Nov. New kit wants shapes and poses in one file.
-- Fixed file built, checked: combined v5. Same poses. Not uploaded: permission system block chain twice. Owner must run one command (NEEDS-YOU top).
-- Episode 38 (dust pan): moving policy trained from video goal. Passed every frozen gate. Packed as moving v5. Best file. Also not uploaded.
-- Technical report (2 pages) built, on GitHub main: docs/report/final/track3-technical-report.pdf. Six score lines say [pending] until upload.
+- Fixed file built, checked: combined v5. Same poses. Owner approved exact command. UPLOADED 14:15 UTC. Scores: AUC 0.307, SP-SR 0.15, MP-SR 0, RPE 20.1 cm, MPPE 14.6 cm, CD-O 0.566 cm. Matches our local guess.
+- Episode 38 (dust pan): moving policy trained from video goal. Passed every frozen gate. Packed as moving v5 (b476eb1c, commit c8ff8c1). Best file. NOT uploaded: permission system block chain twice. Owner must run one command (NEEDS-YOU top).
+- Technical report (2 pages) built, on GitHub main: docs/report/final/track3-technical-report.pdf. Has combined v5 real scores. Moving file score lines say [pending] until its upload.
 - Spoons 35, 36, 37: masks too thin. Stopped at first gate. Keep static. Owner said keep strict gates. GPU idle on purpose.
 - Code pushed to GitHub main at e8ea088.
 
@@ -23,8 +23,8 @@ Objects move in video. Our poses sit still on 19 of 20 episodes. Even perfect st
 
 ## What owner must do
 
-1. Run upload (NEEDS-YOU top). Six boards. Wait for scores.
-2. Mark moving file final on all six boards in browser.
+1. Run moving upload (NEEDS-YOU top). Six boards. Wait for scores.
+2. Mark better file final on all six boards in browser.
 3. Share GitHub repo with Nvidia-V2D-Challenge. Fill the form: report URL, repo URL, commit a3ab0f6, container link.
 4. Container needs Docker group: sudo usermod -aG docker ceolwolf, new shell, scripts/container/owner-build.sh.
 5. Tell chain scores, so report, README, plain report get filled.
