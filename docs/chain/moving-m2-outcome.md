@@ -20,7 +20,7 @@ Separate script from raw parquets and its own formula (`data/.runtime/tmp/rechec
 
 ## What it does and does not show
 
-- **Shown:** RL in simulation, from nothing, in under an hour, physically carries an object through a fast human motion (peak 71 cm/s, 109 degrees net), with the object moved only by contact, through the kit's unedited evaluator with a learned checkpoint.
+- **Shown:** RL in simulation, from nothing, in under an hour, carries an object in simulation through a fast human motion (peak 71 cm/s, 109 degrees net), with the object moved only by hand contact, through the kit's unedited evaluator with a learned checkpoint. **The physics has limits, disclosed:** the evaluator's configuration turns robot-support collision off, and the hands start 58 and 39 mm through the support plane (critic 27); the object's 0.3 kg and diagonal inertia are not the real pan's.
 - **Not shown:** that any reference from video is good enough; that the hold resembles a person's (the rigid grasp reference is our own rule, contact is not scored); anything about objects that are not this pan. One seed on one tuning episode. The simulated asset is our own reconstruction and has no scan geometry; the scan appears only in the kit measurement. The two descriptive rows show the recipe changes quickly between 16M and 33M transitions, which is not a reason to stop early on another episode.
 - **The bottleneck has moved:** the policy's error here (AUC 0.98) is now far below what a video reference is likely to carry. M1's reference quality decides what the scored episodes can reach.
 
