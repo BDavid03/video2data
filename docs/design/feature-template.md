@@ -1,128 +1,79 @@
-# Feature authoring guide
+# Feature template
 
-Use this guide for source and documentation work under the current vertical-slice
-architecture. **Do not run tests, smoke checks, validation commands, project
-imports, models, notebooks or dependency experiments.** That user instruction
-supersedes generic development advice and historical test commands. No dependency
-addition or runtime-flag change is part of this guide.
+How to add or change a slice (one folder under `src/features/`). Code style is in
+[simplification-standard.md](simplification-standard.md).
 
-## Choose the owner before adding files
+## Pick the owner first
 
-Place an operation beside the feature that owns its behavior and artifacts.
-For example, hand projection preview belongs to hand motion, packed-output
-admission belongs to submission, and a reconstruction accumulator belongs to
-object mesh. Share a primitive only when its technical contract is stable and
-independent of feature selection policy.
+Put an operation in the slice that owns its behaviour and outputs. Share a helper only when its
+contract is stable and has no feature policy in it. Do not add service or repository layers. Private
+`_helpers.py` files inside a slice are fine.
 
-Do not create generic service/repository layers to move a feature's handler,
-persistence and integration into separate architectural tiers. Private helpers
-can separate complex code within a slice. Public cross-feature metadata, such as
-campaign selections, should expose a narrow documented boundary.
-
-## Typical slice structure
+## Typical slice
 
 ```text
-track3/features/example/
-  README.md             Purpose, contract, configuration and limitations
-  __main__.py           Thin operation/--request dispatch
-  operation.py          Request parsing and owning handler
-  _integration.py       Optional backend adapter kept inside the slice
-  _geometry.py          Feature-local computation when needed
-  operation.json        Explicit request draft, unresolved inputs left null
-  runtime.json          Execution flags defaulting to false
-  backends.json         Optional pinned runtime/model contract when applicable
+src/features/example/
+  README.md       What it does, how to run it, what it writes
+  __main__.py     Thin dispatcher: <operation> --request <file.json>
+  operation.py    Request parsing and the handler
+  _integration.py Optional backend adapter, kept inside the slice
+  operation.json  Request draft; unknown inputs stay null
+  runtime.json    Run flags, false by default
+  backends.json   Optional pinned model or runtime contract
 ```
 
-This is a pattern, not a requirement to create empty files. Match the existing
-feature's conventions. A configuration key does not implement an operation;
-expose only implemented handlers in the CLI.
+This is a pattern, not a list of files to create. Expose only operations that exist.
 
-## Request and authorization contract
+## Requests and flags
 
-Document the operation, split/episode scope, explicit parent run paths, algorithm
-parameters, resource caps and output ownership. Reject unknown or inconsistent
-input meaning at the owning boundary. Keep null unresolved fields visible rather
-than guessing a producer.
+A request names the operation, the episodes, explicit parent run paths, parameters, resource caps
+and the output folder. Reject unknown or inconsistent fields at the boundary. Leave unknown inputs
+null; never guess a producer.
 
-Operation handlers must respect their existing authorization checks before
-optional backend imports or writes. Preserve separate development, validation
-and evaluation controls where present. A false flag cannot be enabled by a queue
-plan. An enabled flag would still not override an explicit user prohibition.
+Check the slice's `runtime.json` flags and episode allowlist before importing a backend or writing a
+file. A queue file cannot turn a false flag on. Episode 41 and holdout episodes 43 and 44 are refused.
 
-Adding a new production dependency requires a concrete proposal and confirmation.
-Name package/source revisions, assets, licence requirements, environment, storage
-and integration purpose. Do not run resolution experiments while preparing the
-proposal. The MoGe2 approval does not transfer to unrelated packages.
+A new dependency needs a written proposal and the owner's yes: package and revision, assets, licence,
+environment, storage and purpose.
 
-## Producer and consumer responsibilities
+## Producers and consumers
 
-A producer owns an immutable run identity, request snapshot, explicit input and
-source hashes, provenance, artifact inventory and useful failure record. A
-consumer owns admission of the exact artifacts it uses. Reading a parent's
-`run.json` is only part of that responsibility.
+A producer writes a fixed run identity, a request snapshot, input and source hashes, provenance, an
+artifact list and a useful failure record (see [artifact contracts](artifact-contracts.md)). A
+consumer re-hashes the exact artifacts it uses; reading the parent's `run.json` is not enough.
 
-When changing a boundary, read its consumers as source and document:
+When you change a boundary, check every consumer for: producer kind, status and allowed provenance;
+hash ownership and episode scope; image grid, intrinsics, frame index and PTS; units, axes, body
+frame, object and hand order, rotation form; array shape, dtype and validity (NaN or zero fields);
+whether old outputs lack a new field and must be rebuilt.
 
-- Required producer kind, completion status and allowed provenance.
-- Artifact hash ownership and exact dataset/split/episode scope.
-- Pixel grid, intrinsics, frame index and PTS agreement.
-- Units, coordinate direction, body frame, object/hand ordering and rotation form.
-- Shape/dtype/validity semantics, including NaN or zero fields where applicable.
-- Whether old artifacts lack newly required fields and must be regenerated.
+Never edit old run records to fit a new contract. Never relabel diagnostic data or turn missing data
+into an observation. If a step fills gaps, it records what it filled and why.
 
-Do not mutate historical producer records to make them satisfy a new contract.
-Do not downgrade diagnostic lineage or turn missing data into an observation.
-When intentional completion is needed, the owning operation must record what it
-filled and why.
+## Failures and resources
 
-## Failure and resource behavior
+Tell apart bad input, missing files, normal measurement loss, capacity overflow and interruption. A
+failed run may keep partial files for diagnosis but can never feed another run. Never mark a run
+completed because part of it worked.
 
-Distinguish malformed input, missing artifacts, ordinary measurement loss,
-capacity overflow and interrupted execution. A partial array can be useful for
-diagnosis while its failed run remains ineligible downstream. Never change status
-to completed merely because a useful subset was written.
+Write files atomically, as existing code does. Keep temp files inside the checkout. Bound buffers and
+fail at the limit instead of dropping data. GPU jobs take the shared lease in `src/gpu.py`.
 
-Keep array and metadata writes consistent with existing atomic-write patterns.
-Store temporary files inside the agreed project storage. Bound accumulators and
-large geometry queries deliberately; fail explicit limits instead of dropping
-measurements silently. Document remaining unbounded/library working memory and
-unmeasured costs. Source arithmetic cannot establish GPU fit or throughput.
+## Slice README
 
-## README outline
+Answer, in order:
 
-A feature README should answer these questions in a useful order:
+1. What does it do, and which pipeline step is it (see the README's "What we did")?
+2. How do you run it (command, request file, flags)?
+3. What does it read, and what must agree (frames, units, validity, provenance)?
+4. What method does it use, and what does it assume?
+5. What does it write, and where?
+6. What are the known limits and open questions?
 
-1. What concrete result does the feature own, and what is its current source/run
-   status? Which consumers depend on it?
-2. Which operations exist, with what request/configuration and runtime boundaries?
-3. What exact producer records and artifacts are consumed? Which clocks, frames,
-   units, validity masks and provenance tags must agree?
-4. What algorithm is implemented, which assumptions are deliberate, and which
-   alternatives remain proposals?
-5. What files and fields are produced, who owns their hashes, and how are failure
-   and partial progress represented?
-6. Which packages/assets are already approved, which are missing, and what
-   resource limits are implemented versus unmeasured?
-7. What evidence would be required after execution is authorized? What questions
-   remain open? Do not present planned evidence as an existing result.
+Label old measurements as old. Never present a planned result as a measured one.
 
-Link detailed local source readings where they support pinned upstream behavior.
-Label historical measurements and proposed improvements clearly. Avoid copying
-live deadlines, prices or service rules into an undated claim.
+## Check a change
 
-## Source-only change workflow
-
-Read the relevant instructions and feature request/handler/consumer files.
-Identify the narrow integration gap or documentation mismatch. Implement within
-the authorized scope, keeping runtime flags false and existing user changes
-intact. Read the edited prose/source as text to catch obvious inconsistencies;
-do not turn that reading into imports, compile checks, linting, test execution,
-link validation or a project operation.
-
-Update the owning README and affected [artifact contracts](artifact-contracts.md).
-State exactly what changed and what was not executed. If runtime evidence is required, leave
-that requirement visible for a later authorized phase.
-
-A documentation-only change needs no new tests. Under the current instruction,
-source changes also receive no executed tests or validation. Do not describe
-untested code as verified, compatible, accurate or production-ready.
+- `python3 -m py_compile <file>` and a CPU import with the project interpreter.
+- For pure functions, an old-versus-new comparison script under `data/.runtime/tmp/`.
+- Update the slice README and [artifact contracts](artifact-contracts.md) in the same change.

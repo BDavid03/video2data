@@ -1,61 +1,52 @@
 # video2data: V2D Challenge Track 3 entry
 
-Our entry in NVIDIA's V2D Challenge, Track 3. Track 3 starts from human egocentric video of tabletop
-tasks. It scores object shape (CD-O) and the object motion a simulated robot policy achieves (AUC,
-SP-SR, MP-SR, RPE, MPPE).
+Our entry in NVIDIA's V2D Challenge, Track 3.
 
-The project was built with AI coding agents under the owner's direction. The dated working records,
-including failed attempts, are in [docs/chain/](docs/chain/).
+## What we did
 
-## Visualisations
+1. **The task.** Track 3 gives human egocentric video of tabletop tasks. Each recording is an
+   *episode*. For each scored episode we must hand in a mesh of every manipulated object and the
+   object's pose in every frame. The poses must come from robot-hand policies trained by
+   reinforcement learning (RL) in simulation. Six leaderboards score the entry: one shape board
+   (CD-O) and five pose boards (AUC, SP-SR, MP-SR, RPE, MPPE). The terms are defined below.
+2. **Shapes.** We run MoGe-2 depth on the video and measure each object's size. The sizes drive a
+   hand-designed procedural shape for that object type (pot, pitcher, pan, rack, spoon and so on).
+   The submitted file holds procedural shapes only.
+3. **Static poses (19 of 20 episodes).** We place each object from calibrated stereo depth on the
+   first frame. We train a short FlashSAC RL policy in a simulated box scene built from the video,
+   with the hands parked, and the official evaluator exports its poses unchanged. The objects stay at rest, so
+   these poses do not reproduce the manipulation.
+4. **Episode 38 (moving).** We tracked the dust pan's path in the video. A FlashSAC policy, trained
+   from scratch under FlashCHORD (66.76M transitions, seed 0), learned to carry the pan along that
+   path. It went into the file only after passing admission gates written before the run.
+5. **What we submitted.** One file, "moving v5": episode 38 moving, the other 19 static. Its
+   scores are in the Results table below (AUC 0.32339, CD-O 0.56471 cm).
+6. **Where each piece lives.**
 
-More figures and the full explanation are in the
-[non-technical report](docs/report/nontechnical/report.md). None of these is a
-challenge score.
+| Step | Code (slice) | Reproduce | Outputs |
+| --- | --- | --- | --- |
+| 2 Shapes | `src/features/mesh_extents/` (depth: `src/features/depth/`) | `scripts/reproduce/d1_meshes.sh` | `data/outputs/mesh_extents/` |
+| 3 Static poses | `src/features/pose_insurance/` (stereo: `src/features/stereo_depth/`) | `scripts/reproduce/d2_poses_v5.sh` | `data/outputs/pose_insurance/` |
+| 4 Episode 38 | `src/features/moving_policy/` (video path: `src/features/moving_reference/`) | `scripts/reproduce/d2_poses_moving.sh` | `data/outputs/moving_policy/ep38-v1/` |
+| 5 Submitted file | `src/features/pose_insurance/` (packing) | `scripts/reproduce/check_release.sh` | `submission/20261104T1422Z-d2-moving-v5/` |
+| The 20 counted policies | | | `models/policies/track3-moving-v5/` |
+| Report | `docs/report/track3/main.tex` | `scripts/reproduce/d3_report.sh` | `docs/report/final/track3-technical-report.pdf` |
 
-The trained policy on episode 38. Green is the pan mask from the video. Orange is
-the larger simulated pan at the official exported poses; the coloured robot hands
-come from a separate CPU replay whose pan path differs from the export by 0.63 cm on
-average (1.84 cm at most), drawn through the fitted camera. We have no ground-truth
-labels for episode 38, so this shows the policy following its video-derived goal.
-It does not show that the goal is correct.
-[Watch the clip](docs/report/nontechnical/figures/21-episode38-on-real-footage.mp4).
+### Terms
 
-![Episode 38 policy drawn on real footage](docs/report/nontechnical/figures/21-episode38-on-real-footage.png)
-
-Tracking error against that same goal, at the failed midpoint check and at the end
-of training. Why the midpoint failed has not been diagnosed.
-
-![Episode 38 tracking error at the midpoint and at the end of training](docs/report/nontechnical/figures/20-episode38-video-goal.png)
-
-Practice episode 39, compared with motion capture at each stage. These numbers use
-the scorer from the kit we had before the organisers replaced it on 2 November. A
-rough re-check with the new scorer's code, using public shapes, moves the video
-policy from 0.775 to 0.669.
-
-![Episode 39 at each stage against motion capture](docs/report/nontechnical/figures/18-policy-on-video-path.png)
-
-The video tracker's pan outline on real footage from episodes 39 and 38.
-[Watch the clips](docs/report/nontechnical/figures/16-tracked-pan.mp4).
-
-![Tracked pan outline on real footage](docs/report/nontechnical/figures/16-tracked-pan.png)
-
-## Method
-
-Meshes. We measure each object's proportions from video depth and build a closed procedural shape from
-a rule for its object type. After a pilot on public scans failed on the rack, we generated Hunyuan3D-2mini shapes for pots and pitchers from a masked first frame. A shape needed a video check and a packed scan check. The video check has no validated link to CD-O: it also passed a pot 6 shape that the scan check vetoed. The check accepted evaluation pot 5 and
-pitcher 20. The final combined file does not use those two shapes, because they have no recorded mapping
-to the rollout frame, so it holds procedural shapes only.
-
-Poses. Nineteen of the 20 evaluation episodes use static FlashCHORD rollouts: a policy with
-parked hands in a box scene built from the video, exported by the unchanged evaluator. Placement comes
-from calibrated stereo, with a heading correction on episode 19. The objects stay at rest, so these
-rollouts do not reproduce the manipulation.
-
-Episode 38 uses a moving RL policy (FlashSAC under FlashCHORD, 66.76M transitions, seed 0) that reached its scheduled end following an object path tracked from the video. It finished after the 12:00 UTC last-pack cut-off, the owner moved the cut-off, and it passed the final numerical admission checks after disclosed tracker revisions, a retrospective alignment of the episode-39 prerequisite and an exception that allowed resumed training; it is packed as the moving v5 file. Training was stopped and
-resumed twice and lost its replay buffer each time. It failed its midpoint check, and we do not know why.
-Moving v5 (`b476eb1c`) is the counted file, uploaded 14:28 UTC; all-static combined v5 (`ddfc98b3`) is the fallback;
-[the submission ledger](docs/chain/SUBMISSION.md) records uploads and the final selection as they happen.
+- **Episode**: one recorded video of a person doing one task. Episodes are numbered.
+- **Slice**: one folder under `src/features/`. It holds all the code, settings and README for one job.
+- **Pack**: the single Parquet file the organisers' kit builds for upload, with its manifest (a list of
+  every input file and its SHA-256 hash).
+- **Admission gate**: a pass/fail rule written down before the result is known. A result that fails
+  is not used. The rules are in `docs/chain/*-protocol.md`; the verdicts are in `*-outcome.md`.
+- **CD-O**: chamfer distance between our object mesh and the organisers' scan of the object, in cm.
+  Lower is better.
+- **AUC**: area under the curve of pose success against the error threshold, from 0 to 1. Higher is better.
+- **SP-SR / MP-SR**: share of episodes whose object poses stay within a loose limit (10 cm, 0.5 rad) or a
+  tight limit (3 cm, 30 degrees). Higher is better.
+- **RPE / MPPE**: position error relative to another object / mean error of six points on the object, in cm.
+  Lower is better.
 
 ## Results
 
@@ -79,52 +70,90 @@ Our own measurements, none of them a leaderboard score:
 | Moving policy AUC on episode 39 | 0.775 old scorer, 0.669 new (0.591 with the tracking mesh) | Same hyperparameters as 38, but trained uninterrupted; labelled practice episode |
 | Episode 38 error against its own video goal | 1.42 cm, 1.59 degrees | No ground-truth labels available to us |
 
-- New-scorer figures use public geometry and assumed axes, as the host's reference geometry is
-  unpublished. They do not predict host scores.
-- Every pose number in this repository from before 4 November uses the old scorer.
-- We chose the mesh rules on the same public scans, so these are development estimates. Most of the v5
-  gain comes from one pitcher pair, and ten spoon pairs have no public scan.
-- We expect the combined file's CD-O to be somewhat worse than D1 v5's.
-- Episode 38's numbers do not show that its goal is correct or that it beats the static rollout. The video tracker failed its first frozen rule and its amendment, and proceeded under a conditional rule written after seeing both clips' gates and before any label. It used a body convention read once from the public scan. Discount it accordingly ([moving-m1-outcome.md](docs/chain/moving-m1-outcome.md)).
+What these numbers do not show:
+
+- New-scorer figures use public geometry and assumed axes. The host's reference geometry is
+  unpublished. They do not predict host scores. Pose numbers from before 4 November use the old scorer.
+- We chose the mesh rules on the same public scans, so the mesh numbers are development estimates.
+  Most of the v5 gain comes from one pitcher pair. Ten spoon pairs have no public scan.
+- D1 v5 used two generated Hunyuan3D-2mini shapes (evaluation pot 5 and pitcher 20). The combined file
+  does not, because they have no recorded mapping to the rollout frame. That is why its CD-O is worse.
+- Episode 38 does not show that its goal is correct or that it beats the static rollout. Its training
+  was stopped and resumed twice and lost its replay buffer each time. It failed its midpoint check, and
+  we do not know why. It finished after the planned last-pack time, which the owner moved. It passed
+  the final checks after disclosed tracker revisions, a retrospective alignment of the episode-39
+  prerequisite and an exception allowing resumed training. The video tracker failed its first fixed
+  rule and its amendment, then passed a conditional rule written after seeing both clips' gates and
+  before any label ([moving-m1-outcome.md](docs/chain/moving-m1-outcome.md)). Discount it accordingly.
+
+## Pictures
+
+None of these is a challenge score. The full explanation is in the
+[non-technical report](docs/report/nontechnical/report.md).
+
+Episode 38 policy on real footage. Green is the pan mask from the video. Orange is the larger
+simulated pan at the exported poses. The robot hands come from a CPU replay whose pan path differs
+from the export by 0.63 cm on average (1.84 cm at most).
+[Watch the clip](docs/report/nontechnical/figures/21-episode38-on-real-footage.mp4).
+
+![Episode 38 policy drawn on real footage](docs/report/nontechnical/figures/21-episode38-on-real-footage.png)
+
+Episode 38 tracking error against its video goal, at the failed midpoint check and at the end of training.
+
+![Episode 38 tracking error at the midpoint and at the end of training](docs/report/nontechnical/figures/20-episode38-video-goal.png)
+
+Practice episode 39 against motion capture at each stage (old scorer; the new scorer moves the video
+policy from 0.775 to 0.669).
+
+![Episode 39 at each stage against motion capture](docs/report/nontechnical/figures/18-policy-on-video-path.png)
+
+The video tracker's pan outline on episodes 39 and 38.
+[Watch the clips](docs/report/nontechnical/figures/16-tracked-pan.mp4).
+
+![Tracked pan outline on real footage](docs/report/nontechnical/figures/16-tracked-pan.png)
 
 ## Reproduce
 
-Packed files, run records, environments, the dataset and `upstream/` are not in git. These commands need
-them in place. Container build files are in [scripts/container/](scripts/container/README.md).
+Packed files, run records, environments, the dataset and `upstream/` are not in git. The commands
+need them in place. Container build files are in [scripts/container/](scripts/container/README.md).
 
 ```bash
 bash scripts/linux/install-linux-cuda.sh   # project environment
 bash scripts/linux/install-kit-env.sh      # submission kit environment
 bash scripts/linux/install-flashchord.sh   # FlashCHORD runtime
-# Check the moving file's recorded hashes, then run the full CPU release check (the 20261104T1316Z
-# manifest checks the static fallback instead)
-bash scripts/reproduce/verify.sh submission/20261104T1403Z-d2-moving-v5/track3_combined_v5.manifest.json
-bash scripts/reproduce/check_release.sh --combined submission/20261104T1403Z-d2-moving-v5/track3_combined_v5.manifest.json
+# Check the counted file's recorded hashes, then run the full CPU release check
+bash scripts/reproduce/verify.sh submission/20261104T1422Z-d2-moving-v5/track3_combined_v5.manifest.json
+bash scripts/reproduce/check_release.sh --combined submission/20261104T1422Z-d2-moving-v5/track3_combined_v5.manifest.json
 # Print rebuild plans; add --run to execute
 bash scripts/reproduce/d1_meshes_v5.sh https://github.com/BDavid03/video2data/commit/b1617234a85e316baa4a67b7f10ff053f5f92c4d
 bash scripts/reproduce/d2_poses_v5.sh
 bash scripts/reproduce/d3_report.sh
 ```
 
-Use the full commit URL: it is packed into the file, so a shortened one changes the bytes. Older runs may
-need their recorded commit, because the scripts refuse changed sources. See
-[scripts/reproduce/README.md](scripts/reproduce/README.md).
+- The counted file's manifest pins the report source at its URL commit `c8ff8c1`. Run the two checks
+  from that commit; at a later commit the report hash no longer matches.
+- Use the full commit URL. It is packed into the file, so a short one changes the bytes.
+- The scripts refuse changed sources. Older runs may need their recorded commit.
+- Details: [scripts/reproduce/README.md](scripts/reproduce/README.md).
 
 ## Layout
 
 | Path | Contents |
 | --- | --- |
-| `src/features/` | One folder per feature, each with a README ([index](docs/design/README.md#feature-directory)) |
-| `docs/report/` | Technical report source (`track3/`), plain-language report and figures (`nontechnical/`) |
-| `docs/chain/` | Dated working records and decision protocols |
-| `docs/design/` | Feature directory, artifact contracts, code style |
+| `src/features/` | One slice per job, each with a README ([index](docs/design/README.md#feature-directory)) |
+| `scripts/reproduce/` | Rebuild and check scripts |
+| `docs/report/` | Technical report (`track3/`, PDF in `final/`), plain-language report and figures (`nontechnical/`) |
+| `docs/chain/` | Dated working records, gates written before each run (`*-protocol.md`) and their verdicts (`*-outcome.md`) |
+| `docs/design/` | Slice index, artifact contracts, code style |
 | `data/configs/` | Pinned sources (`sources.lock.json`) and the frozen split (`splits/public-v1.json`) |
 | `data/reports/` | [Contract](data/reports/contract.md), [metric protocol](data/reports/metric-protocol.md), [data audit](data/reports/data-audit/README.md), [model licences](data/reports/model-readiness/README.md) |
-| `AGENTS.md`, `CLAUDE.md` | Instructions for the coding agents |
 
-Inputs are `nvidia/video_to_data_challenge` at `5f68335f3acc802033d1e80728c1633197521de8`, FlashCHORD at
-`aee95f25ae0943f335d8bb42fa95b6a9acfa266f`, and the submission kit. Episode 41 and holdout episodes 43 and 44
-are excluded from current work. Public labels supported development selection of the static placement, one
-separate mocap-reference training experiment on practice episode 39, and diagnostics; episode 38's policy trained
-against a video-derived reference. Scores in the archived depth study
-compare to MoGe2 pseudo-labels, not measured depth, and are separate from this entry. Licence: [Apache-2.0](LICENSE).
+## Inputs and limits
+
+- Dataset `nvidia/video_to_data_challenge` at `5f68335f3acc802033d1e80728c1633197521de8`.
+  FlashCHORD at `aee95f25ae0943f335d8bb42fa95b6a9acfa266f`. The organisers' submission kit.
+- Episode 41 and holdout episodes 43 and 44 are excluded.
+- Public labels were used to choose the static placement, for one motion-capture training run on
+  practice episode 39, and for diagnostics. Episode 38's policy trained against a video-derived path.
+- Depth scores compare to MoGe2 pseudo-labels, not measured depth. They are not part of this entry.
+- Licence: [Apache-2.0](LICENSE).

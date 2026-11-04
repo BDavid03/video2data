@@ -1,24 +1,28 @@
 # Track 3 technical report
 
-`main.tex` is the two-page technical report (plus references) the organisers' form asks for, on the
-anonymous `nvidiaextabstract` template. The committed PDF the form links to is
-`docs/report/final/track3-technical-report.pdf`; `scripts/reproduce/release.json` pins the same build
-(`report.sha256`, `report.epoch` = the commit time of the last change under `docs/report/track3`).
+`main.tex` is the source of our two-page technical report plus references (README step 6). It uses the
+anonymous `nvidiaextabstract` template the organisers' form asks for. The PDF the form links to is
+`docs/report/final/track3-technical-report.pdf`.
 
-Build (CPU, deterministic for a given commit):
+## Build
+
+CPU only. The same commit gives the same bytes.
 
 ```bash
 bash scripts/reproduce/d3_report.sh --run    # prints where main.pdf lands
 bash scripts/reproduce/check_release.sh --combined <release manifest>   # rebuilds and compares the hash
 ```
 
-`main.tex` is written in plain prose with every number inline (no toggle or macro block since 4 November
-15:00 UTC). After any wording change: commit, run `d3_report.sh --run`, move `release.json`'s `epoch` and
-`sha256` to the new build, copy the PDF to `docs/report/final/` and commit. The uploaded moving pack's
-admission record pins the hash of the `main.tex` it was admitted against (at its URL commit `c8ff8c1`), so a
-later wording change is a documentation update, not a change to the packed file. The report names no AI
-tools or agents (owner, 4 November).
+`d3_report.sh` still runs `figures/make_figures.py`, but the current report has no figures. Graphs and
+video overlays are in the plain-language report, `docs/report/nontechnical/`.
 
-`figures/` holds the figure sources of the earlier extended abstract (packed CD-O by object, slot-1
-offsets); the current report has no figures, and the non-technical report under
-`docs/report/nontechnical/` carries the graphs and overlays.
+## After a wording change
+
+1. Commit.
+2. Run `bash scripts/reproduce/d3_report.sh --run`.
+3. Set `report.epoch` and `report.sha256` in `scripts/reproduce/release.json` to the new build.
+   `epoch` is the commit time of the last change under `docs/report/track3`.
+4. Copy the PDF to `docs/report/final/` and commit.
+
+The submitted moving pack's admission record hashes the `main.tex` it was checked against (at commit
+`c8ff8c1`). A later wording change updates the report only. It does not change the submitted file.

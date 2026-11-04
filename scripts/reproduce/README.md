@@ -1,155 +1,139 @@
-# Reproduce Track 3 deliverables
+# Reproduce Track 3 files
 
-Run from the checkout with the existing environments. Nothing here uploads, pushes or
-contacts Kaggle, and nothing is deleted. The D1, D2 and D3 scripts print a plan by
-default and create nothing. Add `--run` to execute; they stop at the first failing command.
+These scripts check and rebuild the files we submitted (README steps 2, 3, 5 and 6: shapes,
+static poses, the submitted file, and the report).
 
-## Release check
+Words used here:
+
+- A **pack** is the single Parquet or CSV file we upload. Packing turns meshes and poses into it.
+- A **manifest** is the JSON file written beside a pack. It records the SHA-256 hash of the pack and
+  of every input and source file used to make it.
+- **Preflight** is the organisers' format check (`tools/preflight.py` in the submission kit). It must
+  print `Ready to submit`.
+- **CD-O** is the shape score (object Chamfer distance, cm, lower is better). **AUC** is the main pose
+  score (area under the success curve, higher is better).
+
+Run every command from the checkout root with the existing environments. Nothing here uploads,
+pushes, contacts Kaggle or deletes anything. The D1, D2 and D3 scripts only print a plan by default.
+Add `--run` to execute. They stop at the first failing command.
+
+## What is in `submission/`
+
+| Folder | File | Status |
+| --- | --- | --- |
+| `20261104T1422Z-d2-moving-v5/` | `track3_combined_v5.parquet` (`b476eb1c`) | Counted file. Episode 38 moving, 19 episodes static |
+| `20261104T1316Z-d2-combined-v5/` | `track3_combined_v5.parquet` (`ddfc98b3`) | All-static fallback, also uploaded |
+| `20261104T1403Z-d2-moving-v5/` | (`1570037a`) | Earlier moving pack, never uploaded |
+| `20261104T1418Z-d2-moving-v5/` | (`623a1a8a`) | Earlier moving pack, never uploaded |
+
+Older packs (D1 v2 to v5, D2 v1 to v5) are not in this checkout's `submission/` folder. The commands
+below that read them need those folders put back first.
+
+## Check the submitted file
 
 ```bash
-bash scripts/reproduce/check_release.sh
+bash scripts/reproduce/verify.sh submission/20261104T1422Z-d2-moving-v5/track3_combined_v5.manifest.json
+bash scripts/reproduce/check_release.sh --combined submission/20261104T1422Z-d2-moving-v5/track3_combined_v5.manifest.json
+# the all-static fallback
 bash scripts/reproduce/check_release.sh --combined submission/20261104T1316Z-d2-combined-v5/track3_combined_v5.manifest.json
 ```
 
-The first form hashes the two v5 files, verifies both manifests and the pose provenance, runs both preflights from the 30 September kit with Kaggle checks skipped, and rebuilds the report. Its READY does not show board acceptance: D2 v5 passed it and was rejected on all five pose boards. `--combined` also checks that manifest's provenance and file hash and runs the current
-kit's preflight on it. Each check prints OK
-or FAIL, and READY means everything matched `release.json`. Logs go to a new directory
-under `data/outputs/report/`. A matching PDF is published as
-the path `scripts/reproduce/release.json` names (`data/outputs/report/track3-technical-report-e63bffef.pdf` since the moving v5 release; `62967a99` was the static abstract); a different existing file is never
-overwritten.
+`check_release.sh` checks the files that `release.json` names, then rebuilds the report. With no
+arguments it hashes the separate D1 v5 mesh pack and D2 v5 pose pack, verifies both manifests and the
+pose provenance, and runs both preflights with Kaggle checks skipped. `--combined` also checks that
+manifest's provenance and file hash and runs the current kit's preflight on it. Each line prints OK or
+FAIL. READY means everything matched `release.json`. READY does not mean the boards accept the file:
+D2 v5 passed it and was rejected on all five pose boards.
 
-## All commands
+Logs go to a new folder under `data/outputs/report/`. If the rebuilt PDF matches, it is written to the
+path `release.json` names (`data/outputs/report/track3-technical-report-08021ded.pdf`). An existing
+different file is never overwritten.
+
+`d2_poses_moving.sh` runs the moving-pose packer (`src.features.pose_insurance.pack_moving`) and passes
+its arguments through: `--request`, `--code-commit`, `--out`, `--dry-run`, `--verify-manifest`.
+
+## Rules that apply to every rebuild
+
+- Use the full commit URL. It is written into the pack, so a short one changes the bytes.
+- The scripts refuse changed sources. Older packs need their recorded commit checked out.
+- `--historical` (sets `V2D_HISTORICAL=1`; `check_release.sh` sets it itself) reads frozen sources from
+  the commit recorded before the folder layout change, and reports the current file as drift.
+- Episodes 41, 43 and 44 are refused.
+
+## D1: meshes (step 2)
 
 ```bash
 bash scripts/reproduce/d1_meshes_v5.sh https://github.com/BDavid03/video2data/commit/b1617234a85e316baa4a67b7f10ff053f5f92c4d
-bash scripts/reproduce/d2_poses_v5.sh
-bash scripts/reproduce/verify.sh submission/20261103T2058Z-d1-v5/track3_meshes_v5_final.manifest.json
-bash scripts/reproduce/verify.sh submission/20261103T2024Z-d2-v5/track3_poses_v5_final.manifest.json
-bash scripts/reproduce/d1_meshes.sh
 bash scripts/reproduce/d1_meshes.sh https://github.com/BDavid03/video2data/commit/b1617234a85e316baa4a67b7f10ff053f5f92c4d --version v4
-bash scripts/reproduce/d2_poses.sh
-bash scripts/reproduce/d3_report.sh
-bash scripts/reproduce/verify.sh submission/20261101T1605Z-d1-v2/manifest.json
-bash scripts/reproduce/verify.sh submission/20261101T1703Z-d2-v1/manifest.json
+bash scripts/reproduce/d1_meshes.sh 'https://github.com/<owner>/<repo>/commit/<sha>' --run   # v2
+# optional: --manifest submission/<recorded-d1-v2>/manifest.json
 ```
 
-`d2_poses_moving.sh` runs the moving-pose pack, `src.features.pose_insurance.pack_moving`,
-and passes its arguments through (`--request`, `--code-commit`, `--out`, `--dry-run`,
-`--verify-manifest`).
+`d1_meshes_v5.sh` repacks the generated-shape tree that passed its checks. Default output:
+`data/outputs/mesh_generative/g2-real-pack/track3_meshes_v5.parquet`.
 
-## D1: recorded measures to meshes, CD-O, pack, preflight
+`d1_meshes.sh` reads the newest `submission/*-d1-<version>/manifest.json`. It checks that the build
+request equals `src/features/mesh_extents/requests/build-v2-r2.json`, then rebuilds from that request's
+23 recorded measure runs on CPU. It does not redo depth or measurements. The kit interpreter then runs
+`src/features/mesh_eval/local_cdo.py` (sampling seeds from episodes 1, 3 and 5), then the manifest's
+pack and preflight commands. Public scans are used only as scoring references. Output goes to a new
+`data/.runtime/tmp/reproduce-d1-<unique>/` with logs, `cdo.json`, the Parquet and a new `manifest.json`.
 
-```bash
-bash scripts/reproduce/d1_meshes.sh 'https://github.com/<owner>/<repo>/commit/<sha>' --run
-# Optional: --manifest submission/<recorded-d1-v2>/manifest.json
-```
+The recorded fitted score is 0.9251 cm and the rebuild recovered it. The cross-fitted figure is
+0.92572 cm. Neither is a host score.
 
-The default source is the newest `submission/*-d1-v2/manifest.json`. The script checks
-that its build request equals `src/features/mesh_extents/requests/build-v2-r2.json`, then
-rebuilds from that request's 23 recorded measure runs. It does not regenerate depth or
-measurements. It runs on CPU.
-
-The kit interpreter then runs `src/features/mesh_eval/local_cdo.py` (sampling seeds from
-episodes 1, 3 and 5), followed by the manifest's pack and preflight commands. CD-O uses
-public scans only as scoring references. Output goes to a new
-`data/.runtime/tmp/reproduce-d1-<unique>/` with logs, `cdo.json`, the Parquet and a new
-`manifest.json`.
-
-The recorded fitted score is 0.9251 cm and the reproduction recovered it. The cross-fitted
-adoption figure is 0.92572 cm. The fitted score is neither a cross-fitted assessment nor a
-host score.
-
-## D2: campaign or composition to pack and preflight
-
-The default is the newest `submission/*-d2-v*/manifest.json`; `--manifest` picks another.
-Unsupported versions are refused, `--run` needs an explicit commit URL, and episodes 41,
-43 and 44 are refused.
-
-### v2: CPU composition
+## D2: static poses (step 3)
 
 ```bash
+bash scripts/reproduce/d2_poses_v5.sh     # verify the frozen v5 sources; --run packs
 bash scripts/reproduce/d2_poses.sh \
   'https://github.com/OWNER-PLACEHOLDER-not-final/video2data/commit/c7f90116f11b41970d0e910375713037faab126f' \
   --manifest submission/20261101T2315Z-d2-v2/manifest.json --run
 ```
 
-This checks each recorded source hash, then copies 18 v1 exports from
-`data/outputs/pose_insurance/results-v1/` and K1a episodes 1 and 28 from
-`data/outputs/pose_insurance/rebuilt-v2/` into a new
-`data/.runtime/tmp/reproduce-d2-<unique>/results/`. Episode 30 stays on v1. Preflight must
-exit 0 and report `Ready to submit`. This reproduces the composition from evaluated
-exports. It does not regenerate their GPU trajectories.
+`d2_poses_v5.sh` runs `src.features.pose_insurance.scored_stereo_pack --version v5` on CPU.
 
-### v3: stereo-scale composition
+`d2_poses.sh` defaults to the newest `submission/*-d2-v*/manifest.json`; `--manifest` picks another.
+It refuses unknown versions, and `--run` needs an explicit commit URL.
 
-```bash
-bash scripts/reproduce/d2_poses.sh \
-  'https://github.com/OWNER-PLACEHOLDER-not-final/video2data/commit/bb8a3f02fac668e86ff7b6a3ad7c3ccaec40050d' \
-  --manifest submission/<stamp>-d2-v3/manifest.json --run
-```
+- **v2 (CPU).** Checks each recorded source hash, then copies 18 v1 exports from
+  `data/outputs/pose_insurance/results-v1/` and episodes 1 and 28 from
+  `data/outputs/pose_insurance/rebuilt-v2/` into a new `data/.runtime/tmp/reproduce-d2-<unique>/results/`.
+  Episode 30 stays on v1. Preflight must report `Ready to submit`. This rebuilds the file from saved
+  rollouts. It does not rerun the GPU.
+- **v3 (CPU).** Same path with the accepted stereo-scale exports. The rebuilt CSV hash must equal the
+  recorded one. Output: `data/.runtime/tmp/ctx05-scored-reproduce-d2-<new>/`. Record:
+  `data/outputs/pose_insurance/v3/report.md`.
+- **v1 (GPU).** Pass a new empty results folder, a commit URL and
+  `--manifest submission/20261101T1703Z-d2-v1/manifest.json`. Budget from the manifest: 512 steps, one
+  world, replay minimum 32, 20 evaluation episodes. It uses current code, and has never been rerun end
+  to end.
 
-Same path as v2, using the accepted `S1` and unchanged `v2` exports, and it also requires
-the rebuilt CSV hash to equal the recorded one. It does not repeat stereo estimation,
-training or the physical evaluator. Output goes under
-`data/.runtime/tmp/ctx05-scored-reproduce-d2-<new>/`; the campaign record is
-`data/outputs/pose_insurance/v3/report.md`.
-
-### v1: frozen loop campaign (GPU)
-
-```bash
-bash scripts/reproduce/d2_poses.sh data/.runtime/tmp/reproduce-d2-campaign/results \
-  'https://github.com/<owner>/<repo>/commit/<sha>' \
-  --manifest submission/20261101T1703Z-d2-v1/manifest.json --run
-```
-
-Use a new, empty results directory and a free GPU. The budget comes from the manifest:
-512 steps, one world, replay minimum 32, on 20 evaluation episodes. It uses the current
-slice code, so changing a path does not reconstruct historical code. The v1 campaign has
-never been re-executed by this script; only its four printed commands were compared with
-the original script.
-
-## D3: report to figures and PDF
+## D3: report (step 6)
 
 ```bash
 bash scripts/reproduce/d3_report.sh        # plan only
-bash scripts/reproduce/d3_report.sh --run  # CPU, always a new directory
+bash scripts/reproduce/d3_report.sh --run  # CPU, always a new folder
 ```
 
-The script pins HEAD, exports `docs/report/track3` into
-`data/.runtime/tmp/reproduce-d3-<unique>/src/`, regenerates the figures, and builds the PDF
-with Tectonic 0.17.0. `make_figures.py` reads recorded inputs from this checkout. Tectonic
-may need the network for fonts missing from `data/.cache/tectonic`.
+The script exports the committed `docs/report/track3` into
+`data/.runtime/tmp/reproduce-d3-<unique>/src/`, runs `figures/make_figures.py` on recorded inputs, and
+builds the PDF with Tectonic 0.17.0. Tectonic may need the network for fonts missing from
+`data/.cache/tectonic`. `SOURCE_DATE_EPOCH` comes from `release.json` (`report.epoch`). Two runs on
+2 November 2026 were byte-identical. Audit: `data/.runtime/tmp/reproduce-d3-audit-eTmAqxDt/`.
 
-`SOURCE_DATE_EPOCH` comes from the last commit touching `docs/report/track3`. Commits
-elsewhere keep the PDF bytes only while the figure inputs under `data/outputs/` and
-upstream, and `data/.cache/tectonic`, stay the same. A commit touching any file in the
-report tree, including a README, changes the epoch and the hash. `check_release.sh` detects it.
+## What `verify.sh` covers
 
-Two runs on 2 November 2026 at commit `9fb178a` were byte-identical to each other. They
-differ from earlier builds only in dates, offsets and the PDF ID. That report had 3 pages;
-the only TeX error was the allowed XeTeX/microtype one. Audit records:
-`data/.runtime/tmp/reproduce-d3-audit-eTmAqxDt/`.
+`verify.sh <manifest.json>` is read-only and CPU only. It hashes the pack and every path or file entry
+the manifest records. If a recorded path has moved, `moved-paths.json` points it to the moved file with
+the same hash. Exit 0 means all match; exit 1 means at least one mismatch.
 
-## What verify.sh covers
+It checks only what the manifest records. It does not follow unhashed paths in run records. The old D1
+manifest lists only the pack, so it does not verify the 23 measure runs. Matching hashes do not show
+that a new GPU run gives the same numbers.
 
-`verify.sh <manifest.json>` is read-only and CPU only. It hashes the packed file and every
-explicit nested path or file entry with a SHA-256. If an original path is missing,
-`moved-paths.json` redirects it to the moved file with the same digest. It exits 0 when
-all match and 1 on any mismatch.
-
-Coverage is only what the manifest records. It does not follow unhashed run-record paths.
-The old D1 manifest lists only the packed file, so its one matching entry does not verify
-the 23 measure producers. Matching hashes also do not show that a new GPU run would
-reproduce numerically. Align your sources with the recorded hashes before claiming an
-exact historical reproduction.
-
-`verify.sh --historical <manifest>` (`V2D_HISTORICAL=1`, which `check_release.sh` sets) reads frozen
-sources from the recorded commit from before the folder layout change. Without it, the D2 v5 manifest now
-gives 68/69, because the layout change rewrote `scripts/reproduce/d2_poses_v5.sh`. With it, the script is
-reported as drift and its frozen copy matches. The combined v5 manifest gives 130/130 without the flag.
-
-Results below are from 2026-11-04, before the layout change, with paths relative to `submission/`. Logs:
-`data/outputs/report/critic-checks-20261104T012723Z/`.
+Recorded results on 4 November 2026, before the layout change (paths under `submission/`; logs in
+`data/outputs/report/critic-checks-20261104T012723Z/`):
 
 | Manifest | OK / entries | Mismatches |
 | --- | --- | --- |
@@ -165,31 +149,29 @@ Results below are from 2026-11-04, before the layout change, with paths relative
 | `20261103T2024Z-d2-v5/track3_poses_v5_final.manifest.json` | 69/69 | None |
 | `20261103T2058Z-d1-v5/track3_meshes_v5_final.manifest.json` | 4/4 | None |
 
-The mismatches are source files, flags, protocol text and scripts that later commits
-changed. They do not affect the packed v5 files. Use an older pack's recorded commit to
-reproduce it.
+The mismatches are source files, flags, protocol text and scripts changed by later commits. They do
+not affect the v5 packs. After the layout change, D2 v5 gives 68/69 without `--historical` (the layout
+change rewrote `d2_poses_v5.sh`) and 69/69 with it. Combined v5 gives 130/130 without the flag.
 
-## CPU reproduction record, 2 November 2026
+## CPU rebuild record, 2 November 2026
 
-Both real-data `--run` paths exited 0 and both preflights reported `Ready to submit`.
+Both real-data `--run` paths exited 0 and both preflights printed `Ready to submit`.
 
 | File | SHA-256 | Result |
 | --- | --- | --- |
 | D1 v2 Parquet | `43fa6ac02353520aac4d019f7d6d45e0aab923f1c8f43d6cf03e30c242ba95c2` | Byte-identical, 294,912 rows |
 | D2 v2 CSV | `6ea6530b5408d2d24a4bf9a4f038b99aa6da659d6af3faf2020dea23a2923741` | Byte-identical, 9,120 rows |
 
-All 47 D1 PLY files matched the historical build. The fresh build is
-`data/outputs/mesh_extents/build/20261102T000114.850697Z-1a4c354e/run.json`. D2 verified
-20/20 source and copy hashes. Evidence: `data/.runtime/tmp/reproduce-d1-wbr3u3xl/`,
-`data/.runtime/tmp/reproduce-d2-wi7g6bmn/` and `data/.runtime/tmp/ctx05-d5-evidence/`.
+All 47 D1 PLY files matched the original build. D2 matched 20/20 source and copy hashes. Evidence:
+`data/.runtime/tmp/reproduce-d1-wbr3u3xl/`, `data/.runtime/tmp/reproduce-d2-wi7g6bmn/` and
+`data/.runtime/tmp/ctx05-d5-evidence/`.
 
 Known gaps:
 
-- D2 GPU regeneration has not been executed, including the K1a runs for episodes 1 and 28
-  and the v1 campaign. The CPU result shows reproduction from recorded exports. It does
-  not show retraining or numerical GPU reproducibility.
-- At the time, the D2 v2 source-manifest check gave 106/107: the pinned
-  `docs/chain/pose-placement-protocol.md` differed from the package's recorded hash, so a
-  fully matching historical source tree is not established.
-- Those runs used placeholder URLs, which are not final, and skipped Kaggle checks. The D1
-  preflight also recorded a `no --results given` warning.
+- We have not rerun D2 training on the GPU (the episode 1 and 28 runs and the v1 campaign). The CPU
+  rebuild shows the file can be rebuilt from saved rollouts. It does not show retraining gives the
+  same numbers.
+- At that time the D2 v2 source check gave 106/107: `docs/chain/pose-placement-protocol.md` differed
+  from its recorded hash.
+- Those runs used placeholder URLs and skipped Kaggle checks. D1 preflight also warned
+  `no --results given`.
