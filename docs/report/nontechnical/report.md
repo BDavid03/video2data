@@ -1,12 +1,12 @@
 # Seeing what the models do
 
-Recorded state: 4 November 2026, after the two tissue-box runs and the original episode-39 checks.
+Recorded state: 4 November 2026, including a CPU replay with policy hands and real-video pixel masks.
 
 ## What the challenge asks
 
 Watch a person's camera footage, reconstruct the objects, and reproduce their movement in simulation. A **policy** is a controller trained by trial and error in simulation. A **reference** is the goal path it tries to follow. **AUC** is a 0-to-1 fit score: higher means closer agreement across a range of allowed errors; it is not a percentage of tasks completed.
 
-**No moving policy exists yet for any challenge episode. Our current entry's objects stay still.** The moving box below is the example task supplied with the tools, not a challenge result. This report describes the prepared entry and recorded experiments; it claims no upload or leaderboard score.
+**Our current entry's objects stay still. No challenge result is claimed here.** The moving box below is the example task supplied with the tools. This report describes the prepared entry and diagnostic experiments; it claims no upload or leaderboard score.
 
 ## What we have prepared to submit so far
 
@@ -38,9 +38,25 @@ The first two seconds expose the initial lag; mean position error is 0.516 cm, w
 
 ![Six moments from the finished policy](figures/09-finished-policy.png)
 
-Blue dotted outlines show the goal; amber solid outlines show what happened, with trails. These are schematic boxes using the shipped mesh's dimensions and the exported positions and rotations. Faint wrist-to-fingertip guides are **the demonstration's hands, not the policy's**; intermediate finger joints are not available. The evaluator export has no policy hands, so their actual grasp is unshown and its naturalness unmeasured.
+Blue dotted outlines show the goal; amber solid outlines show what happened, with trails. These are schematic boxes using the shipped mesh's oriented bounds and the exported positions and rotations. Faint wrist-to-fingertip guides in this older figure are **the demonstration's hands, not the policy's**. The separate replay below now shows the actual policy hands.
 
 [Earlier partial policy: the same six moments](figures/08-partial-policy.png) · [Side-by-side video](figures/10-policy-comparison.mp4)
+
+### What the policy's own hands do
+
+![Actual policy hands in a CPU diagnostic replay](figures/12-policy-hands.png)
+
+Teal and purple are the controller's actual left and right hands, drawn with simplified versions of the installed Sharpa hand meshes. Amber is the box; the dashed blue outline is its goal. We reran the finished fresh-start checkpoint on the CPU, with the same explicit reset, one simulated world and assistance switched off. Across all 390 steps, its box path differs from the official export by **0.097 cm on average and 0.365 cm at most**, without aligning the paths. This is a CPU replay of the same policy, not an exact recording of the official run. **It is diagnostic only, never scored or packed.**
+
+The box's angle from its goal averages **0.515 degrees**, with a maximum of **1.932 degrees**, in this CPU replay. The official export gives **0.539 and 1.977 degrees**. The blue outline now follows the mesh's own orientation and dimensions. An earlier drawing used a differently oriented, oversized bounding box; the apparent large rotation was a drawing error. Figures 8–10 use the corrected bounds too.
+
+The box sits between two curled hands at opposite ends. The thumbs lie along its upper sides while other fingers wrap around the ends; the hands lift and lower it together, then open again. This looks like a two-handed side hold. Its security outside the simulation is unmeasured.
+
+The simulator reports contact with both hands in **162 of 162 steps** while the box is more than 5 cm above its starting height. These are raw contact points from the last physics substep, not a measure of grip strength or human-like dexterity. The pictures and contacts do not establish a secure, natural grasp.
+
+There are no support contacts in those raised steps. Unverified solver force readings, summed as magnitudes over each hand's contact points, peak around **3.9 kN on the left and 2.9 kN on the right**. These large raw values reinforce the limit: following the box path does not demonstrate realistic grip strength.
+
+[Watch the whole CPU replay](figures/12-policy-hands.mp4)
 
 ### Telling apart two objects' position
 
@@ -65,22 +81,26 @@ Masks mark pixels assigned to each object. Cup/rack and sweeper/rack are separat
 
 This reference moves about eight times faster than the example box and rotates 109 degrees. Its original setup checks stopped before training: the saved strip is a proposed reference, not a learned rollout. A disclosed redesign is in the protocol; no success from it is claimed here.
 
+The earlier episode-39 setup launched the pan into the air in simulation. A smaller support and a sturdier mass and inertia for the pan now let it rest properly in the recorded setup checks. **Training is under way.** This describes the corrected setup and work in progress; it states no training or scoring outcome.
+
 ## What is still unproven
 
 Transferring the box result to a challenge episode still needs a usable object reconstruction, a reliable path from video, hands that can follow it, and a learned policy that moves the object physically. None of those links is established by the box's score. FoundationPose has only been screened on two used pairs and is not in the entry. The challenge result remains static.
 
-### Placeholder — tracked object on a real camera clip
+### Real-video masks: what the vision step sees
 
-**Not available yet.** No per-frame tracking of a challenge episode exists in these records. The camera overlays above are single-frame pose estimates. A future clip would need recorded per-frame object poses and camera motion before a tracked object could honestly be drawn over the footage; no synthetic stand-in is shown.
+![Pan and hand masks on public camera footage, including the failed table selection](figures/13-pan-masks.png)
+
+These are real camera frames with the pan marked in amber and hands in teal and pink. This is what the vision step sees: **marked pixels, not yet positions in the world**. Episode 38's first try picked the table; a fixed rule choosing the smallest qualifying detection box corrected the selection and is applied to both clips. Episode 38 is a scored episode. Its footage is public challenge data used here; its labels are not available to us and were not used. Hidden handle edges and a filled handle opening in late frames of 38 remain visible limitations. At 10 seconds in 39, a hand mask marks a bystander's hand. No mask accuracy score, reliable hand identity or 3D tracking result is claimed.
 
 ---
 
 Rebuild all figures, animations, the table and this report on CPU:
 
 ```bash
-CUDA_VISIBLE_DEVICES='' PYTHONPATH=. data/.runtime/linux-cuda/bin/python -B scripts/report/nontechnical_figures.py
+CUDA_VISIBLE_DEVICES='' JAX_PLATFORMS=cpu PYTHONPATH=. data/.runtime/linux-cuda/bin/python -B scripts/report/nontechnical_figures.py
 ```
 
-Input SHA-256 hashes and per-figure source mappings: `data/outputs/visuals/inputs.json`; numeric checks and build details: `data/outputs/visuals/build-summary.json`. Only saved outputs, the supplied box mesh and recorded notes are read; no model runs or challenge videos are opened.
+Add `--replay` to explicitly rebuild the CPU policy diagnostic first; the default reads its saved arrays. See [replay instructions](README.md). Input SHA-256 hashes and per-figure source mappings: `data/outputs/visuals/inputs.json`; numeric checks and build details: `data/outputs/visuals/build-summary.json`. The default reads saved outputs, cached camera frames, installed visual meshes and recorded notes; it does not run a model or read a scan.
 
 Evidence: [box outcomes](../../chain/moving-m0b-outcome.md), [earlier policy](../../chain/moving-m0-outcome.md), [pose pilot](../../chain/foundationpose-pilot-outcome.md), [frame-zero panel](../../chain/frame0-panel-outcome.md), [episode-39 state](../../chain/moving-m2-protocol.md), [entry facts](../../chain/COMPLETION-PLAN.md#1-where-the-entry-really-stands).

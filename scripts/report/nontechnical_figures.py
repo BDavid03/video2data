@@ -7,10 +7,12 @@ Run: CUDA_VISIBLE_DEVICES='' PYTHONPATH=. data/.runtime/linux-cuda/bin/python -B
 from __future__ import annotations
 
 import hashlib
+import argparse
 import io
 import itertools
 import json
 import os
+import subprocess
 from pathlib import Path
 import textwrap
 import xml.etree.ElementTree as ET
@@ -20,6 +22,7 @@ OUTPUT = ROOT / "data/outputs/visuals"
 REPORT = ROOT / "docs/report/nontechnical"
 FIGURES = REPORT / "figures"
 os.environ["CUDA_VISIBLE_DEVICES"] = ""
+os.environ["JAX_PLATFORMS"] = "cpu"
 os.environ["MPLCONFIGDIR"] = str(OUTPUT / "matplotlib")
 os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
 
@@ -44,7 +47,7 @@ FK = f"{DYNAMIC}/m0b/clearance/fk-reference.npz"
 ASSETS = ("data/.runtime/flashchord/video_to_data/robotic_grounding/source/"
           "robotic_grounding/robotic_grounding/assets/human_motion_data/ego_recon/processed")
 OUTCOME = "docs/chain/moving-m0b-outcome.md"
-MANIFEST: dict = {"description": "CPU presentation of saved results; no new model execution.",
+MANIFEST: dict = {"description": "CPU presentation of saved results and a separately recorded diagnostic policy replay.",
                   "inputs": {}, "artifacts": {}}
 
 
@@ -77,12 +80,78 @@ def positions(frame: pd.DataFrame, kind: str) -> np.ndarray:
     return frame[[f"{kind}_position_{axis}" for axis in "xyz"]].to_numpy(dtype=np.float64)
 
 
+def mesh_box_corners(vertices: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Return oriented mesh-bound corners in the original body-local frame.
+
+    The tissue mesh is tilted within its body frame. An axis-aligned body-frame
+    box therefore has the wrong orientation and inflated dimensions. Undo the
+    oriented-bounds transform before applying any recorded body pose.
+    """
+    body_to_box, extents = trimesh.bounds.oriented_bounds(vertices)
+    centered = np.array(list(itertools.product(*zip(-extents / 2, extents / 2))))
+    return (centered - body_to_box[:3, 3]) @ body_to_box[:3, :3], extents
+
+
+def transform_local_points(points: np.ndarray, pose_xyzw: np.ndarray) -> np.ndarray:
+    """Apply one body pose, or a sequence, to the same body-local mesh geometry."""
+    matrices = Rotation.from_quat(pose_xyzw[..., 3:]).as_matrix()
+    return np.einsum("...ij,kj->...ki", matrices, points) + pose_xyzw[..., None, :3]
+
+
 def box_frames(frame: pd.DataFrame, kind: str, corners: np.ndarray, origin: np.ndarray) -> np.ndarray:
-    """Transform the mesh's local bounding box with recorded xyzw poses, in cm."""
+    """Apply recorded xyzw poses to mesh-oriented corners, in centimetres."""
     quaternion = frame[[f"{kind}_quaternion_{axis}" for axis in "xyzw"]].to_numpy()
-    matrices = Rotation.from_quat(quaternion).as_matrix()
-    return (np.einsum("tij,kj->tki", matrices, corners)
-            + positions(frame, kind)[:, None] - origin) * 100
+    pose = np.column_stack([positions(frame, kind), quaternion])
+    return (transform_local_points(corners, pose) - origin) * 100
+
+
+def orientation_error_degrees(achieved_xyzw: np.ndarray, reference_xyzw: np.ndarray) -> np.ndarray:
+    """SO(3) geodesic angle between normalized xyzw rotations, without alignment."""
+    return np.degrees((Rotation.from_quat(achieved_xyzw)
+                       * Rotation.from_quat(reference_xyzw).inv()).magnitude())
+
+
+def goal_box_audit() -> dict:
+    """Record all achieved-to-goal angles independently of drawing geometry."""
+    used = []
+    base = "data/outputs/visuals/policy-hands/m0c"
+    with np.load(io.BytesIO(read_bytes(f"{base}/replay.npz", used))) as data:
+        replay = orientation_error_degrees(
+            data["body_pose_xyzw"][:, int(data["object_body_ids"][0]), 3:].astype(float),
+            data["reference_pose_xyzw"][:, 0, 3:].astype(float))
+    official = trajectory(FINISHED, used)
+    official_angles = orientation_error_degrees(
+        official[[f"achieved_quaternion_{a}" for a in "xyzw"]].to_numpy(),
+        official[[f"reference_quaternion_{a}" for a in "xyzw"]].to_numpy())
+    summary = read_json(f"{base}/summary.json", used)
+    with np.load(io.BytesIO(read_bytes(f"{base}/geometry.npz", used))) as data:
+        vertices = np.concatenate([data[f"vertices_{i}"] for i, info in enumerate(summary["meshes"])
+                                   if info["object"]])
+    body_to_box, extents = trimesh.bounds.oriented_bounds(vertices)
+    # Cuboid axes can be permuted and sign-flipped. Compare against the closest
+    # proper axis permutation, so this measures the actual local mesh tilt.
+    residuals = []
+    for permutation in itertools.permutations(range(3)):
+        for signs in itertools.product((-1, 1), repeat=3):
+            basis = np.eye(3)[list(permutation)] * np.array(signs)[:, None]
+            if np.linalg.det(basis) > 0:
+                residuals.append(Rotation.from_matrix(body_to_box[:3, :3] @ basis.T).magnitude())
+    audit = {"definition": "Achieved-to-reference SO(3) geodesic angle from normalized xyzw quaternions; all 390 matched post-control-step samples, no alignment.",
+             "cause": "Body-axis-aligned bounds were used for a mesh tilted within its body frame; quaternion order is correct.",
+             "body_axis_bounds_dimensions_cm": (np.ptp(vertices, axis=0)*100).tolist(),
+             "mesh_oriented_dimensions_cm": (extents*100).tolist(),
+             "local_mesh_tilt_degrees_modulo_axis_permutation": float(np.degrees(min(residuals))),
+             "body_to_oriented_bounds": body_to_box.tolist()}
+    for name, angles in (("replay", replay), ("official", official_angles)):
+        audit[name] = {"mean_degrees": float(angles.mean()), "max_degrees": float(angles.max()),
+                       "max_step": int(angles.argmax()), "initial_degrees": float(angles[0]),
+                       "per_step_degrees": angles.tolist()}
+    path = OUTPUT / "goal-box-angle-audit.json"
+    path.write_text(json.dumps(audit, indent=2)+"\n")
+    register(path, used, "Goal-box drawing audit: real tracking angles and mesh/body frame mismatch.")
+    return {key: value for key, value in audit.items() if key not in ("replay", "official")} | {
+        name: {key: value for key, value in audit[name].items() if key != "per_step_degrees"}
+        for name in ("replay", "official")}
 
 
 def register(path: Path, used: list[str], caption: str, **details) -> None:
@@ -329,9 +398,10 @@ def policy_visuals() -> dict:
     mesh_relative = str((Path(ASSETS) / mesh_spec.attrib["filename"]).as_posix())
     mesh = trimesh.load(io.BytesIO(read_bytes(mesh_relative, used)), file_type="stl", force="mesh")
     bounds = mesh.bounds
-    corners = np.array(list(itertools.product(*bounds.T)))
+    corners, oriented_extents = mesh_box_corners(np.asarray(mesh.vertices))
+    # Binary corner ordering: a cuboid edge changes exactly one index bit.
     edges = np.array([(i, j) for i in range(8) for j in range(i + 1, 8)
-                      if np.count_nonzero(corners[i] != corners[j]) == 1])
+                      if (i ^ j) in (1, 2, 4)])
     origin = positions(finished, "reference")[0]
     goal = box_frames(finished, "reference", corners, origin)
     actual = [box_frames(frame, "achieved", corners, origin) for frame in (earlier, finished)]
@@ -376,7 +446,7 @@ def policy_visuals() -> dict:
             scene_axes(ax, limits, f"{finished.time_s.iloc[frame]:.2f} seconds")
             draw(ax, arm, frame)
         fig.legend(handles=handles, loc="lower center", bbox_to_anchor=(.5, .075), ncol=3, fontsize=9)
-        footnote(fig, "Faint guides show the demonstration's hands, not the policy's. The evaluator exported no policy hands. Boxes use the shipped mesh's local bounds; trails show object origins.", 133)
+        footnote(fig, "Faint guides show the demonstration's hands, not the policy's. The evaluator exported no policy hands. Box outlines follow the shipped mesh's oriented bounds; trails show object origins.", 133)
         save(fig, name, used, "Six matched moments from the " + ("earlier partial" if arm == 0 else "finished fresh-start")
              + " policy; the faint wrist/fingertip skeletons belong to the demonstration, not the policy.")
 
@@ -431,6 +501,7 @@ def policy_visuals() -> dict:
     if opened:
         register(video_path, used, caption, frames=len(indices), fps=10, dimensions=[1600, 960])
     return {"mesh_bounds_m": bounds.tolist(), "mesh_dimensions_cm": (mesh.extents * 100).tolist(),
+            "drawn_oriented_mesh_dimensions_cm": (oriented_extents * 100).tolist(),
             "demonstration_hand_guides": hands is not None, "video_written": opened,
             "video_frames": len(indices), "trajectory_frames": len(finished),
             "contact_sheet_source_frames": contact_indices}
@@ -450,6 +521,195 @@ def harder_task() -> None:
     footnote(fig, "This reference peaks near 71 cm/s, about 8 times the example box's 9 cm/s, and rotates 109 degrees. The original setup's checks stopped before training; the saved strip is not a result of learning.", 148)
     save(fig, "11-harder-task.png", used,
          "Episode 39's reference moves about eight times faster than the box; the original setup's checks stopped before training, and this strip shows a constructed reference rather than a policy.")
+
+
+def policy_hands_visuals() -> dict:
+    """Draw actual recorded links, using the scene's own simplified visual meshes."""
+    used = []
+    base = "data/outputs/visuals/policy-hands/m0c"
+    summary = read_json(f"{base}/summary.json", used)
+    contacts = read_json(f"{base}/contacts.json", used)
+    with np.load(io.BytesIO(read_bytes(f"{base}/replay.npz", used))) as data:
+        poses, reference, times, object_ids = (data[k] for k in
+            ("body_pose_xyzw", "reference_pose_xyzw", "time_s", "object_body_ids"))
+    with np.load(io.BytesIO(read_bytes(f"{base}/geometry.npz", used))) as data:
+        meshes = [(info, data[f"vertices_{i}"], data[f"faces_{i}"])
+                  for i, info in enumerate(summary["meshes"])]
+    high_carry = poses[:, int(object_ids[0]), 2] - poses[0, int(object_ids[0]), 2] > .05
+    both = np.array([all(any(f"{side}_" in p["other_body"] for p in row["pairs"])
+                         for side in ("left", "right")) for row in contacts])
+    facts = {"high_carry_frames": int(high_carry.sum()),
+             "both_hands_high_carry_frames": int((high_carry & both).sum()),
+             "visual_description": "The box sits between two curled hands at opposite ends. The thumbs lie along its upper sides while other fingers wrap around the ends; the hands lift and lower it together, then open again. This looks like a two-handed side hold. Its security outside the simulation is unmeasured.",
+             "definition": "High carry: box origin >5 cm above its replay starting height. Both: raw object contact with at least one body of each hand.",
+             "inputs": {p: MANIFEST["inputs"][p]["sha256"] for p in used}}
+    facts["raw_force_sum_N"] = {}
+    for side in ("left", "right", "support"):
+        force = np.array([sum(np.linalg.norm(p["force_N"]) for p in row["pairs"]
+                              if side in p["other_body"]) for row in contacts])
+        facts["raw_force_sum_N"][side] = {"peak_high_carry": float(force[high_carry].max()),
+                                         "high_carry_frames_above_0_1N": int((force[high_carry] > .1).sum())}
+    (OUTPUT / "policy-hands/m0c/contact-facts.json").write_text(json.dumps(facts, indent=2)+"\n")
+    # Camera coordinates: x right, y up, z toward the viewer. Fixed over the clip.
+    eye = np.array([1., -1.6, .9]); eye /= np.linalg.norm(eye)
+    right = np.cross([0., 0., 1.], eye); right /= np.linalg.norm(right)
+    up = np.cross(eye, right)
+    camera = np.stack([right, up, eye])
+    object_id = int(object_ids[0])
+    local_object = np.concatenate([v for info, v, _ in meshes if info["body"] == object_id])
+    corners, oriented_extents = mesh_box_corners(local_object)
+    edges = [(i, j) for i in range(8) for j in range(i + 1, 8)
+             if (i ^ j) in (1, 2, 4)]
+
+    def world_mesh(frame):
+        return [(info, transform_local_points(v, poses[frame, info["body"]]), f)
+                for info, v, f in meshes]
+
+    moments = [0, 50, 100, 190, 290, len(poses) - 1]
+    projected = np.concatenate([v @ camera.T for t in moments for _, v, _ in world_mesh(t)])
+    lower, upper = projected[:, :2].min(axis=0), projected[:, :2].max(axis=0)
+    center = (lower + upper) / 2
+    scale = min(850 / (upper[0]-lower[0]), 470 / (upper[1]-lower[1]))
+    comparison = summary["official_comparison"]
+    tracking_angles = orientation_error_degrees(poses[:, object_id, 3:], reference[:, 0, 3:])
+
+    def image(frame):
+        canvas = np.full((720, 960, 3), 250, np.uint8)
+
+        def project(points):
+            p = points @ camera.T
+            return np.column_stack([480 + (p[:, 0]-center[0])*scale,
+                                    360 - (p[:, 1]-center[1])*scale]).astype(np.int32), p[:, 2]
+
+        polygons, depths, colours = [], [], []
+        light = np.array([.3, -.4, 1.]); light /= np.linalg.norm(light)
+        for info, vertices, faces in world_mesh(frame):
+            points, depth = project(vertices)
+            triangles = vertices[faces]
+            normal = np.cross(triangles[:, 1]-triangles[:, 0], triangles[:, 2]-triangles[:, 0])
+            normal /= np.maximum(np.linalg.norm(normal, axis=1, keepdims=True), 1e-10)
+            shade = .55 + .45 * np.abs(normal @ light)
+            if info["object"]:
+                colour = np.array([227, 163, 62])
+            elif "left_" in info["label"]:
+                colour = np.array([64, 150, 146])
+            else:
+                colour = np.array([151, 110, 178])
+            polygons.extend(points[faces]); depths.extend(depth[faces].mean(axis=1))
+            colours.extend((shade[:, None] * colour).astype(np.uint8))
+        # Painter ordering gives an opaque orthographic mesh illustration.
+        for i in np.argsort(depths):
+            cv2.fillConvexPoly(canvas, polygons[i], tuple(int(c) for c in colours[i]), cv2.LINE_AA)
+        goal = transform_local_points(corners, reference[frame, 0])
+        outline, _ = project(goal)
+        for a, b in edges:
+            length = np.linalg.norm(outline[b]-outline[a])
+            for offset in np.arange(0, length, 12):
+                begin = outline[a] + (outline[b]-outline[a]) * offset / max(length, 1)
+                end = outline[a] + (outline[b]-outline[a]) * min(offset+6, length) / max(length, 1)
+                cv2.line(canvas, tuple(begin.astype(int)), tuple(end.astype(int)), (42, 120, 214), 2, cv2.LINE_AA)
+        cv2.putText(canvas, f"Same policy, CPU replay | {times[frame]:.2f} s", (28, 38), cv2.FONT_HERSHEY_SIMPLEX, .8, (32, 40, 51), 2, cv2.LINE_AA)
+        cv2.putText(canvas, "Teal: left hand   Purple: right hand   Amber: box   Dashed blue: goal", (28, 75), cv2.FONT_HERSHEY_SIMPLEX, .53, (32, 40, 51), 1, cv2.LINE_AA)
+        count = contacts[frame]["object_contacts"]
+        cv2.putText(canvas, f"Object contacts: {count} | Goal orientation error: {tracking_angles[frame]:.2f} deg", (28, 641), cv2.FONT_HERSHEY_SIMPLEX, .65, (32, 40, 51), 1, cv2.LINE_AA)
+        cv2.line(canvas, (770, 624), (770+int(.05*scale), 624), (32, 40, 51), 3)
+        cv2.putText(canvas, "5 cm", (774, 614), cv2.FONT_HERSHEY_SIMPLEX, .5, (32, 40, 51), 1, cv2.LINE_AA)
+        cv2.putText(canvas, f"CPU / official path difference: mean {comparison['mean_m']*100:.3f} cm, max {comparison['max_m']*100:.3f} cm", (28, 674), cv2.FONT_HERSHEY_SIMPLEX, .56, (32, 40, 51), 1, cv2.LINE_AA)
+        cv2.putText(canvas, "Simplified Sharpa meshes | Diagnostic only; never scored or packed", (28, 703), cv2.FONT_HERSHEY_SIMPLEX, .55, (32, 40, 51), 1, cv2.LINE_AA)
+        return canvas
+
+    # Keep each panel's aspect ratio, including its readable annotations.
+    sheet = Image.new("RGB", (2880, 1440), "white")
+    for n, frame in enumerate(moments):
+        sheet.paste(Image.fromarray(image(frame)), ((n % 3)*960, (n // 3)*720))
+    sheet.save(FIGURES / "12-policy-hands.png")
+    caption = ("The policy's actual links and the box in a CPU replay of the finished checkpoint. "
+               "Simplified installed Sharpa visual meshes; dashed blue goal follows the object's mesh-oriented bounds. "
+               "Diagnostic only, never scored or packed; CPU physics can differ from the official export.")
+    register(FIGURES / "12-policy-hands.png", used, caption, source_frames=moments)
+    video = FIGURES / "12-policy-hands.mp4"
+    writer = cv2.VideoWriter(str(video), cv2.VideoWriter_fourcc(*"mp4v"), 10., (960, 720))
+    if not writer.isOpened():
+        raise RuntimeError("MP4 encoder unavailable")
+    # Include all 13 seconds at their original speed, with the last sample retained.
+    sampled = list(range(0, len(poses), 3))
+    if sampled[-1] != len(poses)-1:
+        sampled.append(len(poses)-1)
+    for frame in sampled:
+        writer.write(cv2.cvtColor(image(frame), cv2.COLOR_RGB2BGR))
+    writer.release()
+    if video.stat().st_size > 5_000_000:
+        raise ValueError("Policy hand video exceeds 5 MB")
+    capture = cv2.VideoCapture(str(video))
+    decoded, previews = 0, []
+    while True:
+        ok, frame = capture.read()
+        if not ok:
+            break
+        if decoded in (0, 17, 63, len(sampled)-1):
+            previews.append(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))
+        decoded += 1
+    capture.release()
+    if decoded != len(sampled):
+        raise ValueError("Policy hand MP4 is incomplete")
+    review = Image.new("RGB", (1920, 1440), "white")
+    for i, preview in enumerate(previews):
+        review.paste(preview, ((i % 2)*960, (i // 2)*720))
+    review.save(OUTPUT / "review-policy-hands-video.png")
+    register(video, used, caption, frames=decoded, fps=10, bytes=video.stat().st_size)
+    return {"official_comparison": comparison, "frames_decoded": decoded,
+            "video_bytes": video.stat().st_size, "render_geometry": summary["geometry"],
+            "goal_bound_geometry": "Oriented bounds of the same body-local visual mesh; shared xyzw pose transform",
+            "drawn_oriented_mesh_dimensions_cm": (oriented_extents * 100).tolist()}
+
+
+def pan_mask_visuals() -> dict:
+    """Overlay saved binary masks on their exact cached real camera frames."""
+    used, selections = [], {}
+    colours = np.array([[235, 158, 35], [28, 169, 175], [193, 83, 160]], dtype=np.uint8)
+    fig, axes = plt.subplots(3, 4, figsize=(16, 9.8))
+    fig.subplots_adjust(left=.015, right=.99, top=.87, bottom=.12, hspace=.20, wspace=.035)
+    fig.suptitle("The vision step marks pixels on real footage.", x=.025, ha="left", y=.98, fontsize=23)
+    fig.text(.025, .92, "Amber: pan   Teal / pink: hands   |   Pixel masks, not 3D positions or measured accuracy", fontsize=12)
+
+    def overlay(base, frame):
+        raw = np.asarray(Image.open(io.BytesIO(read_bytes(f"{base}/input_frames/{frame:06d}.jpg", used))).convert("RGB"))
+        with np.load(io.BytesIO(read_bytes(f"{base}/frames/frame_{frame:06d}.npz", used))) as data:
+            masks, time_s = data["masks"], float(data["timestamp_seconds"])
+        if raw.shape[:2] != masks.shape[1:]:
+            raise ValueError("Mask and real camera frame grids differ")
+        result = raw.copy()
+        for mask, colour in zip(masks, colours, strict=True):
+            result[mask] = (.62*result[mask]+.38*colour).astype(np.uint8)
+            contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            cv2.drawContours(result, contours, -1, tuple(int(c) for c in colour), 2)
+        return result, time_s
+
+    for row, (episode, folder, moments) in enumerate([
+            (39, "masks", [0, 100, 200, 318]),
+            (38, "masks-smallest", [0, 80, 170, 262])]):
+        base = f"data/outputs/moving_reference/ep{episode}/{folder}"
+        read_json(f"{base}/summary.json", used)
+        selections[str(episode)] = moments
+        for ax, frame in zip(axes[row], moments, strict=True):
+            pixels, time_s = overlay(base, frame)
+            ax.imshow(pixels); ax.axis("off")
+            ax.set_title(f"Episode {episode} | {time_s:.2f} s", fontsize=11, pad=4)
+    bad, time_s = overlay("data/outputs/moving_reference/ep38/masks", 0)
+    axes[2, 0].imshow(bad); axes[2, 0].axis("off")
+    axes[2, 0].set_title("38: first try picked the table", fontsize=11, pad=4)
+    for ax in axes[2, 1:]:
+        ax.axis("off")
+    axes[2, 1].text(0, .8, "A fixed rule picks the smallest\nqualifying detection box.\nThe same rule applies to both clips.", fontsize=12, va="top")
+    axes[2, 2].text(0, .8, "38 is a scored episode.\nIts public footage is used here;\nits labels are unavailable\nand were not used.", fontsize=12, va="top")
+    axes[2, 3].text(0, .8, "Limits: occluded handle edges;\n38's late filled handle opening;\n39 at 10 s marks a bystander's\nhand. No accuracy score.", fontsize=12, va="top")
+    caption = ("The vision step sees marked pixels, not yet positions in the world. "
+               "Episode 38's first try picked the table; a fixed rule corrected selection on both clips. "
+               "38 is a scored episode: public challenge footage is used here, but its labels are unavailable and were not used.")
+    footnote(fig, caption, 166)
+    save(fig, "13-pan-masks.png", used, caption)
+    return {"source_frames": selections, "failure_example": {"episode": 38, "frame": 0},
+            "labels_used": False, "new_inference": False}
 
 
 def review_previews() -> dict:
@@ -488,15 +748,19 @@ def write_report(table: str, metrics: dict) -> None:
                  "docs/chain/frame0-panel-outcome.md", "docs/chain/moving-m2-protocol.md",
                  "docs/chain/COMPLETION-PLAN.md"]:
         read_bytes(path, used)
+    comparison = metrics["policy_hands"]["official_comparison"]
+    contact_facts = read_json("data/outputs/visuals/policy-hands/m0c/contact-facts.json", used)
+    setup_note = read_json("data/outputs/visuals/episode39-setup.json", used)
+    goal_audit = read_json("data/outputs/visuals/goal-box-angle-audit.json", used)
     text = f"""# Seeing what the models do
 
-Recorded state: 4 November 2026, after the two tissue-box runs and the original episode-39 checks.
+Recorded state: 4 November 2026, including a CPU replay with policy hands and real-video pixel masks.
 
 ## What the challenge asks
 
 Watch a person's camera footage, reconstruct the objects, and reproduce their movement in simulation. A **policy** is a controller trained by trial and error in simulation. A **reference** is the goal path it tries to follow. **AUC** is a 0-to-1 fit score: higher means closer agreement across a range of allowed errors; it is not a percentage of tasks completed.
 
-**No moving policy exists yet for any challenge episode. Our current entry's objects stay still.** The moving box below is the example task supplied with the tools, not a challenge result. This report describes the prepared entry and recorded experiments; it claims no upload or leaderboard score.
+**Our current entry's objects stay still. No challenge result is claimed here.** The moving box below is the example task supplied with the tools. This report describes the prepared entry and diagnostic experiments; it claims no upload or leaderboard score.
 
 ## What we have prepared to submit so far
 
@@ -528,9 +792,25 @@ The first two seconds expose the initial lag; mean position error is {metrics['e
 
 ![Six moments from the finished policy](figures/09-finished-policy.png)
 
-Blue dotted outlines show the goal; amber solid outlines show what happened, with trails. These are schematic boxes using the shipped mesh's dimensions and the exported positions and rotations. Faint wrist-to-fingertip guides are **the demonstration's hands, not the policy's**; intermediate finger joints are not available. The evaluator export has no policy hands, so their actual grasp is unshown and its naturalness unmeasured.
+Blue dotted outlines show the goal; amber solid outlines show what happened, with trails. These are schematic boxes using the shipped mesh's oriented bounds and the exported positions and rotations. Faint wrist-to-fingertip guides in this older figure are **the demonstration's hands, not the policy's**. The separate replay below now shows the actual policy hands.
 
 [Earlier partial policy: the same six moments](figures/08-partial-policy.png) · [Side-by-side video](figures/10-policy-comparison.mp4)
+
+### What the policy's own hands do
+
+![Actual policy hands in a CPU diagnostic replay](figures/12-policy-hands.png)
+
+Teal and purple are the controller's actual left and right hands, drawn with simplified versions of the installed Sharpa hand meshes. Amber is the box; the dashed blue outline is its goal. We reran the finished fresh-start checkpoint on the CPU, with the same explicit reset, one simulated world and assistance switched off. Across all 390 steps, its box path differs from the official export by **{comparison['mean_m']*100:.3f} cm on average and {comparison['max_m']*100:.3f} cm at most**, without aligning the paths. This is a CPU replay of the same policy, not an exact recording of the official run. **It is diagnostic only, never scored or packed.**
+
+The box's angle from its goal averages **{goal_audit['replay']['mean_degrees']:.3f} degrees**, with a maximum of **{goal_audit['replay']['max_degrees']:.3f} degrees**, in this CPU replay. The official export gives **{goal_audit['official']['mean_degrees']:.3f} and {goal_audit['official']['max_degrees']:.3f} degrees**. The blue outline now follows the mesh's own orientation and dimensions. An earlier drawing used a differently oriented, oversized bounding box; the apparent large rotation was a drawing error. Figures 8–10 use the corrected bounds too.
+
+{contact_facts['visual_description']}
+
+The simulator reports contact with both hands in **{contact_facts['both_hands_high_carry_frames']} of {contact_facts['high_carry_frames']} steps** while the box is more than 5 cm above its starting height. These are raw contact points from the last physics substep, not a measure of grip strength or human-like dexterity. The pictures and contacts do not establish a secure, natural grasp.
+
+There are no support contacts in those raised steps. Unverified solver force readings, summed as magnitudes over each hand's contact points, peak around **{contact_facts['raw_force_sum_N']['left']['peak_high_carry']/1000:.1f} kN on the left and {contact_facts['raw_force_sum_N']['right']['peak_high_carry']/1000:.1f} kN on the right**. These large raw values reinforce the limit: following the box path does not demonstrate realistic grip strength.
+
+[Watch the whole CPU replay](figures/12-policy-hands.mp4)
 
 ### Telling apart two objects' position
 
@@ -552,23 +832,27 @@ Masks mark pixels assigned to each object. Cup/rack and sweeper/rack are separat
 
 This reference moves about eight times faster than the example box and rotates 109 degrees. Its original setup checks stopped before training: the saved strip is a proposed reference, not a learned rollout. A disclosed redesign is in the protocol; no success from it is claimed here.
 
+The earlier episode-39 setup launched the pan into the air in simulation. A smaller support and a sturdier mass and inertia for the pan now let it rest properly in the recorded setup checks. **{setup_note['training_state_sentence']}** This describes the corrected setup and work in progress; it states no training or scoring outcome.
+
 ## What is still unproven
 
 Transferring the box result to a challenge episode still needs a usable object reconstruction, a reliable path from video, hands that can follow it, and a learned policy that moves the object physically. None of those links is established by the box's score. FoundationPose has only been screened on two used pairs and is not in the entry. The challenge result remains static.
 
-### Placeholder — tracked object on a real camera clip
+### Real-video masks: what the vision step sees
 
-**Not available yet.** No per-frame tracking of a challenge episode exists in these records. The camera overlays above are single-frame pose estimates. A future clip would need recorded per-frame object poses and camera motion before a tracked object could honestly be drawn over the footage; no synthetic stand-in is shown.
+![Pan and hand masks on public camera footage, including the failed table selection](figures/13-pan-masks.png)
+
+These are real camera frames with the pan marked in amber and hands in teal and pink. This is what the vision step sees: **marked pixels, not yet positions in the world**. Episode 38's first try picked the table; a fixed rule choosing the smallest qualifying detection box corrected the selection and is applied to both clips. Episode 38 is a scored episode. Its footage is public challenge data used here; its labels are not available to us and were not used. Hidden handle edges and a filled handle opening in late frames of 38 remain visible limitations. At 10 seconds in 39, a hand mask marks a bystander's hand. No mask accuracy score, reliable hand identity or 3D tracking result is claimed.
 
 ---
 
 Rebuild all figures, animations, the table and this report on CPU:
 
 ```bash
-CUDA_VISIBLE_DEVICES='' PYTHONPATH=. data/.runtime/linux-cuda/bin/python -B scripts/report/nontechnical_figures.py
+CUDA_VISIBLE_DEVICES='' JAX_PLATFORMS=cpu PYTHONPATH=. data/.runtime/linux-cuda/bin/python -B scripts/report/nontechnical_figures.py
 ```
 
-Input SHA-256 hashes and per-figure source mappings: `data/outputs/visuals/inputs.json`; numeric checks and build details: `data/outputs/visuals/build-summary.json`. Only saved outputs, the supplied box mesh and recorded notes are read; no model runs or challenge videos are opened.
+Add `--replay` to explicitly rebuild the CPU policy diagnostic first; the default reads its saved arrays. See [replay instructions](README.md). Input SHA-256 hashes and per-figure source mappings: `data/outputs/visuals/inputs.json`; numeric checks and build details: `data/outputs/visuals/build-summary.json`. The default reads saved outputs, cached camera frames, installed visual meshes and recorded notes; it does not run a model or read a scan.
 
 Evidence: [box outcomes](../../chain/moving-m0b-outcome.md), [earlier policy](../../chain/moving-m0-outcome.md), [pose pilot](../../chain/foundationpose-pilot-outcome.md), [frame-zero panel](../../chain/frame0-panel-outcome.md), [episode-39 state](../../chain/moving-m2-protocol.md), [entry facts](../../chain/COMPLETION-PLAN.md#1-where-the-entry-really-stands).
 """
@@ -578,11 +862,22 @@ Evidence: [box outcomes](../../chain/moving-m0b-outcome.md), [earlier policy](..
 
 
 def main() -> None:
-    """Rebuild the fixed presentation set without running a model or reading new episodes."""
+    """Rebuild presentation; policy inference requires the explicit --replay flag."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--replay", action="store_true", help="Rebuild the CPU diagnostic before rendering")
+    args = parser.parse_args()
     for directory in (OUTPUT, FIGURES):
         directory.mkdir(parents=True, exist_ok=True)
         directory.resolve().relative_to(ROOT)
+    if args.replay:
+        replay_output = OUTPUT / "policy-hands/m0c"
+        replay_output.mkdir(parents=True, exist_ok=True)
+        with (replay_output / "replay.log").open("w") as log:
+            subprocess.run([str(ROOT / "data/.runtime/flashchord/venv/bin/python"), "-u", "-B",
+                            str(ROOT / "scripts/report/policy_hands.py")], cwd=ROOT,
+                           stdout=log, stderr=subprocess.STDOUT, check=True)
     style()
+    goal_audit = goal_box_audit()
     height_chart()
     learning = learning_chart()
     error = error_chart()
@@ -592,15 +887,18 @@ def main() -> None:
     print("Charts and camera sheets saved; rendering recorded box motion on CPU.", flush=True)
     policy = policy_visuals()
     harder_task()
+    policy_hands = policy_hands_visuals()
+    pan_masks = pan_mask_visuals()
     review = review_previews()
     summary = {"learning": learning, "error": error, "policy_visuals": policy,
+               "policy_hands": policy_hands, "pan_masks": pan_masks,
+               "goal_box_audit": goal_audit,
                "artifact_review": review,
                "missing": ["No per-frame challenge-object camera tracking exists.",
-                           "No policy hands in evaluator export.",
                            "No independent panel registration estimate on pair 12.",
                            "Warm-start middle checkpoint has only a logged time bound."],
                "checks": {"CPU_only": os.environ["CUDA_VISIBLE_DEVICES"] == "",
-                          "frames_from_recorded_exports": True, "new_model_execution": False}}
+                          "frames_from_recorded_exports": True, "new_model_execution": args.replay}}
     write_report(table, summary)
     summary["files_written"] = sorted([
         "scripts/report/nontechnical_figures.py", "data/outputs/visuals/build-summary.json",
