@@ -13,7 +13,7 @@ from track3.runs import runtime_flag
 
 def budget(job):
     import numpy as np
-    from scripts.track3 import local_cdo
+    from track3.features.mesh_eval import local_cdo
     arrays = {}
     for prefix, path in (('',job['mesh']),('v4_',job['v4'])):
         vertices, faces = local_cdo.budgeted(ROOT/path)
@@ -23,7 +23,7 @@ def budget(job):
 
 def development(job):
     import numpy as np
-    from scripts.track3 import local_cdo
+    from track3.features.mesh_eval import local_cdo
     from track3.features.mesh_extents._rule_scores import FOLDS
     from ._metrics import development_metrics
     admission = json.loads((ROOT/job['admissions']).read_text())
@@ -62,7 +62,7 @@ def packed(job):
     from types import SimpleNamespace
     import numpy as np
     import pandas as pd
-    from scripts.track3 import local_cdo
+    from track3.features.mesh_eval import local_cdo
     from track3.features.mesh_eval import pairs
     from ._metrics import packed_metrics
     from v2dlb import object_mesh as om

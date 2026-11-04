@@ -18,6 +18,10 @@ inputs or code; repeat the same request to resume matching completed trials.
 The checked-in request writes `outputs/mesh_eval/pairs/critic-fixes-20261102/`.
 The historical first run's top-level files in `outputs/mesh_eval/pairs/` stay intact.
 
+`local_cdo.py` moved into this slice after that run, which changes the source
+identity, so this request refuses its existing output. For current-code scoring, copy the
+request with a fresh `output`; use the recorded commit to reproduce a historical run.
+
 The runtime gate refuses 41/43/44 before loading scans. It reads object scans,
 never episode data. The existing kit environment supplies all dependencies;
 cache and scratch files go under `.cache/mesh_eval/`. No GPU operation is used.
@@ -28,12 +32,16 @@ holds no previous-report constants or fixed candidate labels. The request,
 Parquets, roster, public scans, runtime, kit scorer sources, slice sources and
 package versions enter the run identity. Narrative documents do not.
 
-The handler reuses `scripts.track3.local_cdo.scan_path` and `budgeted`, retaining
+The handler reuses `track3.features.mesh_eval.local_cdo.scan_path` and `budgeted`, retaining
 the kit's 4,096-face/vertex budget. Each trial passes a reference frame and the
 matching packed submission rows to `score`. The kit decodes the actual packed
 meshes and uses `_object_seed(episode, slot)`; no candidate is rebuilt from GLBs.
 Both episode-1 slots for every file also call `_object_chamfer_cm` on the decoded
 arrays and record direct-versus-entry-point equivalence.
+
+The scorer also runs directly as `.runtime/kit-env/bin/python -B track3/features/mesh_eval/local_cdo.py --help`. It loads kit dependencies on import;
+callers import it inside scoring functions, so importing the other slice modules
+does not require loading the kit scorer.
 
 Each run directory contains:
 

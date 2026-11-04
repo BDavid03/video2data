@@ -23,6 +23,8 @@ commands; `measure` consumes completed depth and does not run MoGe2. Use the exi
 `measure` request keys are `source_split`, `episode_index`, `depth_run`, `frames` and object-to-cluster
 `objects`; `assignments.json` records reviewed identities. `<measure.json>` names such a request.
 
+Run all assignments with `PYTHONPATH=. .runtime/linux-cuda/bin/python -B track3/features/mesh_extents/measure_loop.py --out .runtime/tmp/d1-runs.json`.
+
 ```bash
 PYTHONPATH=. CUDA_VISIBLE_DEVICES='' .runtime/linux-cuda/bin/python -B -m track3.features.mesh_extents measure --request <measure.json>
 ```
@@ -76,8 +78,15 @@ preserves older records. Only a truncated final ledger append is quarantined; ot
 rows raise. Missing inputs produce NOT VALIDATED; unavailable values are null with reasons.
 Re-freezing refreshes source hashes only; the authenticated baseline fixes the admitted panel.
 Adding a slice operation changes `__main__.py`/`runtime.json`, so affected frozen requests must be re-frozen and re-proved.
+
 Its E scores were admitted by path/status/seeds/build SHA and A/B/C by seeds 1/3/5; E's legacy
 score JSON has no SHA itself. Matching object/SHA aliases were merged only for equal scores.
+
+The proxy command above refuses this checkout: its frozen request pins older
+`adopt.py`, `build.py`, `rules.py` and protocol hashes, and `proxy-insights.json` shares
+the three Python pins. Reproduce those at their recorded sources; re-freezing cannot admit
+this checkout, so new work needs a new protocol. Rule queues hash the scorer path and
+`rules.py`, so a new campaign gets new identities and needs a fresh output directory.
 
 ## Latest results
 

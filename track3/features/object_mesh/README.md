@@ -77,7 +77,7 @@ All disabled by default.
   meshes" although public scans exist. `sources.json` therefore lists all
   eleven objects as `reconstructed`, and `resolve` refuses every other source
   and every reconstruction from another split or episode. The public scans and
-  URDFs are read only by the local CD-O scorer (`scripts/track3/local_cdo.py`),
+  URDFs are read only by the local CD-O scorer (`track3/features/mesh_eval/local_cdo.py`),
   to measure reconstructions on public episodes. Earlier text in this README
   about resolving scans unchanged, scan collision meshes and the scans-first
   spoon pass describes the superseded design: with every object reconstructed,

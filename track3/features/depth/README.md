@@ -7,6 +7,9 @@ downloads are part of generation; this source update makes no completion claim.
 
 ## Vertical slice
 
+The opening-frame batch command is `bash track3/features/depth/depth_opening_frames.sh <split> <episode> [<episode> ...]`.
+It invokes the depth handler once per episode, with the same GPU gates and lease.
+
 This folder owns the complete depth-generation use case:
 
 - `generate.json`: the default request, covering frames 0 through 19 of public development episode 39.

@@ -5,6 +5,12 @@ pitcher public 21, pot public/tuning 42. The handler admits exactly those three 
 `pilot_authorized`. Generation uses a separate Python 3.10 venv and the cooperative `GpuLease`.
 The main CUDA environment is read-only. No texture extensions or background-removal models run.
 
+The commands below describe the recorded campaigns. On this checkout G1 and G2 refuse
+their changed source inventories, after possibly preparing crops or cached observations:
+reproduce them at the recorded campaign commit. A fresh campaign needs a new protocol and
+output identity. Completed G3 and insights calls return their existing paths at once, and
+the v5 repack checks preserved production artifacts, so both still work here.
+
 Run from the checkout after the approved installation in `.runtime/hunyuan-mesh/INSTALL.md`:
 
 ```bash

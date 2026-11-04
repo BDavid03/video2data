@@ -149,12 +149,12 @@ estimates, not an untouched assessment; say so in the report. Per-object shape p
 done. From context 03 on, any mesh choice is made on a fixed tuning protocol written down before
 scoring (see the hand-off).
 
-Reproduce (from the commit in the packed file):
+Reproduce from the current checkout (the packed commit retains the historical script paths):
 
 ```bash
-bash scripts/track3/depth_opening_frames.sh evaluation 1 3 5 6 8 10 14 15 16 19 20 25 28 30 32 33 35 36 37 38
+bash track3/features/depth/depth_opening_frames.sh evaluation 1 3 5 6 8 10 14 15 16 19 20 25 28 30 32 33 35 36 37 38
 # plus public 39 (frames 0-19) and evaluation 1 at stride 10: requests in each depth run.json
-PYTHONPATH=. .runtime/linux-cuda/bin/python scripts/track3/d1_measure.py --out .runtime/tmp/d1-runs.json
+PYTHONPATH=. .runtime/linux-cuda/bin/python track3/features/mesh_extents/measure_loop.py --out .runtime/tmp/d1-runs.json
 PYTHONPATH=. .runtime/linux-cuda/bin/python -m track3.features.mesh_extents build --request <{"measure_runs": [...], "shape": "box"}>
 .runtime/kit-env/bin/python upstream/v2d_submission_kit/v2d_submission_kit/tools/pack_reconstruction.py track3-meshes \
   --meshes outputs/mesh_extents/build/<run>/meshes \
@@ -318,7 +318,7 @@ Reproduce using the existing measure runs:
 
 ```bash
 PYTHONPATH=. .runtime/linux-cuda/bin/python -m track3.features.mesh_extents build --request scripts/track3/requests/d1/build-v2-r2.json
-.runtime/kit-env/bin/python scripts/track3/local_cdo.py --candidates outputs/mesh_extents/build/<new-run>/objects --out outputs/mesh_eval/<new-score>.json
+.runtime/kit-env/bin/python track3/features/mesh_eval/local_cdo.py --candidates outputs/mesh_extents/build/<new-run>/objects --out outputs/mesh_eval/<new-score>.json
 .runtime/kit-env/bin/python upstream/v2d_submission_kit/v2d_submission_kit/tools/pack_reconstruction.py track3-meshes \
   --meshes outputs/mesh_extents/build/<new-run>/meshes \
   --sample upstream/v2d_submission_kit/v2d_submission_kit/data/track_3_mesh_sample_submission.parquet \

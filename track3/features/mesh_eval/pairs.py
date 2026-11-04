@@ -68,7 +68,7 @@ def cpu_runtime() -> dict:
 
 def prepare(request: PairRequest, request_path: Path, runtime: dict) -> tuple:
     """Read the public roster and scans once and hash all score-producing inputs."""
-    from scripts.track3 import local_cdo
+    from track3.features.mesh_eval import local_cdo
 
     episodes = json.loads(project_path(ROOT, request.roster).read_text())["episodes"]
     if not set(map(int, episodes)) <= set(runtime["authorized_episode_indices"]) or set(map(int, episodes)) & {41, 43, 44}:
@@ -92,7 +92,7 @@ def prepare(request: PairRequest, request_path: Path, runtime: dict) -> tuple:
     record = run_fields(ROOT, "mesh_eval", "pairs", asdict(request), inputs=inputs,
                         provenance="public_asset_diagnostic")
     record["sources"] += [input_file(ROOT, p) for p in (
-        "scripts/track3/local_cdo.py", local_cdo.KIT / "metric_code/track_3/CD-O.py",
+        "track3/features/mesh_eval/local_cdo.py", local_cdo.KIT / "metric_code/track_3/CD-O.py",
         local_cdo.KIT / "v2dlb/mesh_budget.py", local_cdo.KIT / "v2dlb/object_mesh.py")]
     versions = {p: importlib.metadata.version(p) for p in
                 ("numpy", "scipy", "pandas", "pyarrow", "trimesh", "fast-simplification")}

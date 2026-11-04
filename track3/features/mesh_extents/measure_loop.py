@@ -1,6 +1,6 @@
 """Run mesh_extents.measure for every episode in track3/features/mesh_extents/assignments.json.
 
-    PYTHONPATH=. .runtime/linux-cuda/bin/python scripts/track3/d1_measure.py [--only split:episode ...] [--out runs.json]
+    PYTHONPATH=. .runtime/linux-cuda/bin/python track3/features/mesh_extents/measure_loop.py [--only split:episode ...] [--out runs.json]
 
 Each entry names its depth run, frames, object -> frame-0 cluster ids and a note. Entries with
 "objects": {} still run, so their overlay can be inspected before an assignment is recorded.
@@ -13,7 +13,7 @@ from pathlib import Path
 
 from track3.features.mesh_extents import MeasureRequest, measure
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 PLAN = ROOT / "track3/features/mesh_extents/assignments.json"
 
 

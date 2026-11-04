@@ -29,7 +29,7 @@ measurements. The build handler writes a fresh immutable
 `outputs/mesh_extents/build/<new-run>/run.json`; its printed path supplies the
 candidate and pair directories to subsequent commands.
 
-The kit interpreter runs `scripts/track3/local_cdo.py` on the new object meshes
+The kit interpreter runs `track3/features/mesh_eval/local_cdo.py` on the new object meshes
 (default sampling seeds from episodes 1/3/5), then the manifest's kit packing and
 preflight commands. Absolute command paths are rebased to the current checkout;
 mesh directory, output file and commit URL are substituted. CD-O uses public scans

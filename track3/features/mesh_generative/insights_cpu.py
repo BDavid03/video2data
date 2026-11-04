@@ -14,7 +14,7 @@ from track3.runs import runtime_flag
 def score(job: dict) -> None:
     """Budget both meshes and the public scan, then use the recorded scoring seeds."""
     import numpy as np
-    from scripts.track3 import local_cdo
+    from track3.features.mesh_eval import local_cdo
 
     reference_path = local_cdo.scan_path(job['object'])
     reference = local_cdo.budgeted(reference_path)

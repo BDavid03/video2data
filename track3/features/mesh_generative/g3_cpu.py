@@ -38,7 +38,7 @@ def packed(job):
     """Compare exact v5/v6 packed geometry through the existing mesh_eval pair loop."""
     import numpy as np
     import pandas as pd
-    from scripts.track3 import local_cdo
+    from track3.features.mesh_eval import local_cdo
     from track3.features.mesh_eval import pairs
     from track3.features.mesh_eval._metrics import aggregate
     from v2dlb import object_mesh as om

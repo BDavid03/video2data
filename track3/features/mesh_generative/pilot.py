@@ -179,7 +179,7 @@ def pilot(request):
     record = run_fields(ROOT, 'mesh_generative', 'pilot', asdict(request), inputs=inputs)
     record['frozen_crops'] = {name: crop for name, (_, crop) in frozen_crops.items()}
     record['sources'] += [input_file(ROOT,p) for p in
-        ('scripts/track3/local_cdo.py','track3/features/mesh_eval/pairs.py',
+        ('track3/features/mesh_eval/local_cdo.py','track3/features/mesh_eval/pairs.py',
          'track3/features/mesh_eval/_metrics.py',
          'upstream/v2d_submission_kit/v2d_submission_kit/v2dlb/mesh_budget.py',
          'upstream/v2d_submission_kit/v2d_submission_kit/metric_code/track_3/CD-O.py')]

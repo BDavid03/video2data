@@ -174,7 +174,7 @@ def run():
     record['sources'] += [input_file(ROOT, p) for p in (
         'track3/features/mesh_extents/_geometry.py', 'track3/features/object_masks/opening_clusters.py',
         'track3/features/mesh_eval/pairs.py', 'track3/features/mesh_eval/_metrics.py',
-        'scripts/track3/local_cdo.py',
+        'track3/features/mesh_eval/local_cdo.py',
         'upstream/v2d_submission_kit/v2d_submission_kit/v2dlb/mesh_budget.py',
         'upstream/v2d_submission_kit/v2d_submission_kit/metric_code/track_3/CD-O.py')]
     if path.exists():

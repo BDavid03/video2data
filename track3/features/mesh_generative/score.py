@@ -13,7 +13,7 @@ def main():
     args = parser.parse_args()
     import numpy as np
     import pandas as pd
-    from scripts.track3 import local_cdo
+    from track3.features.mesh_eval import local_cdo
     from v2dlb import object_mesh as om
     from track3.features.mesh_eval._metrics import solution_frame
     from track3.features.mesh_eval.pairs import score_pair

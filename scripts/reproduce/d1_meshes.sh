@@ -124,7 +124,7 @@ score_temp = work / "tmp"
 if a.run:
     score_temp.mkdir()
 score_env = dict(os.environ, TMPDIR=str(score_temp), TEMP=str(score_temp), TMP=str(score_temp))
-command([".runtime/kit-env/bin/python", "-B", "scripts/track3/local_cdo.py", "--candidates", new_run.parent / "objects", "--out", work / "cdo.json"], "score.log", env=score_env)
+command([".runtime/kit-env/bin/python", "-B", "track3/features/mesh_eval/local_cdo.py", "--candidates", new_run.parent / "objects", "--out", work / "cdo.json"], "score.log", env=score_env)
 # Rebase the recorded commands so the checkout can move without editing run IDs.
 pack = [rebase(s) for s in m["pack_command"]]
 packed = work / f"track3_meshes_{a.version}.parquet"

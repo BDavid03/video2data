@@ -2,8 +2,8 @@
 
 Run with the kit environment (it has fast_simplification):
 
-    .runtime/kit-env/bin/python scripts/track3/local_cdo.py --candidates <dir> --out <json>
-    .runtime/kit-env/bin/python scripts/track3/local_cdo.py --primitive sphere --out <json>
+    .runtime/kit-env/bin/python track3/features/mesh_eval/local_cdo.py --candidates <dir> --out <json>
+    .runtime/kit-env/bin/python track3/features/mesh_eval/local_cdo.py --primitive sphere --out <json>
 
 <dir> holds one mesh per object, named <object>.{glb,obj,ply,stl,off}. Both sides go through the
 host's `budget_mesh` (4,096 faces / vertices) and then the kit scorer's `_object_chamfer_cm`, which
@@ -26,7 +26,7 @@ from pathlib import Path
 import numpy as np
 import trimesh
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 KIT = ROOT / "upstream/v2d_submission_kit/v2d_submission_kit"
 SCANS = ROOT / ("datasets--nvidia--video_to_data_challenge/snapshots/"
                 "5f68335f3acc802033d1e80728c1633197521de8/track_3/public/mesh")

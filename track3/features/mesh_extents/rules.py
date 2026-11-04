@@ -151,7 +151,7 @@ def build_candidate(rule: dict, parameter, name: str, dims, original: Path, dire
 
 def evaluate_object(rule: dict, parameter, name: str, context: dict) -> dict:
     """Cache one rule/parameter/object trial and reuse identical mesh evaluations."""
-    from scripts.track3 import local_cdo
+    from track3.features.mesh_eval import local_cdo
 
     output = context["output"]
     row = context["objects"][name]
@@ -551,7 +551,7 @@ def run(queue_path: Path, output_override: Path | None = None) -> Path:
     os.environ.update(MPLCONFIGDIR=str(scratch), XDG_CACHE_HOME=str(scratch),
                       TMPDIR=str(scratch), PYTHONDONTWRITEBYTECODE="1")
     tempfile.tempdir = str(scratch)
-    from scripts.track3 import local_cdo
+    from track3.features.mesh_eval import local_cdo
     import numpy as np
 
     record = run_fields(ROOT, "mesh_extents", "rules", {"queue": queue_path.relative_to(ROOT).as_posix()},

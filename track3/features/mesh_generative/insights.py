@@ -162,7 +162,7 @@ def run() -> Path:
         inputs.extend(ROOT/pair_inputs(row, queue)[name] for name in ('crop', 'observed'))
     record = run_fields(ROOT, 'mesh_generative', 'insights', queue, inputs=inputs)
     record['sources'] += [input_file(ROOT, ROOT/p) for p in
-                          ('scripts/track3/local_cdo.py', 'upstream/v2d_submission_kit/v2d_submission_kit/v2dlb/mesh_budget.py',
+                          ('track3/features/mesh_eval/local_cdo.py', 'upstream/v2d_submission_kit/v2d_submission_kit/v2dlb/mesh_budget.py',
                            'upstream/v2d_submission_kit/v2d_submission_kit/metric_code/track_3/CD-O.py')]
     path = directory/'run.json'
     if path.exists():

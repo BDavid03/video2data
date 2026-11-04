@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # MoGe2 depth on the opening frames 0-19 of each given episode, one GPU run at a time.
-#   bash scripts/track3/depth_opening_frames.sh <split> <episode> [<episode> ...]
+#   bash track3/features/depth/depth_opening_frames.sh <split> <episode> [<episode> ...]
 # Each request is written under .runtime/tmp/req/ and snapshotted in the run's run.json.
 set -u
-cd "$(dirname "$(readlink -f "$0")")/../.." || exit 64
+cd "$(dirname "$(readlink -f "$0")")/../../.." || exit 64
 split=${1:?split}; shift
 mkdir -p .runtime/tmp/req
 for ep in "$@"; do
