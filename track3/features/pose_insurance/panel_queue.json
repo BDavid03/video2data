@@ -1,0 +1,47 @@
+{
+  "episodes": [
+    0,
+    26,
+    31,
+    11,
+    12,
+    18,
+    21
+  ],
+  "registration_episodes": [
+    0,
+    26,
+    31
+  ],
+  "max_trials": 7,
+  "max_seconds": 7200,
+  "cpu_workers": 3,
+  "protocol": {
+    "path": "docs/chain/frame0-panel-protocol.md",
+    "sha256": "d3890b96b7b5881558795ccf7395facc4ffab1400151f7360bb7d167e153368a"
+  },
+  "method": {
+    "path": "docs/chain/pose-heading-method-hr2.json",
+    "sha256": "c1fd86776f0a5e39eaf0f79273cbb8c6098ef585b59783b00a30ef1d65772e25"
+  },
+  "detector": {
+    "revision": "a2bb814dd30d776dcf7e30523b00659f4f141c71",
+    "box_threshold": 0.4,
+    "text_threshold": 0.3
+  },
+  "segmenter": {
+    "source_revision": "2b90b9f5ceec907a1c18123530e92e794ad901a4",
+    "config": "configs/sam2.1/sam2.1_hiera_l.yaml",
+    "multimask_output": true,
+    "postprocessing": "largest connected component only"
+  },
+  "builds": {
+    "26": "outputs/pose_insurance/stereo-placement/builds/20261103T001808.793661Z-15248ff4/run.json",
+    "21": "outputs/pose_insurance/stereo-placement/builds/20261103T001808.523845Z-0913429d/run.json",
+    "18": "outputs/pose_insurance/stereo-placement/builds/20261103T001808.390849Z-755aa1d7/run.json",
+    "12": "outputs/pose_insurance/stereo-placement/builds/20261103T001808.260465Z-9bb1806e/run.json",
+    "31": "outputs/pose_insurance/stereo-placement/builds/20261103T001808.891067Z-1c0a1087/run.json",
+    "0": "outputs/pose_insurance/stereo-placement/builds/20261103T001807.996054Z-c922133b/run.json",
+    "11": "outputs/pose_insurance/stereo-placement/builds/20261103T001808.118352Z-78829e68/run.json"
+  }
+}
