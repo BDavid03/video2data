@@ -327,3 +327,181 @@ First-pose errors were 3.600222 cm / 0.000002415 degrees; drift was
 16.526426 cm / 89.999970 degrees. All 20 incumbent export hashes match v5.
 One policy/evaluator attempt used 196.085 GPU-lease seconds, plus 33.884 for
 mask inference; elapsed stage-to-stage wall time was 320.419 seconds.
+
+## Gated moving-pose composition (CPU)
+
+`pack_moving.py` is a separate module entry point: the existing slice dispatcher is
+pinned by v5 and stays unchanged, as does `handler.inspect_export`'s static drift
+refusal. The moving operation verifies the frozen v5 CSV and manifest identities,
+copies its twenty exports, and replaces only explicitly admitted scored episodes.
+It invokes the unedited kit packer and preflight (Kaggle skipped), then compares
+all unadopted CSV fields as **text**, including signed zeros, ignoring only the
+new global `code_commit_url`. It never writes under `submission/`.
+
+After the lead commits the implementation and has genuine passing evidence:
+
+```bash
+bash scripts/reproduce/d2_poses_moving.sh \
+  --request data/outputs/pose_insurance/moving-pack/adoptions.json \
+  --code-commit https://github.com/BDavid03/video2data/commit/<FULL_LEAD_COMMIT_SHA> \
+  --out data/outputs/pose_insurance/moving-pack/adopted/track3_poses_moving.csv
+```
+
+The output's **parent directory must be new**. This writes `results/` with all
+20 selected parquets, `pack.log`, `preflight.log`, the CSV and its sibling
+`.manifest.json`. Normal packing requires the URL commit to contain the exact
+current implementation, metric helpers, path/provenance helpers, reproduction
+and release scripts, and M1/M2 protocols. The lead fills the actual commit URL
+at pack time; this command does not push, upload or promote a release.
+
+The request has one list, which may be empty for a dry reproduction:
+
+```json
+{
+  "adoptions": [
+    {
+      "episode": 38,
+      "trajectory": "data/outputs/<producer>/trajectory.parquet",
+      "checkpoint": "data/outputs/<producer>/training/policy_<steps>.safetensors",
+      "admission": "data/outputs/<producer>/admission.json",
+      "reference": "data/outputs/<reference-producer>/reference.npz"
+    }
+  ]
+}
+```
+
+All paths are inside the current checkout. Duplicate episodes and any episode
+outside the kit's scored evaluation roster are refused **before adoption inputs
+are opened**. In particular, tuning 39/42, validation 2/13/22/24/27 and excluded
+41/43/44 cannot be adopted. Episode-39 M2v **summary evidence** is read; no tuning
+trajectory or labelled dataset is opened by this operation.
+
+`reference.npz` uses M1's existing contract: `pose` is `T x 7` for a single object,
+or `T x B x 7` in official slot order; positions are metres and quaternions are
+xyzw. `frame_index` and `time` give the full source clock. The independently
+hashed reference must agree with the evaluator's embedded reference, including
+quaternion sign equivalence. No frame alignment or per-frame transformation is
+fitted during admission.
+
+The admission document uses the following envelope. Each `{path, sha256}` is a
+real content hash entry, not a placeholder at runtime:
+
+```json
+{
+  "schema_version": 1,
+  "episode": 38,
+  "inputs": {
+    "trajectory": {"path": "...", "sha256": "..."},
+    "checkpoint": {"path": "...", "sha256": "..."},
+    "reference": {"path": "...", "sha256": "..."}
+  },
+  "policy_run": {"path": ".../run.json", "sha256": "..."},
+  "official_metrics": {"path": ".../official_metrics.json", "sha256": "..."},
+  "m2v": {"path": ".../m2v-adoption.json", "sha256": "..."},
+  "m1": {"path": ".../gates.json", "sha256": "..."},
+  "achieved_reprojection": {
+    "median_iou": 0.60, "p10_iou": 0.30, "usable_fraction": 0.90
+  },
+  "abstract_disclosure": {"path": "docs/report/track3/main.tex", "sha256": "..."}
+}
+```
+
+The numbers in that example illustrate the limits, **not measurements**. The
+operation fails closed on absent, nonfinite or failing evidence:
+
+- The evaluator schema, units, episode, checkpoint hash, evaluator script/code
+  hashes, complete official roster, names and slot order, valid environments,
+  unit quaternions and clock must agree. Evaluation modules must equal pinned
+  upstream after the installation's CRLF-to-LF normalization, with no code edits.
+- `policy_run` follows the existing pose producer record: `status=completed`,
+  `split=evaluation`, matching `episode_index`, positive `optimizer_updates` and
+  `actor_adam_steps`, checkpoint path/hash, `artifacts` hashes for
+  `trajectory.parquet` and `official_metrics.json`, and one recorded kit evaluator
+  command binding the exact checkpoint, trajectory and metrics paths. This is
+  provenance evidence of learning; the packer does not retrain the checkpoint.
+- M2v's sealed summary requires `episode=39`, `passed=true`, `verdict=GO`,
+  `AUC >= 0.45`, `tracking` containing `T`, `Q`, `E_m`, `E_S_m`, `Theta_deg`,
+  `Theta_S_deg` satisfying Amendment 1's bounds, and a `reprojection` object with
+  the same three keys/limits as `achieved_reprojection`.
+- M1's final gates document requires `episode`, `label_free=true`, `passed=true`,
+  and `reference_sha256` matching the adopted npz. Its `gates` retain the existing
+  M1 producer's `{value, passed, ...}` rows. Every measurement in `M1_LIMITS`
+  is checked against the protocol's fixed limits, including held-out camera
+  tracks, table, masks, object motion, reference reprojection and **measured**
+  zero-action support. An unmeasured support gate does not pass.
+- `official_metrics.json` must record `reset_mode=explicit`, start 0, one world,
+  the full step count, no nonfinite worlds, end fraction 1 and zero object/wrist
+  failure fractions. Together with the export clock and evaluator command this
+  establishes one attempt reaching the end without an in-rollout reset.
+- `T` and `Q` reuse the frozen displacement-gain and 15-frame increment functions.
+  The packer re-derives them, mean position error `E`, mean geodesic orientation
+  error `Theta`, held-still baselines and initial errors from the exported achieved
+  poses and the independent reference. Each object must have `T,Q >= 0.50`,
+  `E <= min(0.5 E_S, 0.03 m)`, `Theta <= min(0.5 Theta_S, 15 deg)` and initial
+  errors at most 1 cm / 2 degrees. An exactly stationary positional reference has
+  undefined `T/Q` and is refused. This conservative per-object rule also applies
+  to multi-object adoptions.
+
+The packer checks the supplied achieved-reprojection measurements; it does not
+rerender the video or independently regenerate M1/M2v's evidence. Those measured,
+hashed producer records and the abstract's actual wording still need lead review.
+It re-derives tracking and initial errors rather than trusting admission claims.
+The manifest records the code URL, all input/source hashes and each episode's
+`v5 static` or `moving policy` origin, with checkpoint/admission hashes for moving
+policies. It has no direct `AGENTS.md` hash entry. The immutable v5 parent is
+hashed as an input without expanding its historical source inventory.
+
+To select a real moving release later, the lead updates the `pose` entry in
+`release.json` with the new CSV path/hash and manifest, and adds
+`"moving_manifest": "<the same manifest path>"` inside that entry. Only then does
+`check_release.sh` call `--verify-manifest` instead of v5's static verifier. It
+re-admits the evidence, verifies per-episode provenance, repacks all admitted
+exports through the kit and requires exact CSV equality. A missing selector,
+a dry pack or an empty moving release fails. The existing release configuration
+is unchanged and still selects v5.
+
+### CPU proof, 4 November 2026
+
+The scratch evidence lives in `data/.runtime/tmp/mpack-dry/`:
+
+```bash
+bash scripts/reproduce/d2_poses_moving.sh \
+  --request data/.runtime/tmp/mpack-dry/empty.json \
+  --code-commit https://github.com/BDavid03/video2data/commit/db7b13fc196785e9bf10714cd6e8231d808d06b8 \
+  --out data/.runtime/tmp/mpack-dry/empty-reviewed/poses.csv --dry-run
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' \
+  data/.runtime/linux-cuda/bin/python -B data/.runtime/tmp/mpack-dry/prove.py
+```
+
+Dry mode permits only `mpack-dry/`, labels its manifest **NOT ADMISSIBLE**, and
+skips the new implementation's commit-content check. Its syntactically valid URL
+above is v5's old URL, so that the equivalence run can compare whole-file bytes;
+it does **not** claim this new implementation existed at that commit. A later
+production URL changes the URL column globally and the new manifest records the
+new implementation and per-episode inputs.
+
+| Evidence | Result |
+| --- | --- |
+| Empty adoption | All 9,120 rows and whole CSV bytes identical to v5, SHA-256 `0b2606aed015fe0a64e31037ff790b5483680c3da7e7a5ae2d503edeb8261035`; no URL difference in this dry proof |
+| Fake rotation plumbing | Existing episode-38 rows rotated smoothly by 0..5 degrees; 262/263 rows change, all 8,857 rows in other episodes remain text-identical |
+| Refusals | 93 distinct producer, schema, protocol, tracking, first-pose, episode and output-boundary probes refused; `refusals.jsonl` and `proof-summary.json` |
+| Kit shape | Empty and fake compositions pass local preflight, Kaggle skipped; this does not establish scientific admissibility |
+| Scientific adoption | Zero moving episodes admitted; the operation rejects the fake marker and all dry packs at release |
+
+The fake's CSV is named `FAKE_ROTATION_ONLY/poses_FAKE_NOT_ADMISSIBLE.csv`; its
+parquet is explicitly marked `plumbing_only`, and `NOTICE.json` says it is not an
+admitted pack. Only the low-level scratch composition/official kit shape was
+exercised with this fake; admission was never bypassed for a real pack. The
+refusal script uses real v5 data plus helper-level probes and synthetic evidence
+envelopes for failing gates, not a successful moving-policy producer. It appends
+a ledger and resumes completed cases. Compilation, CPU import and the existing
+`check_release.sh` are the other checks; no suite, GPU job, install or upload ran.
+
+The post-change release check ended `READY` (`mpack-dry/release-after.log`), with
+v5's pose hash unchanged. The optional selector was exercised against a dry
+manifest without editing `release.json`: a selected dry pack failed moving
+provenance, and a moving manifest missing its selector failed declaration
+(`release-selector-proof.json`). No successful real moving-release check is
+claimed. `metric-equivalence.json` records exact agreement with the existing
+T/Q functions for held-still, half-motion and full-motion controls (tolerance
+`1e-12`).

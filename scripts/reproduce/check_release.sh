@@ -38,7 +38,20 @@ def report_file():
 check('arguments', lambda: (len(sys.argv) == 1, 'no arguments accepted'))
 for name in ('mesh', 'pose'): check(name+' packed file', lambda: match(release[name]))
 for name in ('mesh', 'pose'): check(name+' manifest', lambda: command(name+'-manifest', ['bash', 'scripts/reproduce/verify.sh', release[name]['manifest']]))
-check('pose provenance', lambda: command('pose-provenance', ['bash', 'scripts/reproduce/d2_poses_v5.sh']))
+moving_manifest = release['pose'].get('moving_manifest')
+if not moving_manifest and json.loads(Path(release['pose']['manifest']).read_text()).get('kind') == 'pose_insurance.moving_pack':
+    check('moving manifest declared', lambda: (False, 'a moving pose requires the optional moving_manifest entry'))
+if moving_manifest:
+    moving_manifest = current_name(moving_manifest)
+    check('moving manifest identity', lambda: (
+        moving_manifest == release['pose']['manifest']
+        and current_name(json.loads(Path(moving_manifest).read_text())['file']['path']) == release['pose']['path'],
+        'optional moving_manifest must name the selected pose manifest and packed file'))
+    check('pose provenance', lambda: command('pose-provenance', [
+        'data/.runtime/linux-cuda/bin/python', '-B', '-m',
+        'src.features.pose_insurance.pack_moving', '--verify-manifest', moving_manifest]))
+else:
+    check('pose provenance', lambda: command('pose-provenance', ['bash', 'scripts/reproduce/d2_poses_v5.sh']))
 for track in ('track_3_mesh', 'track_3'):
     check(track+' preflight', lambda: command(track, ['data/.runtime/kit-env/bin/python', '-B', 'upstream/v2d_submission_kit/v2d_submission_kit/tools/preflight.py', '--track', track, '--skip-kaggle'] + ([] if track == 'track_3_mesh' else ['--results', str(Path(current_name(json.loads(Path(release['pose']['manifest']).read_text())['exports'][0]['path'])).parent)]), 'Ready to submit'))
 if check('report build', lambda: command('report', ['bash', 'scripts/reproduce/d3_report.sh', '--run'])): check('report upload file', report_file)
