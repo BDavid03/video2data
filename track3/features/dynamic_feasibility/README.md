@@ -106,3 +106,44 @@ at most 3 cm and half S. Position/orientation are raw world-frame errors.
 ADD-AUC uses the kit's initial slot-0 alignment and 1,000 seeded task-surface
 samples. These are diagnostic sample-task measurements, not challenge scores.
 Peak GPU memory is sampled total device use and may miss brief peaks.
+
+## M0: evaluation of the partial D1 policies
+
+Run the fixed [M0 protocol](../../../docs/chain/moving-m0-protocol.md):
+
+```bash
+PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 .runtime/flashchord/venv/bin/python -B -m track3.features.dynamic_feasibility.partial_eval
+```
+
+`partial_eval.py` copies and hashes the two prescribed policy checkpoints, then
+checks the real-reference identities, reproduces D0's seeded measurements and
+scores all 390 jump-and-hold controls on CPU before evaluating either policy.
+The official evaluator runs seed 0 then seed 1 under one GPU lease and a shared
+300-second cooperative deadline. Only a crash without an export can be retried
+once; an existing export is never repeated. A completed invocation prints its
+saved summary; an interrupted invocation refuses to rerun and requires inspection
+of its record and existing exports. There is no training or checkpoint selection.
+
+The separate `M0.execution` runtime flags authorize evaluation and measurement;
+the D0/D1 flags and training handler's nonzero-VOC refusal are unchanged.
+Evaluation uses the FlashCHORD interpreter and `handler.environment/execute`;
+measurement uses `measurement_python` with CUDA hidden. M0 reuses
+`measure.score_export`, additionally requiring completion and the frame clock,
+FPS and checkpoint identity. Invalid exports retain failure details without
+inventing zero motion scores. No historical output is modified.
+
+Writes only `outputs/dynamic_feasibility/m0/`: `run.json` with hashed inputs,
+source identity and commands, copied `checkpoints/`, `preflight.json`, all controls
+in `jump_hold_controls.json`, per-attempt official exports/logs under `runs/`,
+`final.json`, `summary.md` and `finished.json`. Pure motion functions and raw
+threshold comparisons live in `_metrics.py`. ADD-AUC uses D0's fixed task.npz
+surface samples; aligned and raw values are both reported. The summary reports
+the control with greatest Q and retains the separate best T and lowest E in JSON.
+
+Latest result: **NULL**, 42.375642 GPU seconds, 1,883 MiB sampled total-device
+peak, no evaluation retries. Both exports pass admission and complete 390 frames
+with end fraction 1.0 and success rate 0.0. Seed 0/1 transport is
+0.035177321 / 0.009431791 and Q is 0.075124093 / 0.009120649; mean position is
+6.802541645 / 6.827838192 cm. Both miss SIGNAL's T >=0.20 and Q >=0.10 gates.
+All five validity checks pass; none of the 390 jump-and-hold controls meets GO
+or SIGNAL. NULL does not rule out transport or close the object-driven W3 route.

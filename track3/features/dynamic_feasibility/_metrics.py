@@ -3,6 +3,64 @@
 import numpy as np
 
 
+def transport(achieved, reference):
+    """Return through-origin displacement gain on world-frame positions in metres."""
+    achieved, reference = (np.asarray(x, dtype=np.float64) for x in (achieved, reference))
+    da, dr = achieved - achieved[0], reference - reference[0]
+    return float(np.sum(da * dr) / np.sum(dr * dr))
+
+
+def motion_score(achieved, reference):
+    """Compare 15-frame motion increments with the still-object baseline."""
+    achieved, reference = (np.asarray(x, dtype=np.float64) for x in (achieved, reference))
+    da, dr = achieved[15:] - achieved[:-15], reference[15:] - reference[:-15]
+    return float(1 - np.sum((da - dr) ** 2) / np.sum(dr ** 2))
+
+
+def perpendicular_error(achieved, reference):
+    """Return mean perpendicular displacement in cm where reference travel is >=1 cm."""
+    achieved, reference = (np.asarray(x, dtype=np.float64) for x in (achieved, reference))
+    da, dr = achieved - achieved[0], reference - reference[0]
+    distance = np.linalg.norm(dr, axis=-1)
+    selected = distance >= .01
+    unit = dr[selected] / distance[selected, None]
+    residual = da[selected] - np.sum(da[selected] * unit, axis=-1, keepdims=True) * unit
+    return float(np.linalg.norm(residual, axis=-1).mean() * 100)
+
+
+def jump_hold_controls(reference):
+    """Return one jump-at-frame-1 and hold trajectory for every reference target frame."""
+    reference = np.asarray(reference, dtype=np.float64)
+    controls = np.repeat(reference[:, None, :], len(reference), axis=1)
+    controls[:, 0] = reference[0]
+    return controls
+
+
+def m0_thresholds(rows, static_error):
+    """Return the unchanged prospective M0 metric thresholds."""
+    baseline = max(rows[name]["T"] for name in ("Z", "L1-seed0", "L1-seed1"))
+    return {"GO": {"T": .50, "Q": .50, "E": .5 * static_error},
+            "SIGNAL": {"T": max(.20, baseline + .10), "Q": .10, "E": static_error}}
+
+
+def meets_m0(row, thresholds):
+    """Apply raw M0 metric limits without rounding or tolerance."""
+    return (row["T"] >= thresholds["T"] and row["Q"] >= thresholds["Q"]
+            and row["mean_position_cm"] <= thresholds["E"])
+
+
+def m0_verdict(rows, checks, controls, thresholds):
+    """Block invalid measurements and non-discriminating controls before claiming transport."""
+    if not all(check["passed"] for check in checks.values()):
+        return "INVALID"
+    seeds = [rows[f"D1p-seed{seed}"] for seed in (0, 1)]
+    for name, passed in (("GO", all(meets_m0(row, thresholds["GO"]) for row in seeds)),
+                         ("SIGNAL", any(meets_m0(row, thresholds["SIGNAL"]) for row in seeds))):
+        if passed:
+            return f"METRIC-NONDISCRIMINATING ({name})" if controls[name] else name
+    return "NULL"
+
+
 def pose_metrics(achieved, reference, vertices, kit):
     """Measure raw pose errors and kit ADD-AUC on matching xyzw pose arrays."""
     achieved, reference = (np.asarray(value, dtype=np.float64).copy()

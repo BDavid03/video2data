@@ -6,5 +6,9 @@
   "D1": {
     "execution": {"run_authorized": true, "measure_authorized": true},
     "scope": "D1 on the unchanged shipped tissue-box example; no challenge episodes"
+  },
+  "M0": {
+    "execution": {"run_authorized": true, "measure_authorized": true},
+    "scope": "Evaluation only: two fixed partial D1 policies on shipped tissue_box_simple; no training, challenge episodes or submissions"
   }
 }
