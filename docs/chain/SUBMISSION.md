@@ -400,3 +400,14 @@ Evidence: `outputs/pose_insurance/placement/{summary.md,confirmation.md,ledger.j
 `outputs/pose_insurance/v2/{report.md,physical_checks.json,equivalence.json}`, pack manifest and
 preflight log in `submissions/20261101T2315Z-d2-v2/`. Reproduce: `bash scripts/reproduce/d2_poses.sh`
 (plan), `bash scripts/reproduce/verify.sh submissions/20261101T2315Z-d2-v2/manifest.json`.
+
+### Refresh candidate 20261104T211325Z: episode 25 frame-zero placement under train-calibrated limits (packed, not uploaded)
+
+- File `data/outputs/refresh/combined/refresh-candidate-20261104T211325.940152Z/track3_combined_fp.parquet`,
+  SHA-256 `9efb1040fb9cd86b7851d318dc27ea0dcb9b62c80fb2471c927a55ed966843e4`, packed 21:13 UTC on 4 November 2026 at commit
+  `163931ef161813939f372e2eae75bc7b9c08e7ac`. Episode 25 replaced by the refresh static rollout (physical guards pass:
+  B-in-A 0.38 cm / 1.57 deg); the other 19 episodes' rows byte-identical to moving v5 `b476eb1c` except the shared
+  code URL. Kit preflight "Ready to submit"; `pose_refresh.pack --verify-manifest --release` passes.
+- Protocol and evidence: `docs/chain/refresh-20261104T2048Z/` (sealed rule, train registrations, limits, disclosed
+  amendment after results). `check_release.sh --combined` reports NOT READY only on the two historical packed files
+  missing since before today (D1 v5 parquet, D2 v5 CSV); report PDF `e8524609` matches its pin.

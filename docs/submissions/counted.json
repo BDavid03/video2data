@@ -241,6 +241,87 @@
         }
       ],
       "note": "CD-O uses the uploader-generated extracted file, not the combined pose Parquet. Legacy checkpoint archive uses models/policies/track3-moving-v5; retain this existing path."
+    },
+    {
+      "pack_folder": "data/outputs/pose_insurance/combined-v5/fp-candidate-20261104T203551.465560Z",
+      "file_name": "track3_combined_fp.parquet",
+      "status": "packed, not uploaded",
+      "file": {
+        "path": "data/outputs/pose_insurance/combined-v5/fp-candidate-20261104T203551.465560Z/track3_combined_fp.parquet",
+        "size_bytes": 284146,
+        "sha256": "dc7729413e2f3df74c9250e8b7edfb8194a707b74408e4a03820d0639d541ffb"
+      },
+      "manifest": {
+        "path": "data/outputs/pose_insurance/combined-v5/fp-candidate-20261104T203551.465560Z/track3_combined_fp.manifest.json",
+        "size_bytes": 17519,
+        "sha256": "82d04dac6baaa1eaf6e2b7475c11cee805eba2ed14cc69bd38e7df2e92756785"
+      },
+      "archived_manifest": {
+        "path": "docs/submissions/manifests/fp-candidate-20261104T203551.465560Z/track3_combined_fp.manifest.json",
+        "size_bytes": 17519,
+        "sha256": "82d04dac6baaa1eaf6e2b7475c11cee805eba2ed14cc69bd38e7df2e92756785"
+      },
+      "code_commit_url": "https://github.com/BDavid03/video2data/commit/07fdf671d9c22bcb3db5fb3fe16bc31b4d6cd0d4",
+      "model_hashes": {
+        "path": "models/policies/fp-candidate-20261104T203551.465560Z/SHA256SUMS",
+        "size_bytes": 1860,
+        "sha256": "62e3fdebb83c198d64aa935bc7ab307bc30e4b6866c4e1a1fa95438f33844fb8"
+      },
+      "uploads": []
+    },
+    {
+      "pack_folder": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z",
+      "file_name": "track3_combined_fp.parquet",
+      "status": "packed, not uploaded",
+      "file": {
+        "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/track3_combined_fp.parquet",
+        "size_bytes": 284171,
+        "sha256": "d18496f4b47af6e47de9bc69a27353eabdf8a3bc5c4c239bcb37534e917c98cc"
+      },
+      "manifest": {
+        "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/track3_combined_fp.manifest.json",
+        "size_bytes": 17477,
+        "sha256": "f5936e621578fc762273132e89c504c1c50bd16daf03a21ec431f22839b3ff7c"
+      },
+      "archived_manifest": {
+        "path": "docs/submissions/manifests/refresh-candidate-20261104T211202.460572Z/track3_combined_fp.manifest.json",
+        "size_bytes": 17477,
+        "sha256": "f5936e621578fc762273132e89c504c1c50bd16daf03a21ec431f22839b3ff7c"
+      },
+      "code_commit_url": "https://github.com/BDavid03/video2data/commit/91a1aa44868664732dcbcae19f01f1f046000ef7",
+      "model_hashes": {
+        "path": "models/policies/refresh-candidate-20261104T211202.460572Z/SHA256SUMS",
+        "size_bytes": 1860,
+        "sha256": "f4608e216f7d21fd44a52d959ce5e179d3fd192d4aa9b74b32cf5933c66890a6"
+      },
+      "uploads": []
+    },
+    {
+      "pack_folder": "data/outputs/refresh/combined/refresh-candidate-20261104T211325.940152Z",
+      "file_name": "track3_combined_fp.parquet",
+      "status": "packed, not uploaded",
+      "file": {
+        "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211325.940152Z/track3_combined_fp.parquet",
+        "size_bytes": 284171,
+        "sha256": "9efb1040fb9cd86b7851d318dc27ea0dcb9b62c80fb2471c927a55ed966843e4"
+      },
+      "manifest": {
+        "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211325.940152Z/track3_combined_fp.manifest.json",
+        "size_bytes": 17477,
+        "sha256": "66c929019e597f97cc6082835ad0e16a5a030290dcae7b0bbff3e1748cf1e7b7"
+      },
+      "archived_manifest": {
+        "path": "docs/submissions/manifests/refresh-candidate-20261104T211325.940152Z/track3_combined_fp.manifest.json",
+        "size_bytes": 17477,
+        "sha256": "66c929019e597f97cc6082835ad0e16a5a030290dcae7b0bbff3e1748cf1e7b7"
+      },
+      "code_commit_url": "https://github.com/BDavid03/video2data/commit/163931ef161813939f372e2eae75bc7b9c08e7ac",
+      "model_hashes": {
+        "path": "models/policies/refresh-candidate-20261104T211325.940152Z/SHA256SUMS",
+        "size_bytes": 1860,
+        "sha256": "f4608e216f7d21fd44a52d959ce5e179d3fd192d4aa9b74b32cf5933c66890a6"
+      },
+      "uploads": []
     }
   ]
 }

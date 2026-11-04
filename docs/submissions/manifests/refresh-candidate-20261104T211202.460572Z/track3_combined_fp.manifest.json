@@ -1,0 +1,357 @@
+{
+  "kind": "pose_refresh.combined_fp_candidate",
+  "file": {
+    "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/track3_combined_fp.parquet",
+    "sha256": "d18496f4b47af6e47de9bc69a27353eabdf8a3bc5c4c239bcb37534e917c98cc"
+  },
+  "parent": {
+    "path": "submission/20261104T1422Z-d2-moving-v5/track3_combined_v5.manifest.json",
+    "sha256": "df66435ed6d4fee15ca364ff4738ec4e42f336a754968945f49794dc9e90c331"
+  },
+  "code_commit_url": "https://github.com/BDavid03/video2data/commit/91a1aa44868664732dcbcae19f01f1f046000ef7",
+  "shared_url_update": true,
+  "comparison": {
+    "passed": true,
+    "adopted_episodes": [
+      25
+    ],
+    "unchanged_rows": 8408,
+    "unchanged_fields": "all fields exact except owner-approved shared code_commit_url"
+  },
+  "sources": [
+    {
+      "path": "src/features/pose_refresh/frame0_fp.py",
+      "sha256": "83551f64ceaf132a8e03bed78df93a6b2738e382d30fafeab4ca71c62a728376"
+    },
+    {
+      "path": "src/features/pose_refresh/frame0_fp_worker.py",
+      "sha256": "265d0235a8b0a625c61058ec46183b16787b03842f4fbc659255a4a8726022a4"
+    },
+    {
+      "path": "src/features/pose_refresh/frame0_fp_policy.py",
+      "sha256": "2d073c3638f19befb5e151e161fec71623dc78f45743da1f713521b29a73a824"
+    },
+    {
+      "path": "src/features/pose_refresh/frame0_fp_retrain.py",
+      "sha256": "2f86aa40be120da672dcc7cfd37c2c97005fe9e60ee6053821cc4efc9df1f58e"
+    },
+    {
+      "path": "src/features/pose_refresh/pack.py",
+      "sha256": "68495f8b34ac10803ce92918d0fe97a29d937f72df69c03fdf68cfdcd15f8fdf"
+    },
+    {
+      "path": "src/features/pose_refresh/train_frame0.py",
+      "sha256": "e0ab97aa32005d7506fa1501cd1961daf8959d8160f4f8853b215e2447e099c9"
+    },
+    {
+      "path": "src/features/pose_refresh/_frame0_masks_worker.py",
+      "sha256": "5b889fbeb538f617201c712ac1404974fa4be91ba1a2e3fa1aa037e549c00fac"
+    },
+    {
+      "path": "src/features/pose_refresh/calibrate.py",
+      "sha256": "38ed6beada57b0792967b228b186a19c98cee7214f5e0f1439a6ef2ecf51eddc"
+    }
+  ],
+  "admissions": [
+    {
+      "path": "data/outputs/refresh/frame0-fp/policies/ep25/policy-resume/admission.json",
+      "sha256": "918b8b4dc4e36e3258b950cee29e5485e3aad83d180f6534d7c69ee3f63483b9"
+    }
+  ],
+  "exports": [
+    {
+      "episode": 1,
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/results/episode_000001.parquet",
+      "sha256": "f39242ed8228c89decb46642ad4698fae4b179817d667f7f69d3269da73d1511"
+    },
+    {
+      "episode": 3,
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/results/episode_000003.parquet",
+      "sha256": "f55c1d5a9b23293f580c50e82ac68104f479eec4225b8b8ed6543662371e16b0"
+    },
+    {
+      "episode": 5,
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/results/episode_000005.parquet",
+      "sha256": "eff917e148671d61f58527c9feed06441b42dec8f4a4a147eaeed56adcc3e547"
+    },
+    {
+      "episode": 6,
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/results/episode_000006.parquet",
+      "sha256": "5d673e4958a1e91c530db27f802475f4e6ca4983d750c95351c5605595ed95ec"
+    },
+    {
+      "episode": 8,
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/results/episode_000008.parquet",
+      "sha256": "5179a043a059f7389e56c66e87b43273b96e76d8fc67434d0b6ab6100770313a"
+    },
+    {
+      "episode": 10,
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/results/episode_000010.parquet",
+      "sha256": "66027ce1ac46d27634b84781f32af4028d35bd3f91f71654cff4317e8bda0984"
+    },
+    {
+      "episode": 14,
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/results/episode_000014.parquet",
+      "sha256": "6c67b66501c5b9eb84053d3375f504aa4bf1c8d4f83710bc715894eab63dbbd8"
+    },
+    {
+      "episode": 15,
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/results/episode_000015.parquet",
+      "sha256": "52bb97b48f3bf2ce670e1e3663a61bd6e235a33e24ddd9ad0e937338ee810340"
+    },
+    {
+      "episode": 16,
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/results/episode_000016.parquet",
+      "sha256": "131a0b6901483bee604e8ecd6929fd7e83637acd2c5dbc2a5ad463eebca0bac3"
+    },
+    {
+      "episode": 19,
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/results/episode_000019.parquet",
+      "sha256": "17a6535bca3e45bffed46673f68652723b46b8c6f3121860344a6d1260c5126e"
+    },
+    {
+      "episode": 20,
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/results/episode_000020.parquet",
+      "sha256": "e879274b67aab77281510b180585ea745f67b86725eaa6ee1abb0ac951d65ee1"
+    },
+    {
+      "episode": 25,
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/results/episode_000025.parquet",
+      "sha256": "85a43b05153534d309ecd1d6303620af9884481ad316b03a69267e53f1970179"
+    },
+    {
+      "episode": 28,
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/results/episode_000028.parquet",
+      "sha256": "5595b495a8897ac4a31c0f97c382865415fdf0baeeaca02e60c65a4cc2d3d350"
+    },
+    {
+      "episode": 30,
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/results/episode_000030.parquet",
+      "sha256": "e9cb170248d9d040b13b21dacedd07ef2ae989abf4498de7222aead6da8c9e0d"
+    },
+    {
+      "episode": 32,
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/results/episode_000032.parquet",
+      "sha256": "09b8687ec8525a91329b0bb244056c5b9ffb21c3460f57bddc0f92fabdf90ee7"
+    },
+    {
+      "episode": 33,
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/results/episode_000033.parquet",
+      "sha256": "110ba0eabd5c802d557a265385ccdeef621e07e0cabd8d6f93421778a273df39"
+    },
+    {
+      "episode": 35,
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/results/episode_000035.parquet",
+      "sha256": "0bd9f0fc12f4348fced1b3fa937ea446451d7ab7b0c29e0dbeea1aaab623c091"
+    },
+    {
+      "episode": 36,
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/results/episode_000036.parquet",
+      "sha256": "60d77bdeefaded0d0c98076fb5430394c90ba7cd76664c186b4f2c1d505baa32"
+    },
+    {
+      "episode": 37,
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/results/episode_000037.parquet",
+      "sha256": "35762ed4c111d4d21a80124704e0a6db2190e20f60b20aa13fd5490aeb2b6138"
+    },
+    {
+      "episode": 38,
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/results/episode_000038.parquet",
+      "sha256": "00eff73c690cf9b5aff1c77d1df8e24c7ef29a3991c63fd5dc35dd1bbe8fe3b4"
+    }
+  ],
+  "meshes": [
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000001/white_pot.ply",
+      "sha256": "d18d668e4ac60c76433b2d16dc1f9161d2d118531457e39fa9b9ee256844e7e1"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000001/white_pot_lid.ply",
+      "sha256": "8861228ad08cdfd29443cfe679c53e8092c39cfeda3e08ce1507bc2cc3b36ea2"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000003/white_pot.ply",
+      "sha256": "d18d668e4ac60c76433b2d16dc1f9161d2d118531457e39fa9b9ee256844e7e1"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000003/wooden_spoon.ply",
+      "sha256": "28c4f67eecd0296c898dc63b3ec312d03381ee47ba7e44aa310a49eb99e9c48d"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000005/white_pot.ply",
+      "sha256": "d18d668e4ac60c76433b2d16dc1f9161d2d118531457e39fa9b9ee256844e7e1"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000005/wooden_spoon.ply",
+      "sha256": "28c4f67eecd0296c898dc63b3ec312d03381ee47ba7e44aa310a49eb99e9c48d"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000006/white_pot.ply",
+      "sha256": "d18d668e4ac60c76433b2d16dc1f9161d2d118531457e39fa9b9ee256844e7e1"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000006/wooden_spoon.ply",
+      "sha256": "28c4f67eecd0296c898dc63b3ec312d03381ee47ba7e44aa310a49eb99e9c48d"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000008/beige_cup.ply",
+      "sha256": "ada9ca29abcf6c12db12e6f070af15b788ab382ed7e77e73eebee2b587b5e5b4"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000008/white_pot.ply",
+      "sha256": "d18d668e4ac60c76433b2d16dc1f9161d2d118531457e39fa9b9ee256844e7e1"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000010/blue_cup.ply",
+      "sha256": "fb4379a5f01823633852d22dc5e32480707ce6420bbdf6eab64bef0a253f7b00"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000010/beige_cup.ply",
+      "sha256": "ada9ca29abcf6c12db12e6f070af15b788ab382ed7e77e73eebee2b587b5e5b4"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000014/blue_cup.ply",
+      "sha256": "fb4379a5f01823633852d22dc5e32480707ce6420bbdf6eab64bef0a253f7b00"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000014/plastic_dish_rack.ply",
+      "sha256": "8cdca7ade5648db18c29fdd8524e91d62805afecd892ccc69ac8868a5de3bf19"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000015/plastic_dish_rack.ply",
+      "sha256": "8cdca7ade5648db18c29fdd8524e91d62805afecd892ccc69ac8868a5de3bf19"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000015/wooden_spoon.ply",
+      "sha256": "28c4f67eecd0296c898dc63b3ec312d03381ee47ba7e44aa310a49eb99e9c48d"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000016/plastic_dish_rack.ply",
+      "sha256": "8cdca7ade5648db18c29fdd8524e91d62805afecd892ccc69ac8868a5de3bf19"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000016/wooden_spoon.ply",
+      "sha256": "28c4f67eecd0296c898dc63b3ec312d03381ee47ba7e44aa310a49eb99e9c48d"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000019/mini_sweeper.obj",
+      "sha256": "66c9f7de66e62118717115eca4bb681852296fd2d60a7469c61b17a85009404d"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000019/mini_dust_pan.obj",
+      "sha256": "a682101f237fe41ed2e20dbacf8400ffd5de57c5efd7142b673bd21426c1fb79"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000020/blue_cup.ply",
+      "sha256": "fb4379a5f01823633852d22dc5e32480707ce6420bbdf6eab64bef0a253f7b00"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000020/water_pitcher.ply",
+      "sha256": "50774ba9c01f32f5f9fbc8f889f29a2914f663603bc19eb5d329b8ea32439e28"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000025/wooden_piece_1.ply",
+      "sha256": "525ed2ddac44e4df8eb9d8423011a69cfd052bf4a207d11a3e9d2cd679abc8f1"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000025/wooden_piece_2.ply",
+      "sha256": "3c544514caa89889ce7730f7be2c640cf3930ca411ae65cd995926a170ece249"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000028/plastic_dish_rack.ply",
+      "sha256": "8cdca7ade5648db18c29fdd8524e91d62805afecd892ccc69ac8868a5de3bf19"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000028/white_pot.ply",
+      "sha256": "d18d668e4ac60c76433b2d16dc1f9161d2d118531457e39fa9b9ee256844e7e1"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000030/mini_sweeper.ply",
+      "sha256": "c294cab5ecd39460672196c9bd04eb5064a2dd89e5059c1036cb49e149ab8c95"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000030/plastic_dish_rack.ply",
+      "sha256": "8cdca7ade5648db18c29fdd8524e91d62805afecd892ccc69ac8868a5de3bf19"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000032/blue_cup.ply",
+      "sha256": "fb4379a5f01823633852d22dc5e32480707ce6420bbdf6eab64bef0a253f7b00"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000032/wooden_spoon.ply",
+      "sha256": "28c4f67eecd0296c898dc63b3ec312d03381ee47ba7e44aa310a49eb99e9c48d"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000033/blue_cup.ply",
+      "sha256": "fb4379a5f01823633852d22dc5e32480707ce6420bbdf6eab64bef0a253f7b00"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000033/wooden_spoon.ply",
+      "sha256": "28c4f67eecd0296c898dc63b3ec312d03381ee47ba7e44aa310a49eb99e9c48d"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000035/wooden_spoon.ply",
+      "sha256": "28c4f67eecd0296c898dc63b3ec312d03381ee47ba7e44aa310a49eb99e9c48d"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000036/wooden_spoon.ply",
+      "sha256": "28c4f67eecd0296c898dc63b3ec312d03381ee47ba7e44aa310a49eb99e9c48d"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000037/wooden_spoon.ply",
+      "sha256": "28c4f67eecd0296c898dc63b3ec312d03381ee47ba7e44aa310a49eb99e9c48d"
+    },
+    {
+      "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes/episode_000038/mini_dust_pan.obj",
+      "sha256": "aa1c988993aa769579203beca54087ccff7ef57d31823367c4c96ae9d30d55cd"
+    }
+  ],
+  "commands": [
+    {
+      "argv": [
+        "/home/ceolwolf/repos/video2data/.claude/worktrees/chain-ctx01/data/.runtime/kit-env/bin/python",
+        "-B",
+        "/home/ceolwolf/repos/video2data/.claude/worktrees/chain-ctx01/data/.runtime/kit-20261102/v2d_submission_kit/tools/pack_submission.py",
+        "--track",
+        "track_3",
+        "--results",
+        "/home/ceolwolf/repos/video2data/.claude/worktrees/chain-ctx01/data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/results",
+        "--meshes",
+        "/home/ceolwolf/repos/video2data/.claude/worktrees/chain-ctx01/data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/meshes",
+        "--code-commit",
+        "https://github.com/BDavid03/video2data/commit/91a1aa44868664732dcbcae19f01f1f046000ef7",
+        "--eval-script",
+        "/home/ceolwolf/repos/video2data/.claude/worktrees/chain-ctx01/data/.runtime/kit-20261102/v2d_submission_kit/flash_chord/scripts/evaluate_policy.py",
+        "--skip-crosscheck",
+        "-o",
+        "/home/ceolwolf/repos/video2data/.claude/worktrees/chain-ctx01/data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/track3_combined_fp.parquet"
+      ],
+      "log": {
+        "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/pack.log",
+        "sha256": "5d37b2eafef1a8d0ac178c0801f27b573748c378168776833c6de114dfe96e03"
+      }
+    },
+    {
+      "argv": [
+        "/home/ceolwolf/repos/video2data/.claude/worktrees/chain-ctx01/data/.runtime/kit-env/bin/python",
+        "-B",
+        "/home/ceolwolf/repos/video2data/.claude/worktrees/chain-ctx01/data/.runtime/kit-20261102/v2d_submission_kit/tools/preflight.py",
+        "--track",
+        "track_3",
+        "--results",
+        "/home/ceolwolf/repos/video2data/.claude/worktrees/chain-ctx01/data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/results",
+        "--skip-kaggle"
+      ],
+      "log": {
+        "path": "data/outputs/refresh/combined/refresh-candidate-20261104T211202.460572Z/preflight.log",
+        "sha256": "fcf6d96edfe75969590c3bf427dda5bf6f8401386a0daf0b516eb968bb634a01"
+      }
+    }
+  ],
+  "report": {
+    "path": "docs/report/track3/main.tex",
+    "sha256": "403a86d549cfcc1a6bfb048f760721aaed7daed1ee99ea7c407f2a85a7f979e0"
+  },
+  "release_eligible": true,
+  "status": "packed, not uploaded"
+}
