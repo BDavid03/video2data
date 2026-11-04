@@ -1,0 +1,8 @@
+{
+  "episodes": [0, 11, 12, 18, 21, 23, 26, 31, 39, 42],
+  "seed_offsets": [0, 1, 2],
+  "m2v_meshes": ["simulated", "m1_tracking"],
+  "primitive_episodes": [0, 11, 23],
+  "max_seconds": 3600,
+  "purpose": "Measurement only; no choices, thresholds, or gates change. Public scan anchor/axis proxy is disclosed."
+}

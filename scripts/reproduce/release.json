@@ -9,6 +9,11 @@
     "sha256": "0b2606aed015fe0a64e31037ff790b5483680c3da7e7a5ae2d503edeb8261035",
     "manifest": "submissions/20261103T2024Z-d2-v5/track3_poses_v5_final.manifest.json"
   },
+  "combined_pose": {
+    "kit": "data/.runtime/kit-20261102/v2d_submission_kit",
+    "module": "src.features.pose_insurance.pack_combined",
+    "selection": "Explicit --combined manifest required; existing mesh and pose remain frozen"
+  },
   "report": {
     "path": "outputs/report/track3-abstract-62967a99.pdf",
     "sha256": "62967a997de730705c588f67fd02ff016ac92931c8135fb38310d9551946f814",

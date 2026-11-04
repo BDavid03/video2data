@@ -627,3 +627,124 @@ Theta `8.3127260658°`, AUC `0.7748824451`. Raw-frame NULL and both metrics file
 remain unchanged. Aligned proof, producer hashes, refusal ledgers, maker diagnostic
 and final commands are under `data/.runtime/tmp/mpack-dry/` (`aligned-proof/` and
 `aligned-make-admission.log`). No episode-38 label is opened.
+
+## Combined pack (kit of 2 Nov)
+
+The replaced kit requires meshes and trajectories in one Parquet for all five pose
+competitions. `pack_combined.py` repacks the twenty frozen D2 v5 evaluator exports;
+it does not alter their poses. The former CSV prints six decimal places, so every
+one of its 63,840 pose scalars is compared with the Parquet within half a printed
+unit (`5e-7`, plus float64 representation error). Evaluator and checkpoint hashes
+must also remain identical. The manifest records meshes, both parent manifests,
+the kit archive and all kit files, command logs, and `MESH WARNING` lines; it does
+not pin `AGENTS.md`. `--release` verification refuses a dry manifest.
+
+The unedited kit is `data/.runtime/kit-20261102/v2d_submission_kit/`; its adjacent
+`kit.zip` SHA-256 is
+`7e1fdd00b50189191b4f1bf03158607f4f1a7bb5bfb0bf867b14eb06270a77f0`.
+All requirements, including `six`, are already satisfied in the kit environment.
+All four bundled FlashCHORD script/config files match the old kit byte for byte.
+The installed evaluation package hash still matches v5. The README's runtime pin
+changed from `aee95f25` to `8c778f9`; equality of the bundled files does not prove
+equality of those entire revisions. Preserve the runtime actually evaluated for
+the container; no new runtime was downloaded or installed.
+
+`combined_frames.py` follows each manifest export to its rollout inputs, serialized
+task, mesh and URDF. The 36-pair trace is
+`data/outputs/pose_insurance/combined-v5/body-frames.{json,md}`. No simulated OBJ is
+byte-identical to its D1 PLY. Thirty-two D1 shapes retain the shared bounds-centred
+long-x/short-y/height-z coordinate convention, two episode-19 shapes receive the
+recorded TW geometry rotation, and two use the exact simulated mesh: episode 5
+`white_pot` and episode 20 `water_pitcher`. Hunyuan raw meshes have no recorded
+metric scale/origin/axes map into those rollouts. Their fallback sacrifices D1 v5's
+generated surfaces on CD-O. The other D1 pooled dimensions are retained in metres;
+they can differ from simulated bounds. A coordinate map is not a claim that two
+different reconstructions are rigidly congruent. All URDF visual origins are
+identity; TW's collision origin is already handled in its task producer.
+
+The dry artifact is
+`data/.runtime/tmp/combined-dry/track3_combined_v5_DRY.parquet`, with its manifest,
+pack/preflight logs and uploader dry-run log beside it. It passes local preflight,
+all 9,120 pose rows compare successfully, and the maximum scalar difference is
+`4.982452392610082e-7`. The extracted CD-O file differs from D1 on 24,575 of 294,912
+rows, restricted to the two fallbacks and the two rotated episode-19 shapes.
+An ideal rigid registration preserves episode-19 CD-O, but finite sampling and
+multi-start ICP can change its measured value. The fallbacks change its surfaces;
+their confidential CD-O effect cannot be computed locally.
+
+`combined_score.py` runs a resumable measurement queue, not a search. It calls the
+new scorer's registration, body conversion, initial-scene alignment and five metric
+functions in the same order as `metric_code/track_3/AUC.py`. Its results are
+`combined-v5/scoring-summary.{json,md}`, with an append-only ledger and seed spread.
+Train 0/11/12/18/21/23/26/31 and tuning 39/42 labels are disclosed measurement only;
+no recipe, threshold or gate changes. The historical train AUC 0.2767 describes
+frozen T1 static kinematic projections, not eight policy rollout exports. Those
+projections are measured as such; the M2v 39 rows use its actual unchanged evaluator
+export with its simulated mesh, and separately M1's asset with poses re-expressed
+using the recorded frame transform. No episode-38 label exists or is read.
+
+These are public-geometry diagnostics, not confidential Kaggle score estimates:
+the host's `reference_geometry_b64` is unavailable. Local anchors use public scan
+surface centroids, points use the kit's 500-vertex sampler, and cup/lid axes use
+surface PCA. Exact host anchors, physical axes and marker-cleaned geometry cannot
+be reproduced from this kit. Symmetric primitives can produce large registration
+flips across seeds. A primitive's extra symmetry is not granted to the physical
+object by the scorer. Read the per-object stability table before relying on scores.
+
+The completed queue has 45 measurements. At the scorer's default seed, the eight
+train projections give AUC `0.301792`, SP-SR `0.25`, MP-SR `0`, RPE `19.464680 cm`
+and MPPE `12.697385 cm`; the old numbers were `0.276705 / 0 / 0 / 29.013682 cm /
+17.678603 cm`. Train AUC for the two additional registration seeds is `0.292556`
+and `0.291773`. Full old/new per-episode values are in
+`combined-v5/score-comparison.md` and `scoring-summary.json`.
+
+For the actual M2v 39 export, the default-seed diagnostic with its simulated mesh
+is AUC `0.669279`, SP-SR `1`, MP-SR `0`, RPE `0 cm`, MPPE `3.511180 cm`. With
+M1's tracking mesh in its own frame it is `0.591301 / 1 / 0 / 0 cm / 4.149229 cm`.
+The old recorded M2v values are `0.774882 / 1 / 1 / 0 cm / 2.727846 cm`. Across
+three registration seeds, AUC is `0.666014 ± 0.004344` and
+`0.595873 ± 0.003268` respectively (population standard deviations). This does
+not change the existing adoption gates. The largest registration difference is
+`179.933685°`, for a wooden-piece box. All 36 scored simulated assets are boxes
+with 8 vertices and 12 faces; no sphere-like asset occurs in this rollout set.
+The wrapper and the complete new `AUC.py::score()` path independently agree at
+`0.35405495978552276` for the same episode-0 public-geometry payload, difference
+zero (`combined-v5/scorer-flow-equivalence.json`).
+
+Run from the checkout root, at nice 19 and with one BLAS thread:
+
+```bash
+export PYTHONPATH=. CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
+nice -n 19 data/.runtime/linux-cuda/bin/python -B -m src.features.pose_insurance.combined_frames
+nice -n 19 data/.runtime/kit-env/bin/python -B -m src.features.pose_insurance.combined_score
+# Lead: review and commit the eight changed source/configuration files first.
+COMMIT_URL="https://github.com/BDavid03/video2data/commit/$(git rev-parse HEAD)"
+nice -n 19 data/.runtime/linux-cuda/bin/python -B -m src.features.pose_insurance.pack_combined --code-commit "$COMMIT_URL"
+MANIFEST=data/outputs/pose_insurance/combined-v5/release/track3_combined_v5.manifest.json
+FILE=data/outputs/pose_insurance/combined-v5/release/track3_combined_v5.parquet
+nice -n 19 data/.runtime/linux-cuda/bin/python -B -m src.features.pose_insurance.pack_combined --verify-manifest "$MANIFEST" --release
+nice -n 19 bash scripts/reproduce/check_release.sh --combined "$MANIFEST"
+nice -n 19 data/.runtime/kit-env/bin/python -B data/.runtime/kit-20261102/v2d_submission_kit/submit/v2d_submit.py "$FILE" --track track_3 --dry-run -m 'Combined v5 preflight'
+# Lead/owner only, after review, successful checks, and making the commit URL reachable:
+nice -n 19 data/.runtime/kit-env/bin/python -B data/.runtime/kit-20261102/v2d_submission_kit/submit/v2d_submit.py "$FILE" --track track_3 -m 'Combined v5' --wait
+```
+
+The unedited uploader sends `FILE` to AUC, SP-SR, MP-SR, RPE and MPPE. It writes
+`track3_combined_v5.cd-o.parquet` beside it and sends that file to CD-O. Its
+`--dry-run` stops before receipt creation and upload, but after authentication and
+network preflight. The dry-run succeeded here, contrary to the expected network
+restriction, and explicitly reported nothing submitted.
+
+To submit only the five pose metrics while retaining the existing D1 CD-O entry,
+the lead can append `--only add_auc spider_sr maniptrans_sr rpe_cm mppe_cm` to the
+uploader command. The default command above sends to all six; the two fallback
+surfaces then also enter CD-O. This job makes no choice of leaderboard entries.
+
+The optional `check_release.sh --combined MANIFEST` adds current-kit verification
+without changing the selected historical v5 entries in `release.json` or removing
+their checks. No real-URL release pack or upload is made by this job. If the owner
+extends episode 38's cut-off, `pack_moving.py` would need to use this kit, build a
+full body-frame-correct 36-mesh tree (including the moving asset in its rollout
+frame), pack `--meshes` to Parquet, compare preserved v5 rows within their CSV
+printing interval and stamp the new packer/uploader provenance. Its existing
+adoption gates and 38-label prohibition must stay intact. That change is not made.
