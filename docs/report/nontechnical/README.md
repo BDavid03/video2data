@@ -94,12 +94,41 @@ natural or secure grip. Contact forces are large and unverified.
 M2 is one seed, trained by trial and error in simulation from nothing, with our
 shape and a motion-capture goal on practice episode 39. It is the first moving
 result on a challenge-type clip in this project. **Not a challenge result;
-scored episodes have no motion capture, so a goal path from video has to replace
-it, and that has not been shown.** No scan is read by the report rebuild or CPU
+scored episodes have no motion capture. A video-derived path is now estimated,
+but no policy has followed it yet.** No scan is read by the report rebuild or CPU
 diagnostic; the displayed kit measurements were computed earlier by the slice.
 
 `data/outputs/visuals/episode39-setup.json` retains the older dated setup/training
 snapshot. The report now uses the completed M2 outcome and recorded metrics.
+
+`16-tracked-pan.png` and `.mp4` project the frozen candidate-C references for
+39 and 38 through their fitted cameras onto the saved rectified real frames.
+Green is the model's rendered contour, including its handle hole, not the input
+segmentation mask. The reference body pose is converted to the own asset frame
+using the saved axis/origin constant, then transformed into the fitted camera.
+That reconstructed asset pose agrees with the recorded tracking pose to
+2.22e-16 numerical precision. No scan geometry is read or drawn. The saved
+constant previously used public scan bounding axes; that use is disclosed.
+The full outline ignores foreground hand occlusion, so it can cross the hand.
+The shorter 38 clip holds its labelled final frame while 39 finishes. Both clips
+are shown over their whole duration at 10 fps; no tracking model is rerun.
+
+`17-video-versus-mocap.png` reuses the one existing sealed comparison on practice
+39. Height and top-view paths use the saved first-pose rigid alignment; error
+curves are the saved sealed errors. The mocap goal is read from the completed
+M2 export's reference columns, agreeing with the sealed position errors to
+within 1 micrometre. The scorer and sealed script are never executed. Bars
+compare held still (0.18), the path alone (0.83), and the earlier policy with a
+mocap goal (0.98), with their different meanings labelled.
+
+The report discloses that the first tracker failed, C failed the first frozen
+checks and the amendment, and the work proceeded under a conditional rule
+written before the sealed label comparison. It explicitly asks the reader to
+weigh that weaker evidence. The requested table-check outcome remains a
+placeholder for the lead's reviewed finding. No full gate pass or adoption on
+38 is claimed: 38 has no labels available to us and its world-path accuracy is
+unknown. Candidate A's report is at `data/outputs/moving_reference/ep39/results.md`;
+the requested `candidate-a/results.md` does not exist.
 
 Provenance: `data/outputs/visuals/inputs.json` maps figures to hashed inputs;
 `build-summary.json` records numeric checks, decoded video frames and file paths.

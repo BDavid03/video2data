@@ -571,9 +571,9 @@ def pan_learning() -> dict:
     axes[1].set(xlabel="Clip time (seconds)", ylabel="Height above goal start (cm)",
                 title="Finished policy: goal and achieved height", xlim=(0, float(frame.time_s.max())))
     axes[1].legend(fontsize=9)
-    footnote(fig, "Not a challenge result; scored episodes have no motion capture, so a goal path from video has to replace it, and that has not been shown. Lines connect measurements without smoothing. Save times include startup; the full run took 57.98 minutes.", 151)
+    footnote(fig, "Not a challenge result; scored episodes have no motion capture. A video-derived path is now estimated, but no policy has followed it yet. Lines connect measurements without smoothing. Save times include startup; the full run took 57.98 minutes.", 151)
     save(fig, "14-pan-learning.png", used,
-         "Not a challenge result; scored episodes have no motion capture, so a goal path from video has to replace it, and that has not been shown.")
+         "Not a challenge result; scored episodes have no motion capture. A video-derived path is now estimated, but no policy has followed it yet.")
     return {"checkpoint_transitions": list(steps), "checkpoint_save_minutes": minutes,
             "auc": auc, "held_still_auc": .17, "training_wall_minutes": (run["finished_unix"]-run["started_unix"])/60,
             "final_position_error_cm": rows[-1]["E_m"]*100,
@@ -708,7 +708,7 @@ def policy_hands_visuals(base="data/outputs/visuals/policy-hands/m0c",
                "Diagnostic only, never scored or packed; CPU physics can differ from the official export.")
     if pan:
         caption = ("Practice episode 39, own pan reconstruction, mocap goal and actual policy hands in a CPU diagnostic. "
-                   "Not a challenge result; scored episodes have no motion capture, so a goal path from video has to replace it, and that has not been shown.")
+                   "Not a challenge result; scored episodes have no motion capture. A video-derived path is now estimated, but no policy has followed it yet.")
     register(FIGURES / f"{figure_stem}.png", used, caption, source_frames=moments)
     video = FIGURES / f"{figure_stem}.mp4"
     stride = max(1, round(summary["control_fps"] / 10))
@@ -798,6 +798,170 @@ def pan_mask_visuals() -> dict:
             "labels_used": False, "new_inference": False}
 
 
+def tracked_pan_visuals() -> dict:
+    """Project the sealed references onto cached rectified camera footage only."""
+    from src.features.moving_reference._object import render
+
+    used, clips = [], {}
+    read_bytes("docs/chain/moving-m1-sealed.md", used)
+    read_bytes("src/features/moving_reference/_object.py", used)
+    read_bytes("src/features/moving_reference/camera.py", used)
+    expected = {39: "44cd03d9da3a9b017610eab00439662eb8d7bc83ff00bd0a386cff618d30b3e1",
+                38: "c5da9fbe4802a62ccfeca8627f2b9aa69a2acf14eaeecbc565b3a728fb275f12"}
+    asset = "data/outputs/moving_reference/ep39/candidate-c/asset/mini_dust_pan.obj"
+    mesh = trimesh.load(io.BytesIO(read_bytes(asset, used)), file_type="obj", force="mesh", process=False)
+    for episode in (39, 38):
+        base = f"data/outputs/moving_reference/ep{episode}/candidate-c"
+        reference_bytes = read_bytes(f"{base}/reference.npz", used)
+        if hashlib.sha256(reference_bytes).hexdigest() != expected[episode]:
+            raise ValueError("The sealed reference changed")
+        with np.load(io.BytesIO(reference_bytes)) as data:
+            reference, times = data["world_T_object"], data["time"]
+        with np.load(io.BytesIO(read_bytes(f"{base}/tracking.npz", used))) as data:
+            cameras, intrinsics = data["world_T_camera"], data["intrinsics"]
+            recorded_asset = data["world_T_asset"]
+        convention = read_json(f"{base}/body-convention.json", used)
+        world_asset = reference @ np.asarray(convention["scan_T_asset"])
+        equivalence = float(np.abs(world_asset-recorded_asset).max())
+        if equivalence > 1e-9:
+            raise ValueError("Reference/body constant does not reconstruct the recorded asset poses")
+        clips[episode] = dict(base=base, times=times, cameras=cameras, intrinsics=intrinsics,
+                              poses=world_asset, cache={}, equivalence_m=equivalence)
+
+    def overlay(episode, index):
+        clip = clips[episode]
+        if index in clip["cache"]:
+            return clip["cache"][index]
+        path = f"{clip['base']}/frames/frame_{index:06d}.npz"
+        with np.load(io.BytesIO(read_bytes(path, used))) as data:
+            gray = data["gray"]
+        camera_asset = np.linalg.inv(clip["cameras"][index]) @ clip["poses"][index]
+        predicted = render(mesh.vertices, mesh.faces, camera_asset, clip["intrinsics"], gray.shape)
+        contours, _ = cv2.findContours(predicted.astype(np.uint8), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+        pixels = cv2.cvtColor(gray, cv2.COLOR_GRAY2RGB)
+        cv2.drawContours(pixels, contours, -1, (30, 215, 75), 2, cv2.LINE_AA)
+        clip["cache"][index] = pixels
+        return pixels
+
+    moments = {39: [0, 87, 202, 318], 38: [0, 71, 167, 262]}
+    fig, axes = plt.subplots(2, 4, figsize=(16, 7.5))
+    fig.subplots_adjust(left=.012, right=.99, bottom=.16, top=.84, hspace=.17, wspace=.025)
+    fig.suptitle("A tracked pan outline on the real footage.", x=.025, ha="left", y=.98, fontsize=23)
+    fig.text(.025, .91, "Green: sealed 3D reference projected through the fitted camera • rectified real camera frames", fontsize=12)
+    for row, episode in enumerate((39, 38)):
+        for ax, index in zip(axes[row], moments[episode], strict=True):
+            ax.imshow(overlay(episode, index)); ax.axis("off")
+            ax.set_title(f"Episode {episode} | {clips[episode]['times'][index]:.2f} s", fontsize=11, pad=4)
+    caption = ("Green is the projected reference mesh, not the input mask or a policy rollout. "
+               "The full outline ignores hand occlusion. 39 is a practice episode; 38 has no labels available to us and its world-path accuracy is unknown.")
+    footnote(fig, caption, 157)
+    # Register after the video has read every sampled source, retaining one source map.
+    fig.savefig(FIGURES / "16-tracked-pan.png", dpi=180, facecolor="white"); plt.close(fig)
+    path = FIGURES / "16-tracked-pan.mp4"
+    writer = cv2.VideoWriter(str(path), cv2.VideoWriter_fourcc(*"mp4v"), 10., (960, 420))
+    if not writer.isOpened():
+        raise RuntimeError("Tracked-pan MP4 encoder unavailable")
+    timeline = np.arange(0, max(c["times"][-1] for c in clips.values())+.0001, .1)
+    video_sources = {39: [], 38: []}
+    for time_s in timeline:
+        canvas = np.full((420, 960, 3), 250, np.uint8)
+        for col, episode in enumerate((39, 38)):
+            times = clips[episode]["times"]
+            index = min(len(times)-1, max(0, int(np.searchsorted(times, time_s+1e-6, side="right")-1)))
+            video_sources[episode].append(index)
+            canvas[40:340, col*480:(col+1)*480] = cv2.resize(overlay(episode, index), (480, 300))
+            label = f"Episode {episode} | {times[index]:.2f} s"
+            if time_s > times[-1]+.051:
+                label += " | ended: holding last frame"
+            cv2.putText(canvas, label, (col*480+10, 26), cv2.FONT_HERSHEY_SIMPLEX, .50, (32,40,51), 1, cv2.LINE_AA)
+        cv2.putText(canvas, "Green: saved reference projected onto rectified real footage; full outline ignores hands.", (12, 365), cv2.FONT_HERSHEY_SIMPLEX, .52, (32,40,51), 1, cv2.LINE_AA)
+        cv2.putText(canvas, "39: practice episode | 38: no labels, accuracy unknown | Path only; no policy followed it.", (12, 395), cv2.FONT_HERSHEY_SIMPLEX, .52, (32,40,51), 1, cv2.LINE_AA)
+        writer.write(cv2.cvtColor(canvas, cv2.COLOR_RGB2BGR))
+    writer.release()
+    if path.stat().st_size > 5_000_000:
+        raise ValueError("Tracked-pan video exceeds 5 MB")
+    capture = cv2.VideoCapture(str(path)); decoded, previews = 0, []
+    while True:
+        ok, bgr = capture.read()
+        if not ok:
+            break
+        if decoded in (0, len(timeline)//3, 2*len(timeline)//3, len(timeline)-1):
+            previews.append(Image.fromarray(cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)))
+        decoded += 1
+    capture.release()
+    if decoded != len(timeline):
+        raise ValueError("Incomplete tracked-pan video")
+    sheet = Image.new("RGB", (1920, 840), "white")
+    for i, preview in enumerate(previews):
+        sheet.paste(preview, ((i%2)*960, (i//2)*420))
+    sheet.save(OUTPUT / "review-tracked-pan-video.png")
+    register(FIGURES / "16-tracked-pan.png", used, caption, source_steps=moments)
+    register(path, used, caption, frames=decoded, fps=10, bytes=path.stat().st_size,
+             sampled_source_steps=video_sources, shorter_clip_end="Hold labelled final frame after episode 38 ends")
+    return {"frames_decoded": decoded, "video_bytes": path.stat().st_size,
+            "reference_hashes": expected, "reference_to_recorded_asset_max_difference": {
+                str(ep): clip["equivalence_m"] for ep, clip in clips.items()},
+            "world_accuracy_38": "Unknown; no labels", "new_tracking_or_scoring": False}
+
+
+def video_path_comparison() -> dict:
+    """Visualize the existing sealed comparison; never run the sealed pass again."""
+    used = []
+    base = "data/outputs/moving_reference/ep39"
+    sealed = read_json(f"{base}/sealed/sealed.json", used)
+    read_bytes("docs/chain/moving-m1-sealed.md", used)
+    read_bytes(f"{base}/results.md", used)  # Candidate A's report is stored at episode root.
+    read_bytes(f"{base}/candidate-c/results-amended.md", used)
+    with np.load(io.BytesIO(read_bytes(f"{base}/sealed/errors.npz", used))) as data:
+        video = data["aligned_position"]
+        position_error, angle_error = data["position_error_m"]*100, data["rotation_error_deg"]
+    with np.load(io.BytesIO(read_bytes(f"{base}/candidate-c/reference.npz", used))) as data:
+        times = data["time"]
+    # The completed mocap-policy export already caches 39's goal, within <0.3 um
+    # of the mocap poses used in the sealed pass. No dataset labels or scan read.
+    source = "data/outputs/moving_policy/ep39-a1/score-66763776/trajectory.parquet"
+    frame = pd.read_parquet(io.BytesIO(read_bytes(source, used))).sort_values("step")
+    mocap = positions(frame, "reference")
+    m2 = read_json("data/outputs/moving_policy/ep39-a1/score-66763776/mocap_metrics.json", used)
+    if len(video) != 319 or len(mocap) != 319 or not np.allclose(np.linalg.norm(video-mocap, axis=1), position_error/100, atol=1e-6, rtol=0):
+        raise ValueError("Cached mocap goal differs from the existing sealed comparison")
+    fig = plt.figure(figsize=(15, 8.6))
+    grid = fig.add_gridspec(2, 3, width_ratios=(1, 1, .85), left=.065, right=.98, top=.82, bottom=.17, hspace=.40, wspace=.32)
+    height, top = fig.add_subplot(grid[0,0]), fig.add_subplot(grid[0,1])
+    pe, ae, bars = fig.add_subplot(grid[1,0]), fig.add_subplot(grid[1,1]), fig.add_subplot(grid[:,2])
+    green = "#179944"
+    fig.suptitle("A video-derived path, compared once with motion capture.", x=.025, ha="left", y=.98, fontsize=23)
+    fig.text(.025, .91, "39 is a practice episode • this is the path • no policy has followed the video path yet", fontsize=13)
+    zero = mocap[0]
+    for path_values, colour, label in ((mocap, BLUE, "Motion capture"), (video, green, "Video-derived path")):
+        height.plot(times, (path_values[:,2]-zero[2])*100, color=colour, label=label)
+        top.plot((path_values[:,0]-zero[0])*100, (path_values[:,1]-zero[1])*100, color=colour, label=label)
+    height.set(title="Height after first-pose alignment", xlabel="Clip time (s)", ylabel="Height above start (cm)")
+    height.legend(fontsize=9)
+    top.set(title="Top view after the same alignment", xlabel="World x from start (cm)", ylabel="World y from start (cm)")
+    top.set_aspect("equal", adjustable="datalim")
+    pe.plot(times, position_error, color=green); pe.axhline(position_error.mean(), color=GREY, ls="--")
+    pe.set(title="Position error over time", xlabel="Clip time (s)", ylabel="Error (cm)")
+    ae.plot(times, angle_error, color=green); ae.axhline(angle_error.mean(), color=GREY, ls="--")
+    ae.set(title="Angle error over time", xlabel="Clip time (s)", ylabel="Error (degrees)")
+    values = [.18, sealed["kit"]["AUC"], m2["kit"]["AUC"]]
+    bars.bar(range(3), values, color=[GREY,green,AMBER], width=.62)
+    bars.set(title="Fit on practice 39\nDifferent stages", ylabel="Fit score (AUC)", ylim=(0,1.1),
+             xticks=range(3), xticklabels=["Held\nstill", "Video\npath only", "Policy with\nmocap goal"])
+    bars.tick_params(axis="x", labelsize=10)
+    for i, value in enumerate(values):
+        bars.text(i, value+.025, f"{value:.2f}", ha="center", fontsize=13)
+    caption = ("Saved single sealed comparison on practice episode 39: the scorer's one first-pose rigid alignment, with no scale fit or later alignment. "
+               "This is a path, not a video-driven policy or challenge result. AUC bars measure different stages; none predicts a video-trained policy's result.")
+    footnote(fig, caption, 154)
+    save(fig, "17-video-versus-mocap.png", used, caption)
+    return {"AUC": sealed["kit"]["AUC"], "mean_position_cm": sealed["mean_position_error_m"]*100,
+            "mean_angle_degrees": sealed["mean_rotation_error_deg"], "allowance_AUC": sealed["allowance"]["AUC"],
+            "source": "Existing sealed pass only; no new scoring", "bars": values,
+            "position_error_saved_mean_difference_cm": float(abs(position_error.mean()-sealed["mean_position_error_m"]*100)),
+            "angle_error_saved_mean_difference_degrees": float(abs(angle_error.mean()-sealed["mean_rotation_error_deg"]))}
+
+
 def review_previews() -> dict:
     """Decode the finished animation and make compact visual review sheets."""
     grey = Image.new("RGB", (1600, 900), "white")
@@ -842,15 +1006,19 @@ def write_report(table: str, metrics: dict) -> None:
     pan_comparison = metrics["pan_policy_hands"]["official_comparison"]
     read_bytes("docs/chain/moving-m2-outcome.md", used)
     read_bytes("data/outputs/moving_policy/ep39-a1/result.md", used)
+    video_metrics = metrics["video_path_comparison"]
+    read_bytes("docs/chain/moving-m1-sealed.md", used)
+    read_bytes("data/outputs/moving_reference/ep39/results.md", used)
+    read_bytes("data/outputs/moving_reference/ep39/candidate-c/results-amended.md", used)
     text = f"""# Seeing what the models do
 
-Recorded state: 4 November 2026, including the finished M2 pan policy, CPU replays with policy hands and real-video pixel masks.
+Recorded state: 4 November 2026, including a sealed video-derived pan path, the mocap-guided M2 practice policy and diagnostic overlays.
 
 ## What the challenge asks
 
 Watch a person's camera footage, reconstruct the objects, and reproduce their movement in simulation. A **policy** is a controller trained by trial and error in simulation. A **reference** is the goal path it tries to follow. **AUC** is a 0-to-1 fit score: higher means closer agreement across a range of allowed errors; it is not a percentage of tasks completed.
 
-**Our current entry's objects stay still. No challenge result is claimed here.** The moving box below is the example task supplied with the tools. This report describes the prepared entry and diagnostic experiments; it claims no upload or leaderboard score.
+**Nothing here is a challenge result yet.** We have an estimated pan path from real video and a practice policy trained with a motion-capture goal. No policy has followed the video-derived path yet. The moving tissue box is the example task supplied with the tools. This report describes prepared work and diagnostic experiments; it claims no upload or leaderboard score.
 
 ## What we have prepared to submit so far
 
@@ -952,17 +1120,43 @@ Both hands have raw object contacts on **{pan_facts['both_hands_high_carry_frame
 
 [Watch the whole pan-policy CPU replay](figures/15-pan-policy-hands.mp4)
 
-**Not a challenge result; scored episodes have no motion capture, so a goal path from video has to replace it, and that has not been shown.**
+**Not a challenge result; scored episodes have no motion capture. A video-derived path is now estimated, but no policy has followed it yet.**
 
 ## What is still unproven
 
-M2 now shows a learned policy moving our pan physically on a practice episode when given a motion-capture goal. The central missing link is a reliable goal path from video: the scored episodes provide no motion capture. Neither the box result nor M2 establishes that link, a natural hand grip or performance on other objects. FoundationPose has only been screened on two used pairs and is not in the entry. The prepared challenge entry remains static.
+M2 shows a learned policy moving our pan on a practice episode when given a motion-capture goal. A video-derived path has now been estimated and compared once on that practice episode, as described below. No policy has followed that path yet, and its failure history limits how strongly we can rely on it. Neither experiment establishes a natural hand grip or performance on other objects. FoundationPose has only been screened on two used pairs and is not in the entry. The prepared challenge entry remains static.
 
 ### Real-video masks: what the vision step sees
 
 ![Pan and hand masks on public camera footage, including the failed table selection](figures/13-pan-masks.png)
 
 These are real camera frames with the pan marked in amber and hands in teal and pink. This is what the vision step sees: **marked pixels, not yet positions in the world**. Episode 38's first try picked the table; a fixed rule choosing the smallest qualifying detection box corrected the selection and is applied to both clips. Episode 38 is a scored episode. Its footage is public challenge data used here; its labels are not available to us and were not used. Hidden handle edges and a filled handle opening in late frames of 38 remain visible limitations. At 10 seconds in 39, a hand mask marks a bystander's hand. No mask accuracy score, reliable hand identity or 3D tracking result is claimed.
+
+### From marked pixels to a moving pan path
+
+This step estimates where the pan moves and how it turns, while accounting for the camera moving with the person's head. The camera is fitted across the whole clip using background features seen in the stereo pair. Our pan shape is then fitted to its outline and stereo depth in each frame. This produces a **reference path for a policy to try to follow**; it does not make the policy move the pan.
+
+The first tracker failed its quality checks. On 39 it marked only 51 of 319 frames usable, with poor outline agreement and camera coverage; 38 failed too. The later version used pan/hand masks, a whole-clip camera solve, and forward/backward fits to the silhouette and stereo surface. A check also found that the constant relating our shape's axes to the challenge body's axes was wrong: it was corrected using the handle direction, with the same correction on both clips. The constant uses previously derived public scan bounding axes and an origin convention; no scan geometry is drawn here or used as our fitted shape. This report reads that saved constant, not a scan.
+
+**The later tracker still failed the checks written first, then failed a revised set. It went ahead under a conditional rule written before the comparison with motion capture. The reader should weigh this.** Under the first frozen rule it passed 16 of 23 checks on 39 and 17 of 23 on 38. Under the amendment it passed 22 of 28 and 24 of 28. Failures included camera-position consistency, table offset and apparent table tilt; 39 also had too few frames for the table and background-point checks. Going on broke the earlier promise of only one amendment. The conditional rule allowed one sealed comparison on 39 and allowed a different way of measuring camera error only if that comparison passed; table defects still had to be resolved under the same limits. These decisions followed inspection of both clips. This is weaker evidence than a validation whose rules stayed fixed throughout, even though the conditional rule preceded the label comparison.
+
+![The sealed tracked outline on real footage from 39 and 38](figures/16-tracked-pan.png)
+
+Green is our sealed reference projected through the fitted camera, **not the input mask**. These are the straightened camera frames used by the stereo tracker. The outline stays close to the broad pan body at the start and end of both clips, and follows the lift and turn. It is less convincing around the rim and handle during gripping: at 39's 4.35-second sample and 38's 3.55- and 8.35-second samples, parts of the outline sit outside visible edges or run across the hand. The full outline ignores foreground hand occlusion, and the simple extrusion misses some wall detail. Good-looking image overlap alone does not prove a correct position in the world.
+
+[Watch both whole clips with the tracked outline](figures/16-tracked-pan.mp4). The shorter 38 clip ends first; its last frame is held and labelled while 39 finishes.
+
+### One sealed comparison, on practice episode 39
+
+After the references were frozen, the saved sealed pass compared 39's path with its motion capture **once**. We reuse that result here; this rebuild does not run another comparison or scorer. It gives **AUC {video_metrics['AUC']:.3f}, mean position error {video_metrics['mean_position_cm']:.2f} cm and mean angle error {video_metrics['mean_angle_degrees']:.2f} degrees**. The scorer aligns the first pose once, with one rigid transform and no scale fit; it does not keep realigning the path later. The separate arithmetic allowance check gives AUC **{video_metrics['allowance_AUC']:.2f}** after composing the earlier mocap-policy errors onto this path. That is a screen for possible headroom, not a policy rollout or a prediction of success.
+
+![Practice 39: saved video-path comparison with motion capture](figures/17-video-versus-mocap.png)
+
+The lift timing is close, but the top view shows sideways differences and the saved position error rises past 5 cm near 9–10 seconds. The angle error also varies, reaching about 17 degrees. The bars compare held still (**0.18**), the video path by itself (**0.83**) and the earlier policy trained with a mocap goal (**0.98**). These measure different stages. **39 is a practice episode; this is the path, and no policy has followed the video path yet.** None of these bars is a challenge result.
+
+**38 has no labels available to us. We do not know how good its world path is.** It can only claim to pass the video checks when a reviewed record says that it does; the frozen and amended records above failed, so this report does not claim a full pass or adoption. One label comparison on another clip cannot establish 38's accuracy.
+
+**The table checks.** Two of those failures came from a fault in the check itself: its "table" area included the person's lap and the table's edge, and its plane fit was poor. With that fixed and the limits unchanged, too few points were left, so a fresh set of table points, never used to fit the camera, was tracked once. Then both clips stayed inside the limits for table height (about 5 and 3 mm against 10) and sideways drift (about 8 mm on both against 10, close to the limit). Under the rule written before the comparison, a stereo measure dominated by depth noise was swapped for a sideways-only version after 39 passed. So 38 passes the final set of video checks. **That final set was only settled after seeing how the earlier ones fared on both clips.** It is weaker evidence than a test fixed in advance, and it does not measure 38's path against the truth.
 
 ---
 
@@ -974,7 +1168,7 @@ CUDA_VISIBLE_DEVICES='' JAX_PLATFORMS=cpu PYTHONPATH=. data/.runtime/linux-cuda/
 
 Add `--replay` to explicitly rebuild both CPU policy diagnostics first, or `--replay-pan` for the pan alone; the default reads saved arrays. See [replay instructions](README.md). Input SHA-256 hashes and per-figure source mappings: `data/outputs/visuals/inputs.json`; numeric checks and build details: `data/outputs/visuals/build-summary.json`. The default reads saved outputs, cached camera frames, installed visual meshes and recorded notes; it does not run a model or read a scan.
 
-Evidence: [box outcomes](../../chain/moving-m0b-outcome.md), [earlier policy](../../chain/moving-m0-outcome.md), [pose pilot](../../chain/foundationpose-pilot-outcome.md), [frame-zero panel](../../chain/frame0-panel-outcome.md), [pan outcome](../../chain/moving-m2-outcome.md), [episode-39 protocol](../../chain/moving-m2-protocol.md), [entry facts](../../chain/COMPLETION-PLAN.md#1-where-the-entry-really-stands).
+Evidence: [box outcomes](../../chain/moving-m0b-outcome.md), [earlier policy](../../chain/moving-m0-outcome.md), [pose pilot](../../chain/foundationpose-pilot-outcome.md), [frame-zero panel](../../chain/frame0-panel-outcome.md), [pan outcome](../../chain/moving-m2-outcome.md), [video-path sealing record](../../chain/moving-m1-sealed.md), [episode-39 protocol](../../chain/moving-m2-protocol.md), [entry facts](../../chain/COMPLETION-PLAN.md#1-where-the-entry-really-stands).
 """
     path = REPORT / "report.md"
     path.write_text(text)
@@ -1024,13 +1218,17 @@ def main() -> None:
     pan_masks = pan_mask_visuals()
     pan_result = pan_learning()
     pan_hands = policy_hands_visuals("data/outputs/visuals/policy-hands/ep39", "15-pan-policy-hands", pan=True)
+    tracked_pan = tracked_pan_visuals()
+    video_comparison = video_path_comparison()
     review = review_previews()
     summary = {"learning": learning, "error": error, "policy_visuals": policy,
                "policy_hands": policy_hands, "pan_masks": pan_masks,
                "goal_box_audit": goal_audit,
                "pan_learning": pan_result, "pan_policy_hands": pan_hands,
+               "tracked_pan": tracked_pan, "video_path_comparison": video_comparison,
                "artifact_review": review,
-               "missing": ["No per-frame challenge-object camera tracking exists.",
+               "missing": ["No policy has followed the video-derived reference yet.",
+                           "No labels or world-path accuracy measurement for episode 38.",
                            "No independent panel registration estimate on pair 12.",
                            "Warm-start middle checkpoint has only a logged time bound."],
                "checks": {"CPU_only": os.environ["CUDA_VISIBLE_DEVICES"] == "",
