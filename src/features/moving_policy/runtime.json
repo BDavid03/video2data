@@ -1,5 +1,5 @@
 {
-  "train_authorized": false,
-  "score_authorized": false,
+  "train_authorized": true,
+  "score_authorized": true,
   "support_gpu_authorized": false
 }

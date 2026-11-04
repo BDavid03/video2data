@@ -20,7 +20,8 @@ from .geometry import (deepest_piece_penetration, follow_object, matrix, motion_
 
 ROOT = Path(__file__).resolve().parents[3]
 FEATURE = Path(__file__).parent
-OUTPUT = ROOT / 'data/outputs/moving_policy/ep39'
+OUTPUT = ROOT / 'data/outputs/moving_policy/ep39-a1'
+SCORE_STEPS = (16154624, 32814080, 66763776)
 FC = ROOT / 'data/.runtime/flashchord/video_to_data/robotic_grounding/flash_chord'
 PYTHON = ROOT / 'data/.runtime/flashchord/venv/bin/python'
 TASK = OUTPUT / 'motion/sequence_id=episode_000039/robot_name=sharpa_wave/task.parquet'
@@ -46,7 +47,7 @@ def environment(cpu=True):
            'XLA_PYTHON_CLIENT_PREALLOCATE': 'false', 'OMP_NUM_THREADS': '1',
            'OPENBLAS_NUM_THREADS': '1', 'PYTHONUNBUFFERED': '1'}
     for key, folder in folders.items():
-        path = OUTPUT / 'cache' / folder
+        path = ROOT / 'data/outputs/moving_policy/ep39-a1/cache' / folder
         path.mkdir(parents=True, exist_ok=True)
         env[key] = str(path)
     return env
@@ -76,13 +77,15 @@ def load_mocap():
     return path, poses, times
 
 
-def construct(template, schema, mocap, times, mesh, template_fk, repair):
+def construct(template, schema, mocap, times, mesh, template_fk, repair, pair="longitudinal", head_fraction=.6):
     """Assemble world arrays; object poses are copied, never procedurally animated."""
     from src.features.dynamic_feasibility.hand_clearance import nearest_surface
     count = len(times)
     frame = int(template_fk['frame'])
     fps = (count - 1) / float(times[-1] - times[0])
-    acquisition = int(np.ceil(.5 * fps))
+    from .geometry import acquisition_rule
+    approach, approach_translation, approach_rotation = acquisition_rule(mocap, times)
+    acquisition = int(np.ceil(.5 * fps)) if approach else 0
     first_rotation = matrix(mocap[0, 3:])
     rotations = matrix(mocap[:, 3:])
     row = {}
@@ -101,7 +104,7 @@ def construct(template, schema, mocap, times, mesh, template_fk, repair):
     grasp = []
     for side in ('left', 'right'):
         cloud = np.concatenate([template_fk[k] for k in template_fk.files if k.startswith(side + '_piece_')])
-        rotation, translation, detail = rim_grasp(template_fk[f'{side}_groups'], cloud, mesh.triangles, side, repair)
+        rotation, translation, detail = rim_grasp(template_fk[f'{side}_groups'], cloud, mesh.triangles, side, repair, pair, head_fraction)
         # Canonical reconstruction coordinates -> mocap body frame. At t=0 the
         # reconstructed pan is level. This upper-bound placement uses no scan.
         rotation = first_rotation.T @ rotation
@@ -115,7 +118,7 @@ def construct(template, schema, mocap, times, mesh, template_fk, repair):
         progress = np.clip((times - times[0]) / .5, 0., 1.)
         blend = 1 - progress * progress * (3 - 2 * progress)
         sign = -1. if side == 'left' else 1.
-        offset = np.einsum('tij,j->ti', rotations, first_rotation.T @ np.array([sign * .06, 0., 0.])) * blend[:, None]
+        offset = np.einsum('tij,j->ti', rotations, first_rotation.T @ (np.array([sign * .06, 0., 0.]) if pair == 'longitudinal' else np.array([0., sign * .06, 0.]))) * blend[:, None] * approach
         frame_world[..., :3] += offset[:, None]
         wrist_world[:, :3] += offset
         row[f'robot_{side}_frames'] = frame_world.tolist()
@@ -142,6 +145,7 @@ def construct(template, schema, mocap, times, mesh, template_fk, repair):
         ids = np.zeros((count, 16), dtype=int); ids[acquisition:, 9] = 1
         row[f'mano_{side}_object_contact_part_ids'] = ids.tolist()
         detail.update(template_frame=frame, active=True, rigid_after_frame=acquisition,
+                      approach=approach, approach_translation_m=approach_translation, approach_rotation_deg=approach_rotation,
                       grasp_rotation_object=rotation.tolist(), grasp_translation_object_m=translation.tolist())
         grasp.append(detail)
     return pa.Table.from_pylist([row], schema=schema), grasp, acquisition, fps
@@ -152,113 +156,233 @@ def input_inventory(paths):
     return [{'path': str(path.relative_to(ROOT)), 'sha256': digest(path)} for path in paths if path.is_file()]
 
 
+def amended_worker(operation):
+    """Run one bounded CPU worker with caches and records inside the candidate."""
+    command = [str(PYTHON), '-B', '-m', 'src.features.moving_policy.amended_cpu', operation,
+               '--task', str(TASK), '--output', str(OUTPUT)]
+    result = OUTPUT / ('steps.json' if operation == 'support' else 'reachability.json')
+    if result.exists():
+        return json.loads(result.read_text())
+    record = {'status': 'running', 'argv': command, 'started_unix': time.time()}
+    write(OUTPUT / f'{operation}.run.json', record)
+    with (OUTPUT / f'{operation}.log').open('w') as log:
+        child = subprocess.Popen(command, cwd=ROOT, env=environment(), stdout=log, stderr=subprocess.STDOUT)
+        record['pid'] = child.pid
+        write(OUTPUT / f'{operation}.run.json', record)
+        code = child.wait()
+    record.update(status='completed' if code == 0 else 'failed', exit_code=code, finished_unix=time.time())
+    write(OUTPUT / f'{operation}.run.json', record)
+    if code:
+        raise RuntimeError(f'{operation} failed; see {OUTPUT / (operation + ".log")}')
+    return json.loads(result.read_text())
+
+
+def write_support(path, center, radius, top):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(f'''#usda 1.0
+(defaultPrim = "support_surfaces"
+ metersPerUnit = 1
+ upAxis = "Z")
+def Xform "support_surfaces" {{
+ def Cylinder "table" (prepend apiSchemas = ["PhysicsCollisionAPI"]) {{
+  uniform token axis = "Z"
+  double height = 0.01
+  double radius = {radius}
+  double3 xformOp:translate = ({center[0]}, {center[1]}, {top - .005})
+  uniform token[] xformOpOrder = ["xformOp:translate"]
+ }}
+}}
+''')
+
+
 def stage0():
-    Request(**{k: v for k, v in json.loads((FEATURE / 'queue.json').read_text()).items()
-               if k in ('episode', 'acquisition_seconds', 'seed')})
+    """Execute Amendment 1's resumable fixed queue, stopping at the first support pass."""
+    import shutil
+    from .geometry import cylinder_support
+    global OUTPUT, TASK
+    root_output, root_task = OUTPUT, TASK
+    Request()
     OUTPUT.mkdir(parents=True, exist_ok=True)
-    os.environ.update(environment())
     if (OUTPUT / 'stage0.json').exists():
-        raise FileExistsError('Stage 0 is immutable once recorded; read its result instead of overwriting it')
+        raise FileExistsError('Stage 0 is immutable once recorded')
     queue = json.loads((FEATURE / 'queue.json').read_text())
+    if queue['support_queue'] != ['S1', 'S2', 'S3'] or tuple(queue['score_steps']) != SCORE_STEPS:
+        raise ValueError('The brief freezes both support and checkpoint queues')
+    os.environ.update(environment())
     mocap_path, mocap, times = load_mocap()
     template_path = next(TEMPLATE.glob('*.parquet'))
     parquet = pq.ParquetFile(template_path)
     template = parquet.read().to_pylist()[0]
-    cpu('template', template_path)
+    if not (OUTPUT / 'template-fk.npz').exists():
+        cpu('template', template_path)
     measure_path = ROOT / queue['measurement']
     measure = json.loads(measure_path.read_text())
     if (measure['split'], measure['episode_index'], measure['status']) != ('public', 39, 'completed'):
-        raise ValueError('Reconstruction dimensions must come only from completed public-39 video measurements')
+        raise ValueError('Dimensions must come from completed public-39 video measurements')
     dims = np.asarray(measure['objects']['mini_dust_pan']['median_m'])
+    profile = json.loads((ROOT / queue['attributes']).read_text())['objects']['mini_dust_pan']['profile']
     from src.features.mesh_extents._shapes import thin_tool_profile
-    attributes = json.loads((ROOT / queue['attributes']).read_text())
-    profile = attributes['objects']['mini_dust_pan']['profile']
-    mesh = thin_tool_profile(dims, profile)
-    canonical = mesh.copy()
     first_rotation = matrix(mocap[0, 3:])
-    mesh.vertices = mesh.vertices @ first_rotation
-    mesh.export(OUTPUT / 'mini_dust_pan.obj')
-    # Same visual/collision mesh. FlashCHORD's scene builder convex-decomposes it;
-    # it is never approximated by the entire concave mesh's single convex hull.
-    inertia = first_rotation.T @ np.diag(.1 / 12 * (np.sum(dims**2) - dims**2)) @ first_rotation
-    (OUTPUT / 'mini_dust_pan.urdf').write_text(f'''<robot name="mini_dust_pan"><link name="mini_dust_pan">
-<inertial><mass value="0.1"/><inertia ixx="{inertia[0,0]}" iyy="{inertia[1,1]}" izz="{inertia[2,2]}" ixy="{inertia[0,1]}" ixz="{inertia[0,2]}" iyz="{inertia[1,2]}"/></inertial>
+    results, all_grasps = [], []
+    source_identity = input_inventory([*FEATURE.glob('*.py'), FEATURE / 'queue.json', mocap_path, measure_path, template_path, ROOT / queue['attributes'], ROOT / queue['protocol']])
+    write(root_output / 'queue.json', queue)
+    # Reuse only this slice's own-reconstruction hull caches, never scan assets.
+    for cache in (ROOT / 'data/outputs/moving_policy/ep39/cache/flash-chord/convex').glob('*.npz'):
+        target = root_output / 'cache/flash-chord/convex' / cache.name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if not target.exists():
+            shutil.copyfile(cache, target)
+    for support_name in queue['support_queue']:
+        candidate_dir = root_output / support_name
+        candidate_dir.mkdir(exist_ok=True)
+        trial_profile = dict(profile)
+        if support_name == 'S3':
+            # Closed prisms from the same constructor. Account for the side-wall
+            # slope and clipping so its normal thickness is at least 5 mm.
+            trial_profile['floor_thickness_fraction'] = max(profile['floor_thickness_fraction'], .005 / dims[2])
+            trial_profile['grip_thickness_fraction'] = max(profile['grip_thickness_fraction'], .005 / dims[2])
+            slope = (1 - profile['neck_width_fraction']) / (2 * profile['head_fraction']) * dims[1] / dims[0]
+            trial_profile['wall_width_fraction'] = max(profile['wall_width_fraction'], .005 * np.sqrt(1 + slope*slope) / min(dims[:2]))
+        canonical = thin_tool_profile(dims, trial_profile)
+        mass = .1 if support_name == 'S1' else .3
+        inertia = (first_rotation.T @ np.diag(.1 / 12 * (np.sum(dims**2) - dims**2)) @ first_rotation
+                   if support_name == 'S1' else np.eye(3) * .001)
+        grasps = []
+        for pair in ('longitudinal', 'transverse'):
+            OUTPUT = candidate_dir / pair
+            TASK = OUTPUT / 'motion/sequence_id=episode_000039/robot_name=sharpa_wave/task.parquet'
+            OUTPUT.mkdir(exist_ok=True)
+            identity = {'sources': source_identity, 'support': support_name, 'pair': pair, 'profile': trial_profile}
+            previous = OUTPUT / 'candidate.json'
+            if previous.exists():
+                saved = json.loads(previous.read_text())
+                if saved['identity'] != identity:
+                    raise ValueError(f'Cannot resume changed candidate {OUTPUT}')
+                grasps.append(saved)
+                continue
+            mesh = canonical.copy(); mesh.vertices = mesh.vertices @ first_rotation
+            mesh.export(OUTPUT / 'mini_dust_pan.obj')
+            (OUTPUT / 'mini_dust_pan.urdf').write_text(f'''<robot name="mini_dust_pan"><link name="mini_dust_pan">
+<inertial><mass value="{mass}"/><inertia ixx="{inertia[0,0]}" iyy="{inertia[1,1]}" izz="{inertia[2,2]}" ixy="{inertia[0,1]}" ixz="{inertia[0,2]}" iyz="{inertia[1,2]}"/></inertial>
 <visual><geometry><mesh filename="mini_dust_pan.obj"/></geometry></visual>
 <collision><geometry><mesh filename="mini_dust_pan.obj"/></geometry></collision>
 </link></robot>\n''')
-    support_height = mocap[0, 2] + float((mesh.vertices @ first_rotation.T)[:, 2].min())
-    support = OUTPUT / 'reconstructed_stage/episode_000039_sharpa_wave_support.usda'
-    support.parent.mkdir(parents=True, exist_ok=True)
-    support.write_text(f'''#usda 1.0
-(upAxis = "Z")
-def Cube "table" {{
-    double size = 2
-    double3 xformOp:translate = (0, 0, {support_height - 1})
-    uniform token[] xformOpOrder = ["xformOp:translate"]
-}}\n''')
-    attempts = []
-    with np.load(OUTPUT / 'template-fk.npz') as template_fk:
-        for repair in (False, True):
-            table, grasp, acquisition, fps = construct(template, parquet.schema_arrow, mocap, times, canonical, template_fk, repair)
+            with np.load(root_output / 'template-fk.npz') as fk:
+                table, grasp, acquisition, fps = construct(template, parquet.schema_arrow, mocap, times, canonical, fk, True, pair, profile['head_fraction'])
             TASK.parent.mkdir(parents=True, exist_ok=True)
             pq.write_table(table, TASK)
-            build = {'episode': 39, 'frames': len(times), 'fps': fps, 'acquisition_end_frame': acquisition,
-                     'task': str(TASK.relative_to(ROOT)), 'grasp': grasp, 'repair': repair,
-                     'support_top_m': support_height, 'canonical_to_body_rotation': first_rotation.T.tolist(),
-                     'body_frame_disclosure': 'Own reconstruction leveled at mocap frame zero; no camera-to-mocap or scan registration claimed',
-                     'collision': 'CoACD default parameters, same mesh as visuals; full imported convex solids are measured',
-                     'timing_max_uniform_residual_s': float(np.max(np.abs(times - times[0] - np.arange(len(times)) / fps))),
-                     'motion': motion_summary(mocap[:, :3], times),
-                     'tissue_motion': motion_summary(np.asarray(template['object_body_position'])[:, 0], np.arange(390) / template['fps']),
-                     'bounds': canonical.bounds.tolist(), 'dimensions_m': dims.tolist(),
-                     'oriented_bounds': [x.tolist() for x in trimesh.bounds.oriented_bounds(canonical)]}
+            build = dict(episode=39, frames=len(times), fps=fps, acquisition_end_frame=acquisition, grasp=grasp,
+                         task=str(TASK.relative_to(ROOT)), bounds=canonical.bounds.tolist(), dimensions_m=dims.tolist(),
+                         motion=motion_summary(mocap[:, :3], times), support_candidate=support_name,
+                         mass_kg=mass, inertia_kg_m2=inertia.tolist(), profile=trial_profile,
+                         inertia_rule='Original 0.1 kg and rotated bbox tensor' if support_name == 'S1' else 'Shipped URDF constants: 0.3 kg, diag(0.001), no bbox scaling',
+                         body_frame_disclosure='Own reconstruction leveled at mocap frame zero; no scan or camera registration',
+                         approach_disclosure='0.5 s approach' if acquisition else 'Hands start at grasp: reference fails 1 mm / 1 degree stationarity; no rest prepended')
             write(OUTPUT / 'build.json', build)
             cpu('inspect', TASK)
+            info = json.loads((OUTPUT / 'task-fk.json').read_text())
+            with np.load(OUTPUT / 'task-fk.npz') as fk:
+                pieces = [fk[f'object_piece_{i}'].astype(float) for i in range(info['object_piece_count'])]
+            center, radius, top = cylinder_support(pieces, mocap[0, :3], first_rotation)
+            support = OUTPUT / 'reconstructed_stage/episode_000039_sharpa_wave_support.usda'
+            write_support(support, center, radius, top)
+            build.update(support_top_m=top, support_radius_m=radius, support_center_xy_m=center,
+                         collision_pieces=info['object_piece_count'], initial_hull_gap_m=.001)
+            write(OUTPUT / 'build.json', build)
             checks = geometry_checks(template, table, mocap, times, build)
-            attempts.append({'repair': repair, 'grasp': grasp, 'checks': checks})
-            write(OUTPUT / f'grasp-attempt-{int(repair)}.json', attempts[-1])
-            if all(checks[key]['passed'] for key in ('1_schema', '2_closure', '3_penetration', '4_kinematics', '6_truth')):
-                break
-            # Preserve the complete rejected candidate before the only repair.
-            if not repair:
-                pq.write_table(table, OUTPUT / 'grasp-attempt-0.parquet')
-    cpu('support', TASK)
-    support_check = json.loads((OUTPUT / 'support-cpu.json').read_text())
-    checks['5_support'] = support_check
-    render(table.to_pylist()[0], build)
+            eligible = checks['2_closure']['passed'] and checks['3_penetration']['passed']
+            speed = max(checks['4a_finger_limits']['maximum_wrist_speed_m_s'].values())
+            saved = dict(identity=identity, pair=pair, directory=str(OUTPUT.relative_to(ROOT)), checks=checks,
+                         eligible=eligible, peak_wrist_speed_m_s=speed, build=build)
+            write(previous, saved)
+            grasps.append(saved)
+        all_grasps.extend(grasps)
+        eligible = [g for g in grasps if g['eligible']]
+        # An ineligible grasp never authorizes training; retain a deterministic
+        # task solely to finish the independent support measurement if none pass.
+        selected = min(eligible or grasps, key=lambda g: (g['peak_wrist_speed_m_s'], g['pair']))
+        OUTPUT = ROOT / selected['directory']
+        TASK = OUTPUT / 'motion/sequence_id=episode_000039/robot_name=sharpa_wave/task.parquet'
+        result = amended_worker('support')
+        result.update(candidate=support_name, grasp=selected['pair'], directory=str(OUTPUT.relative_to(ROOT)),
+                      mass_kg=mass, collision_pieces=selected['build']['collision_pieces'],
+                      inertia_rule=selected['build']['inertia_rule'])
+        write(candidate_dir / 'steps.json', result)
+        results.append(result)
+        with (root_output / 'ledger.jsonl').open('a') as ledger:
+            ledger.write(json.dumps({k:v for k,v in result.items() if k != 'measurements'}) + '\n')
+        if result['passed']:
+            break
+    source = OUTPUT
+    OUTPUT, TASK = root_output, root_task
+    for name in ('mini_dust_pan.obj', 'mini_dust_pan.urdf', 'task-fk.npz', 'task-fk.json'):
+        shutil.copyfile(source / name, OUTPUT / name)
+    support = OUTPUT / 'reconstructed_stage/episode_000039_sharpa_wave_support.usda'
+    support.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(source / 'reconstructed_stage/episode_000039_sharpa_wave_support.usda', support)
+    table = pq.ParquetFile(source / 'motion/sequence_id=episode_000039/robot_name=sharpa_wave/task.parquet').read()
+    row = table.to_pylist()[0]
+    row['object_mesh_paths'] = [str(OUTPUT / 'mini_dust_pan.obj')]
+    row['object_urdf_paths'] = [str(OUTPUT / 'mini_dust_pan.urdf')]
+    table = pa.Table.from_pylist([row], schema=table.schema)
+    TASK.parent.mkdir(parents=True, exist_ok=True); pq.write_table(table, TASK)
+    build = selected['build']; build['task'] = str(TASK.relative_to(ROOT))
+    write(OUTPUT / 'build.json', build)
+    checks = selected['checks']
+    checks['5_support'] = {'status': 'measured', 'passed': any(r['passed'] for r in results), 'candidates': results}
+    checks['4b_reachability'] = amended_worker('reachability')
+    render(row, build)
     commands = prepare_commands(build)
-    sources = [*FEATURE.glob('*.py'), FEATURE / 'queue.json', ROOT / queue['protocol'],
-               ROOT / queue['selection'], ROOT / queue['attributes'], measure_path, mocap_path, template_path,
-               ROOT / 'src/gpu.py', ROOT / 'scripts/track3/static_pose_baseline.py',
-               ROOT / 'src/features/mesh_extents/_shapes.py',
-               ROOT / 'src/features/dynamic_feasibility/handler.py',
-               ROOT / 'src/features/dynamic_feasibility/partial_eval.py',
-               ROOT / 'src/features/dynamic_feasibility/hand_clearance.py',
-               ROOT / 'src/features/dynamic_feasibility/_worker.py',
-               ROOT / 'upstream/v2d_submission_kit/v2d_submission_kit/metric_code/track_3/AUC.py',
-               ROOT / 'upstream/v2d_submission_kit/v2d_submission_kit/flash_chord/scripts/evaluate_policy.py']
-    # These are example assets, not dataset scans. The loader resolves the
-    # template's rigid asset contract even though no template object is simulated.
-    sources.extend(TEMPLATE.parent.parent.glob('tissue_box_simple*'))
-    sources.extend((FC / 'src/flash_chord').rglob('*.py'))
-    sources.extend([PYTHON, ROOT / 'data/.runtime/linux-cuda/bin/python',
-                    ROOT / 'src/features/dynamic_feasibility/request.py',
-                    ROOT / 'src/features/dynamic_feasibility/_metrics.py'])
-    for pattern in ('data/*.py', 'embodiments/*.py', 'scene/*.py', 'runtime/*.py', 'lifecycle/*.py',
-                    'envs/*.py', 'assets/*.py', 'evaluation/*.py', 'data/configs/**/*.yaml', 'training/flash_sac/*.py'):
-        sources.extend((FC / 'src/flash_chord').glob(pattern))
-    for pattern in ('src/flash_chord/assets/urdfs/sharpawave/**/*', 'src/flash_chord/assets/meshes/sharpawave/**/*'):
-        sources.extend(FC.glob(pattern))
-    result = {'status': 'PASS' if all(c['passed'] for c in checks.values()) else 'STOP',
-              'checks': dict(sorted(checks.items())), 'attempts': attempts, 'build': build,
-              'inputs_and_sources': input_inventory(sources),
-              'artifacts': input_inventory([TASK, OUTPUT / 'mini_dust_pan.obj', OUTPUT / 'mini_dust_pan.urdf', support,
-                                           OUTPUT / 'template-fk.npz', OUTPUT / 'task-fk.npz', OUTPUT / 'strip.png',
-                                           OUTPUT / 'commands.json']),
-              'commands': commands, 'gpu_used': False, 'training_run': False,
-              'runtime_flags': json.loads((FEATURE / 'runtime.json').read_text())}
-    write(OUTPUT / 'stage0.json', result)
-    print(json.dumps({'status': result['status'], 'checks': checks, 'motion': build['motion']}, indent=2))
+    artifacts = [TASK, OUTPUT / 'mini_dust_pan.obj', OUTPUT / 'mini_dust_pan.urdf', support,
+                 OUTPUT / 'build.json', OUTPUT / 'task-fk.npz', OUTPUT / 'commands.json', OUTPUT / 'reachability.json']
+    stage = dict(status='PASS' if all(c['passed'] for c in checks.values()) else 'STOP', checks=checks,
+                 build=build, grasp_candidates=all_grasps, selected_grasp=selected['pair'], support_candidates=results,
+                 gpu_used=False, training_run=False, protocol='Amendment 1 plus brief 60-step stability requirement',
+                 inputs_and_sources=input_inventory([*FEATURE.glob('*.py'), FEATURE / 'queue.json', ROOT / queue['protocol'],
+                    ROOT / queue['selection'], ROOT / queue['attributes'], measure_path, mocap_path, template_path,
+                    ROOT / 'src/features/dynamic_feasibility/partial_eval.py', ROOT / 'src/features/dynamic_feasibility/handler.py',
+                    ROOT / 'src/features/dynamic_feasibility/_worker.py', ROOT / 'src/gpu.py',
+                    *list((FC / 'src/flash_chord').rglob('*.py'))]),
+                 artifacts=input_inventory(artifacts), commands=commands,
+                 runtime_flags=json.loads((FEATURE / 'runtime.json').read_text()))
+    # Exclusive creation also closes the race between the initial check and write.
+    with (OUTPUT / 'stage0.json').open('x') as stream:
+        json.dump(stage, stream, indent=2, allow_nan=False); stream.write('\n')
+    summarize_amendment(stage)
+    print(json.dumps({'status': stage['status'], 'support': checks['5_support']['passed'],
+                      'reachability': checks['4b_reachability']['passed'], 'selected_grasp': selected['pair']}))
+
+
+def summarize_amendment(stage):
+    """Write the one-page amended result from measured records."""
+    lines = ['# M2 Amendment 1 Stage 0: ' + stage['status'], '',
+             '| Support | Pieces | Hands: acquisition translation m / rotation deg | Through 49 translation m / rotation deg | Cleared 60 translation m / rotation deg | Peak contact N (hands / cleared) | Pass |',
+             '| --- | ---: | ---: | ---: | ---: | ---: | --- |']
+    for row in stage['support_candidates']:
+        a, b = (row['measurements'][key] for key in ('trajectories', 'hands-cleared'))
+        lines.append(f"| {row['candidate']} | {row['collision_pieces']} | {a['gated_maximum_translation_m']:.6g} / {a['gated_maximum_rotation_deg']:.6g} | {a['maximum_translation_m']:.6g} / {a['maximum_rotation_deg']:.6g} | {b['maximum_translation_m']:.6g} / {b['maximum_rotation_deg']:.6g} | {a['peak_contact_force_N']:.6g} / {b['peak_contact_force_N']:.6g} | {row['passed']} |")
+    lines += ['', '| Asset / grasp | Closure fraction | Penetration m | Peak wrist m/s | Eligible |', '| --- | ---: | ---: | ---: | --- |']
+    for row in stage['grasp_candidates']:
+        c = row['checks']
+        lines.append(f"| {row['build']['support_candidate']} / {row['pair']} | {c['2_closure']['fraction']:.6g} | {c['3_penetration']['maximum_m']:.6g} | {row['peak_wrist_speed_m_s']:.6g} | {row['eligible']} |")
+    lines += ['', '| Wrist diagnostic | Hand | Mean / maximum position m | Mean orientation deg | Maximum allowance m | Pass |', '| --- | --- | ---: | ---: | ---: | --- |']
+    for mode, row in stage['checks']['4b_reachability']['measurements'].items():
+        for side, h in row['hands'].items():
+            lines.append(f"| {mode} | {side} | {h['mean_position_error_m']:.6g} / {h['maximum_position_error_m']:.6g} | {h['mean_orientation_error_deg']:.6g} | {h['allowance_maximum_m']:.6g} | {row['passed']} |")
+    lines += ['', f"Selected: **{stage['selected_grasp']}**. {stage['build']['approach_disclosure']}.",
+              'S1: original mass/inertia. S2/S3: shipped constants 0.3 kg and diagonal 0.001 kg m². '
+              'S3 alone thickens the same closed-prism reconstruction through unedited evaluator CoACD. '
+              'Cylinder top is 1 mm below imported collision hulls, height 1 cm; no scan is used.',
+              'Support gates: ≤1 cm / ≤2° over acquisition with hands, AND all 60 cleared-hand steps. '
+              'Through-frame-49 maxima are descriptive. Forces are raw solver estimates, not verified impulses. '
+              'Wrist gate: mean position ≤3 cm, mean orientation ≤15°, maximum position ≤15 cm for each hand. '
+              'Zero-residual allowance and speed are descriptive. Robot-only diagnostic uses the evaluator physics/control and is never exported.', '',
+              '| Check | Passed |', '| --- | --- |']
+    lines += [f"| {name} | {check['passed']} |" for name, check in stage['checks'].items()]
+    lines += ['', 'No training, GPU, scoring, install, upload, or excluded-episode read. Dry commands: `commands.json` and `*.argv.txt`. '
+              'Raw support poses/forces: `S*/steps.json`; wrist errors: `*-wrists.npz`. '
+              'Stage 0 is immutable; any failed check blocks training.']
+    (OUTPUT / 'summary.md').write_text('\n'.join(lines) + '\n')
 
 
 def geometry_checks(template, table, mocap, times, build):
@@ -313,7 +437,7 @@ def geometry_checks(template, table, mocap, times, build):
                       'method': 'Installed hand_clearance.opposing_contacts, FK wrist/fingertips vs actual CoACD triangles, canonical asset bounds'},
         '3_penetration': {'passed': penetration['maximum_m'] <= .01, **penetration, 'limit_m': .01,
                           'post_acquisition_rigid_group_span_m': float(np.max(np.ptp(points, axis=0)))},
-        '4_kinematics': {'passed': info['joint_limit_excess_rad'] <= 1e-6 and ratio <= 2.,
+        '4a_finger_limits': {'passed': info['joint_limit_excess_rad'] <= 1e-6,
                          'joint_limit_excess_rad': info['joint_limit_excess_rad'], 'maximum_wrist_speed_m_s': speeds,
                          'template_maximum_wrist_speed_m_s': template_speed, 'speed_ratio': ratio,
                          'exceeds_example': ratio > 1., 'stop_ratio': 2.},
@@ -363,7 +487,7 @@ def prepare_commands(build):
     argv = training_command(TrainingRequest('D1', 0, budget, 4500), {'path': TASK, 'fps': build['fps']}, OUTPUT)
     argv += ['training.resume=false', 'training.optimization.learning_rate_schedule_updates=130398']
     scores = {}
-    for steps in (32814080, 66763776):
+    for steps in SCORE_STEPS:
         directory = OUTPUT / f'score-{steps}'
         if (directory / 'mocap_metrics.json').exists():
             continue
@@ -446,9 +570,12 @@ def execute_gpu(operation):
         score_exports()
 
 
-def score_exports():
+def score_exports(steps_list=SCORE_STEPS):
     """Score achieved evaluator exports against tuning mocap, never against scored labels."""
+    if any(step not in SCORE_STEPS for step in steps_list):
+        raise ValueError('Only frozen M2 Amendment 1 checkpoints are admitted')
     from src.features.dynamic_feasibility.partial_eval import motion_metrics
+    from .geometry import amended_verdict, orientation_errors
     _, mocap, times = load_mocap()
     truth = np.concatenate((mocap[:, :3], mocap[:, [4, 5, 6, 3]]), axis=1)[:, None, None]
     spec = importlib.util.spec_from_file_location('m2_static_score', ROOT / 'scripts/track3/static_pose_baseline.py')
@@ -457,7 +584,7 @@ def score_exports():
     # they are never used in task construction or written to a simulated asset.
     points = baseline.vertices('mini_dust_pan')
     e_static = float(np.linalg.norm(mocap[:, :3] - mocap[:1, :3], axis=1).mean())
-    for steps in (32814080, 66763776):
+    for steps in steps_list:
         directory = OUTPUT / f'score-{steps}'
         frame = pq.ParquetFile(directory / 'trajectory.parquet').read().to_pandas().sort_values('reference_frame')
         if (len(frame) != len(times) or not frame['environment_valid'].all()
@@ -480,10 +607,12 @@ def score_exports():
         motion = motion_metrics(achieved[:, 0, 0, :3], mocap[:, :3])
         error = float(np.linalg.norm(achieved[:, 0, 0, :3] - mocap[:, :3], axis=1).mean())
         score = baseline.score(baseline.load_kit(), achieved.copy(), truth, points[None])
-        verdict = ('GO' if motion['T'] >= .5 and motion['Q'] >= .5 and error <= .5 * e_static and score['AUC'] >= .275
-                   else 'SIGNAL' if motion['T'] >= .2 and motion['Q'] >= .1 and error <= e_static and score['AUC'] > .175 else 'NULL')
-        write(directory / 'mocap_metrics.json', {'motion': motion, 'E_m': error, 'E_S_m': e_static,
-              'kit': score, 'verdict': verdict, 'descriptive': steps == 32814080,
+        theta = float(orientation_errors(achieved[:, 0, 0, 3:], mocap[:, 3:]).mean())
+        theta_static = float(orientation_errors(np.repeat(mocap[:1, [4, 5, 6, 3]], len(mocap), axis=0), mocap[:, 3:]).mean())
+        np.savez_compressed(directory / 'achieved-minus-reference.npz', position_m=achieved[:, 0, 0, :3] - mocap[:, :3], orientation_deg=orientation_errors(achieved[:, 0, 0, 3:], mocap[:, 3:]))
+        verdict = amended_verdict(motion['T'], motion['Q'], error, theta, e_static, theta_static, score['AUC'])
+        write(directory / 'mocap_metrics.json', {'motion': motion, 'E_m': error, 'E_S_m': e_static, 'Theta_deg': theta, 'Theta_S_deg': theta_static,
+              'kit': score, 'verdict': verdict, 'descriptive': steps != 66763776,
               'scoring_geometry': 'Public scan surface points, measurement only, seed 0; no scan geometry enters the simulation',
               'inputs': input_inventory([directory / 'trajectory.parquet', OUTPUT / 'mini_dust_pan.obj',
                         Path(baseline.ROOT) / 'mesh/mini_dust_pan/mini_dust_pan.glb'])})

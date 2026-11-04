@@ -39,7 +39,7 @@ def template_frame(task):
     return int(np.argmax(coverage))
 
 
-def rim_grasp(groups, cloud, triangles, side, repair=False):
+def rim_grasp(groups, cloud, triangles, side, repair=False, pair="longitudinal", head_fraction=.6):
     """Place captured middle fingertips at opposite longitudinal exterior faces.
 
     Two hands hold the scoop's front lip and the distal grip. Four fixed rolls are compared using only
@@ -48,7 +48,8 @@ def rim_grasp(groups, cloud, triangles, side, repair=False):
     """
     bounds = np.array([triangles.min((0, 1)), triangles.max((0, 1))])
     sign = -1. if side == 'left' else 1.
-    inward = np.array([-sign, 0., 0.])
+    axis = 0 if pair == 'longitudinal' else 1
+    inward = np.zeros(3); inward[axis] = -sign
     direction = groups[3] - groups[0]
     direction /= np.linalg.norm(direction)
     across = groups[1] - groups[3]
@@ -58,18 +59,19 @@ def rim_grasp(groups, cloud, triangles, side, repair=False):
     normals = np.cross(triangles[:, 1] - triangles[:, 0], triangles[:, 2] - triangles[:, 0])
     normals /= np.linalg.norm(normals, axis=1, keepdims=True)
     centers = triangles.mean(axis=1)
-    exterior = ((normals[:, 0] * sign > .9)
-                & (np.abs(centers[:, 0] - bounds[int(sign > 0), 0]) < .01))
+    exterior = ((normals[:, axis] * sign > .8)
+                & ((np.abs(centers[:, 0] - bounds[int(sign > 0), 0]) < .01) if axis == 0 else np.ones(len(centers), bool)))
     if not exterior.any():
         raise ValueError('No longitudinal exterior face for the fixed grasp rule')
-    selected = np.flatnonzero(exterior)[np.argmin(np.abs(centers[exterior, 1]))]
+    desired_axis = 0. if axis == 0 else bounds[0, 0] + head_fraction * np.ptp(bounds[:, 0]) / 2
+    selected = np.flatnonzero(exterior)[np.argmin(np.abs(centers[exterior, 1 - axis] - desired_axis))]
     target = centers[selected].copy()
-    target[0] += sign * (.008 if repair else .003)
+    target[axis] += sign * (.008 if repair else .003)
     equations = ConvexHull(triangles.reshape(-1, 3)).equations
     sample = cloud[np.linspace(0, len(cloud) - 1, min(2048, len(cloud)), dtype=int)]
     candidates = []
     for roll in (0., np.pi / 2, np.pi, 3 * np.pi / 2):
-        transverse = Rotation.from_rotvec(inward * roll).apply([0., 1., 0.])
+        transverse = Rotation.from_rotvec(inward * roll).apply([0., 1., 0.] if axis == 0 else [1., 0., 0.])
         destination = np.stack((inward, transverse, np.cross(inward, transverse)), axis=1)
         rotation = destination @ source.T
         translation = target - rotation @ groups[3]
@@ -79,7 +81,7 @@ def rim_grasp(groups, cloud, triangles, side, repair=False):
         cost = (float(depth.max()), float(depth.sum()), roll)
         candidates.append((cost, rotation, translation))
     cost, rotation, translation = min(candidates, key=lambda row: row[0])
-    return rotation, translation, {'side': side, 'tip_group': 3, 'target_m': target.tolist(),
+    return rotation, translation, {'side': side, 'pair': pair, 'tip_group': 3, 'target_m': target.tolist(),
                                  'roll_rad': cost[2], 'hull_sample_penetration_m': cost[0]}
 
 
@@ -117,3 +119,67 @@ def motion_summary(positions, times):
             'maximum_displacement_m': float(distance.max()), 'path_length_m': float(np.linalg.norm(delta, axis=1).sum()),
             'maximum_speed_m_s': float(speed.max()), 'maximum_height_rise_m': float((positions[:, 2] - positions[0, 2]).max()),
             'peak_frame': int(np.argmax(distance))}
+
+
+def acquisition_rule(poses, times, seconds=.5):
+    """Permit an approach only while the reference is stationary at the fixed limits."""
+    use = times - times[0] <= seconds
+    translation = np.linalg.norm(poses[use, :3] - poses[0, :3], axis=1)
+    angle = np.degrees((Rotation.from_matrix(matrix(poses[use, 3:])) *
+                        Rotation.from_matrix(matrix(poses[0, 3:])).inv()).magnitude())
+    return bool(translation.max() <= .001 and angle.max() <= 1.), float(translation.max()), float(angle.max())
+
+
+def cylinder_support(pieces, position, rotation):
+    """Return a footprint-covering thin cylinder from imported collision solids."""
+    vertices = np.concatenate(pieces) @ rotation.T + position
+    center = (vertices[:, :2].min(0) + vertices[:, :2].max(0)) / 2
+    radius = float(np.linalg.norm(vertices[:, :2] - center, axis=1).max())
+    top = float(vertices[:, 2].min() - .001)
+    return center.tolist(), radius, top
+
+
+def orientation_errors(achieved_xyzw, reference_wxyz):
+    """Return per-frame shortest orientation error in degrees."""
+    return np.degrees((Rotation.from_quat(achieved_xyzw) *
+                       Rotation.from_matrix(matrix(reference_wxyz)).inv()).magnitude())
+
+
+def amended_verdict(t, q, error, theta, e_static, theta_static, auc):
+    """Apply Amendment 1's frozen final-policy thresholds to raw metrics."""
+    if t >= .5 and q >= .5 and error <= min(.5 * e_static, .03) and theta <= min(.5 * theta_static, 15.) and auc >= .45:
+        return 'GO'
+    if t >= .2 and q >= .1 and error <= min(e_static, .06) and theta <= min(.9 * theta_static, 30.) and auc >= .20:
+        return 'SIGNAL'
+    return 'NULL'
+
+
+def diagnostic_feedforward_residual(positions, quaternions_wxyz, fps, mass, inertia):
+    """Reference-only soft-wrist inverse PD; never a policy or an exportable rollout."""
+    dt = 1. / fps
+    velocity = np.gradient(positions, dt, axis=0)
+    acceleration = np.gradient(velocity, dt, axis=0)
+    rotation = Rotation.from_matrix(matrix(quaternions_wxyz))
+    omega = (rotation[1:] * rotation[:-1].inv()).as_rotvec() / dt
+    omega = np.concatenate((omega, omega[-1:]))
+    alpha = np.gradient(omega, dt, axis=0)
+    # Target held over a control interval; compensate the midpoint sample as well
+    # as damping and inertia, using reference derivatives alone.
+    position = (6. / 25. + .5 * dt) * velocity + mass / 25. * acceleration
+    body_omega = rotation.inv().apply(omega)
+    body_alpha = rotation.inv().apply(alpha)
+    torque = body_alpha @ inertia.T + np.cross(body_omega, body_omega @ inertia.T) + 6. * body_omega
+    advance = torque / 25. + .5 * dt * body_omega
+    # Warp quat_rpy uses extrinsic xyz angles in the reference's child frame.
+    euler = Rotation.from_rotvec(advance).as_euler('xyz')
+    return np.column_stack((np.clip(position, -.2, .2), np.clip(euler, -1., 1.)))
+
+
+def inverse_residual_input(desired, previous, scale, clip, ema, mapping, input_scale):
+    """Invert upstream EMA and its input map within the configured action bounds."""
+    mapped = (np.clip(desired, -clip, clip) - ema * previous) / ((1. - ema) * scale)
+    if mapping == 'identity':
+        return mapped
+    if mapping == 'linear':
+        return np.clip(mapped / input_scale, -1., 1.)
+    return np.clip(mapped / (1. + np.abs(mapped) * (1. - 1. / input_scale)), -1., 1.)

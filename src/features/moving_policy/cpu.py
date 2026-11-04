@@ -12,7 +12,7 @@ def initialize(output, gpu=False):
     import warp as wp
     # Set before Newton can initialize Warp. No CUDA context or device is requested.
     wp.config.enable_cuda = gpu
-    wp.config.kernel_cache_dir = str(output / 'cache/warp')
+    wp.config.kernel_cache_dir = os.environ.get('WARP_CACHE_PATH', str(output / 'cache/warp'))
     wp.set_device('cuda:0' if gpu else 'cpu')
     return wp
 
@@ -55,6 +55,14 @@ def template(args, output):
     from flash_chord.embodiments.binding import _reference_body_q
     from .geometry import template_frame
     task = pq.ParquetFile(args.task).read().to_pylist()[0]
+    # Relocation only: shipped reference assets moved into data/ with the layout.
+    from flash_chord.assets import registry
+    original_resolve = registry.resolve_asset_path
+    base = Path(args.task).parents[2]
+    relocation = {value: str(base / Path(value).name) for key in ('object_mesh_paths', 'object_urdf_paths') for value in task[key] if not Path(value).is_file()}
+    def resolve(path, *, reference_path=None):
+        return relocation[path] if path in relocation else original_resolve(path, reference_path=reference_path)
+    registry.resolve_asset_path = resolve
     frame = template_frame(task)
     reference = load_reference(args.task, control_fps=float(task['fps']), motion_speed=1.)
     builder, layout, bound = robot(reference)
