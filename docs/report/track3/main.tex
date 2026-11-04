@@ -26,12 +26,12 @@
 \newcommand{\ThirtyEightMinutes}{at least 63}
 \newcommand{\SpoonStatus}{The same method on spoon clips 35, 36 and 37 stopped at the mask-usability check, before any tracking; all three keep their static exports.}
 % Leaderboard values arrived after every method choice and steered nothing.
-\newcommand{\LBCDO}{[pending]}
-\newcommand{\LBAUC}{[pending]}
-\newcommand{\LBSPSR}{[pending]}
-\newcommand{\LBMPSR}{[pending]}
-\newcommand{\LBRPE}{[pending]}
-\newcommand{\LBMPPE}{[pending]}
+\newcommand{\LBCDO}{0.56471\,cm}
+\newcommand{\LBAUC}{0.32339}
+\newcommand{\LBSPSR}{0.20}
+\newcommand{\LBMPSR}{0}
+\newcommand{\LBRPE}{20.108\,cm}
+\newcommand{\LBMPPE}{14.296\,cm}
 % ===== END ADOPTION / NUMBERS BLOCK =====
 
 \venue{From Human Videos to Dexterous Robot Capability (CoRL 2026)}
@@ -59,8 +59,8 @@ It excludes the admitted moving rollout on 38.
 One combined file supplies meshes and poses to all six boards.
 Pretrained shape gains remain development findings; scan reuse and amended
 moving gates limit the evidence.
-The all-static fallback scored AUC 0.307; the moving file's scores were
-pending at writing.
+The moving file scored AUC 0.323 against the all-static fallback's
+0.307 (SP-SR 0.20 against 0.15).
 \end{abstract}
 
 \begin{document}
@@ -217,7 +217,7 @@ a non-human hold and unscored contact establish neither transfer nor dexterity.
 \textbf{Leaderboard.} The all-static fallback (combined v5, 4 November
 14:15 UTC) scored CD-O 0.56604\,cm, AUC 0.30715, SP-SR 0.15, MP-SR 0, RPE
 20.108\,cm, MPPE 14.624\,cm; mesh-only D1 v5 scored CD-O 0.53562\,cm. The
-moving file: CD-O \LBCDO; AUC \LBAUC; SP-SR \LBSPSR; MP-SR \LBMPSR; RPE
+moving file (14:33 UTC): CD-O \LBCDO; AUC \LBAUC; SP-SR \LBSPSR; MP-SR \LBMPSR; RPE
 \LBRPE; MPPE \LBMPPE. Scores came after every method choice and steered nothing.
 
 \section{Conclusion}
